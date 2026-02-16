@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proje Ba&#287;lam&#305; &amp; Yolculuk | Anadili T&uuml;rk&ccedil;e LLM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as tokenizer report
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Tables */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+        .status.idea { background: #f3e8ff; color: #6b21a8; }
+
+        /* Timeline */
+        .timeline { position: relative; margin: 24px 0; padding-left: 24px; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #000; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #000; background: var(--bg); }
+        .timeline-item.done::before { background: #16a34a; border-color: #16a34a; }
+        .timeline-item.active::before { background: #2563eb; border-color: #2563eb; }
+        .timeline-item .tl-title { font-size: 13px; font-weight: 700; }
+        .timeline-item .tl-desc { font-size: 12px; color: #666; margin-top: 2px; }
+
+        /* Flow diagram */
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.next { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .flow-box.rl { background: #fef9c3; border-color: #854d0e; }
+
+        /* Quote */
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .quote .attr { font-style: normal; font-size: 11px; color: #666; margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer-tr.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="project-context_tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="project-context.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>SIFIRDAN T&Uuml;RK&Ccedil;E LLM &#304;N&#350;A ETMEK &ldquo;?&rdquo;</h1>
+        <p class="subtitle">Proje Ba&#287;lam&#305;, Yolculuk &amp; Yol Boyunca Asl&#305;nda Ke&#351;fettiklerimiz</p>
+        <p class="authors">&#350;ubat 2026 &bull; Ba&#287;&#305;ms&#305;z Ara&#351;t&#305;rma &bull; Ya&#351;ayan Dok&uuml;man</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">5</div>
+                <div class="label">PLANLANAN FAZ</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">1</div>
+                <div class="label">TAMAMLANAN FAZ</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">100M&ndash;4B</div>
+                <div class="label">PARAMETRE ARALI&#286;I</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">128K</div>
+                <div class="label">HEDEF BA&#286;LAM</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">TOKEN&#304;ZER S&Ouml;ZL&Uuml;K</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Bu nedir?</strong> Bu bir makale de&#287;il. Bu, anadili T&uuml;rk&ccedil;e bir LLM&rsquo;i s&#305;f&#305;rdan in&#351;a etmenin 
+            ya&#351;ayan kayd&#305; &mdash; her karar, her hata, her &ldquo;aha&rdquo; an&#305;. Bir tokenizer projesi olarak ba&#351;lad&#305; 
+            ve &ccedil;ok daha derin bir &#351;eye d&ouml;n&uuml;&#351;t&uuml;: modern yapay zekan&#305;n t&uuml;m katmanlar&#305;nda 
+            bir yolculuk, byte-pair encoding&rsquo;den Nietzsche&rsquo;ye. Ama&ccedil; saplant&#305;l&#305; bi&ccedil;imde &ldquo;en iyi&rdquo; 
+            LLM&rsquo;i yaratmak de&#287;il &mdash; her katman&#305; s&#305;f&#305;rdan in&#351;a ederek kazand&#305;&#287;&#305;m&#305;z derin 
+            anlay&#305;&#351;. <strong>Yol, var&#305;&#351; noktas&#305;ndan daha &ccedil;ok &#351;ey &ouml;&#287;retir.</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. BU N&#304;YE VAR</h2>
+        <!-- ============================================ -->
+
+        <p>T&uuml;m b&uuml;y&uuml;k dil modelleri &#304;ngilizce merkezli bir temel &uuml;zerine in&#351;a edilmi&#351;tir. T&uuml;rk&ccedil;e 
+        metin GPT-4&rsquo;&uuml;n tokenizer&rsquo;&#305;ndan ge&ccedil;ti&#287;inde, olmas&#305; gerekenden yakla&#351;&#305;k 
+        <strong>2,7 kat daha fazla token</strong> harcar. T&uuml;rk&ccedil;enin sondan eklemeli yap&#305;s&#305; &mdash; anlam&#305;n 
+        ek zincirleriyle ta&#351;&#305;nd&#305;&#287;&#305; yap&#305; &mdash; &#304;ngilizce i&ccedil;in e&#287;itilmi&#351; 
+        tokenizer&rsquo;lara yabanc&#305;d&#305;r.</p>
+
+        <p>Mevcut T&uuml;rk&ccedil;e LLM&rsquo;ler (Kumru, Hamza, LlamaTurk, TURNA ve Bo&#287;azi&ccedil;i, ODT&Uuml; gibi 
+        kurumlardan &ccedil;&#305;kan &ccedil;al&#305;&#351;malar) ciddi &ccedil;al&#305;&#351;malar ve anlaml&#305; sonu&ccedil;lar i&ccedil;erir. 
+        Kimisi &ouml;zel tokenizer e&#287;itir, kimisi s&#305;f&#305;rdan in&#351;a eder, kimisi &ccedil;ok dilli temelleri geni&#351;letir. 
+        Yak&#305;ndan inceledikten sonra d&uuml;r&uuml;st &ccedil;&#305;kar&#305;m &#351;u: iyi i&#351;ler var, ama her biri farkl&#305; 
+        &ouml;d&uuml;nle&#351;imler yap&#305;yor &mdash; ve hi&ccedil;biri bizim arad&#305;&#287;&#305;m&#305;z u&ccedil;tan uca 
+        anlay&#305;&#351;&#305; vermedi. Her katman&#305; kendimiz in&#351;a etmek istedik; mevcut &ccedil;al&#305;&#351;malar k&ouml;t&uuml; 
+        oldu&#287;u i&ccedil;in de&#287;il(except kumru it is fundamentally broken), &ouml;&#287;renme <em>in&#351;a etme s&uuml;recinde</em> ger&ccedil;ekle&#351;ti&#287;i i&ccedil;in.</p>
+
+        <div class="finding">
+            <strong>Motivasyon:</strong> GPT-4 veya Claude ile yar&#305;&#351;mak de&#287;il. Bu sistemlerin nas&#305;l &ccedil;al&#305;&#351;t&#305;&#287;&#305;n&#305; 
+            &mdash; derinden, mekanik d&uuml;zeyde &mdash; birini in&#351;a ederek anlamak. Her faz zihni biraz daha a&ccedil;&#305;yor. 
+            Tokenizer faz&#305; tek ba&#351;&#305;na, bilgi temsili hakk&#305;nda hi&ccedil;bir dersin veremeyece&#287;i kadar 
+            &#351;ey &ouml;&#287;retti. Mimari faz&#305;, &ldquo;ak&#305;l y&uuml;r&uuml;tme&rdquo;nin ger&ccedil;ekte ne anlama geldi&#287;ini 
+            (ve ne anlama gelmedi&#287;ini) g&ouml;sterdi. Sonraki a&#351;amalar daha da fazlas&#305;n&#305; &ouml;&#287;retecek.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. KUTUP YILDIZI: AKIL Y&Uuml;R&Uuml;TME</h2>
+        <!-- ============================================ -->
+
+        <p>Birincil hedef bilgi kapsam&#305; de&#287;il, sohbet ak&#305;c&#305;l&#305;&#287;&#305; de&#287;il, benchmark puanlar&#305; de&#287;il. 
+        Hedef <strong>ak&#305;l y&uuml;r&uuml;tme</strong> &mdash; ola&#287;an&uuml;st&uuml; mant&#305;k yetene&#287;i. Model &#351;unlar&#305; yapabilmeli:</p>
+
+        <ul>
+            <li><strong>Anlama</strong> &mdash; girdiyi &ccedil;&ouml;z&uuml;mle, ne soruldu&#287;unu belirle</li>
+            <li><strong>Par&ccedil;alama</strong> &mdash; problemi alt par&ccedil;alara b&ouml;l</li>
+            <li><strong>Ad&#305;m ad&#305;m ak&#305;l y&uuml;r&uuml;tme</strong> &mdash; mant&#305;ksal yap&#305;y&#305; uygula (e&#287;er A&rarr;B ve B&rarr;C ise A&rarr;C)</li>
+            <li><strong>&Ouml;z denetim</strong> &mdash; tutars&#305;zl&#305;klar&#305; tespit et ve y&ouml;n&uuml; d&uuml;zelt</li>
+            <li><strong>Bilim insan&#305; gibi d&uuml;&#351;&uuml;n</strong> &mdash; d&#305;&#351;ar&#305;dan taklit de&#287;il, i&ccedil;inden &ouml;yle i&#351;lesin</li>
+        </ul>
+
+        <p>Model pek &ccedil;ok &#351;ey bilmese bile, bildikleri &uuml;zerinde do&#287;ru ak&#305;l y&uuml;r&uuml;tmeli. 
+        Bilgi sonradan eklenebilir; ak&#305;l y&uuml;r&uuml;tme yap&#305;s&#305; eklenemez.</p>
+
+        <div class="insight">
+            <strong>Kritik ayr&#305;m: &ldquo;Ak&#305;l y&uuml;r&uuml;tmeyi &ouml;&#287;renmek&rdquo; ile &ldquo;Ak&#305;l y&uuml;r&uuml;t&uuml;yormu&#351; gibi davranmak.&rdquo;</strong><br><br>
+            &Ouml;nceki ince ayar deneyimlerimizden: SFT verisine kas&#305;tl&#305; hata-d&uuml;zeltme kal&#305;plar&#305; koymak 
+            sonu&ccedil;lar&#305; <strong>her zaman daha k&ouml;t&uuml;</strong> yapt&#305;. Model &ldquo;hatalar&#305; yakalamay&#305;&rdquo; 
+            &ouml;&#287;renmiyor &mdash; hata <em>&uuml;retmeyi</em> &ouml;&#287;reniyor, &ccedil;&uuml;nk&uuml; SFT &ldquo;&ccedil;&#305;kt&#305; 
+            b&ouml;yle g&ouml;r&uuml;nmeli&rdquo; der.<br><br>
+            <strong>Ger&ccedil;ek ak&#305;l y&uuml;r&uuml;tme RL&rsquo;den (RLVR) gelir</strong> &mdash; do&#287;rulanabilir &ouml;d&uuml;llerle 
+            peki&#351;tirmeli &ouml;&#287;renme. Model kendi cevaplar&#305;n&#305; &uuml;retir, yaln&#305;zca do&#287;ru nihai cevaplar i&ccedil;in 
+            &ouml;d&uuml;llendirilir ve deneme-yan&#305;lma yoluyla etkili ak&#305;l y&uuml;r&uuml;tme stratejileri ke&#351;feder. 
+            SFT format &ouml;&#287;retir. RLVR d&uuml;&#351;&uuml;nmeyi &ouml;&#287;retir. Taklit ile &ouml;&#287;renme aras&#305;ndaki fark budur.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. &#350;&#304;MD&#304;YE KADAR YOLCULUK</h2>
+        <!-- ============================================ -->
+
+        <h3>Yol Haritas&#305;</h3>
+
+        <div class="flow">
+            <div class="flow-box done">FAZ 1<br><span style="font-weight: 400; font-size: 10px;">Tokenizer</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box next">FAZ 2<br><span style="font-weight: 400; font-size: 10px;">Mimari</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">FAZ 3<br><span style="font-weight: 400; font-size: 10px;">&Ouml;n E&#287;itim</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">FAZ 4<br><span style="font-weight: 400; font-size: 10px;">SFT</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box rl">FAZ 5<br><span style="font-weight: 400; font-size: 10px;">RLVR</span></div>
+        </div>
+
+        <table>
+            <tr><th>Faz</th><th>Durum</th><th>Ne &Ouml;&#287;retiyor</th><th>Kapsam</th></tr>
+            <tr class="highlight">
+                <td><strong>1. Tokenizer</strong></td>
+                <td><span class="status complete">TAMAM</span></td>
+                <td>Bilgi temsili, morfoloji, veri &ouml;l&ccedil;ekleme</td>
+                <td>64K BPE, 22 GB derlem, 11 alan, 104 c&uuml;mle k&#305;yaslamas&#305;</td>
+            </tr>
+            <tr>
+                <td><strong>2. Mimari</strong></td>
+                <td><span class="status next">S&#304;RADAK&#304;</span></td>
+                <td>Hesaplama nas&#305;l ak&#305;l y&uuml;r&uuml;tmeye d&ouml;n&uuml;&#351;&uuml;r</td>
+                <td>100M&ndash;4B parametre, 128K ba&#287;lam, yaln&#305;z-&ccedil;&ouml;z&uuml;c&uuml;, ak&#305;l y&uuml;r&uuml;tme &ouml;ncelikli</td>
+            </tr>
+            <tr>
+                <td><strong>3. &Ouml;n E&#287;itim</strong> <span style="font-weight:400; font-size:10px;">(as&#305;l &ldquo;e&#287;itim&rdquo;)</span></td>
+                <td><span class="status progress">BEKL&#304;YOR</span></td>
+                <td>&ldquo;Bilgi&rdquo; ger&ccedil;ekte ne demek</td>
+                <td>T&uuml;rk&ccedil;e derlem &uuml;zerinde sonraki-token tahmini (teacher forcing)</td>
+            </tr>
+            <tr>
+                <td><strong>4. SFT</strong> <span style="font-weight:400; font-size:10px;">(ince ayar)</span></td>
+                <td><span class="status progress">BEKL&#304;YOR</span></td>
+                <td>Format, ak&#305;l y&uuml;r&uuml;tme de&#287;il</td>
+                <td>Ter&uuml;temiz talimat verisi. Hata yok.</td>
+            </tr>
+            <tr>
+                <td><strong>5. RLVR</strong> <span style="font-weight:400; font-size:10px;">(&ouml;d&uuml;lle ileri e&#287;itim)</span></td>
+                <td><span class="status progress">BEKL&#304;YOR</span></td>
+                <td>&ldquo;Do&#287;ru&rdquo; ger&ccedil;ekte ne demek</td>
+                <td>Do&#287;rulanabilir cevaplar&#305; olan matematik/kod/mant&#305;k problemleri</td>
+            </tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>4. FAZ 1: TOKEN&#304;ZER &mdash; HER &#350;EY&#304;N BA&#350;LADI&#286;I YER</h2>
+        <!-- ============================================ -->
+
+        <p>&ldquo;Sadece bir tokenizer yap&rdquo; diye ba&#351;layan i&#351;, dilin say&#305;lara nas&#305;l d&ouml;n&uuml;&#351;t&uuml;&#287;&uuml;n&uuml;n, 
+        &#304;ngilizce merkezli tasar&#305;m&#305;n di&#287;er dillere neden zarar verdi&#287;inin ve veriyle s&ouml;zl&uuml;&#287;&uuml;n 
+        &#351;a&#351;&#305;rt&#305;c&#305; bi&ccedil;imde nas&#305;l etkile&#351;ti&#287;inin derin ke&#351;fine d&ouml;n&uuml;&#351;t&uuml;. 
+        <em>(<a href="tokenizer-research_tr.html">Tam tokenizer raporu &rarr;</a>)</em></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~14%</div>
+                <div class="label">KUMRU/TABIBERT&rsquo;TEN DAHA AZ TOKEN</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~2,7&times;</div>
+                <div class="label">GPT-4&rsquo;TEN DAHA AZ TOKEN</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">S&Ouml;ZL&Uuml;K BOYUTU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">22 GB</div>
+                <div class="label">DERLEM (27 DOSYA, 11 ALAN)</div>
+            </div>
+        </div>
+
+        <h3>Anlay&#305;&#351;&#305;m&#305;z&#305; de&#287;i&#351;tiren &uuml;&ccedil; ke&#351;if</h3>
+
+        <div class="warning">
+            <strong>Ke&#351;if 1: GPT-2 regex T&uuml;rk&ccedil;eyi bozuyor.</strong> GPT-4, Llama 3 ve Mistral taraf&#305;ndan kullan&#305;lan 
+            &ouml;n-tokenizasyon regex&rsquo;i, &#304;ngilizce k&#305;saltma kal&#305;plar&#305; (<code>'s|'t|'re|'d</code>) i&ccedil;erir 
+            ve T&uuml;rk&ccedil;e eklerin ilk karakterini &ccedil;alar. <code>Ankara'd&#305;r</code>, 
+            <code>["Ankara", "'", "d&#305;r"]</code> yerine <code>["Ankara", "'d", "&#305;r"]</code> olur. 
+            Bildi&#287;imiz kadar&#305;yla bu etkile&#351;im daha &ouml;nce hi&ccedil;bir yerde belgelenmemi&#351;ti.
+        </div>
+
+        <div class="discovery">
+            <strong>Ke&#351;if 2: Darbo&#287;az veri de&#287;il, s&ouml;zl&uuml;k.</strong> 48K s&ouml;zl&uuml;kte 
+            10 GB&rsquo;den 22 GB&rsquo;ye veri eklenince iyile&#351;me sadece %0,9 oldu (g&ouml;r&uuml;n&uuml;rde azalan getiri). 
+            Ama ayn&#305; 22 GB &uuml;zerinde 64K e&#287;itildi&#287;inde <strong>%10,1</strong> iyile&#351;me sa&#287;land&#305;. 
+            48K tokenizer birle&#351;tirme slotlar&#305;n&#305; t&uuml;ketmi&#351;ti &mdash; veriyi de&#287;il. S&ouml;zl&uuml;k ve veri birlikte b&uuml;y&uuml;t&uuml;lmelidir.
+        </div>
+
+        <div class="finding">
+            <strong>Ke&#351;if 3: D&uuml;z istatistik morfolojiyi kendi ba&#351;&#305;na ke&#351;fediyor.</strong> Hi&ccedil;bir dilbilimsel kural 
+            programlanmad&#305;. BPE, s&#305;kl&#305;k kal&#305;plar&#305;ndan morfem benzeri s&#305;n&#305;rlar&#305; do&#287;al olarak buldu. 
+            &ldquo;ev&rdquo;in alt&#305; farkl&#305; dilbilgisel bi&ccedil;imi &mdash; <code>ev, evde, evden, eve, evin, evler</code> &mdash; 
+            hepsi tek token. <code>de&#287;erlendirilmelidir</code> (6 morfemlik ek zinciri) tek token.
+        </div>
+
+        <p>Tokenizer faz&#305; bize &#351;unu &ouml;&#287;retti: <strong>temsil her &#351;eydir.</strong> Bir model T&uuml;rk&ccedil;e &uuml;zerinde 
+        ak&#305;l y&uuml;r&uuml;tebilmek i&ccedil;in &ouml;nce onu verimli bi&ccedil;imde okuyup yazabilmelidir. K&ouml;t&uuml; bir tokenizer, 
+        pipetten d&uuml;&#351;&uuml;nmeye &ccedil;al&#305;&#351;mak gibidir &mdash; bir miktar sinyal ge&ccedil;er ama kapasitenin 
+        &ccedil;o&#287;u darbo&#287;aza harcan&#305;r.</p>
+
+        <p style="font-size: 12px; margin-top: 16px;">
+            <strong>&Uuml;r&uuml;nler:</strong> 
+            <a href="tokenizer-research.html">EN rapor</a> &bull; 
+            <a href="tokenizer-research_tr.html">TR rapor</a> &bull; 
+            <code>benchmark_tokenizers.py</code> (104 c&uuml;mle) &bull; 
+            <code>train_tokenizer.py</code> &bull; 
+            <code>tokenizers/turkish_bpe_64k/</code>
+        </p>
+
+        <!-- ============================================ -->
+        <h2>5. TOKEN&#304;ZER&rsquo;IN A&Ccedil;TI&#286;I KAPI</h2>
+        <!-- ============================================ -->
+
+        <p>Tokenizer faz&#305; bize &ccedil;al&#305;&#351;an bir 64K T&uuml;rk&ccedil;e BPE verdi. Ama as&#305;l hediye kimsenin 
+        beklemedi&#287;i bir &#351;eydi: yapay zekay&#305;, dili ve end&uuml;strinin tamam&#305;n&#305; nas&#305;l g&ouml;rd&uuml;&#287;&uuml;m&uuml;z&uuml; 
+        k&ouml;k&uuml;nden de&#287;i&#351;tiren bir bak&#305;&#351; a&ccedil;&#305;s&#305;. <strong>Bu, projenin tamam&#305;nda 
+        &#351;imdiye kadar &ouml;&#287;rendi&#287;imiz en &ouml;nemli &#351;ey.</strong></p>
+
+        <h3>Tokenizer ger&ccedil;ekte nedir?</h3>
+
+        <p>Jargonu bir kenara b&#305;rakal&#305;m. Tokenizer tek bir i&#351; yapar: yap&#305;land&#305;r&#305;lm&#305;&#351; girdiyi 
+        bir say&#305; dizisine &ccedil;evirir. Biz girdi olarak T&uuml;rk&ccedil;e metin kulland&#305;k. Ama algoritmada girdinin 
+        insan dili olmas&#305;n&#305; gerektiren hi&ccedil;bir &#351;ey yok.</p>
+
+        <p>64K BPE&rsquo;mizi e&#287;itirken algoritma T&uuml;rk&ccedil;e i&#351;ledi&#287;ini &ldquo;bilmiyordu.&rdquo; Bayt 
+        dizilerini g&ouml;rd&uuml;, s&#305;k tekrarlanan kal&#305;plar&#305; buldu ve bunlar&#305; tokenlere birle&#351;tirdi. 
+        Sonu&ccedil;: <strong>girdi kal&#305;plar&#305; &rarr; tam say&#305; kimlikleri.</strong> Hepsi bu. Algoritma bu kal&#305;plar&#305;n 
+        T&uuml;rk&ccedil;e ek mi, m&uuml;zik notas&#305; m&#305;, yoksa kimyasal ba&#287; m&#305; oldu&#287;unu umursamaz.</p>
+
+        <p>Bunu ger&ccedil;ekten i&ccedil;selle&#351;tirdi&#287;inizde, bir daha kapanmayacak bir kap&#305; a&ccedil;&#305;l&#305;r.</p>
+
+        <h3>Her &#351;eyi de&#287;i&#351;tiren soru</h3>
+
+        <div class="philosophy">
+            <strong>Bir &ldquo;dil&rdquo; nedir asl&#305;nda?</strong><br><br>
+            S&uuml;rekli &ldquo;dil modeli&rdquo; diyorduk. Peki bir &#351;eyi dil yapan ne? 
+            <strong>S&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305; ve dilbilgisi olan her sistem</strong> &mdash; &ouml;&#287;eler 
+            k&uuml;mesi ve bunlar&#305;n nas&#305;l birle&#351;ece&#287;inin kurallar&#305;. &#304;nsan dili bunun bir &ouml;rne&#287;i. 
+            Tek &ouml;rne&#287;i de&#287;il. Pratik yapay zeka i&ccedil;in en &ouml;nemlisi bile de&#287;il.
+        </div>
+
+        <p><strong>M&uuml;zik bir dildir.</strong> Notalar s&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;d&#305;r. Akor ilerlemeleri, 
+        gamlar, ritim kal&#305;plar&#305;, tonaliteler &mdash; bunlar dilbilgisidir. Bir melodi bir &ldquo;c&uuml;mle&rdquo;dir. 
+        Bir senfoni bir &ldquo;dok&uuml;man&rdquo;d&#305;r. M&uuml;zik i&ccedil;in bir &ldquo;tokenizer&rdquo;, nota olaylar&#305;n&#305; 
+        (perde, s&uuml;re, h&#305;z, akor) tam say&#305; kimliklerine e&#351;ler. Bu token dizileri &uuml;zerinde e&#287;itilmi&#351; 
+        bir transformer &ouml;&#287;renir: bu akor ilerlemesinden sonra bu &ccedil;&ouml;z&uuml;m gelir. Bu ritim kal&#305;b&#305;ndan 
+        sonra bu varyasyon izler. Transformer &ldquo;m&uuml;zik yapt&#305;&#287;&#305;n&#305;&rdquo; bilmez. Sonraki tokeni tahmin 
+        eder &mdash; aynen T&uuml;rk&ccedil;e kelimelerle yapt&#305;&#287;&#305; gibi.</p>
+
+        <p><strong>Proteinler bir dildir.</strong> Amino asitler s&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;d&#305;r &mdash; sadece 20 
+        temel karakter. Proteinler &ldquo;c&uuml;mle&rdquo;dir: fiziksel kurallara g&ouml;re 3B yap&#305;lara katlanan diziler. 
+        &ldquo;Dilbilgisi&rdquo;, hangi dizilerin alfa sarmal, hangilerinin beta tabaka olu&#351;turdu&#287;unu, hangi 
+        kombinasyonlar&#305;n belirli resept&ouml;rlere ba&#287;land&#305;&#287;&#305;n&#305; belirler. Protein dizileri &uuml;zerinde 
+        e&#287;itilmi&#351; bir transformer bu dilbilgisini &ouml;&#287;renir &mdash; biyoloji anlad&#305;&#287;&#305; i&ccedil;in de&#287;il, 
+        token dizilerinde istatistiksel kal&#305;plar buldu&#287;u i&ccedil;in. AlphaFold s&#305;n&#305;f&#305; modeller tam olarak 
+        b&ouml;yle &ccedil;al&#305;&#351;&#305;r.</p>
+
+        <p><strong>Kimyasal form&uuml;ller bir dildir.</strong> SMILES notasyonu molek&uuml;ler yap&#305;lar&#305; metin dizeleri 
+        olarak kodlar. Atomlar ve ba&#287;lar s&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;d&#305;r. De&#287;erlik kurallar&#305;, halka 
+        yap&#305;lar&#305;, fonksiyonel gruplar &mdash; bunlar dilbilgisidir. Bir &ldquo;tokenizer&rdquo; kimyasal sembolleri 
+        tam say&#305;lara e&#351;ler. Transformer &ouml;&#287;renir: bu molek&uuml;l par&ccedil;as&#305;ndan sonra bu ba&#287;lanma 
+        &ouml;zelli&#287;i muhtemeldir. &#304;la&ccedil; ke&#351;if modelleri zaten b&ouml;yle &ccedil;al&#305;&#351;&#305;r.</p>
+
+        <p><strong>DNA bir dildir.</strong> D&ouml;rt n&uuml;kleotid &mdash; A, T, C, G &mdash; t&uuml;m s&ouml;zc&uuml;k 
+        da&#287;arc&#305;&#287;&#305; budur. Kodon &uuml;&ccedil;l&uuml;leri amino asitleri kodlar. D&uuml;zenleyici b&ouml;lgeler 
+        gen ifadesini kontrol eder. Genomik modeller bu dizileri tokenize eder ve mutasyonlar&#305;, gen i&#351;levini, hatta 
+        hastal&#305;k riskini tahmin etmeyi &ouml;&#287;renir. 4 tokenlik s&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;, milyarlarca 
+        y&#305;ll&#305;k evrimle kodlanm&#305;&#351; dilbilgisi.</p>
+
+        <p><strong>Bir fabrika &uuml;retim hatt&#305; bir dildir.</strong> Malzeme kodlar&#305;, makine ayarlar&#305;, &ccedil;evre 
+        ko&#351;ullar&#305;, test sonu&ccedil;lar&#305; &mdash; bunlar nedensel yap&#305;ya sahip diziler olu&#351;turur. 
+        &ldquo;S&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;&rdquo; 500&ndash;2000 token olabilir. &ldquo;Dilbilgisi&rdquo; fiziksel 
+        nedensellik zinciridir: <code>PVC_bilesik_A + sicaklik_175 + hiz_15 &rarr; cekme_GECTI + shore_85</code>. 
+        50 milyon parametreli bir model, tek bir metre kablo &uuml;retilmeden &ouml;nce &uuml;retim sonu&ccedil;lar&#305;n&#305; 
+        tahmin etmeyi &ouml;&#287;renebilir &mdash; malzeme, enerji ve zaman tasarrufu.</p>
+
+        <div class="warning">
+            <strong>Kritik a&ccedil;&#305;klama: bu modeller &ldquo;konu&#351;maz.&rdquo;</strong> &Ccedil;o&#287;u insan&#305;n 
+            kafas&#305;n&#305;n kar&#305;&#351;t&#305;&#287;&#305; nokta buras&#305;. Bir m&uuml;zik modeli &#304;ngilizce m&uuml;zik 
+            hakk&#305;nda sohbet etmez. Girdi tokenleri notalar&#305;n <em>kendisidir</em> &mdash; ger&ccedil;ek 
+            perde/s&uuml;re/h&#305;z de&#287;erleri. &Ccedil;&#305;kt&#305; tokenleri de notalar&#305;n <em>kendisidir</em>. 
+            Model tek bir kelime insan dili g&ouml;rmemi&#351;tir. Bir protein modeli proteinleri c&uuml;mlelerle 
+            a&ccedil;&#305;klamaz. Tokenleri amino asit kodlar&#305;d&#305;r &mdash; 
+            <code>M E T H I O N I N E &hellip;</code>. Bir fabrika modeli &ldquo;hangi s&#305;cakl&#305;&#287;&#305; 
+            kullanmal&#305;y&#305;m?&rdquo; sorusuna T&uuml;rk&ccedil;e cevap vermez. Tokenleri <code>sicaklik_175 
+            hiz_15</code>&rsquo;tir ve &ccedil;&#305;kt&#305;s&#305; <code>cekme_GECTI</code>&rsquo;dir.<br><br>
+            Bu, <strong>bir sohbet botunu alan verisiyle ince ayar yapmak de&#287;ildir.</strong> O halde hala insan 
+            dilinde alan hakk&#305;nda konu&#351;an bir LLM olurdu. Bu temelden farkl&#305; bir &#351;eydir: modelin t&uuml;m 
+            s&ouml;zc&uuml;k da&#287;arc&#305;&#287;&#305;, dilbilgisi ve d&uuml;&#351;&uuml;nce s&uuml;reci alan notasyonunun 
+            <em>i&ccedil;inde</em> var olur. &#304;nsan dili dahil de&#287;il. Bu y&uuml;zden bu kadar k&uuml;&ccedil;&uuml;k 
+            ve bu kadar isabetli olabilirler.
+        </div>
+
+        <div class="insight">
+            <strong>&#304;&#351;te o an:</strong> Biz sadece bir T&uuml;rk&ccedil;e tokenizer yapmad&#305;k. Tokenizasyonun 
+            temelde ne oldu&#287;unu &ouml;&#287;rendik. Ve bir kez g&ouml;rd&uuml;&#287;&uuml;n&uuml;zde, bir daha g&ouml;rmezden 
+            gelemezsiniz: <strong>dizisel yap&#305;s&#305; olan her alan, kendi tokenizer&rsquo;&#305;n&#305; ve kendi modelini 
+            bekleyen bir &ldquo;dil&rdquo;dir.</strong> LLM de&#287;il. Sohbet botu de&#287;il. Amaca y&ouml;nelik bir dizi tahmin edici.
+        </div>
+
+        <h3>Her kap&#305;y&#305; a&ccedil;an be&#351; ad&#305;ml&#305;k zincir</h3>
+
+        <ol>
+            <li>Tokenizer sadece &#351;udur: <strong>yap&#305;land&#305;r&#305;lm&#305;&#351; kal&#305;plar &rarr; say&#305;lar</strong></li>
+            <li>Transformer sadece &#351;udur: <strong>&ouml;nceki say&#305;lardan sonraki say&#305;y&#305; tahmin etmeyi &ouml;&#287;ren</strong></li>
+            <li>&ldquo;Dil modeli&rdquo;, bu say&#305;lar kelimeleri temsil etti&#287;inde verdi&#287;imiz isimdir</li>
+            <li>Dizisel yap&#305;s&#305; olan <strong>HER</strong> veri tokenize edilebilir</li>
+            <li>Dolay&#305;s&#305;yla: <strong>transformer evrensel bir dizi &ouml;&#287;renicisidir</strong>, &ldquo;dil&rdquo; modeli de&#287;il</li>
+        </ol>
+
+        <h3>Her alan bir dildir</h3>
+
+        <table>
+            <tr><th>Alan</th><th>&ldquo;S&ouml;zc&uuml;k Da&#287;arc&#305;&#287;&#305;&rdquo;</th><th>&ldquo;Dilbilgisi&rdquo;</th><th>&ldquo;C&uuml;mleler&rdquo;</th><th>Model Boyutu</th></tr>
+            <tr>
+                <td>&#304;nsan dili</td>
+                <td>Kelimeler, alt-kelimeler (64K BPE)</td>
+                <td>S&ouml;zdizimi, anlam, edimbilim</td>
+                <td>Paragraflar, makaleler, kitaplar</td>
+                <td class="bad">Milyarlar (a&ccedil;&#305;k u&ccedil;lu)</td>
+            </tr>
+            <tr>
+                <td>M&uuml;zik</td>
+                <td>Notalar, akorlar, suslar, n&uuml;anslar</td>
+                <td>Armoni, ritim, tonalite, form</td>
+                <td>Melodiler, ilerlemeler, eserler</td>
+                <td>Y&uuml;z milyonlar</td>
+            </tr>
+            <tr>
+                <td>Proteinler</td>
+                <td>20 amino asit</td>
+                <td>Katlanma kurallar&#305;, ba&#287;lanma ilgileri</td>
+                <td>Protein zincirleri</td>
+                <td>Milyonlar&ndash;d&uuml;&#351;&uuml;k milyarlar</td>
+            </tr>
+            <tr>
+                <td>Kimya (SMILES)</td>
+                <td>Atomlar, ba&#287;lar, halka i&#351;aretleri</td>
+                <td>De&#287;erlik, kararl&#305;l&#305;k, reaktivite</td>
+                <td>Molek&uuml;ler yap&#305;lar</td>
+                <td>Y&uuml;z milyonlar</td>
+            </tr>
+            <tr>
+                <td>Kod</td>
+                <td>Anahtar kelimeler, operat&ouml;rler, tan&#305;mlay&#305;c&#305;lar</td>
+                <td>S&ouml;zdizimi kurallar&#305;, tip sistemleri</td>
+                <td>Fonksiyonlar, programlar</td>
+                <td>Y&uuml;z milyonlar&ndash;milyarlar</td>
+            </tr>
+            <tr>
+                <td>DNA / Genomik</td>
+                <td>4 n&uuml;kleotid (A, T, C, G)</td>
+                <td>Kodon kurallar&#305;, d&uuml;zenleyici kal&#305;plar</td>
+                <td>Gen dizileri</td>
+                <td>Milyonlar&ndash;y&uuml;z milyonlar</td>
+            </tr>
+            <tr class="highlight">
+                <td><strong>Kablo fabrikas&#305;</strong></td>
+                <td><strong>Malzeme kodlar&#305;, makine ayarlar&#305;</strong></td>
+                <td><strong>Girdi &rarr; &ccedil;&#305;kt&#305; nedensellik</strong></td>
+                <td><strong>&Uuml;retim ko&#351;ular&#305;</strong></td>
+                <td class="good"><strong>10&ndash;50M</strong></td>
+            </tr>
+            <tr class="highlight">
+                <td><strong>Herhangi bir fabrika / lab / klinik</strong></td>
+                <td><strong>Alana &ouml;zel kodlar</strong></td>
+                <td><strong>Alana &ouml;zel nedensel kurallar</strong></td>
+                <td><strong>S&uuml;re&ccedil; kay&#305;tlar&#305;</strong></td>
+                <td class="good"><strong>10&ndash;100M</strong></td>
+            </tr>
+        </table>
+
+        <div class="warning">
+            <strong>&ldquo;Konu&#351;ma&rdquo; asl&#305;nda EN ZOR uygulamad&#305;r.</strong> Tabloya bak&#305;n. &#304;nsan dili 
+            <em>milyarlarca</em> parametre gerektirir &ccedil;&uuml;nk&uuml; belirsiz, a&ccedil;&#305;k u&ccedil;lu, k&uuml;lt&uuml;re 
+            ba&#287;l&#305; ve geni&#351; d&uuml;nya bilgisi gerektirir. Di&#287;er her alan <em>daha basit</em>: daha k&uuml;&ccedil;&uuml;k 
+            s&ouml;zc&uuml;k da&#287;arc&#305;klar&#305;, daha net kurallar, &ouml;l&ccedil;&uuml;lebilir do&#287;ruluk. End&uuml;stri en zor 
+            duruma tak&#305;nt&#305;l&#305;yken, d&uuml;nyadaki her yap&#305;land&#305;r&#305;lm&#305;&#351; veri setinde yatan devasa 
+            de&#287;eri g&ouml;rmezden geliyor.
+        </div>
+
+        <h3>Kablo fabrikas&#305; &mdash; somut bir &ouml;rnek</h3>
+
+        <p>Bu varsay&#305;msal de&#287;il. Her kablo fabrikas&#305; her g&uuml;n &#351;u tarz veri &uuml;retir:</p>
+
+        <ul>
+            <li><strong>Tokenizer s&ouml;zl&uuml;&#287;&uuml;:</strong> ~500&ndash;2000 token (malzeme kodlar&#305;, makine ayarlar&#305;, test sonu&ccedil; kodlar&#305;)</li>
+            <li><strong>Girdi:</strong> <code>[MALZEME] PVC_bilesik_A [AYARLAR] sicaklik_175 hiz_15 basinc_8</code></li>
+            <li><strong>&Ccedil;&#305;kt&#305;:</strong> <code>[SONUCLAR] cekme_gecti uzama_420 alev_V0 shore_sertlik_85</code></li>
+            <li><strong>Model boyutu:</strong> 10&ndash;50M parametre. Tek GPU&rsquo;da saatler i&ccedil;inde e&#287;itilir.</li>
+            <li><strong>De&#287;eri:</strong> &Uuml;retim &ouml;ncesinde test sonu&ccedil;lar&#305;n&#305; tahmin et, malzeme israf&#305;n&#305; &ouml;nle</li>
+        </ul>
+
+        <p>Bu model, bu g&ouml;rev i&ccedil;in GPT-4&rsquo;ten daha isabetli, kat kat daha ucuz, diz&uuml;st&uuml; bilgisayarda &ccedil;al&#305;&#351;&#305;r, 
+        &ouml;zel verilerinizi gizli tutar ve T&uuml;rk&ccedil;e LLM in&#351;a ederken &ouml;&#287;rendi&#287;imiz <strong>birebir 
+        ayn&#305; becerilerle</strong> yap&#305;l&#305;r: tokenizer tasar&#305;m&#305;, mimari se&ccedil;imi, e&#287;itim hatt&#305; optimizasyonu.</p>
+
+        <h3>Bunun anlam&#305;: a&ccedil;&#305;lan kap&#305;lar</h3>
+
+        <p>Bunu kavrad&#305;&#287;&#305;m&#305;z an, projenin kapsam&#305; &ldquo;bir T&uuml;rk&ccedil;e LLM yap&rdquo;tan 
+        &ldquo;<em>herhangi</em> bir alan i&ccedil;in <em>herhangi</em> bir dizi modeli yapmay&#305; &ouml;&#287;ren&rdquo;e 
+        d&ouml;n&uuml;&#351;t&uuml;. Olas&#305;l&#305;klar:</p>
+
+        <ul>
+            <li>Her fabrika, her laboratuvar, her hastane, her i&#351;lem masas&#305; dizisel veri &uuml;retir</li>
+            <li>Her birinin kendi k&uuml;&ccedil;&uuml;k modeli olabilir (10M&ndash;100M parametre)</li>
+            <li>Bu modeller kendi alanlar&#305;nda genel LLM&rsquo;lerden <em>daha isabetli</em> olur</li>
+            <li>E&#287;itmesi ucuz (saatler, aylar de&#287;il), &ccedil;al&#305;&#351;t&#305;rmas&#305; ucuz (diz&uuml;st&uuml;, veri merkezi de&#287;il)</li>
+            <li>Gizli &mdash; verileriniz bina d&#305;&#351;&#305;na &ccedil;&#305;kmaz</li>
+            <li>Ve art&#305;k nas&#305;l yap&#305;laca&#287;&#305;n&#305; <strong>biliyoruz</strong> &mdash; &ccedil;&uuml;nk&uuml; LLM projesi t&uuml;m zanaat&#305; &ouml;&#287;retiyor</li>
+        </ul>
+
+        <div class="philosophy">
+            <strong>LLM her &#351;eyi &ouml;&#287;reten zor yoldur.</strong> En zor dizi modeli t&uuml;r&uuml;n&uuml; in&#351;a etmeyi 
+            se&ccedil;tik &mdash; insan dilini i&#351;leyen bir model. Yol boyunca tokenizer tasar&#305;m&#305;, mimari se&ccedil;imleri, 
+            e&#287;itim dinamikleri, veri stratejisi, de&#287;erlendirme metodolojisi &ouml;&#287;reniyoruz. Bu becerilerin her biri 
+            herhangi bir alana &ouml;zel model in&#351;as&#305;na do&#287;rudan aktar&#305;l&#305;r. T&uuml;rk&ccedil;e LLM hedef de&#287;il, 
+            e&#287;itim sahas&#305;d&#305;r. <strong>As&#305;l &ouml;d&uuml;l anlay&#305;&#351;t&#305;r ve anlay&#305;&#351;&#305;n tavan&#305; yoktur.</strong>
+        </div>
+
+        <h3>Tuzak: ara&ccedil; yerine tanr&#305; in&#351;a etmek</h3>
+
+        <div class="quote">
+            &ldquo;Belki insan zihni tekrar bir tanr&#305; ar&#305;yor &mdash; Nietzsche&rsquo;nin &ouml;ld&uuml;rd&uuml;&#287;&uuml; tanr&#305;y&#305;.&rdquo;
+            <div class="attr">&mdash; mimari tart&#305;&#351;mam&#305;zdan, end&uuml;strinin tek bir her &#351;eyi bilen yapay zeka in&#351;a etme saplant&#305;s&#305; &uuml;zerine</div>
+        </div>
+
+        <p>Yapay zeka end&uuml;strisi, her &#351;eyi do&#287;al dil arac&#305;l&#305;&#287;&#305;yla cevaplayan kadir-i mutlak bir 
+        sohbet varl&#305;&#287;&#305; in&#351;a etmek i&ccedil;in milyarlar d&ouml;k&uuml;yor &mdash; dijital bir tanr&#305;. Her problem 
+        &ldquo;yapay zekaya sor&rdquo;a indirgeniyor.</p>
+
+        <p>Ama art&#305;k net g&ouml;r&uuml;yoruz: ger&ccedil;ek d&uuml;nyadaki en de&#287;erli problemlerin &ccedil;o&#287;u sohbete 
+        ihtiya&ccedil; duymaz. Tahmin, kal&#305;p tan&#305;ma, optimizasyon ister. &ldquo;Konu&#351;ma&rdquo; katman&#305;, as&#305;l 
+        ihtiyac&#305;n&#305;z &ldquo;bu kablo &ccedil;ekme testini ge&ccedil;ecek mi?&rdquo; oldu&#287;unda pahal&#305; bir y&uuml;kt&uuml;r.</p>
+
+        <p>Alan tahmincisine ihtiyac&#305;n&#305;z varken tam bir LLM in&#351;a etmek, bisiklete ihtiyac&#305;n&#305;z varken 
+        Boeing 747 yapmak gibidir. Bisiklet daha basit, ucuz ve sizi gidece&#287;iniz yere daha h&#305;zl&#305; g&ouml;t&uuml;r&uuml;r 
+        &mdash; markete gidiyorsan&#305;z tabii.</p>
+
+        <h3>Orkestra vizyonu</h3>
+
+        <p>Gelecek tek bir devasa model de&#287;il. <strong>Orkestrasyon</strong>dur: her biri kendi alan&#305; i&ccedil;in 
+        optimize edilmi&#351; birden fazla k&uuml;&ccedil;&uuml;k, uzman model, birlikte &ccedil;al&#305;&#351;&#305;r.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #dbeafe;">PLANLAMACI<br><span style="font-weight: 400; font-size: 10px;">&#304;stekleri y&ouml;nlendirir</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7;">AKIL Y&Uuml;R&Uuml;T&Uuml;C&Uuml;<br><span style="font-weight: 400; font-size: 10px;">Mant&#305;k ve par&ccedil;alama</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fef9c3;">UZMAN<br><span style="font-weight: 400; font-size: 10px;">Alan bilgisi</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #f3e8ff;">ARA&Ccedil;LAR<br><span style="font-weight: 400; font-size: 10px;">Hesap makinesi, kod, arama</span></div>
+        </div>
+
+        <p>Biz ak&#305;l y&uuml;r&uuml;t&uuml;c&uuml;y&uuml; in&#351;a ediyoruz. Uzmanlar fabrika modelleri, t&#305;p modelleri, 
+        finans modelleri olabilir &mdash; her biri k&uuml;&ccedil;&uuml;k, her biri isabetli, her biri &#351;u an 
+        &ouml;&#287;rendi&#287;imiz becerilerle in&#351;a edilmi&#351;.</p>
+
+        <!-- ============================================ -->
+        <h2>6. ADIM ADIM NASIL &Ccedil;ALI&#350;IR: HER ALAN &#304;&Ccedil;&#304;N &Ouml;RNEKLERLE</h2>
+        <!-- ============================================ -->
+
+        <p>B&ouml;l&uuml;m 5, her alan&#305;n bir dil oldu&#287;unu ve her dizinin tokenize edilebilece&#287;ini iddia etti. 
+        Bu hâlâ soyut gelebilir. O y&uuml;zden somutla&#351;t&#305;ral&#305;m. A&#351;a&#287;&#305;da be&#351; farkl&#305; alan i&ccedil;in 
+        makinenin i&ccedil;inde <strong>tam olarak ne oldu&#287;unu</strong> &mdash; ham girdiden son &ccedil;&#305;kt&#305;ya 
+        &mdash; g&ouml;steren <strong>&#246;rnek y&uuml;r&uuml;y&uuml;&#351;ler</strong> var. S&uuml;re&ccedil; her seferinde 
+        birebir ayn&#305;. Sadece tokenlar de&#287;i&#351;iyor.</p>
+
+        <h3>&#9312; Dil modeli (T&uuml;rk&ccedil;e LLM)</h3>
+
+        <div class="abstract">
+            <strong>Kullan&#305;c&#305; soruyor:</strong> <code>Ankara'n&#305;n n&uuml;fusu ka&ccedil;t&#305;r?</code><br><br>
+
+            <strong>Ad&#305;m 1 &mdash; Tokenize et (metin &rarr; say&#305;lar).</strong> Tokenizer her par&ccedil;ay&#305; 64K kelime haznesinde arar:<br>
+            <code>&ldquo;Ankara&rdquo; &rarr; 3847 &nbsp;| &ldquo;'n&#305;n&rdquo; &rarr; 129 &nbsp;| &ldquo;n&uuml;fusu&rdquo; &rarr; 8412 &nbsp;| &ldquo;ka&ccedil;t&#305;r&rdquo; &rarr; 5903 &nbsp;| &ldquo;?&rdquo; &rarr; 30</code><br>
+            Model &#351;unu al&#305;r: <code>[3847, 129, 8412, 5903, 30]</code>. Bunlar&#305;n T&uuml;rk&ccedil;e kelimeler oldu&#287;undan haberi yok. Be&#351; tamsay&#305; g&ouml;r&uuml;yor.<br><br>
+
+            <strong>Ad&#305;m 2 &mdash; Model i&#351;ler (say&#305;lar &rarr; say&#305;lar).</strong> Transformer bu 5 tamsay&#305;y&#305; al&#305;r, 
+            her birini 2048 boyutlu bir vekt&ouml;re d&ouml;n&uuml;&#351;t&uuml;r&uuml;r, 22 katman dikkat ve ileri-beslemeli a&#287;dan 
+            ge&ccedil;irir. Sonunda 64.000 token &uuml;zerinde bir olas&#305;l&#305;k da&#287;&#305;l&#305;m&#305; &uuml;retir: 
+            &ldquo;s&#305;radaki token hangisi?&rdquo; Se&ccedil;imi: token <code>11297</code>.<br><br>
+
+            <strong>Ad&#305;m 3 &mdash; Detokenize et (say&#305;lar &rarr; metin).</strong> Tokenizer <code>11297</code>&rsquo;yi 
+            kelime haznesinde arar: <code>11297 &rarr; &ldquo;Yakla&#351;&#305;k&rdquo;</code>. &Ccedil;&#305;kt&#305;ya eklenir.<br><br>
+
+            <strong>Ad&#305;m 4 &mdash; Tekrarla.</strong> &#350;imdi model <code>[3847, 129, 8412, 5903, 30, 11297]</code> g&ouml;r&uuml;r 
+            ve s&#305;radaki tokeni tahmin eder. Sonra bir sonrakini. Token token cevap olu&#351;ur:<br>
+            <code>11297 &rarr; &ldquo;Yakla&#351;&#305;k&rdquo; | 642 &rarr; &ldquo;5&rdquo; | 1830 &rarr; &ldquo;milyon&rdquo; | 7741 &rarr; &ldquo;ki&#351;idir&rdquo; | 4 &rarr; &ldquo;.&rdquo;</code><br><br>
+
+            <strong>Son &ccedil;&#305;kt&#305;:</strong> <code>Yakla&#351;&#305;k 5 milyon ki&#351;idir.</code><br><br>
+
+            <strong>Bonus &mdash; ya <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> diye sorsayd&#305;k?</strong><br>
+            Tokenizer her kelimeyi 64K kelime haznesinde bulur. Model token dizisini i&#351;ler ve token token 
+            bir cevap &uuml;retir: <code>&ldquo;Ankara bir ba&#351;kenttir, bir ilin ba&#351;kenti de&#287;ildir.&rdquo;</code> 
+            &Ccedil;al&#305;&#351;&#305;r. Bu model T&uuml;rk&ccedil;e metin i&ccedil;in <em>in&#351;a edildi</em>. T&uuml;rk&ccedil;e 
+            kelimeler onun ana tokenlar&#305;d&#305;r. Sohbet, tam olarak e&#287;itildi&#287;i &#351;eydir.
+        </div>
+
+        <h3>&#9313; M&uuml;zik modeli</h3>
+
+        <div class="abstract">
+            <strong>Ba&#287;lam:</strong> Binlerce MIDI dizisi &uuml;zerinde e&#287;itilmi&#351; bir model. Kelime haznesi: ~2000 token 
+            (nota perdeleri, s&uuml;reler, h&#305;zlar, akorlar, suslar).<br><br>
+
+            <strong>Ad&#305;m 1 &mdash; Tokenize et (notalar &rarr; say&#305;lar).</strong> Bir akor ilerlemesi kodlan&#305;r:<br>
+            <code>&ldquo;C_maj&rdquo; &rarr; 42 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;G_maj&rdquo; &rarr; 58 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;Am&rdquo; &rarr; 51 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;F_maj&rdquo; &rarr; 47 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7</code><br>
+            Model &#351;unu al&#305;r: <code>[42, 7, 58, 7, 51, 7, 47, 7]</code>. Kelime yok. Dil yok. Sadece I&ndash;V&ndash;vi&ndash;IV 
+            ilerlemesini temsil eden tamsay&#305;lar.<br><br>
+
+            <strong>Ad&#305;m 2 &mdash; Model i&#351;ler.</strong> Transformer tahmin eder: bu ilerlemeden sonra en olas&#305; token <code>42</code>.<br><br>
+
+            <strong>Ad&#305;m 3 &mdash; Detokenize et (say&#305;lar &rarr; notalar).</strong> <code>42 &rarr; &ldquo;C_maj&rdquo;</code>. 
+            &#304;lerleme toni&#287;e d&ouml;ner.<br><br>
+
+            <strong>Ad&#305;m 4 &mdash; Tekrarla.</strong> S&#305;radaki token: <code>12 &rarr; &ldquo;half&rdquo;</code> (yar&#305;m nota s&uuml;resi). 
+            Sonra: <code>71 &rarr; &ldquo;E4&rdquo;</code> (melodi notas&#305;). Token token bir melodi bestelenir.<br><br>
+
+            <strong>Hi&ccedil;bir ad&#305;mda kelime kullan&#305;lmad&#305;.</strong> Model m&uuml;zik &ldquo;konu&#351;ur.&rdquo; 
+            Kelime haznesi notalard&#305;r. &Ccedil;&#305;kt&#305;s&#305; &ccedil;al&#305;nabilir bir MIDI dizisidir.<br><br>
+
+            <strong>Bonus &mdash; ya <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> diye sorsayd&#305;k?</strong><br>
+            <strong>Ad&#305;m 1 an&#305;nda &ccedil;&ouml;ker.</strong> Tokenizer &ldquo;Ankara&rdquo;y&#305; kelime haznesinde arar. 
+            Kelime haznesi: <code>C_maj</code>, <code>quarter</code>, <code>E4</code>, <code>rest</code> &mdash; notalar, 
+            s&uuml;reler, akorlar. T&uuml;rk&ccedil;e kelime yok. Hi&ccedil;bir dilin kelimesi yok. &ldquo;Ankara&rdquo; mevcut de&#287;il. 
+            &ldquo;Ba&#351;kent&rdquo; mevcut de&#287;il. &ldquo;Nedir&rdquo; mevcut de&#287;il. Girdi <em>say&#305;lara 
+            d&ouml;n&uuml;&#351;t&uuml;r&uuml;lemez bile</em>. Modele verilecek bir &#351;ey yok. Bir T&uuml;rk&ccedil;e c&uuml;mleyi 
+            piyano rulosuna sokmaya &ccedil;al&#305;&#351;mak gibi. Yanl&#305;&#351; cevap de&#287;il &mdash; 
+            <strong>cevap vermek m&uuml;mk&uuml;n de&#287;il</strong>. Model hayat&#305;nda bir kelime g&ouml;rmedi. 
+            Kelimenin ne oldu&#287;unu bilmiyor. Sorunun ne oldu&#287;unu bilmiyor. &ldquo;Sohbet&rdquo;in ne demek oldu&#287;unu bilmiyor.
+        </div>
+
+        <h3>&#9314; Protein modeli</h3>
+
+        <div class="abstract">
+            <strong>Ba&#287;lam:</strong> Milyonlarca bilinen protein dizisi &uuml;zerinde e&#287;itilmi&#351; bir model. Kelime haznesi: 25 token 
+            (20 amino asit + ba&#351;lang&#305;&ccedil;/biti&#351;/dolgu/bilinmeyen/maske).<br><br>
+
+            <strong>Ad&#305;m 1 &mdash; Tokenize et (amino asitler &rarr; say&#305;lar).</strong> Bir protein par&ccedil;as&#305;:<br>
+            <code>&ldquo;M&rdquo; &rarr; 1 &nbsp;| &ldquo;A&rdquo; &rarr; 5 &nbsp;| &ldquo;L&rdquo; &rarr; 10 &nbsp;| &ldquo;W&rdquo; &rarr; 17 &nbsp;| &ldquo;K&rdquo; &rarr; 9 &nbsp;| &ldquo;L&rdquo; &rarr; 10 &nbsp;| &ldquo;P&rdquo; &rarr; 12</code><br>
+            Model &#351;unu al&#305;r: <code>[1, 5, 10, 17, 9, 10, 12]</code>. &#304;ngilizce yok. T&uuml;rk&ccedil;e yok. Sadece amino asit kimlikleri.<br><br>
+
+            <strong>Ad&#305;m 2 &mdash; Model i&#351;ler.</strong> Bu dizi verildi&#287;inde transformer s&#305;radaki amino asiti tahmin eder. 
+            25 token &uuml;zerinde bir da&#287;&#305;l&#305;m &uuml;retir. En y&uuml;ksek olas&#305;l&#305;k: token <code>4</code>.<br><br>
+
+            <strong>Ad&#305;m 3 &mdash; Detokenize et (say&#305;lar &rarr; amino asitler).</strong> <code>4 &rarr; &ldquo;V&rdquo;</code> (Valin). 
+            Protein zinciri uzar.<br><br>
+
+            <strong>Ad&#305;m 4 &mdash; Tekrarla.</strong> Model &ldquo;B&#304;T&#304;&#350;&rdquo; tokenini tahmin edene kadar devam eder. 
+            &Ccedil;&#305;kt&#305;, katlanma, ba&#287;lanma veya i&#351;lev a&ccedil;&#305;s&#305;ndan analiz edilebilecek eksiksiz bir protein dizisidir.<br><br>
+
+            <strong>Kelime haznesi: 25 token. &#304;nsan dili yok. Sadece biyokimya, bir dizi olarak.</strong><br><br>
+
+            <strong>Bonus &mdash; ya <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> diye sorsayd&#305;k?</strong><br>
+            <strong>Ad&#305;m 1 &ccedil;&ouml;ker.</strong> Tokenizer&rsquo;&#305;n t&uuml;m kelime haznesi: 
+            <code>M, A, L, W, K, P, V, G, I, F, Y, C, H, R, N, D, E, Q, S, T, START, END, PAD, UNK, MASK</code>. 
+            Yirmi be&#351; token. Hepsi amino asit. &ldquo;Ankara&rdquo;? Tokenizer tek tek harfleri e&#351;le&#351;tirebilir 
+            &mdash; A, n, k, a, r, a &mdash; ama &ldquo;n&rdquo; bir amino asit de&#287;il. &ldquo;k&rdquo; bir amino asit de&#287;il. 
+            &Ccedil;o&#287;u karakter <code>UNK</code> (bilinmeyen) olur. Model bir dizi bilinmeyen ve rastgele amino asit e&#351;le&#351;mesi 
+            al&#305;r: <code>[UNK, 5, UNK, UNK, UNK, 5, UNK, UNK, UNK...]</code>. Zorla &ccedil;al&#305;&#351;t&#305;r&#305;l&#305;rsa 
+            rastgele bir protein par&ccedil;as&#305; &uuml;retir &mdash; cevap de&#287;il, c&uuml;mle de&#287;il, anlams&#305;z amino asit 
+            g&uuml;r&uuml;lt&uuml;s&uuml;. <strong>Dil, soru veya ileti&#351;im kavram&#305; yok</strong>.
+        </div>
+
+        <h3>&#9315; Kablo fabrikas&#305; modeli</h3>
+
+        <div class="abstract">
+            <strong>Ba&#287;lam:</strong> 50.000 &uuml;retim kayd&#305; &uuml;zerinde e&#287;itilmi&#351; bir model. Kelime haznesi: ~800 token 
+            (malzeme kodlar&#305;, makine ayarlar&#305;, test sonu&ccedil;lar&#305;).<br><br>
+
+            <strong>Ad&#305;m 1 &mdash; Tokenize et (&uuml;retim verisi &rarr; say&#305;lar).</strong> M&uuml;hendis yeni bir &uuml;retim ayar&#305; girer:<br>
+            <code>&ldquo;[MALZEME]&rdquo; &rarr; 1 &nbsp;| &ldquo;PVC_A7&rdquo; &rarr; 34 &nbsp;| &ldquo;[SICAKLIK]&rdquo; &rarr; 2 &nbsp;| &ldquo;175&rdquo; &rarr; 412 &nbsp;| &ldquo;[HIZ]&rdquo; &rarr; 3 &nbsp;| &ldquo;15&rdquo; &rarr; 287 &nbsp;| &ldquo;[BASINC]&rdquo; &rarr; 4 &nbsp;| &ldquo;8&rdquo; &rarr; 193 &nbsp;| &ldquo;[TAHM&#304;N]&rdquo; &rarr; 5</code><br>
+            Model &#351;unu al&#305;r: <code>[1, 34, 2, 412, 3, 287, 4, 193, 5]</code>. C&uuml;mle de&#287;il. Yap&#305;land&#305;r&#305;lm&#305;&#351; bir &uuml;retim &ouml;zelli&#287;i.<br><br>
+
+            <strong>Ad&#305;m 2 &mdash; Model i&#351;ler.</strong> Transformer &ccedil;&#305;kt&#305; olarak token <code>601</code> &uuml;retir.<br><br>
+
+            <strong>Ad&#305;m 3 &mdash; Detokenize et (say&#305;lar &rarr; sonu&ccedil;lar).</strong> <code>601 &rarr; &ldquo;kopma_GE&Ccedil;T&#304;&rdquo;</code>.<br><br>
+
+            <strong>Ad&#305;m 4 &mdash; Tekrarla.</strong> S&#305;radaki tokenlar: 
+            <code>622 &rarr; &ldquo;uzama_420&rdquo; | 709 &rarr; &ldquo;alev_V0&rdquo; | 685 &rarr; &ldquo;sertlik_85&rdquo;</code>.<br><br>
+
+            <strong>Son &ccedil;&#305;kt&#305;:</strong> <code>kopma_GE&Ccedil;T&#304; uzama_420 alev_V0 sertlik_85</code><br>
+            M&uuml;hendis art&#305;k &mdash; <em>&uuml;retimden &ouml;nce</em> &mdash; bu ayar&#305;n t&uuml;m testleri ge&ccedil;ece&#287;ini biliyor. 
+            <strong>800 token. 10M parametre. Diz&uuml;st&uuml; bilgisayarda &ccedil;al&#305;&#351;&#305;r. Hi&ccedil;bir ad&#305;mda insan dili yok.</strong><br><br>
+
+            <strong>Bonus &mdash; ya <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> diye sorsayd&#305;k?</strong><br>
+            <strong>Ad&#305;m 1 &ccedil;&ouml;ker.</strong> Tokenizer &#351;unlar&#305; bilir: <code>[MALZEME]</code>, <code>PVC_A7</code>, 
+            <code>[SICAKLIK]</code>, <code>175</code>, <code>[HIZ]</code>, <code>kopma_GE&Ccedil;T&#304;</code> &mdash; 800 token, 
+            hepsi &uuml;retim kodu ve test sonucu. Tek bir insan kelimesi yok. &ldquo;Ankara&rdquo; bir malzeme de&#287;il. 
+            &ldquo;Ba&#351;kent&rdquo; bir makine ayar&#305; de&#287;il. &ldquo;Nedir&rdquo; bir test sonucu de&#287;il. 
+            Girdi tokenize edilemez. Rastgele token e&#351;le&#351;tirmesi zorlansa bile model 
+            <code>sertlik_72 uzama_310 alev_V1</code> gibi bir &#351;ey &uuml;retir &mdash; anlams&#305;z bir &uuml;retim tahmini. 
+            <strong>T&uuml;m varl&#305;&#287;&#305; boyunca bir insan c&uuml;mlesiyle hi&ccedil; kar&#351;&#305;la&#351;mad&#305;</strong>. 
+            &#304;nsanlar&#305;n var oldu&#287;unu bilmiyor. Kablolar&#305; biliyor.
+        </div>
+
+        <h3>&#9316; DNA / Genomik modeli</h3>
+
+        <div class="abstract">
+            <strong>Ba&#287;lam:</strong> Genom dizileri &uuml;zerinde e&#287;itilmi&#351; bir model. Kelime haznesi: 7 token 
+            (A, T, C, G + ba&#351;lang&#305;&ccedil;/biti&#351;/bilinmeyen).<br><br>
+
+            <strong>Ad&#305;m 1 &mdash; Tokenize et (n&uuml;kleotidler &rarr; say&#305;lar).</strong> Bir gen par&ccedil;as&#305;:<br>
+            <code>&ldquo;A&rdquo; &rarr; 1 &nbsp;| &ldquo;T&rdquo; &rarr; 2 &nbsp;| &ldquo;G&rdquo; &rarr; 3 &nbsp;| &ldquo;C&rdquo; &rarr; 4 &nbsp;| &ldquo;G&rdquo; &rarr; 3 &nbsp;| &ldquo;A&rdquo; &rarr; 1 &nbsp;| &ldquo;T&rdquo; &rarr; 2</code><br>
+            Model &#351;unu al&#305;r: <code>[1, 2, 3, 4, 3, 1, 2]</code>. Yedi say&#305;. Model DNA&rsquo;n&#305;n ne oldu&#287;unu bilmiyor.<br><br>
+
+            <strong>Ad&#305;m 2 &mdash; Model i&#351;ler.</strong> Bu ba&#287;lam verildi&#287;inde transformer tahmin eder: en olas&#305; s&#305;radaki token <code>4</code> (C).<br><br>
+
+            <strong>Ad&#305;m 3 &mdash; Detokenize et.</strong> <code>4 &rarr; &ldquo;C&rdquo;</code>.<br><br>
+
+            <strong>Ad&#305;m 4 &mdash; Tekrarla.</strong> Model dizinin geri kalan&#305;n&#305; &uuml;retir; bu dizi daha sonra gen i&#351;levi, 
+            mutasyon riski veya d&uuml;zenleyici &ouml;r&uuml;nt&uuml;ler a&ccedil;&#305;s&#305;ndan analiz edilebilir.<br><br>
+
+            <strong>Kelime haznesi: 7 token. M&uuml;mk&uuml;n olan en k&uuml;&ccedil;&uuml;k &ldquo;dil.&rdquo; Ayn&#305; transformer. Ayn&#305; s&uuml;re&ccedil;.</strong><br><br>
+
+            <strong>Bonus &mdash; ya <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> diye sorsayd&#305;k?</strong><br>
+            <strong>Ad&#305;m 1 &ccedil;&ouml;ker.</strong> Kelime haznesi: <code>A, T, C, G, START, END, UNK</code>. Yedi token. 
+            &ldquo;Ankara&rdquo; &#351;una d&ouml;n&uuml;&#351;&uuml;r: <code>[A, UNK, UNK, A, UNK, A]</code> &mdash; sadece A harfini 
+            g&ouml;rebilir &ccedil;&uuml;nk&uuml; Adenin ayn&#305; sembol&uuml; payla&#351;&#305;r. Geri kalan&#305; bilinmeyen. 
+            Model &#351;&ouml;yle bir &#351;ey &uuml;retir: <code>T G C A A T G C</code> &mdash; bir DNA dizisi par&ccedil;as&#305;. 
+            Kelime de&#287;il. C&uuml;mle de&#287;il. N&uuml;kleotid dizisi. <strong>Hayat&#305;nda insan dili g&ouml;rmedi. 
+            Yedi tokeni var. Alfabeyi bile temsil edemez, d&uuml;&#351;&uuml;nce olu&#351;turmak bir yana</strong>.
+        </div>
+
+        <div class="philosophy">
+            <strong>&Ouml;r&uuml;nt&uuml;y&uuml; g&ouml;r&uuml;yor musunuz?</strong> Yukar&#305;daki her &ouml;rnek birebir ayn&#305; d&ouml;rt ad&#305;m&#305; izler:<br><br>
+            <strong>1.</strong> Alan girdisi &rarr; tokenizer &rarr; tamsay&#305; dizisi<br>
+            <strong>2.</strong> Tamsay&#305; dizisi &rarr; transformer &rarr; tahmini s&#305;radaki tamsay&#305;<br>
+            <strong>3.</strong> Tahmini tamsay&#305; &rarr; tokenizer (ters y&ouml;n) &rarr; alan &ccedil;&#305;kt&#305;s&#305;<br>
+            <strong>4.</strong> Bitene kadar tekrarla<br><br>
+            Ve Bonus &ouml;rnekleri daha da &ouml;nemli bir &#351;eyi ortaya koyar:<br><br>
+            <strong>Alana &ouml;zg&uuml; bir model &ldquo;konu&#351;maz.&rdquo;</strong> &#304;nsan dilinin ne oldu&#287;unu bilmez. 
+            Sorunun ne oldu&#287;unu bilmez. Sohbetin ne oldu&#287;unu bilmez. Hayat&#305;nda kelime g&ouml;rmemi&#351;tir. 
+            <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> yazd&#305;&#287;&#305;n&#305;zda m&uuml;zik modeline, girdi 
+            <em>makineye giremez bile</em> &mdash; tokenizer&rsquo;&#305;n insan kelimeleri i&ccedil;in e&#351;le&#351;tirmesi yoktur. 
+            Protein modeline zorlad&#305;&#287;&#305;n&#305;zda rastgele amino asitler d&ouml;ner. Fabrika modeline zorlad&#305;&#287;&#305;n&#305;zda 
+            kablo test sonu&ccedil;lar&#305; d&ouml;ner. DNA modeline zorlad&#305;&#287;&#305;n&#305;zda n&uuml;kleotidler d&ouml;ner.<br><br>
+            &#304;&#351;te kritik ayr&#305;m: <strong>LLM, transformer modelinin sadece bir t&uuml;r&uuml;d&uuml;r</strong> &mdash; 
+            tokenizer&rsquo;&#305;n insan kelimelerini say&#305;lara e&#351;ledi&#287;i ve e&#287;itim verisinin insan sohbetleri ve metinleri 
+            oldu&#287;u bir t&uuml;r. &ldquo;Konu&#351;ma&rdquo; yetene&#287;ini veren budur. Kelime tabanl&#305; tokenizer&rsquo;&#305; 
+            kald&#305;r&#305;n, Wikipedia yerine MIDI dosyalar&#305;yla e&#287;itin &mdash; m&uuml;zik besteleyen ama hayat&#305; buna ba&#287;l&#305; 
+            olsa &ldquo;merhaba&rdquo; diyemeyecek bir model elde edersiniz. Transformer motoru ayn&#305;d&#305;r. 
+            Tokenizer, modelin hangi d&uuml;nyada ya&#351;ad&#305;&#287;&#305;na karar verir.<br><br>
+            &#304;nsanlar LLM&rsquo;lerin kelimeleri dahili olarak say&#305;lara &ccedil;evirdi&#287;ini bilir. S&#305;kl&#305;kla 
+            ka&ccedil;&#305;rd&#305;klar&#305; &#351;ey &#351;u: <strong>alana &ouml;zg&uuml; modeller kelimeleri say&#305;lara &ccedil;evirmez 
+            &mdash; kelime almak i&ccedil;in hi&ccedil; tasarlanmam&#305;&#351;lard&#305;r</strong>. Tokenizer&rsquo;lar&#305; tamamen 
+            farkl&#305; bir dil konu&#351;ur: notalar, amino asitler, makine kodlar&#305;, n&uuml;kleotidler. Alanlar&#305;n&#305; dil 
+            arac&#305;l&#305;&#287;&#305;yla &ldquo;bilmezler&rdquo; &mdash; alanlar&#305;n&#305;n ana tokenlar&#305;yla 
+            <em>d&uuml;&#351;&uuml;n&uuml;rler</em>, t&#305;pk&#305; bir LLM&rsquo;nin kelimelerle d&uuml;&#351;&uuml;nmesi gibi.<br><br>
+            &#350;imdi LLM abart&#305;s&#305;n&#305;n pratikte verdi&#287;i zarar&#305; g&ouml;z&uuml;n&uuml;ze getirin. Bir kablo fabrikas&#305;n&#305;n, 
+            yeni bir malzeme-makine konfig&uuml;rasyonu i&ccedil;in test sonu&ccedil;lar&#305;n&#305; tahmin etmesi gerekiyor. 
+            &ldquo;Yapay zek&acirc; = LLM&rdquo; anlay&#305;&#351;&#305; diyor ki: bir dil modeli kur (veya sat&#305;n al). 
+            Ve ba&#351;l&#305;yorlar. <strong>Faz 1:</strong> metin &uuml;zerinde tokenizer e&#287;it &mdash; haftalar. Temel modeli 
+            milyarlarca kelimeyle e&#287;it ki <em>konu&#351;may&#305;</em> &ouml;&#287;rensin &mdash; aylar, y&uuml;z binlerce dolar 
+            hesaplama maliyeti. <strong>Faz 2:</strong> alan belgelerine ince ayar yap &mdash; daha fazla hafta, daha fazla 
+            ba&#351;ar&#305;s&#305;z deneme, daha fazla maliyet. <strong>Faz 3:</strong> do&#287;rulu&#287;u art&#305;rmak i&ccedil;in 
+            peki&#351;tirmeli &ouml;&#287;renme &mdash; daha fazla g&uuml;n, daha fazla hafta. 
+            Ve t&uuml;m bunlardan sonra, bu devasa sisteme ger&ccedil;ek girdi ne? Bir sohbet mesaj&#305;:<br>
+            <code>&ldquo;Merhaba, malzemeler XLPE, CAT113, RAL9100 boya. Makine ayarlar&#305;: ekstr&uuml;der h&#305;z&#305; 12, 
+            s&#305;cakl&#305;k 185, bas&#305;n&ccedil; 8. Test sonu&ccedil;lar&#305; ne olur?&rdquo;</code><br><br>
+            Bu girdiyi tekrar okuyun. <em>Ger&ccedil;ekten</em> okuyun. Bir makineye insan dilini anlamay&#305; &ouml;&#287;retmek 
+            i&ccedil;in aylar harcad&#305;n&#305;z &mdash; s&#305;rf zaten yap&#305;land&#305;r&#305;lm&#305;&#351; veri olan bir &#351;eyi 
+            sohbet k&#305;l&#305;&#287;&#305;nda yazmak i&ccedil;in. Modelin &#351;imdi do&#287;al dili <em>ayr&#305;&#351;t&#305;rarak</em> 
+            zaten elinizde olan yap&#305;land&#305;r&#305;lm&#305;&#351; de&#287;erlere geri d&ouml;nmesi, hal&uuml;sinasyon yapmamas&#305;n&#305; 
+            ummas&#305; ve sonra sizin <em>tekrar ayr&#305;&#351;t&#305;rman&#305;z</em> gereken do&#287;al dilde bir cevap &uuml;retmesi 
+            gerekiyor. Aylara ve servetlere mal olan b&uuml;t&uuml;n bir insan-dili katman&#305; eklediniz &mdash; do&#287;rudan yolun 
+            etraf&#305;nda bir <em>dolamba&ccedil;</em> olarak.<br><br>
+            Do&#287;rudan yol mu? 800 tokenl&#305; bir alan tokenizer&rsquo;&#305;. Girdi: <code>[1, 34, 2, 412, 3, 287, 4, 193, 5]</code>. 
+            &Ccedil;&#305;kt&#305;: <code>kopma_GE&Ccedil;T&#304; uzama_420 alev_V0 sertlik_85</code>. Sohbet yok. Ayr&#305;&#351;t&#305;rma yok. 
+            Hal&uuml;sinasyon yok. 10M parametre. Ger&ccedil;ek &uuml;retim kay&#305;tlar&#305;yla saatler i&ccedil;inde e&#287;itilir. 
+            Diz&uuml;st&uuml; bilgisayarda &ccedil;al&#305;&#351;&#305;r. 
+            <strong>T&uuml;m LLM hatt&#305; &mdash; ayl&#305;k &ouml;n e&#287;itim, ince ayar, peki&#351;tirmeli &ouml;&#287;renme, prompt 
+            m&uuml;hendisli&#287;i &mdash; sadece do&#287;rudan bir diziden-diziye tahmin olmas&#305; gereken &#351;eyin &uuml;st&uuml;ne 
+            bir sohbet aray&uuml;z&uuml; eklemek i&ccedil;in vard&#305;.</strong> Tokenizasyonu anlamaman&#305;n bedeli budur.<br><br>
+            <strong>Tokenizer&rsquo;lar&#305; anlaman&#305;n yolculu&#287;umuzun en &ouml;nemli ilk ad&#305;m&#305; olmas&#305;n&#305;n sebebi budur.</strong> 
+            Mesele sadece T&uuml;rk&ccedil;e morfolojisi de&#287;ildi. Mesele, tokenizer&rsquo;&#305;n herhangi bir alan ile ondan 
+            &ouml;&#287;renen makine aras&#305;ndaki <em>t&uuml;m aray&uuml;z</em> oldu&#287;unu anlamakt&#305;. 
+            Tokenizer&rsquo;&#305; de&#287;i&#351;tir, modelin ya&#351;ad&#305;&#287;&#305; d&uuml;nyay&#305; de&#287;i&#351;tir. Motor ayn&#305; kal&#305;r.
+        </div>
+
+        <div class="warning">
+            <strong>Tekrar hat&#305;rlatmaya de&#287;er.</strong><br><br>
+            LLM, <em>insan-dili-alan&#305;na-&ouml;zg&uuml;</em> bir transformer&rsquo;d&#305;r. Ne daha fazlas&#305;, ne daha az&#305;. 
+            &ldquo;Yapay zek&acirc;&rdquo; de&#287;ildir. Bir dizi &ouml;&#287;renme mimarisinin tek bir alana &mdash; insan metnine &mdash; 
+            uygulanm&#305;&#351; halidir. <strong>Yapay zek&acirc;, LLM&rsquo;ye e&#351;it de&#287;ildir.</strong><br><br>
+            Tokenizasyon ger&ccedil;ekten anla&#351;&#305;ld&#305;&#287;&#305;nda, bu art&#305;k bir anlam tart&#305;&#351;mas&#305; olmaktan &ccedil;&#305;kar 
+            ve bir m&uuml;hendislik ke&#351;fine d&ouml;n&uuml;&#351;&uuml;r. Mesele &ldquo;&#304;ngilizce protein modeline T&uuml;rk&ccedil;e 
+            konu&#351;turmak&rdquo; de&#287;ildir. Protein modeli hi&ccedil; <em>konu&#351;maz</em> &mdash; ne T&uuml;rk&ccedil;e, ne &#304;ngilizce, 
+            ne ba&#351;ka bir insan dilinde. Amino asit dizileriyle ileti&#351;im kurar. Fabrika modeli &uuml;retim kodlar&#305;yla 
+            ileti&#351;im kurar. M&uuml;zik modeli notalarla ileti&#351;im kurar. Bunlar insan diline tamamen yabanc&#305;, birbirinden 
+            tamamen farkl&#305; ileti&#351;im bi&ccedil;imleridir &mdash; sonar&#305;n konu&#351;maya yabanc&#305;l&#305;&#287;&#305; kadar.<br><br>
+            Ve tam da bu y&uuml;zden end&uuml;strinin giderek b&uuml;y&uuml;yen LLM&rsquo;lere olan tak&#305;nt&#305;s&#305;, ger&ccedil;ek 
+            d&uuml;nya problemleri i&ccedil;in bir &ccedil;&#305;kmaz sokakt&#305;r. Etkileyici &ldquo;konu&#351;an&rdquo; 500 milyar parametreli 
+            bir model, demo olarak muhte&#351;emdir. Ama belirli ekstr&uuml;zyon parametreleriyle bir kablonun kopma testini ge&ccedil;ip 
+            ge&ccedil;emeyece&#287;ini sordu&#287;unuzda, ikna edici g&ouml;r&uuml;nen ama tamamen yanl&#305;&#351; bir paragraf 
+            uydurur &mdash; &ccedil;&uuml;nk&uuml; hayat&#305;nda bir &uuml;retim kayd&#305; g&ouml;rmemi&#351;tir. Dil &ouml;r&uuml;nt&uuml;lerini 
+            &ouml;&#287;renmi&#351;tir, fizi&#287;i de&#287;il. Ara&#351;t&#305;rmalar tutarl&#305; olarak g&ouml;steriyor: 
+            <strong>kurumsal LLM uygulamalar&#305;n&#305;n yakla&#351;&#305;k %95&rsquo;i ger&ccedil;ek de&#287;er &uuml;retemiyor</strong>. 
+            Sebebi teknolojinin k&ouml;t&uuml; olmas&#305; de&#287;il. Sebebi arac&#305;n i&#351; i&ccedil;in yanl&#305;&#351; olmas&#305;. 
+            &#350;irketler, alana &ouml;zg&uuml; dizi problemlerini bir insan-sohbet makinesiyle &ccedil;&ouml;zmeye &ccedil;al&#305;&#351;&#305;yor 
+            &mdash; ve neden &ccedil;al&#305;&#351;mad&#305;&#287;&#305;n&#305; merak ediyor.<br><br>
+            Trajedi &#351;u ki bu ba&#351;ar&#305;s&#305;zl&#305;k genellikle &ldquo;yapay zek&acirc; haz&#305;r de&#287;il&rdquo; diye 
+            yorumlan&#305;yor; oysa yapay zek&acirc; <em>haz&#305;r</em> &mdash; sadece &ccedil;o&#287;u insan&#305;n sat&#305;n ald&#305;&#287;&#305; 
+            formda de&#287;il. 800 tokenl&#305;, ger&ccedil;ek &uuml;retim verileriyle e&#287;itilmi&#351; 10 milyon parametreli bir 
+            alan modeli, o alanda bir trilyon parametreli LLM&rsquo;yi her seferinde yener &mdash; maliyetin k&uuml;&ccedil;&uuml;k bir 
+            kesriyle, diz&uuml;st&uuml; bilgisayarda &ccedil;al&#305;&#351;arak, s&#305;f&#305;r hal&uuml;sinasyonla, &ccedil;&uuml;nk&uuml; kelime 
+            haznesindeki her token ger&ccedil;ek bir &#351;eye kar&#351;&#305;l&#305;k gelir.<br><br>
+            Abart&#305;l&#305; reklam &ldquo;yapay zek&acirc;&rdquo;y&#305; &ldquo;sohbet robotu&rdquo;yla &ouml;zde&#351;le&#351;tirdi ve 
+            bu &ouml;zde&#351;le&#351;tirme end&uuml;strilere milyarlara mal oluyor. Tokenizasyonu anlamak &ccedil;&#305;k&#305;&#351; yoludur. 
+            Transformer&rsquo;&#305;n <em>evrensel bir motor</em>, tokenizer&rsquo;&#305;n <em>de&#287;i&#351;tirilebilir bir mercek</em> 
+            oldu&#287;unu g&ouml;rd&uuml;&#287;&uuml;n&uuml;zde, t&uuml;m manzara de&#287;i&#351;ir. Soru art&#305;k &ldquo;LLM&rsquo;ye 
+            fabrikam&#305; nas&#305;l anlatabilirim?&rdquo; de&#287;ildir. Soru &#351;u olur: 
+            <strong>&ldquo;Fabrikam&#305;n hangi tokenizer&rsquo;a ihtiyac&#305; var?&rdquo;</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. M&#304;MAR&#304;N&#304;N AKIL Y&Uuml;R&Uuml;TME HAKKINDA &Ouml;&#286;RETT&#304;KLER&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>B&ouml;l&uuml;m 5 ve 6 bize transformer&rsquo;&#305;n evrensel bir dizi &ouml;&#287;renicisi oldu&#287;unu &mdash; ayn&#305; d&ouml;rt ad&#305;m, 
+        her alan &mdash; g&ouml;sterdiyse, bu b&ouml;l&uuml;m &#351;unu sorar: <strong>bir dizi &ouml;&#287;renicisi, ak&#305;l y&uuml;r&uuml;tmeye benzeyen bir &#351;eyi 
+        nas&#305;l geli&#351;tirir?</strong> Mimariyi anlamak i&ccedil;in &ouml;nce &ldquo;ak&#305;l y&uuml;r&uuml;tme&rdquo;nin 
+        bir sinir a&#287;&#305;n&#305;n i&ccedil;inde ger&ccedil;ekte ne anlama geldi&#287;ini &mdash; ve ne anlama gelmedi&#287;ini 
+        &mdash; kavramak gerekti. Unutmay&#305;n: a&#351;a&#287;&#305;daki her &#351;ey sadece LLM&rsquo;ler i&ccedil;in de&#287;il, 
+        <em>herhangi</em> bir dizi modeli i&ccedil;in ge&ccedil;erlidir &mdash; bir dil modelinin T&uuml;rk&ccedil;e &uuml;zerinde 
+        &ldquo;ak&#305;l y&uuml;r&uuml;tmesini&rdquo; sa&#287;layan ayn&#305; mekanizmalar, bir protein modelinin katlanma &uuml;zerinde 
+        &ldquo;ak&#305;l y&uuml;r&uuml;tmesini&rdquo; de sa&#287;lar. <em>(Detayl&#305; mimari ara&#351;t&#305;rma sayfas&#305;, 
+        <a href="tokenizer-research_tr.html">tokenizer raporu</a> gibi ayr&#305;ca yay&#305;nlanacak.)</em></p>
+
+        <h3>E&#287;itim hatt&#305; (s&#305;ral&#305;, tercih de&#287;il)</h3>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #dcfce7;">&Ouml;N E&#286;&#304;T&#304;M<br><span style="font-weight: 400; font-size: 10px;">&ldquo;E&#287;itim&rdquo; &mdash; dil ve kal&#305;plar&#305; &ouml;&#287;ren</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dbeafe;">SFT<br><span style="font-weight: 400; font-size: 10px;">&ldquo;&#304;nce ayar&rdquo; &mdash; format &ouml;&#287;ren</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fef9c3;">RLVR<br><span style="font-weight: 400; font-size: 10px;">Peki&#351;tirmeli &ouml;&#287;renme &mdash; ak&#305;l y&uuml;r&uuml;tme &ouml;&#287;ren</span></div>
+        </div>
+
+        <p>Bunlar birbirinin alternatifi de&#287;il. S&#305;ral&#305; a&#351;amalard&#305;r ve her biri k&ouml;kten farkl&#305; &#351;eyler &ouml;&#287;retir:</p>
+
+        <table>
+            <tr><th>Faz</th><th>Girdi</th><th>Algoritma</th><th>Ne &Ouml;&#287;retiyor</th></tr>
+            <tr>
+                <td><strong>&Ouml;n E&#287;itim</strong> (herkesin &ldquo;e&#287;itim&rdquo; dedi&#287;i a&#351;ama)</td>
+                <td>Ham metin (soru-cevap &ccedil;ifti yok)</td>
+                <td>Her pozisyonda sonraki tokeni tahmin et</td>
+                <td>Dil, olgular, ak&#305;l y&uuml;r&uuml;tme kal&#305;plar&#305;</td>
+            </tr>
+            <tr>
+                <td><strong>SFT</strong> (herkesin &ldquo;ince ayar&rdquo; dedi&#287;i a&#351;ama)</td>
+                <td>Temiz talimat-yan&#305;t &ccedil;iftleri</td>
+                <td>Ayn&#305; (sonraki-token tahmini)</td>
+                <td>Talimat takip etme. <strong>Ak&#305;l y&uuml;r&uuml;tme DE&#286;&#304;L.</strong></td>
+            </tr>
+            <tr>
+                <td><strong>RLVR</strong> (do&#287;rulanabilir &ouml;d&uuml;llerle peki&#351;tirmeli &ouml;&#287;renme)</td>
+                <td>Do&#287;rulanabilir cevaplar&#305; olan problemler</td>
+                <td>&Uuml;ret &rarr; do&#287;rula &rarr; &ouml;d&uuml;llendir/cezaland&#305;r</td>
+                <td>&Ouml;z d&uuml;zeltme, par&ccedil;alama, ger&ccedil;ek ak&#305;l y&uuml;r&uuml;tme</td>
+            </tr>
+        </table>
+
+        <h3>Ne genelle&#351;ir, ne genelle&#351;mez</h3>
+
+        <table>
+            <tr><th>Yetenek</th><th>Nas&#305;l &Ouml;&#287;renilir</th><th>Genelle&#351;ir mi?</th></tr>
+            <tr><td>Olgular (&ldquo;Ankara ba&#351;kenttir&rdquo;)</td><td>Veriden ezberlenir</td><td class="bad">Hay&#305;r &mdash; sadece g&ouml;rd&uuml;klerini bilir</td></tr>
+            <tr><td>K&uuml;&ccedil;&uuml;k aritmetik (2+3=5)</td><td>Kal&#305;p ezberleme</td><td class="neutral">K&#305;smen (~4&ndash;5 basamak)</td></tr>
+            <tr><td>B&uuml;y&uuml;k aritmetik (234871...+12309...)</td><td>Kesin hesaplama gerektirir</td><td class="bad">Hay&#305;r &mdash; LLM&rsquo;ler g&uuml;venilir bi&ccedil;imde yapamaz</td></tr>
+            <tr class="highlight"><td><strong>Mant&#305;ksal yap&#305;</strong> (A&rarr;B, B&rarr;C &rArr; A&rarr;C)</td><td>Vekt&ouml;r uzay&#305;nda soyut d&ouml;n&uuml;&#351;&uuml;m &ouml;&#287;renir</td><td class="good"><strong>Evet</strong> &mdash; yeni i&ccedil;eriklere aktar&#305;l&#305;r</td></tr>
+            <tr class="highlight"><td><strong>Problem par&ccedil;alama</strong></td><td>Yap&#305;sal kal&#305;p &ouml;&#287;renir</td><td class="good"><strong>Evet</strong> &mdash; alanlar aras&#305;nda aktar&#305;l&#305;r</td></tr>
+            <tr class="highlight"><td><strong>Ara&ccedil; kullan&#305;m&#305;</strong> (&ldquo;bunun i&ccedil;in hesap makinesi laz&#305;m&rdquo;)</td><td>NE ZAMAN ba&#351;kas&#305;na devretmeli &ouml;&#287;renir</td><td class="good"><strong>Evet</strong> &mdash; ger&ccedil;ek genelleme</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>Temel i&ccedil;g&ouml;r&uuml;: genelleme = YAPI &ouml;&#287;renmek, cevap de&#287;il.</strong><br><br>
+            Model &ldquo;2+3=5&rdquo;i ezberlemez. Binlerce &ouml;rnekten toplama i&#351;leminin <em>yap&#305;s&#305;n&#305;</em> &ouml;&#287;renir. 
+            K&uuml;&ccedil;&uuml;k say&#305;larda i&#351;e yarar. B&uuml;y&uuml;k say&#305;larda &ccedil;&ouml;ker &mdash; 
+            &ccedil;&uuml;nk&uuml; &ccedil;ok basamakl&#305; elde ta&#351;&#305;ma, sonraki-token tahmininin g&uuml;venilir ba&#351;arabilece&#287;inin 
+            &ouml;tesindedir. <strong>Ger&ccedil;ek genelleme NE YAPILACA&#286;INI bilmektir</strong> 
+            (&ldquo;bunun i&ccedil;in hesap makinesi laz&#305;m&rdquo;), hesaplamay&#305; bizzat yapmak de&#287;il.
+        </div>
+
+        <h3>&Ouml;z d&uuml;zeltme nas&#305;l &ccedil;al&#305;&#351;&#305;r (mekanistik olarak)</h3>
+
+        <p>Bir LLM hatalar&#305;n&#305; bizim gibi &ldquo;fark etmez.&rdquo; Her token pozisyonunda dikkat mekanizmas&#305; 
+        &ouml;nceki <strong>t&uuml;m</strong> tokenleri g&ouml;rebilir. Ba&#287;lam biriktik&ccedil;e tutars&#305;zl&#305;klar 
+        istatistiksel olarak g&ouml;r&uuml;n&uuml;r hale gelir &mdash; olas&#305;l&#305;k da&#287;&#305;l&#305;m&#305; d&uuml;zeltme 
+        tokenlerine do&#287;ru kayar. &ldquo;Geri izleme&rdquo; ger&ccedil;ek anlamda geri izleme de&#287;ildir: model y&ouml;n 
+        de&#287;i&#351;tiren <em>yeni</em> tokenler &uuml;retir (&ldquo;dur, bu yanl&#305;&#351;&hellip;&rdquo;). Yanl&#305;&#351; tokenler 
+        ba&#287;lamda durmaya devam eder.</p>
+
+        <p>Bu &ouml;z d&uuml;zeltme becerisi verideki hata-d&uuml;zeltme kal&#305;plar&#305;ndan de&#287;il, <strong>RL e&#287;itiminden</strong> 
+        gelir. RL, hem &ouml;z d&uuml;zeltme yapan hem de do&#287;ru cevaplara ula&#351;an ak&#305;l y&uuml;r&uuml;tme zincirlerini 
+        &ouml;d&uuml;llendirir. Model &ldquo;i&#351;ini kontrol etmenin&rdquo; k&acirc;rl&#305; bir strateji oldu&#287;unu kendi ke&#351;feder.</p>
+
+        <h3>S: Ak&#305;l y&uuml;r&uuml;tme mi, taklit mi?</h3>
+
+        <p>D&uuml;r&uuml;st cevap: <strong>bilmiyoruz.</strong> Model veriden ak&#305;l y&uuml;r&uuml;tme kal&#305;plar&#305; &ouml;&#287;renir. 
+        Yeni bir problemle kar&#351;&#305;la&#351;t&#305;&#287;&#305;nda bu kal&#305;plar&#305; uygular. Peki bu &ldquo;ger&ccedil;ek ak&#305;l y&uuml;r&uuml;tme&rdquo; mi 
+        yoksa &ldquo;ileri d&uuml;zey kal&#305;p e&#351;le&#351;tirme&rdquo; mi? Tart&#305;&#351;ma hen&uuml;z &ccedil;&ouml;z&uuml;lmedi. Kan&#305;tlar karma&#351;&#305;k: 
+        modeller &ouml;zg&uuml;n problemleri &ccedil;&ouml;zebiliyor (taklidi a&#351;an genelleme) ama ayn&#305; problemlerin ufak 
+        varyasyonlar&#305;nda &ccedil;uvallay&#305;yor (kal&#305;p e&#351;le&#351;tirme).</p>
+
+        <p>Bizim pratik cevab&#305;m&#305;z: <strong>bu ayr&#305;m belki de &ouml;nemli de&#287;il.</strong> As&#305;l &ouml;nemli olan: model 
+        daha &ouml;nce g&ouml;rmedi&#287;i problemlerde do&#287;ru cevaplara ula&#351;abiliyor mu? Bu &ouml;l&ccedil;&uuml;lebilir bir &#351;ey. RLVR, 
+        modeli y&uuml;zeysel taklitten sa&#287;lam uygulamaya do&#287;ru iter &mdash; <em>do&#287;ru g&ouml;r&uuml;nmeyi</em> de&#287;il, 
+        <em>do&#287;rulu&#287;u</em> &ouml;d&uuml;llendirerek.</p>
+
+        <h3>S: Bir dil modeli i&ccedil;in &ldquo;do&#287;ru&rdquo; nedir?</h3>
+
+        <table>
+            <tr><th>Alan</th><th>&ldquo;Do&#287;ru&rdquo;nun Anlam&#305;</th><th>Do&#287;rulanabilir mi?</th></tr>
+            <tr><td>Matematik</td><td>Cevap do&#287;ru (2+2=4)</td><td class="good">Evet</td></tr>
+            <tr><td>Kod</td><td>Derlenir ve testleri ge&ccedil;er</td><td class="good">Evet</td></tr>
+            <tr><td>Mant&#305;k</td><td>Sonu&ccedil; &ouml;nc&uuml;llerden &ccedil;&#305;kar</td><td class="good">&Ccedil;o&#287;unlukla evet</td></tr>
+            <tr><td>Genel dil</td><td>Tutarl&#305;, ilgili, insanlar taraf&#305;ndan tercih edilen</td><td class="bad">Hay&#305;r &mdash; &ouml;znel</td></tr>
+        </table>
+
+        <div class="philosophy">
+            <strong>Daha derin i&ccedil;g&ouml;r&uuml;:</strong> Genel &ldquo;konu&#351;ma&rdquo; i&ccedil;in mutlak bir do&#287;ru yoktur. 
+            Ama ak&#305;l y&uuml;r&uuml;tme <em>s&uuml;reci</em>, cevap &ouml;znel olsa bile do&#287;ru yap&#305;labilir. 
+            &ldquo;X hakk&#305;nda ne d&uuml;&#351;&uuml;n&uuml;yorsun?&rdquo; sorusunun tek do&#287;ru cevab&#305; yok &mdash; ama soruyu 
+            par&ccedil;alara ay&#305;rmak, birden fazla bak&#305;&#351; a&ccedil;&#305;s&#305;n&#305; de&#287;erlendirmek, &ouml;d&uuml;nle&#351;imleri 
+            belirlemek ve tutarl&#305; bir konuma varmak: bu <em>s&uuml;re&ccedil;</em> iyi veya k&ouml;t&uuml; yap&#305;labilir. 
+            <strong>Mant&#305;ksal ge&ccedil;erlilik evrenseldir.</strong> Matematik, felsefe, hukuk, yemek &mdash; hepsinde ge&ccedil;erlidir. 
+            Ak&#305;l y&uuml;r&uuml;tmenin <em>bi&ccedil;imi</em> alanlar aras&#305; aktar&#305;l&#305;r.
+        </div>
+
+        <h3>S: LLM ak&#305;l y&uuml;r&uuml;tmesi = arama algoritmalar&#305;?</h3>
+
+        <p>Mimari tart&#305;&#351;mas&#305;ndan do&#287;an bir i&ccedil;g&ouml;r&uuml;: LLM&rsquo;lerin &ouml;z d&uuml;zeltmesi a&#287;a&ccedil; 
+        aramas&#305;na benzer (yollar&#305; ke&#351;fet, de&#287;erlendir, y&ouml;nlendir). Ancak kritik farklar var:</p>
+
+        <ol>
+            <li><strong>A&#287;a&ccedil; &ouml;nceden mevcut de&#287;il</strong> &mdash; token token &uuml;retilir</li>
+            <li><strong>Ger&ccedil;ek geri izleme yok</strong> &mdash; sadece ileri d&uuml;zeltmeler (&ldquo;dur, bu yanl&#305;&#351;&hellip;&rdquo;)</li>
+            <li><strong>Genel dil i&ccedil;in &ldquo;do&#287;ru&rdquo; d&uuml;&#287;&uuml;m yok</strong> &mdash; sadece do&#287;rulanabilir alanlarda (matematik, kod, mant&#305;k)</li>
+        </ol>
+
+        <p>Akademide bu konu Tree of Thoughts, Process Reward Models ve LLM&rsquo;ler i&ccedil;in MCTS olarak 
+        formelle&#351;tirilmi&#351;tir. Benzetme yap&#305;sal olarak ge&ccedil;erlidir ama mekanik d&uuml;zeyde &ccedil;&ouml;ker. Yine de 
+        &ouml;nemli bir &#351;ey ima eder: <strong>k&uuml;&ccedil;&uuml;k modeller yeterli d&uuml;&#351;&uuml;nme b&uuml;t&ccedil;esiyle iyi 
+        &ldquo;arama&rdquo; yapabilir</strong> (geni&#351;letilmi&#351; d&uuml;&#351;&uuml;nme = daha geni&#351; arama alan&#305;).</p>
+
+        <!-- ============================================ -->
+        <h2>8. TASARIM FELSEFES&#304;: AZ &Ccedil;OKTUR</h2>
+        <!-- ============================================ -->
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">100M&ndash;4B</div>
+                <div class="label">PARAMETRE ARALI&#286;I (ESNEK)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">&#8734;</div>
+                <div class="label">&Ouml;L&Ccedil;EK B&#304;R TASARIM TERC&#304;H&#304;D&#304;R</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">Kalite</div>
+                <div class="label">N&#304;CEL&#304;KTEN &Ouml;NCE &mdash; HER ZAMAN</div>
+            </div>
+        </div>
+
+        <p>Tek bir &ouml;l&ccedil;e&#287;e ba&#287;l&#305; de&#287;iliz. 100M, 360M, 1B, 2B, 3B, 4B &mdash; hepsine a&ccedil;&#305;&#287;&#305;z 
+        ve &ldquo;az&rdquo; demek &ldquo;s&#305;n&#305;rl&#305;&rdquo; demek de&#287;il. &#304;nanc&#305;m&#305;z: son derece optimize bir mimari ve 
+        &ouml;n e&#287;itimle k&uuml;&ccedil;&uuml;k modeller b&uuml;y&uuml;klere yeti&#351;ebilir, hatta yakla&#351;abilir.</p>
+
+        <p>B&ouml;l&uuml;m 5&rsquo;te ke&#351;fetti&#287;imiz gibi, bu felsefe LLM&rsquo;lerin &ccedil;ok &ouml;tesine ge&ccedil;er. 
+        Dizisel yap&#305;s&#305; olan her alan, kendi k&uuml;&ccedil;&uuml;k, isabetli modeline sahip olabilir. D&uuml;nya uzman modelleri 
+        orkestra olarak birle&#351;tirmeye do&#287;ru ilerliyor &mdash; ve biz bunu in&#351;a edecek konumday&#305;z.</p>
+
+        <!-- ============================================ -->
+        <h2>9. &Ouml;NEML&#304; KARARLAR (K&#304;L&#304;TLENM&#304;&#350;)</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Karar</th><th>Se&ccedil;im</th><th>Gerek&ccedil;e</th></tr>
+            <tr><td>Tokenizer</td><td>64K BPE v3 (kendi yapt&#305;&#287;&#305;m&#305;z)</td><td>Kumru/TabiBERT&rsquo;ten ~%14, GPT-4&rsquo;ten ~2,7 kat daha verimli</td></tr>
+            <tr><td>Mimari</td><td>Yaln&#305;z-&ccedil;&ouml;z&uuml;c&uuml; (decoder-only)</td><td>&Uuml;retici ak&#305;l y&uuml;r&uuml;tme LLM&rsquo;leri i&ccedil;in standart; kodlay&#305;c&#305; ayr&#305; bile&#351;en olarak eklenebilir</td></tr>
+            <tr><td>Parametre aral&#305;&#287;&#305;</td><td>100M&ndash;4B</td><td>&ldquo;Az &ccedil;oktur&rdquo; &mdash; optimize mimari, a&#287;&#305;rl&#305;&#287;&#305;n&#305;n &uuml;zerinde yumruk atabilir</td></tr>
+            <tr><td>Ba&#287;lam uzunlu&#287;u</td><td>128K token</td><td>Dava dosyalar&#305;, tezler, kitaplar tek seferde i&#351;lenebilir</td></tr>
+            <tr><td>Pozisyon kodlamas&#305;</td><td>RoPE sorgulan&#305;yor</td><td>&Ouml;nceki ince ayarlarda RoPE ile uzun ba&#287;lamda felaket sonu&ccedil;lar. ALiBi/&ouml;&#287;renilmi&#351; veya kan&#305;tlanm&#305;&#351; d&uuml;zeltme tercih edilir.</td></tr>
+            <tr><td>E&#287;itim hatt&#305;</td><td>&Ouml;n E&#287;itim (e&#287;itim) &rarr; SFT (ince ayar) &rarr; RLVR (peki&#351;tirmeli &ouml;&#287;renme)</td><td>S&#305;ral&#305; a&#351;amalar, her biri farkl&#305; &#351;ey &ouml;&#287;retir. Tercih de&#287;il, zorunluluk.</td></tr>
+            <tr><td>SFT veri kalitesi</td><td>Ter&uuml;temiz</td><td>Deneyimle do&#287;ruland&#305;: SFT verisindeki hatalar = model hata &uuml;retmeyi &ouml;&#287;renir</td></tr>
+            <tr><td>Literat&uuml;r taramas&#305;</td><td>Her derin karardan &ouml;nce zorunlu</td><td>arXiv, HF, ACL kullan, sadece Google de&#287;il. A&#351;&#305;r&#305; &ouml;zg&uuml;venli ama g&uuml;ncel olmayan tavsiyelerden ka&ccedil;&#305;n.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>10. VER&#304; STRATEJ&#304;S&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>Bu b&ouml;l&uuml;m T&uuml;rk&ccedil;e LLM&rsquo;miz i&ccedil;in veri stratejisine odaklan&#305;r. Ama B&ouml;l&uuml;m 
+        5&rsquo;in penceresinden bak&#305;n: a&#351;a&#287;&#305;da anlat&#305;lan her &#351;ey bir &#351;ablondur. &ldquo;T&uuml;rk&ccedil;e 
+        metin&rdquo; yerine &ldquo;protein dizileri&rdquo; veya &ldquo;&uuml;retim loglar&#305;&rdquo; koyun, ayn&#305; hat yap&#305;s&#305; 
+        ge&ccedil;erlidir &mdash; sadece farkl&#305; bir tokenizer ve farkl&#305; alan verisiyle.</p>
+
+        <h3>&Ouml;n e&#287;itim verisi &mdash; &ldquo;e&#287;itim&rdquo; (miktar, &ccedil;e&#351;itlilik)</h3>
+        <p>Ham T&uuml;rk&ccedil;e metin &mdash; soru-cevap &ccedil;ifti yok, bi&ccedil;imlendirme yok. Model kesintisiz metin okur ve her pozisyonda bir sonraki tokeni tahmin eder.</p>
+
+        <table>
+            <tr><th>Kaynak</th><th>Ama&ccedil;</th><th>Da&#287;&#305;l&#305;m</th></tr>
+            <tr><td>T&uuml;rk&ccedil;e Vikipedi, haber, kitap, forum</td><td>Dil yap&#305;s&#305;, dilbilgisi, ak&#305;c&#305;l&#305;k</td><td rowspan="2" style="vertical-align: middle;">%80&ndash;90 T&uuml;rk&ccedil;e<br>%10&ndash;20 &#304;ngilizce</td></tr>
+            <tr><td>Hukuk, t&#305;p, bilim, finans metinleri</td><td>Alan s&ouml;zl&uuml;&#287;&uuml;, formel ak&#305;l y&uuml;r&uuml;tme</td></tr>
+            <tr><td>Kod (Python, vb.)</td><td>Mant&#305;ksal yap&#305;, kesin ak&#305;l y&uuml;r&uuml;tme</td><td rowspan="2" style="vertical-align: middle;">&#304;ngilizce diller aras&#305;<br>aktar&#305;ma yard&#305;mc&#305; olur</td></tr>
+            <tr><td>Matematik metinleri, bilimsel makaleler</td><td>Ak&#305;l y&uuml;r&uuml;tme kal&#305;plar&#305;, formel arg&uuml;manlar</td></tr>
+        </table>
+
+        <h3>SFT verisi &mdash; &ldquo;ince ayar&rdquo; (kalite, temiz)</h3>
+        <p>T&uuml;rk&ccedil;e talimat-yan&#305;t &ccedil;iftleri. Temiz, hatas&#305;z. Format &ouml;&#287;retir, ak&#305;l y&uuml;r&uuml;tme de&#287;il.</p>
+
+        <h3>RLVR verisi &mdash; peki&#351;tirmeli &ouml;&#287;renme (do&#287;rulanabilir problemler)</h3>
+        <p>Matematik (GSM8K tarz&#305;, yar&#305;&#351;ma matemati&#287;i), kod problemleri, mant&#305;k bulmacalar&#305;. T&uuml;rk&ccedil;eye &ccedil;evrilebilir. 
+        Matematik ve mant&#305;k dile fazla ba&#287;&#305;ml&#305; de&#287;il &mdash; <code>17 &times; 23 = ?</code> her dilde ge&ccedil;erli. 
+        <strong>Ak&#305;l y&uuml;r&uuml;tmenin as&#305;l e&#287;itildi&#287;i yer buras&#305;d&#305;r.</strong></p>
+
+        <div class="finding">
+            <strong>S&ouml;zel &ouml;rnekler neden h&acirc;l&acirc; gerekli:</strong> Salt soyut mant&#305;k (A&rarr;B, B&rarr;C &rArr; A&rarr;C) 
+            tek ba&#351;&#305;na yetmez. Model tokenler (kelimeler/alt-kelimeler) &uuml;zerinde &ccedil;al&#305;&#351;&#305;r. 
+            Ger&ccedil;ek d&uuml;nya c&uuml;mlelerine ihtiyac&#305; var: (1) do&#287;al dildeki ak&#305;l y&uuml;r&uuml;tme durumlar&#305;n&#305; 
+            <em>tan&#305;mak</em>, (2) dili ak&#305;l y&uuml;r&uuml;tebilece&#287;i par&ccedil;alara <em>ay&#305;rmak</em> ve 
+            (3) ak&#305;l y&uuml;r&uuml;tmeyi do&#287;al dille <em>ifade etmek</em>. Soyut mant&#305;k k&uuml;&ccedil;&uuml;k bir 
+            kal&#305;p k&uuml;mesidir; s&ouml;zel veri modele bu kal&#305;plar&#305; ger&ccedil;ek d&uuml;nyayla ili&#351;kilendirmeyi &ouml;&#287;retir.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. SIRADA NE VAR</h2>
+        <!-- ============================================ -->
+
+        <div class="timeline">
+            <div class="timeline-item done">
+                <div class="tl-title"><span class="status complete">TAMAM</span> Faz 1: Tokenizer</div>
+                <div class="tl-desc">64K BPE, 22 GB derlem, 11 alan, GPT-2 regex hatas&#305; ke&#351;fedildi, s&ouml;zl&uuml;k doygunlu&#287;u olgusu belgelendi.</div>
+            </div>
+            <div class="timeline-item active">
+                <div class="tl-title"><span class="status next">S&#304;RADAK&#304;</span> Faz 2: Mimari</div>
+                <div class="tl-desc">Temel mimari se&ccedil;imi (100M&ndash;4B). Pozisyon kodlamas&#305; sorunu (RoPE vs ALiBi vs &ouml;&#287;renilmi&#351;). 
+                Ak&#305;l y&uuml;r&uuml;tme &ouml;ncelikli tasar&#305;m. 2025&ndash;2026 SOTA k&uuml;&ccedil;&uuml;k modeller i&ccedil;in literat&uuml;r taramas&#305;.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Faz 3: &Ouml;n E&#287;itim (as&#305;l &ldquo;e&#287;itim&rdquo;)</div>
+                <div class="tl-desc">T&uuml;rk&ccedil;e derlem hatt&#305;n&#305; kur. Milyarlarca token boyunca sonraki-token tahmini. 
+                Dil, d&uuml;nya bilgisi ve ak&#305;l y&uuml;r&uuml;tme kal&#305;plar&#305;n&#305; &ouml;&#287;ren. Temel modeli s&#305;f&#305;rdan yaratan ad&#305;m budur.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Faz 4: SFT &mdash; Denetimli &#304;nce Ayar (herkesin &ldquo;ince ayar&rdquo; dedi&#287;i a&#351;ama)</div>
+                <div class="tl-desc">Ter&uuml;temiz talimat verisi. Modele talimat takip etmeyi ve sohbet kurmay&#305; &ouml;&#287;ret. Yaln&#305;zca format; ak&#305;l y&uuml;r&uuml;tme de&#287;il. 
+                Ham temel modeli sohbet botuna d&ouml;n&uuml;&#351;t&uuml;ren ad&#305;m budur.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Faz 5: RLVR &mdash; Do&#287;rulanabilir &Ouml;d&uuml;llerle Peki&#351;tirmeli &Ouml;&#287;renme</div>
+                <div class="tl-desc">Matematik/kod/mant&#305;k &uuml;zerinde do&#287;ru cevaplar i&ccedil;in modeli &ouml;d&uuml;llendir. Model deneme-yan&#305;lma yoluyla ger&ccedil;ek ak&#305;l y&uuml;r&uuml;tme stratejilerini kendi ke&#351;feder. 
+                <strong>Kutup y&#305;ld&#305;z&#305;na ula&#351;aca&#287;&#305;m&#305;z yer buras&#305;.</strong></div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title"><span class="status idea">SONRA</span> Orkestra &amp; Alan Modelleri</div>
+                <div class="tl-desc">Birlikte &ccedil;al&#305;&#351;an birden fazla k&uuml;&ccedil;&uuml;k uzman model. Bu projede kazand&#305;&#287;&#305;m&#305;z becerilerle 
+                alana &ouml;zel modeller (fabrika, malzeme, vb.) in&#351;a etmek. Pratik kazan&#305;m.</div>
+            </div>
+        </div>
+
+        <div class="discovery" style="margin-top: 24px;">
+            <strong>&#350;imdiye kadar &ouml;&#287;rendiklerimiz:</strong> Tokenizer faz&#305; bilgi temsilini &ouml;&#287;retti 
+            &mdash; ve ard&#305;ndan <em>her</em> dizisel alan&#305;n bir dil oldu&#287;unu g&ouml;stererek t&uuml;m projeyi 
+            patlatt&#305; (B&ouml;l&uuml;m 5) &mdash; ve B&ouml;l&uuml;m 6 bunu somut ad&#305;m ad&#305;m y&uuml;r&uuml;y&uuml;&#351;lerle, 
+            alan alan kan&#305;tlad&#305;. Mimari tart&#305;&#351;mas&#305;, bir sinir a&#287;&#305;n&#305;n i&ccedil;inde ak&#305;l 
+            y&uuml;r&uuml;tmenin ger&ccedil;ekte ne oldu&#287;unu (ve ne olmad&#305;&#287;&#305;n&#305;) &ouml;&#287;retti. &Ouml;n e&#287;itim 
+            &ldquo;bilgi&rdquo;nin ne demek oldu&#287;unu &ouml;&#287;retecek. SFT &ldquo;format&rdquo;&#305;n ne demek oldu&#287;unu 
+            &ouml;&#287;retecek. RLVR &ldquo;do&#287;ru&rdquo;nun ne demek oldu&#287;unu &ouml;&#287;retecek. Her faz zihni biraz daha 
+            a&ccedil;&#305;yor. Ve her ders sadece T&uuml;rk&ccedil;e LLM&rsquo;miz i&ccedil;in de&#287;il, herhangi bir alan 
+            i&ccedil;in in&#351;a edebilece&#287;imiz herhangi bir dizi modeli i&ccedil;in ge&ccedil;erli.<br><br>
+            Son model d&uuml;nyan&#305;n en iyisi olmasa bile, y&#305;&#287;&#305;n&#305;n her katman&#305;n&#305; derinden anlayan ki&#351;i, 
+            en b&uuml;y&uuml;k modeli e&#287;iten ki&#351;iden daha tehlikelidir. En b&uuml;y&uuml;k model sadece parad&#305;r. 
+            <strong>Anlamak kald&#305;ra&ccedil;t&#305;r.</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>12. DEPO G&Ouml;R&Uuml;N&Uuml;M&Uuml;</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Yol</th><th>&#304;&ccedil;eri&#287;i</th></tr>
+            <tr><td><code>tokenizers/turkish_bpe_64k/</code></td><td>Se&ccedil;ilen tokenizer (64K BPE v3)</td></tr>
+            <tr><td><code>tokenizers/turkish_bpe_{16k,32k,48k}_*/</code></td><td>T&uuml;m deneysel s&uuml;r&uuml;mler sakl&#305;</td></tr>
+            <tr><td><code>tokenizers/kumru_2b_reference/</code></td><td>Kumru referans kar&#351;&#305;la&#351;t&#305;rma</td></tr>
+            <tr><td><code>data/processed/</code></td><td>22 GB e&#287;itim derlemi (27 dosya, 11 alan)</td></tr>
+            <tr><td><code>train_tokenizer.py</code></td><td>Tokenizer e&#287;itim beti&#287;i</td></tr>
+            <tr><td><code>benchmark_tokenizers.py</code></td><td>104 c&uuml;mle k&#305;yaslamas&#305; (21 &ccedil;ekirdek + 83 zor/kenar)</td></tr>
+            <tr><td><code>docs/tokenizer-research.html</code></td><td>Tam tokenizer ara&#351;t&#305;rma raporu (EN)</td></tr>
+            <tr><td><code>docs/tokenizer-research_tr.html</code></td><td>Tam tokenizer ara&#351;t&#305;rma raporu (TR)</td></tr>
+            <tr><td><code>docs/project-context_tr.html</code></td><td>Bu dosya &mdash; yolculuk dok&uuml;man&#305;</td></tr>
+            <tr><td><code>reference_architecture/</code></td><td>Konfig&uuml;rasyon &ouml;rnekleri, literat&uuml;r taramas&#305;, README</td></tr>
+            <tr><td><code>PROJECT_CONTEXT.md</code></td><td>Makine taraf&#305;ndan okunabilir proje ba&#287;lam&#305; (yapay zeka oturumlar&#305; i&ccedil;in)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+
+        <div class="abstract" style="margin-top: 36px;">
+            <strong>Son s&ouml;z.</strong> Bu proje basit bir soruyla ba&#351;lad&#305;: &ldquo;Daha iyi bir T&uuml;rk&ccedil;e tokenizer yapabilir miyiz?&rdquo; 
+            Bu soru kimsenin beklemedi&#287;i bir yere g&ouml;t&uuml;rd&uuml;. Dilin say&#305;lara nas&#305;l d&ouml;n&uuml;&#351;t&uuml;&#287;&uuml;n&uuml; 
+            &ouml;&#287;rendik &mdash; ve sonra fark ettik ki <em>her &#351;ey</em> ayn&#305; &#351;ekilde say&#305;lara d&ouml;n&uuml;&#351;&uuml;yor. 
+            M&uuml;zik, proteinler, fabrika verisi, DNA. Tokenizer sadece bir T&uuml;rk&ccedil;e metin arac&#305; de&#287;ildi. Herhangi bir 
+            alan ile &ouml;&#287;renen makine aras&#305;ndaki evrensel aray&uuml;zd&uuml;. Bu tek fark&#305;ndal&#305;k projeyi tamamen alt&uuml;st etti.<br><br>
+            Ayn&#305; zamanda end&uuml;strinin en b&uuml;y&uuml;k yan&#305;lsamas&#305;n&#305; da y&#305;kt&#305;: yapay zek&acirc;n&#305;n LLM&rsquo;ye 
+            e&#351;it oldu&#287;u yan&#305;lsamas&#305;n&#305;. De&#287;il. LLM, insan-dili-alan&#305;na-&ouml;zg&uuml; bir transformer&rsquo;d&#305;r &mdash; 
+            evrensel bir motorun tek bir alana uygulanmas&#305;. Bunu g&ouml;rd&uuml;&#287;&uuml;n&uuml;zde, trilyon parametreli sohbet 
+            robotlar&#305;n&#305;n fabrika zeminlerinde neden ba&#351;ar&#305;s&#305;z oldu&#287;unu, kurumsal LLM projelerinin %95&rsquo;inin neden 
+            &ccedil;&ouml;kt&uuml;&#287;&uuml;n&uuml; ve cevab&#305;n neden asla &ldquo;LLM&rsquo;yi b&uuml;y&uuml;t&rdquo; olmad&#305;&#287;&#305;n&#305; 
+            g&ouml;r&uuml;rs&uuml;n&uuml;z. Cevap: do&#287;ru alan i&ccedil;in do&#287;ru tokenizer&rsquo;&#305; in&#351;a et ve k&uuml;&ccedil;&uuml;k bir modelin, 
+            dev bir modelin asla yapamayaca&#287;&#305;n&#305; yapmas&#305;na izin ver. Tek bir sohbette byte-pair encoding&rsquo;den 
+            Nietzsche&rsquo;ye, oradan end&uuml;striyel ekonomiye geldik.<br><br>
+            Tokenizer ilk kap&#305;y&#305; a&ccedil;t&#305;. Mimari ikincisini a&ccedil;t&#305;. &Ouml;n&uuml;m&uuml;zde daha &ccedil;ok kap&#305; var &mdash; 
+            &ouml;n e&#287;itim, SFT, RLVR, orkestrasyon, alan modelleri. Her biri hi&ccedil;bir makalenin veya dersin 
+            &ouml;&#287;retemeyece&#287;i bir &#351;ey &ouml;&#287;retecek: kendi ellerinle in&#351;a etmekten, duvarlara &ccedil;arpmaktan 
+            ve nedenini &ccedil;&ouml;zmekten do&#287;an anlay&#305;&#351;. Ve her ders ayn&#305; ger&ccedil;e&#287;i peki&#351;tirecek: 
+            transformer motordur, tokenizer mercektir ve d&uuml;nya kendi k&uuml;&ccedil;&uuml;k, isabetli, amaca y&ouml;nelik 
+            modellerini bekleyen alanlarla doludur.<br><br>
+            <em style="font-size: 12px;">Bu ya&#351;ayan bir dok&uuml;mand&#305;r. Tamamlanan her faz, verilen her karar ve kazan&#305;lan her i&ccedil;g&ouml;r&uuml;yle birlikte b&uuml;y&uuml;yecektir.</em>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Ba&#287;&#305;ms&#305;z Ara&#351;t&#305;rma &bull; 
+            <a href="tokenizer-research_tr.html" style="color: #888;">Tokenizer Raporu</a> &bull; 
+            <a href="tokenizer-research.html" style="color: #888;">Tokenizer Report (EN)</a>
+        </p>
+    </main>
+
+</body>
+</html>

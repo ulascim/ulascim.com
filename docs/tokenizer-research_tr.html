@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Türkçe BPE Tokenizer | Araştırma Raporu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as Omega Arena
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Tables */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+
+        /* Token visualization */
+        .token-vis { margin: 12px 0; font-size: 12px; }
+        .token-vis .label { font-weight: 700; margin-bottom: 4px; }
+        .token { display: inline-block; padding: 2px 5px; margin: 1px; border: 1px solid #999; border-radius: 2px; font-size: 11px; }
+        .token.good-tok { background: #dcfce7; border-color: #16a34a; }
+        .token.bad-tok { background: #fee2e2; border-color: #dc2626; }
+        .token.neutral-tok { background: #f3f4f6; border-color: #999; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer-tr.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="tokenizer-research_tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="tokenizer-research.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>TÜRKÇE BPE TOKENİZER</h1>
+        <p class="subtitle">Anadili Türkçe Bir LLM'e Doğru: Aşama 1 &mdash; Tokenizasyon</p>
+        <p class="authors">Şubat 2026 &bull; Bağımsız Araştırma &bull; <span class="status complete">TAMAMLANDI</span></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~%14</div>
+                <div class="label">KUMRU/TABIBERT'TEN DAHA AZ TOKEN (50K)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~2,7&times;</div>
+                <div class="label">GPT-4'TEN DAHA AZ TOKEN (21 CÜMLE)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">KELİME HACİMİ</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">22 GB</div>
+                <div class="label">EĞİTİM DERLEMİ (27 DOSYA)</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Yaygın kullanılan büyük dil modelleri İngilizce için tasarlanmış tokenizer'lara dayanır. Türkçe metin 
+            bu sistemlerde işlendiğinde kabaca 2&times; daha fazla token tüketir &mdash; on milyonlarca konuşuru etkileyen 
+            gizli bir &ldquo;dil vergisi&rdquo;. Bu rapor, Türkçe için özel BPE tokenizer'ın geliştirilmesini ve buna yol açan deneyleri 
+            belgeler. Geliştirme sırasında GPT-2 ön-tokenizasyon regex'inin (GPT-4, Llama ve Mistral tarafından kullanılan) Türkçe 
+            kesme işareti-ek kalıplarını bozduğu tespit edildi &mdash; daha önce belgelenmemiş bir etkileşim. Üç yinelemeli eğitim 
+            turu (11 alanda 1,7GB &rarr; 10GB &rarr; 22GB) ve sistematik kelime hacmi deneyleri (16K&ndash;64K) sonucunda bir bulgu 
+            ortaya çıktı: 48K'da görülen &ldquo;azalan getiri&rdquo; veri fazlalığından değil, kelime hacmi doyumundan kaynaklanıyordu; 
+            aynı derlemde 64K'ya geçiş <strong>%10,1</strong> iyileşme sağladı. 21 cümlelik kıyaslamada kullanılan 64K tokenizer, 
+            Kumru ve TabiBERT'ten (ikisi de ~50K kelime) <strong>~%14</strong> daha az token kullanıyor ve GPT-4'ten kabaca 
+            <strong>2,7&times;</strong> daha az. 128K bağlam uzunluğunda bu, ~149K Kumru tokenı veya ~352K GPT-4 tokenına eşdeğer 
+            Türkçe metin anlamına gelir.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. SORUN: DİL VERGİSİ</h2>
+        <!-- ============================================ -->
+
+        <p>Türkçe metin büyük bir LLM'de işlendiğinde, İngilizce için tasarlanmış bir tokenizer'dan geçer. 
+        Türkçenin sondan eklemeli yapısı &mdash; anlamın eklerde yoğunlaştığı &mdash; bu tokenizer'lara yabancıdır.</p>
+
+        <h3>Aynı cümle, farklı maliyet</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Kelime Hacmi</th><th>Token</th><th>Oran</th></tr>
+            <tr class="highlight"><td><strong>Türkçe 64K v3 (bu çalışma)</strong></td><td>64.000</td><td class="good"><strong>9</strong></td><td class="good"><strong>1,0x</strong></td></tr>
+            <tr><td>Kumru-2B</td><td>50.176</td><td>9</td><td>1,0x</td></tr>
+            <tr><td>GPT-4o (o200k)</td><td>200.019</td><td>12</td><td>1,3x</td></tr>
+            <tr><td>GPT-4 (cl100k)</td><td>100.277</td><td class="bad">17</td><td class="bad">1,9x</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">Test cümlesi: &ldquo;T&uuml;rkiye Cumhuriyeti'nin ba&#351;kenti Ankara'd&#305;r.&rdquo;</p>
+
+        <p>Yani her Türkçe API çağrısı kabaca 2&times; daha fazla token tüketebilir. Bağlam pencereleri orantılı olarak daha az 
+        Türkçe metin tutar; eğitim çalıştırmaları parti başına daha az cümle işler. Bu vergi metin uzadıkça katlanır.</p>
+
+        <!-- ============================================ -->
+        <h2>2. İLGİLİ ÇALIŞMALAR</h2>
+        <!-- ============================================ -->
+
+        <p>Birçok Türkçe dil modeli ve tokenizer mevcuttur. Hamza (Acıkgöz, &ldquo;Bridging the Bosphorus&rdquo;) 124M ile 1,3B 
+        parametre aralığında Türkçe LLM'ler sunar; GPT-2 ve Mistral'dan uyarlanmış modeller dahil. Hamza tokenizer'ının kelime 
+        hacmi 50.257'dir (GPT-2 ile aynı) ve Türkçe biçimbilimi için optimize edilmemiştir. 
+        TabiBERT (BOUN TabiLab) Türkçe NLP için 1T token üzerinde eğitilmiş ModernBERT tabanlı bir kodlayıcıdır; kelime hacmi 50.176. 
+        Kumru-2B, 50.176 kelimelik BPE tokenizer kullanır. LlamaTurk (ODTÜ NLP) Türkçe OSCAR üzerinde eğitilmiş 28K BPE tokenizer 
+        ile LLaMA'yı uyarlar.</p>
+        <p>Tutarlı bir örüntü, mevcut Türkçe çözücü LLM'lerin ~50K kelime hacminde buluşmasıdır: taban model GPT-2 olduğunda 
+        50.257 (GPT-2 boyutu), diğerlerinde 50.176. Bu, Türkçe için sistematik kelime hacmi deneylerinden çok, İngilizce tabanlı 
+        tokenizer'ların uyarlanmasından kaynaklanıyor gibi görünür. Yazarın bildiği kadarıyla (1) GPT-2 ön-tokenizasyon regex'inin 
+        Türkçe kesme işareti eklerini bozduğunu, (2) tokenizer eğitiminde kelime doyumu ile veri doyumunu ya da (3) aynı derlemde 
+        16K&ndash;64K kelime hacminin sistematik karşılaştırmasını raporlayan önceki bir çalışma yoktur.</p>
+
+        <!-- ============================================ -->
+        <h2>3. YENİ BULGU: GPT-2 REGEX TÜRKÇEYİ BOZUYOR</h2>
+        <!-- ============================================ -->
+
+        <p>Geliştirme sırasında GPT-2 ön-tokenizasyon regex'inin &mdash; GPT-4, GPT-4o, Llama 3 ve Mistral tarafından kullanılan 
+        aynı kalıbın &mdash; İngilizce kısaltma kalıplarını (<code>'s|'t|'re|'ve|'m|'ll|'d</code>) içerdiği ve bunun Türkçe 
+        tokenizasyonuna zarar verdiği tespit edildi.</p>
+
+        <div class="warning">
+            <strong>HATA:</strong> <code>'d</code> kalıbı (İngilizce &ldquo;I'd&rdquo; kısaltması) Türkçedeki <code>-dA</code> 
+            eklerinin başındaki &ldquo;d&rdquo;yi kendi içine alıyor &mdash; Türkçede en sık kullanılan ek ailelerinden biri (bulunma, çıkma). 
+            Aynı sorun <code>'s</code> (koşul eki), <code>'t</code> ve <code>'m</code> için de geçerli.
+        </div>
+
+        <h3>GPT-4 Türkçe kesme işareti eklerini nasıl tokenize ediyor</h3>
+        <table>
+            <tr><th>Türkçe Metin</th><th>GPT-4 Tokenizasyonu</th><th>Sorun</th></tr>
+            <tr><td>Ankara'd&#305;r</td><td><code>["Ankara", <strong class="bad">"'d"</strong>, "&#305;r"]</code></td><td class="bad">'d kalıbı &ldquo;d&#305;r&rdquo;ın d'sini çalıyor</td></tr>
+            <tr><td>&#304;stanbul'da</td><td><code>["&#304;stanbul", <strong class="bad">"'d"</strong>, "a"]</code></td><td class="bad">'d kalıbı &ldquo;da&rdquo;nın d'sini çalıyor</td></tr>
+            <tr><td>Ali'den</td><td><code>["Ali", <strong class="bad">"'d"</strong>, "en"]</code></td><td class="bad">'d kalıbı &ldquo;den&rdquo;in d'sini çalıyor</td></tr>
+        </table>
+
+        <h3>Çözüm: temizlenmiş Türkçe regex</h3>
+        <table>
+            <tr><th>Türkçe Metin</th><th>Düzeltilmiş Tokenizasyon</th><th>Sonuç</th></tr>
+            <tr><td>Ankara'd&#305;r</td><td><code>["Ankara", "'", <strong class="good">"d&#305;r"</strong>]</code></td><td class="good">Ek tek parça kalıyor</td></tr>
+            <tr><td>&#304;stanbul'da</td><td><code>["&#304;stanbul", "'", <strong class="good">"da"</strong>]</code></td><td class="good">Ek tek parça kalıyor</td></tr>
+            <tr><td>Ali'den</td><td><code>["Ali", "'", <strong class="good">"den"</strong>]</code></td><td class="good">Ek tek parça kalıyor</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Uygulama:</strong> Çözüm, İngilizce kısaltma kalıpları çıkarılmış özel bir ön-tokenizasyon regex'i ile 
+            dahili regex'ini kullanmayacak şekilde yapılandırılmış byte-level kodlayıcının zincirlenmesinden oluşur. Bu iki aşamalı 
+            yaklaşım Türkçe eklerin dilbilimsel olarak tek parça kalmasını sağlarken tam byte-level kapsamı korur. Asıl mesele şu: 
+            byte-level kodlayıcının varsayılan davranışı sorunlu GPT-2 regex'ini yeniden uyguluyor &mdash; açıkça devre dışı 
+            bırakılması gereken ince bir etkileşim. Yazarın bildiği kadarıyla GPT-2 regex'i ile Türkçe biçimbilimi arasındaki 
+            bu etkileşim daha önce belgelenmemiştir.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. MİMARİ KARARLAR</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Bileşen</th><th>Seçim</th><th>Gerekçe</th></tr>
+            <tr><td><strong>Algoritma</strong></td><td>Byte-level BPE</td><td>Sektör standardı (GPT-4, Llama 3, Mistral)</td></tr>
+            <tr><td><strong>Normalizasyon</strong></td><td>NFC Unicode</td><td>ç, ş, ğ, ö, ü, İ için birleşik/ayrışık biçimleri birleştirir</td></tr>
+            <tr><td><strong>Ön-tokenizasyon</strong></td><td>Özel Türkçe regex + ByteLevel</td><td>İngilizce kısaltmalar çıkarılmış GPT-2 tarzı</td></tr>
+            <tr><td><strong>Byte-level ayar</strong></td><td>Dahili regex devre dışı</td><td>Sorunlu kalıpların yeniden uygulanmasını engeller</td></tr>
+            <tr><td><strong>Özel tokenlar</strong></td><td>Llama-3 tarzı (7 token)</td><td>İleride talimat ince ayarı uyumluluğu</td></tr>
+            <tr><td><strong>Min frekans</strong></td><td>2</td><td>Nadir biçimbirimleri kaybetmeden yazım/gürültü filtreler</td></tr>
+            <tr><td><strong>Kütüphane</strong></td><td>HuggingFace tokenizers (Rust)</td><td>Üretim kalitesi, hızlı eğitim</td></tr>
+        </table>
+
+        <h3>Özel tokenlar</h3>
+        <table>
+            <tr><th>Token</th><th>ID</th><th>Amaç</th></tr>
+            <tr><td><code>&lt;|begin_of_text|&gt;</code></td><td>0</td><td>Belge/dizinin başı</td></tr>
+            <tr><td><code>&lt;|end_of_text|&gt;</code></td><td>1</td><td>Belge/dizinin sonu</td></tr>
+            <tr><td><code>&lt;|pad|&gt;</code></td><td>2</td><td>Toplu işleme için doldurma</td></tr>
+            <tr><td><code>&lt;|unk|&gt;</code></td><td>3</td><td>Bilinmeyen (güvenlik yedeği, nadiren tetiklenir)</td></tr>
+            <tr><td><code>&lt;|start_header_id|&gt;</code></td><td>4</td><td>Talimat ince ayarı: rol başlığı başı</td></tr>
+            <tr><td><code>&lt;|end_header_id|&gt;</code></td><td>5</td><td>Talimat ince ayarı: rol başlığı sonu</td></tr>
+            <tr><td><code>&lt;|eot_id|&gt;</code></td><td>6</td><td>Talimat ince ayarı: tur sonu</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>5. EĞİTİM DERLEMİ: 3 YİNELEME</h2>
+        <!-- ============================================ -->
+
+        <p>Tokenizer üç yinelemeli turda eğitildi; her turda yeni veri alanları eklendi. 
+        Bu süreç derlem çeşitliliği ile tokenizer kalitesi arasındaki ilişkiye dair önemli sonuçlar ortaya çıkardı.</p>
+
+        <h3>v1: Temel (1,7 GB, 14 dosya)</h3>
+        <table>
+            <tr><th>Alan</th><th>Kaynak</th><th>Boyut</th></tr>
+            <tr><td>Genel Bilgi</td><td>Wikipedia TR (520K madde)</td><td>866 MB</td></tr>
+            <tr><td>Kod</td><td>Python derlemi</td><td>569 MB</td></tr>
+            <tr><td>Mantık</td><td>Matematik problemleri, RAG, Zincir-düşünce</td><td>221 MB</td></tr>
+            <tr><td>Edebi</td><td>TED konuşmaları, klasik edebiyat, şiir, şarkı, halk, deyimler</td><td>46 MB</td></tr>
+            <tr><td>Kelime</td><td>TDK sözlük (tam + sadeleştirilmiş)</td><td>15 MB</td></tr>
+        </table>
+
+        <h3>v2: Kalite Artışı (10 GB, 16 dosya) &mdash; seçkin edebi ve akademik veri eklendi</h3>
+        <table>
+            <tr><th>Alan (YENİ)</th><th>Kaynak</th><th>Boyut</th></tr>
+            <tr class="highlight"><td><strong>Kültürel/Edebi Web</strong></td><td>BellaTurca ÖzenliDerlem (1,4M seçilmiş belge)</td><td class="good">4,4 GB</td></tr>
+            <tr class="highlight"><td><strong>Akademik/Tez</strong></td><td>BellaTurca AkademikDerlem (668K makale)</td><td class="good">3,5 GB</td></tr>
+        </table>
+
+        <h3>v3: Alan Kapsamı (22 GB, 27 dosya) &mdash; 7 yeni uzmanlık alanı</h3>
+        <table>
+            <tr><th>Alan (YENİ)</th><th>Kaynak</th><th>Boyut</th></tr>
+            <tr class="highlight"><td><strong>Haber/Gazetecilik</strong></td><td>1,8M haber + özetleme derlemi</td><td class="good">4,5 GB</td></tr>
+            <tr class="highlight"><td><strong>Hukuk</strong></td><td>700K mahkeme kararı + Anayasa Mahkemesi</td><td class="good">3,7 GB</td></tr>
+            <tr class="highlight"><td><strong>Talimatlar</strong></td><td>2,5M talimat-cevap çifti</td><td>3,7 GB</td></tr>
+            <tr class="highlight"><td><strong>Finans</strong></td><td>KAP duyuruları, sermaye piyasası (256K belge)</td><td>425 MB</td></tr>
+            <tr class="highlight"><td><strong>Eğitim</strong></td><td>Eğitim QA + MMLU sınav soruları (8 ders)</td><td>91 MB</td></tr>
+            <tr class="highlight"><td><strong>Tıbbi</strong></td><td>Tıbbi mantık + hastane makaleleri</td><td>108 MB</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">1,7 GB</div>
+                <div class="label">v1: 14 DOSYA, 5 ALAN</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10 GB</div>
+                <div class="label">v2: 16 DOSYA, 7 ALAN</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">22 GB</div>
+                <div class="label">v3: 27 DOSYA, 11 ALAN</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. VERİ VE KELİME HACMİ ÖLÇEKLEME DENEYLERİ</h2>
+        <!-- ============================================ -->
+
+        <p>İki sistematik deney yapıldı: (1) sabit 48K kelime hacminde eğitim verisini 1,7GB'dan 22GB'a ölçekleme, 
+        (2) tam 22GB derlemde kelime hacmini 48K'dan 64K'ya ölçekleme. Birlikte veri hacmi ile kelime kapasitesi 
+        arasındaki etkileşime dair kritik bir içgörü ortaya çıktı.</p>
+
+        <h3>Deney A: 48K kelime hacminde veri ölçekleme</h3>
+        <table>
+            <tr><th>Cümle</th><th>48k_v1</th><th>48k_v2</th><th>48k_v3</th><th>Kumru</th></tr>
+            <tr><td>Merhaba d&uuml;nya, nas&#305;ls&#305;n?</td><td>6</td><td class="good">6</td><td class="good">6</td><td>8</td></tr>
+            <tr><td>Evlerdekilere s&ouml;yleyin, yar&#305;n geliyoruz.</td><td>11</td><td class="good">9</td><td class="good">9</td><td>12</td></tr>
+            <tr><td>&Ccedil;ekoslovakyal&#305;la&#351;t&#305;ramad&#305;klar&#305;m&#305;zdan m&#305;s&#305;n&#305;z?</td><td>12</td><td class="good">9</td><td>10</td><td>13</td></tr>
+            <tr><td>D&uuml;n ak&#351;am arkada&#351;lar&#305;mla bulu&#351;tuk...</td><td>15</td><td class="good">10</td><td class="good">10</td><td>15</td></tr>
+            <tr><td>Spinoza'n&#305;n t&ouml;z ontolojisi...</td><td>33</td><td class="good">29</td><td>32</td><td>30</td></tr>
+            <tr><td>San&#305;&#287;&#305;n mahkumiyet karar&#305;na... (legal)</td><td>12</td><td>11</td><td class="good"><strong>8</strong></td><td>12</td></tr>
+            <tr><td>Anayasa Mahkemesi ba&#351;vuruyu... (legal)</td><td>10</td><td>9</td><td class="good"><strong>7</strong></td><td>11</td></tr>
+            <tr><td>Hastan&#305;n ameliyat sonras&#305;... (medical)</td><td>10</td><td>8</td><td class="good"><strong>7</strong></td><td>8</td></tr>
+            <tr class="highlight"><td><strong>TOPLAM (21 cümle)</strong></td><td><strong>261</strong></td><td><strong>235</strong></td><td><strong>233</strong></td><td><strong>267</strong></td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px;">Yukarıdaki toplamlar kısaltılmış cümle setinden alınmıştır. Bölüm 7'de aynı tokenizer'lar tam cümleler üzerinde raporlanıyor (192 / 199 / 224).</p>
+        <p>v1&rarr;v2 (1,7GB &rarr; 10GB): <strong>+%10,0 iyileşme.</strong> 
+        v2&rarr;v3 (10GB &rarr; 22GB): <strong>+%0,9 iyileşme</strong> &mdash; görünür azalan getiri.</p>
+
+        <h3>Deney B: Kelime hacmi ölçekleme &mdash; dönüm noktası</h3>
+        <p>48K'da v2&rarr;v3'te görülen neredeyse sıfır iyileşme başta veri doyumunu düşündürdü. 
+        Ancak aynı v3 derlemi üzerinde 64K tokenizer eğitmek temelden farklı bir sonuç verdi:</p>
+
+        <table>
+            <tr><th>Tokenizer</th><th>Veri</th><th>Toplam Token</th><th>Kumru'ya göre</th></tr>
+            <tr><td>48k_v1</td><td>1.7 GB</td><td>261</td><td>+2.2%</td></tr>
+            <tr><td>48k_v2</td><td>10 GB</td><td>235</td><td>+12.0%</td></tr>
+            <tr><td>48k_v3</td><td>22 GB</td><td>233</td><td>+12.7%</td></tr>
+            <tr><td>64k_v1</td><td>1.7 GB</td><td>247</td><td>+7.5%</td></tr>
+            <tr class="highlight"><td><strong>64k_v3</strong></td><td><strong>22 GB</strong></td><td class="good"><strong>222</strong></td><td class="good"><strong>+16.9%</strong></td></tr>
+            <tr><td>Kumru (50k)</td><td>~500 GB</td><td>267</td><td>taban (kısaltılmış set)</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">+%0,9</div>
+                <div class="label">48K: v2&rarr;v3 (DOYUM)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">+%10,1</div>
+                <div class="label">64K: v1&rarr;v3 (EMİLİM)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">+%4,7</div>
+                <div class="label">64K vs 48K (AYNI VERİ)</div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>ANA BULGU: Kelime Doyumu, Veri Doyumu Değil.</strong>
+            <br><br>48K'da gözlenen &ldquo;azalan getiri&rdquo; <strong>fazla veriden</strong> kaynaklanmıyordu &mdash; 
+            kelime hacminin dolmasından kaynaklanıyordu.             48.000 birleştirme yuvasında tokenizer'ın v3'te eklenen hukuk, tıp ve 
+            finans verisinden gelen yeni alan özgü kalıpları kodlayacak yeri kalmamıştı.
+            <br><br>Aynı 22GB derlem 64K tokenizer eğitmek için kullanıldığında, ek 16.000 kelime yuvası 48K'nın yer veremediği 
+            alan sözcüklerini emdi ve 48K'da yalnızca %0,9 iyileşme getiren aynı veride <strong>%10,1 iyileşme</strong> (64k_v1&rarr;64k_v3) sağladı.
+            <br><br>
+            <strong>Sonuç:</strong> Kelime hacmi ile eğitim verisi birlikte ölçeklenmelidir. Kelime kapasitesi olmadan veri eklemek 
+            ya da veri çeşitliliği olmadan kelime eklemek azalan getiri üretir. En uygun tokenizer hem yeterli kelime yuvası 
+            <em>hem de</em> onları dolduracak yeterince çeşitli eğitim verisi gerektirir.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. KARŞILAŞTIRMA: 64K v3 vs TÜRKÇE VE İNGİLİZCE TOKENİZERLAR</h2>
+        <!-- ============================================ -->
+
+        <p>Günlük konuşma, resmi dil, sondan eklemeli yapı, kod ve altı uzmanlık alanını kapsayan 21 test cümlesi üzerinde 
+        tokenizer'lar karşılaştırıldı. Türkçe tokenizer'lar (bu çalışma, Kumru, TabiBERT, Hamza) aynı tam cümle setinde 
+        değerlendirildi; GPT-4/GPT-4o farklı tokenizer kullanır ve referans için dahil edildi.</p>
+
+        <table>
+            <tr><th>Test Cümlesi</th><th>64k v3</th><th>48k v3</th><th>Kumru</th><th>TabiBERT</th><th>Hamza</th><th>GPT-4o</th><th>GPT-4</th></tr>
+            <tr><td>Merhaba d&uuml;nya, nas&#305;ls&#305;n?</td><td class="good"><strong>6</strong></td><td>6</td><td>7</td><td>7</td><td>14</td><td>9</td><td>11</td></tr>
+            <tr><td>T&uuml;rkiye Cumhuriyeti'nin ba&#351;kenti Ankara'd&#305;r.</td><td>9</td><td>9</td><td>8</td><td>8</td><td>21</td><td>12</td><td>17</td></tr>
+            <tr><td>Evlerdekilere s&ouml;yleyin, yar&#305;n geliyoruz.</td><td class="good"><strong>8</strong></td><td>9</td><td>11</td><td>11</td><td>21</td><td>12</td><td>18</td></tr>
+            <tr><td>&Ccedil;ekoslovakyal&#305;la&#351;t&#305;ramad&#305;klar&#305;m&#305;zdan m&#305;s&#305;n&#305;z?</td><td class="good"><strong>9</strong></td><td>10</td><td>12</td><td>12</td><td>29</td><td>19</td><td>21</td></tr>
+            <tr><td>G&ouml;r&uuml;&#351;ebilece&#287;imizi umuyorum.</td><td class="good"><strong>5</strong></td><td>6</td><td>6</td><td>6</td><td>15</td><td>11</td><td>14</td></tr>
+            <tr><td>D&uuml;n ak&#351;am arkada&#351;lar&#305;mla bulu&#351;tuk.</td><td class="good"><strong>5</strong></td><td>5</td><td>9</td><td>9</td><td>20</td><td>20</td><td>25</td></tr>
+            <tr><td>Edebiyat&#305;m&#305;z&#305;n en &ouml;nemli eserlerinden...</td><td>15</td><td>16</td><td>16</td><td>16</td><td>42</td><td>27</td><td>40</td></tr>
+            <tr><td>Osmanl&#305; &#304;mparatorlu&#287;u'nun son...</td><td>12</td><td>12</td><td class="good">11</td><td class="good">11</td><td>47</td><td>28</td><td>43</td></tr>
+            <tr><td>Spinoza'n&#305;n t&ouml;z ontolojisi...</td><td>17</td><td>17</td><td>16</td><td>16</td><td>33</td><td>37</td><td>53</td></tr>
+            <tr><td>def __init__(self, value):</td><td class="good"><strong>8</strong></td><td>8</td><td class="bad">11</td><td class="bad">11</td><td>9</td><td>8</td><td>8</td></tr>
+            <tr><td>for i in range(len(dataset)):</td><td>9</td><td>9</td><td class="bad">13</td><td class="bad">13</td><td>12</td><td class="good">7</td><td class="good">7</td></tr>
+            <tr><td>Makine &ouml;&#287;renmesi algoritmalar&#305;n&#305;n...</td><td>10</td><td>10</td><td>11</td><td>11</td><td>36</td><td>20</td><td>33</td></tr>
+            <tr><td>B&uuml;y&uuml;k&#351;ehir belediyesi toplu ta&#351;&#305;ma...</td><td class="good"><strong>8</strong></td><td>9</td><td>8</td><td>8</td><td>28</td><td>17</td><td>28</td></tr>
+            <tr><td>&#304;stanbul'dan Ankara'ya tren...</td><td class="good"><strong>11</strong></td><td>11</td><td>11</td><td>11</td><td>19</td><td>14</td><td>16</td></tr>
+            <tr><td>2024 y&#305;l&#305;nda T&uuml;rkiye'nin n&uuml;fusu...</td><td class="good"><strong>11</strong></td><td>11</td><td class="bad">15</td><td class="bad">15</td><td>32</td><td>15</td><td>26</td></tr>
+            <tr><td>San&#305;&#287;&#305;n mahkumiyet karar&#305;na... (legal)</td><td class="good"><strong>7</strong></td><td>7</td><td>11</td><td>11</td><td>26</td><td>17</td><td>24</td></tr>
+            <tr><td>Anayasa Mahkemesi ba&#351;vuruyu... (legal)</td><td class="good"><strong>6</strong></td><td>7</td><td>10</td><td>10</td><td>23</td><td>16</td><td>20</td></tr>
+            <tr><td>Hastan&#305;n ameliyat sonras&#305;... (medical)</td><td class="good"><strong>7</strong></td><td>7</td><td>7</td><td>7</td><td>30</td><td>15</td><td>26</td></tr>
+            <tr><td>&#350;irketin halka arz s&uuml;recinde... (finance)</td><td class="good"><strong>11</strong></td><td>11</td><td>11</td><td>11</td><td>36</td><td>20</td><td>30</td></tr>
+            <tr><td>Fotosentez s&#305;ras&#305;nda... (science)</td><td class="good"><strong>11</strong></td><td>11</td><td>12</td><td>12</td><td>36</td><td>29</td><td>38</td></tr>
+            <tr><td>Cumhurba&#351;kanl&#305;&#287;&#305; S&ouml;zc&uuml;s&uuml; bas&#305;n...</td><td class="good"><strong>7</strong></td><td>8</td><td>8</td><td>8</td><td>39</td><td>18</td><td>29</td></tr>
+            <tr class="highlight"><td><strong>TOPLAM (21 cümle)</strong></td><td class="good"><strong>192</strong></td><td>199</td><td>224</td><td>224</td><td class="bad">568</td><td>371</td><td class="bad">527</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">Toplamlar <code>benchmark_tokenizers.py</code> ile 21 tam cümle üzerinden. Hamza GPT-2 tokenizer kullanır (50.257 kelime); Kumru ve TabiBERT ~50K BPE.</p>
+        <p class="finding" style="margin-top: 12px;">
+            <strong>Gözlem:</strong> Kumru ve TabiBERT bu kıyaslamada <strong>her cümlede aynı token sayısını</strong> üretmektedir (aynı kelime hacmi 50.176; aynı toplam 224). 21 cümlenin tamamında birebir örtüşme, bağımsız eğitilmiş BPE tokenizer'ları için alışılmadıktır. Bulgu burada yorum eklenmeden raporlanmıştır.
+        </p>
+
+        <h3>Genişletilmiş kıyaslama: 104 cümle (21 çekirdek + 83 zor/kenar)</h3>
+        <p>Aynı tokenizer'lar genişletilmiş sette de çalıştırıldı: yukarıdaki 21 çekirdek cümle artı 83 &ldquo;zor&rdquo; cümle 
+        (uzun birleştirmeler, hukuk/tıp/finans ifadeleri, günlük dil/argo, sayı ve tarihler, kod parçaları, 
+        noktalama ve kısaltmalar, alıntı sözcükler, büyük/küçük harf ve vurgu işareti kenar durumları). Tüm sayılar <code>benchmark_tokenizers.py</code> çıktısından.</p>
+        <table>
+            <tr><th>Tokenizer</th><th>Toplam token (104 cümle)</th><th>en iyiye göre</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>1.041</strong></td><td>temel (en iyi)</td></tr>
+            <tr><td>48k v3</td><td>1.073</td><td>+%3,1</td></tr>
+            <tr><td>32k v2</td><td>1.163</td><td>+%11,7</td></tr>
+            <tr><td>16k v1</td><td>1.359</td><td>+%30,5</td></tr>
+            <tr><td>Kumru</td><td>1.198</td><td>+%15,1</td></tr>
+            <tr><td>TabiBERT</td><td>1.198</td><td>+%15,1</td></tr>
+            <tr><td>Hamza</td><td class="bad">2.451</td><td class="bad">+%135,4</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px;">64K genişletilmiş sette de en iyi kalır; Kumru ve TabiBERT yine birbiriyle aynı (1.198). 
+        Zor set örneğin <em>Muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesine</em>, 
+        hukuk (HMK 353, tahkim), tıp (pankreatikoduodenektomi, kardiyovasküler), finans (BIST 100, SPK), 
+        argo (N'olcak, bişey), kod (<code>return {'key': value}</code>) ve alıntı sözcükler (Startup'lar, API endpoint'i) içerir.</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">192</div>
+                <div class="label">BU ÇALIŞMA (64K v3)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">224</div>
+                <div class="label">KUMRU / TABIBERT (50K)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value bad">568</div>
+                <div class="label">HAMZA (GPT-2 TOKENİZER)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value bad">527</div>
+                <div class="label">GPT-4 (100K)</div>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <strong>Sonuç:</strong> Aynı 21 cümlelik sette 64K tokenizer <strong>192</strong> token kullanır; Kumru ve TabiBERT 
+            <strong>224</strong> (~%16 daha fazla), Hamza <strong>568</strong> (~%289 daha fazla). Hamza tokenizer'ı 50.257 kelime 
+            hacmine sahiptir (GPT-2 ile aynı) ve Türkçe için optimize edilmemiştir. 64K tokenizer kodda GPT-4/GPT-4o ile 
+            aynı veya daha iyi performans gösterir; hukuk, tıp ve haber alanlarında belirgin kazanım sağlar. Kumru ve TabiBERT 
+            birebir aynı performansı gösterir; ikisi de ~50K BPE kullanır.(biri diğerinin tokenizerını kullanıyor.)
+        </div>
+
+        <!-- ============================================ -->
+        <h2>8. ALANA ÖZEL ANALİZ</h2>
+        <!-- ============================================ -->
+
+        <p>Alana yönelik eğitim verisi, uzmanlık alanı sözcük dağarcığında ölçülebilir iyileşmeler sağlar. 
+        Aşağıda her alan için token düzeyinde karşılaştırmalar yer alıyor.</p>
+
+        <h3>Hukuk Türkçesi</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Token</th><th>"Anayasa Mahkemesi ba&#351;vuruyu oybirli&#287;iyle reddetti."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>6</strong></td><td><code>Anayasa | Mahkemesi | ba&#351;vuruyu | oybirli&#287;iyle | reddetti | .</code></td></tr>
+            <tr><td>Kumru</td><td>10</td><td><code>Anayasa | Mahkemesi | ba&#351;vur | uyu | oy | bir | li&#287;iyle | reddet | ti | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>10</td><td>(Kumru ile aynı)</td></tr>
+            <tr><td>Hamza</td><td class="bad">23</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">20</td><td class="neutral">(alt kelime parçalarına bölünmüş)</td></tr>
+        </table>
+        <p><code>ba&#351;vuruyu</code> (başvuru) ve <code>oybirli&#287;iyle</code> (oybirliğiyle) 64K'da tek token. Kumru ve TabiBERT birincisini 2, ikincisini 3 parçaya böler. Sonuç: <strong>6 vs 10</strong> (Kumru/TabiBERT), <strong>6 vs 23</strong> (Hamza).</p>
+
+        <h3>Tıbbi Türkçe</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Token</th><th>"Hastan&#305;n ameliyat sonras&#305; komplikasyon riski de&#287;erlendirilmelidir."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>7</strong></td><td><code>Hastan&#305;n | ameliyat | sonras&#305; | komplikasyon | riski | de&#287;erlendirilmelidir | .</code></td></tr>
+            <tr><td>Kumru</td><td>7</td><td><code>Hastan&#305;n | ameliyat | sonras&#305; | komplikasyon | riski | de&#287;erlendirilmelidir | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>7</td><td>(Kumru ile aynı)</td></tr>
+            <tr><td>Hamza</td><td class="bad">30</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">26</td><td class="neutral">(alt kelime parçalarına bölünmüş)</td></tr>
+        </table>
+        <p><code>Hastan&#305;n</code> (hastanın) tek tokendir. <code>de&#287;erlendirilmelidir</code> (değerlendirilmelidir) &mdash; 6 biçimbirimlik ek zinciri &mdash; yine tek tokendir. Kumru/TabiBERT 7; Hamza 30; GPT-4 26.</p>
+
+        <h3>Finans Türkçesi</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Token</th><th>"&#350;irketin halka arz s&uuml;recinde sermaye piyasas&#305; kurulu onay&#305; gerekmektedir."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>11</strong></td><td><code>&#350;irket | in | halka | arz | s&uuml;recinde | sermaye | piyasas&#305; | kurulu | onay&#305; | gerekmektedir | .</code></td></tr>
+            <tr><td>Kumru</td><td>11</td><td><code>&#350;irket | in | halka | arz | s&uuml;recinde | sermaye | piyasas&#305; | kurulu | onay&#305; | gerekmektedir | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>11</td><td>(Kumru ile aynı)</td></tr>
+            <tr><td>Hamza</td><td class="bad">36</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">30</td><td class="neutral">(alt kelime parçalarına bölünmüş)</td></tr>
+        </table>
+
+        <h3>Haber/Gazetecilik Türkçesi</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Token</th><th>"Cumhurba&#351;kanl&#305;&#287;&#305; S&ouml;zc&uuml;s&uuml; bas&#305;n toplant&#305;s&#305;nda a&ccedil;&#305;klamalarda bulundu."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>7</strong></td><td><code>Cumhurba&#351;kanl&#305;&#287;&#305; | S&ouml;zc&uuml;s&uuml; | bas&#305;n | toplant&#305;s&#305;nda | a&ccedil;&#305;klamalarda | bulundu | .</code></td></tr>
+            <tr><td>Kumru</td><td>8</td><td><code>Cumhurba&#351;kanl&#305;&#287;&#305; | S&ouml;zc | &uuml;s&uuml; | bas&#305;n | toplant&#305;s&#305;nda | a&ccedil;&#305;klamalarda | bulundu | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>8</td><td>(Kumru ile aynı)</td></tr>
+            <tr><td>Hamza</td><td class="bad">39</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">29</td><td class="neutral">(alt kelime parçalarına bölünmüş)</td></tr>
+        </table>
+        <p><code>Cumhurba&#351;kanl&#305;&#287;&#305;</code> (Cumhurbaşkanlığı) ve <code>S&ouml;zc&uuml;s&uuml;</code> (Sözcüsü) 64K'da tek token. Kumru ve TabiBERT <code>S&ouml;zc&uuml;s&uuml;</code> 2 parçaya böler; Hamza 39 token. Ek kelime kapasitesi 64K'nın bu yüksek frekanslı kurumsal terimleri atomik birimler olarak yakalamasını sağlar.</p>
+
+        <!-- ============================================ -->
+        <h2>9. BİÇİMBİLİMSEL ANALİZ</h2>
+        <!-- ============================================ -->
+
+        <p>Tokenizer Türkçe biçimbilimini salt istatistikten öğrendi &mdash; hiçbir dilbilimsel kural programlanmadı. 
+        BPE, 22GB metnin frekans analiziyle biçimbirim benzeri sınırları kendiliğinden keşfetti.</p>
+
+        <h3>Fiil biçimbilimi (öğrenildi, kodlanmadı)</h3>
+        <table>
+            <tr><th>Kelime</th><th>Token</th><th>Biçimbilimsel Yorum</th></tr>
+            <tr><td>geliyorum</td><td><code>gel | iyorum</code></td><td>gövde + şimdiki zaman 1. kişi</td></tr>
+            <tr><td>geldim</td><td><code>gel | dim</code></td><td>gövde + geçmiş zaman 1. kişi</td></tr>
+            <tr><td>gelecek</td><td><code>gelecek</code></td><td>tek token (çok yaygın kelime)</td></tr>
+            <tr><td>gelmi&#351;</td><td><code>gelmi&#351;</code></td><td>tek token (yaygın duyulan geçmiş)</td></tr>
+            <tr><td>geliyoruz</td><td><code>geliyoruz</code></td><td>tek token (yaygın 1. çoğul)</td></tr>
+        </table>
+
+        <h3>İsim hal ekleri</h3>
+        <table>
+            <tr><th>Kelime</th><th>Token</th><th>Sayı</th></tr>
+            <tr><td>ev (ev)</td><td><code>ev</code></td><td class="good">1</td></tr>
+            <tr><td>evde (evde)</td><td><code>evde</code></td><td class="good">1</td></tr>
+            <tr><td>evden (evden)</td><td><code>evden</code></td><td class="good">1</td></tr>
+            <tr><td>eve (eve)</td><td><code>eve</code></td><td class="good">1</td></tr>
+            <tr><td>evin (evin)</td><td><code>evin</code></td><td class="good">1</td></tr>
+            <tr><td>evler (evler)</td><td><code>evler</code></td><td class="good">1</td></tr>
+        </table>
+        <p>&ldquo;Ev&rdquo;in altı farklı dilbilgisel biçimi &mdash; hepsi tek token olarak kodlanır.</p>
+
+        <h3>Ek zinciri işleme</h3>
+        <table>
+            <tr><th>Kelime</th><th>Token</th><th>Sayı</th></tr>
+            <tr><td>de&#287;erlendirilmelidir</td><td><code>de&#287;erlendirilmelidir</code></td><td class="good">1</td></tr>
+            <tr><td>lar&#305;m&#305;zdan (bizim ...lerimizden)</td><td><code>lar&#305;m&#305;zdan</code></td><td class="good">1</td></tr>
+            <tr><td>gidebilirsiniz (gidebilirsiniz)</td><td><code>gidebilirsiniz</code></td><td class="good">1</td></tr>
+            <tr><td>oybirli&#287;iyle (oybirliğiyle)</td><td><code>oybirli&#287;iyle</code></td><td class="good">1</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>10. DİYAKRİTİK DAYANIKLILIĞI</h2>
+        <!-- ============================================ -->
+
+        <p>Türkçe kullanıcılar bazen vurgu işaretleri olmadan yazar (c yerine &ccedil;, s yerine &#351;, i yerine &#305;). 
+        Tokenizer her iki biçimi de işler; ancak doğru Türkçe, tasarım gereği belirgin biçimde daha az token tüketir.</p>
+
+        <table>
+            <tr><th>Doğru Türkçe</th><th>Token</th><th>Vurgusuz yazım</th><th>Token</th><th>Maliyet</th></tr>
+            <tr><td>&#351;ehir</td><td class="good">1</td><td>sehir</td><td>3</td><td class="bad">+2</td></tr>
+            <tr><td>b&uuml;y&uuml;k&#351;ehir</td><td class="good">2</td><td>buyuksehir</td><td>6</td><td class="bad">+4</td></tr>
+            <tr><td>T&uuml;rkiye</td><td class="good">1</td><td>Turkiye</td><td>2</td><td class="bad">+1</td></tr>
+            <tr><td>&ouml;&#287;renci</td><td class="good">1</td><td>ogrenci</td><td>3</td><td class="bad">+2</td></tr>
+            <tr><td>g&uuml;nayd&#305;n</td><td class="good">2</td><td>gunaydin</td><td>3</td><td class="bad">+1</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Tasarım tercihi:</strong> Vurgu işaretleri olmadan yazılmış Türkçe eğitim derlemine bilinçli olarak alınmadı. 
+            Böylece özensiz giriş yine de işlenebilir (hiçbir şey bozulmaz &mdash; byte-level BPE her şeyi temsil edebilir) 
+            ancak daha fazla token tüketir. Bu tokenizer ile eğitilen model özensiz girişi kabul ederken çıktıda 
+            her zaman <strong>doğru Türkçe üretir</strong> &mdash; çünkü eğitildiği tek biçim doğru Türkçedir.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. BAĞLAM PENCERESİ: BİRİKEN AVANTAJ</h2>
+        <!-- ============================================ -->
+
+        <p>Tokenizer verimliliği sabit bir tasarruf değildir &mdash; <strong>bağlam uzunluğu üzerinde bir çarpan</strong>dır. 
+        Bağlam penceresi ne kadar uzunsa avantaj o kadar birikir. Bu hedef model için doğrudan mimari sonuçlar doğurur.</p>
+
+        <h3>Etkin bağlam kapasitesi</h3>
+        <p>Her bağlam uzunluğunda 64K tokenizer, rakiplerin aynı sayıda token yuvasına sığdırabileceğinden 
+        belirgin biçimde daha fazla Türkçe metin tutar:</p>
+        <table>
+            <tr><th>Bağlam Uzunluğu</th><th>Bu Çalışma (64K)</th><th>Kumru Eşdeğeri</th><th>GPT-4 Eşdeğeri</th><th>Ek Metin Kapasitesi</th></tr>
+            <tr><td>2,048 tokens</td><td>2,048</td><td>~2,387</td><td>~5,627</td><td>+339 vs Kumru</td></tr>
+            <tr><td>4,096 tokens</td><td>4,096</td><td>~4,773</td><td>~11,253</td><td>+677 vs Kumru</td></tr>
+            <tr><td>32,768 tokens</td><td>32,768</td><td>~38,187</td><td>~90,027</td><td class="good">+5,419 vs Kumru</td></tr>
+            <tr><td>128,000 tokens</td><td>128,000</td><td>~149,333</td><td>~351,667</td><td class="good"><strong>+21,333 vs Kumru</strong></td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">
+        &ldquo;Kumru Eşdeğeri&rdquo; = aynı miktarda Türkçe metni tutmak için kaç Kumru tokenı gerekir. 
+        Bölüm 7'de ölçülen verimlilik farklarından hesaplandı.</p>
+
+        <h3>Mimari sonuç: küçük model, büyük bağlam</h3>
+        <p>Verimlilik avantajı Türkçe için en uygun model mimarisini temelden değiştirir. 
+        İki strateji değerlendirildi:</p>
+        <table>
+            <tr><th>Strateji</th><th>Parametreler</th><th>Bağlam</th><th>Türkçe Metin Kapasitesi</th><th>Eğitilebilirlik</th></tr>
+            <tr><td>Büyük model, kısa bağlam</td><td>7B</td><td>4.096</td><td>~3&ndash;4 sayfa</td><td class="bad">40&ndash;80 GB VRAM gerekir</td></tr>
+            <tr class="highlight"><td><strong>Küçük model, uzun bağlam</strong></td><td><strong>1&ndash;2B</strong></td><td><strong>128K</strong></td><td class="good"><strong>~tüm kitap</strong></td><td class="good">Tüketici donanımında eğitilebilir</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Stratejik karar:</strong> 128K bağlam uzunluğuna sahip 1&ndash;2B parametreli model hedef mimari olarak 
+            seçildi. 64K tokenizer ile bu yapılandırma, Kumru ile tokenize edilmiş bir modelin ~150K tokenla veya GPT-4'ün ~303K tokenla 
+            tutacağı Türkçe metni tutar. Mevcut Türkçe dil modellerinin çoğu 4K&ndash;8K token bağlam sunar. 128K bağlama 
+            sahip anadili Türkçe tokenizer'lı bir model, dava dosyalarını, akademik tezleri veya edebi eserleri tek seferde işleyebilir.
+            <br><br>
+            1B ölçeğinde 64K kelime hacminin gömme katmanı maliyeti toplam parametrelerin yaklaşık %3,3'üdür &mdash; 
+            işlenen her token için Kumru/TabiBERT'e karşı kalıcı ~%14 verimlilik avantajı için ihmal edilebilir bir maliyet.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>12. PRATİK SONUÇLARI</h2>
+        <!-- ============================================ -->
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~2,7&times;</div>
+                <div class="label">DAHA AZ TOKEN (GPT-4'e göre, 21 CÜMLE)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~%14</div>
+                <div class="label">KUMRU/TABIBERT'TEN DAHA AZ TOKEN</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">%66</div>
+                <div class="label">HAMZA'DAN DAHA AZ TOKEN (GPT-2)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">11</div>
+                <div class="label">KAPSANAN ALAN</div>
+            </div>
+        </div>
+
+        <p>İngilizce merkezli tokenizer'larda işlenen Türkçe metin, bağlam uzunluğu, hız, maliyet ve eğitim verimliliği açısından 
+        kabaca 2&times; token cezasına uğrar. Anadili Türkçe tokenizer bu vergiyi tamamen kaldırır.</p>
+
+        <p>Tokenizer 11 uzmanlık alanını kapsar (genel, akademik, hukuk, tıp, finans, eğitim, haber, kod, edebi, mantık, talimatlar); 
+        konu ne olursa olsun verimli tokenizasyon sağlanır.</p>
+
+        <!-- ============================================ -->
+        <h2>13. PROJE DURUMU</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Aşama</th><th>Durum</th><th>Ana Sonuç</th></tr>
+            <tr class="highlight"><td><strong>Aşama 1: Tokenizer</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td class="good">64K kelime, Kumru/TabiBERT'ten ~%14 daha az token, GPT-4'e göre ~2,7&times;, 11 alan</td></tr>
+            <tr><td><strong>Aşama 2: Mimari</strong></td><td><span class="status next">SIRADA</span></td><td>1&ndash;2B parametre, 128K bağlam hedefi</td></tr>
+            <tr><td><strong>Aşama 3: Ön eğitim</strong></td><td><span class="status next">SIRADA</span></td><td>Türkçe derlemden dil öğrenimi</td></tr>
+            <tr><td><strong>Aşama 4: İnce ayar</strong></td><td><span class="status next">SIRADA</span></td><td>Talimat takibi, sohbet yeteneği</td></tr>
+        </table>
+
+        <h2>14. YENİDEN ÜRETİLEBİLİRLİK</h2>
+        <p>Kod, veri kaynakları ve eğitilmiş tokenizer'lar mevcuttur.</p>
+        <ul>
+            <li><strong>Eğitim betiği:</strong> <code>train_tokenizer.py</code></li>
+            <li><strong>Kıyaslama betiği:</strong> <code>benchmark_tokenizers.py</code> (104 cümle: 21 çekirdek + 83 zor/kenar)</li>
+            <li><strong>Eğitim verisi:</strong> 27 dosyada 22 GB, 11 alan</li>
+            <li><strong>Seçilen tokenizer:</strong> <code>tokenizers/turkish_bpe_64k/tokenizer.json</code></li>
+            <li><strong>Saklanan sürümler:</strong> 16K, 32K, 48K, 64K &times; v1/v2/v3</li>
+            <li><strong>Referanslar:</strong> Kumru-2B (50.176), TabiBERT (50.176), Hamza (50.257, GPT-2 tokenizer), GPT-4 (cl100k_base), GPT-4o (o200k_base)</li>
+        </ul>
+
+        <div class="abstract" style="margin-top: 32px;">
+            <strong>Sonuç.</strong> Türkçe için özel tokenizer, verimli Türkçe dil modellemesi için ön koşuldur. 
+            İngilizce merkezli tokenizer'ların getirdiği verimlilik cezası ölçülebilir ve giderilebilir. Üç bulgu vurgulanır: 
+            (1) GPT-2 ön-tokenizasyon regex'i Türkçe kesme işareti-ek kalıplarını bozar &mdash; daha önce belgelenmemiş 
+            bir etkileşim;             (2) 48K'da görülen azalan getiriyi veri fazlalığı değil kelime doyumu açıklar &mdash; sondan 
+            eklemeli diller için önem taşır; (3) tokenizer verimliliği bağlam uzunluğuyla birikir ve küçük, uzun bağlamlı 
+            mimarileri destekler. Bu rapor sıfırdan anadili Türkçe bir LLM kurma çabasının Aşama 1'ini belgeler.
+            <br><br>
+            <em style="font-size: 12px;">Kumru AI&rsquo;ya özel bir teşekkür borçluyuz: Türkçe LLM&rsquo;lerinin mantık ve 
+            Türkçe biçimbiliminde iyi belgelenmiş sınırlılıkları, sıfırdan düzgün bir Türkçe dil modeli kurma 
+            motivasyonunu sağladı. Hamza (emrecanacikgoz) ve TabiBERT (boun-tabilab) tokenizer&rsquo;ları da 
+            karşılaştırıldı; Bölüm 7 ve <code>benchmark_tokenizers.py</code>'ye bakınız.</em>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Bağımsız Araştırma
+        </p>
+    </main>
+
+</body>
+</html>

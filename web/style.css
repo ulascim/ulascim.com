@@ -1,0 +1,318 @@
+/* ============================================
+   OMEGA ARENA - Exact Alpha Arena Clone
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f3f3f3;
+    --fg: #000000;
+    --gray-100: #f3f4f6;
+    --gray-300: #d1d5db;
+    --positive: #16a34a;
+    --negative: #dc2626;
+}
+
+body {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 2px solid var(--fg);
+    background: var(--bg);
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 64px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 48px;
+    width: auto;
+}
+
+.nav-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav-link {
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #2563eb;
+}
+
+.nav-divider {
+    color: var(--fg);
+    font-size: 14px;
+    font-weight: 300;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-link-small {
+    color: var(--fg);
+    text-decoration: underline;
+    font-size: 11px;
+}
+
+/* ============================================
+   MAIN
+   ============================================ */
+
+.main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 64px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+/* ============================================
+   CONTROLS
+   ============================================ */
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.control-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.control-select {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid var(--fg);
+    border-radius: 0;
+    background: var(--bg);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M0 2l4 4 4-4z' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+}
+
+.control-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tabs {
+    display: inline-flex;
+}
+
+.tab {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 2px solid var(--fg);
+    background: var(--bg);
+    cursor: pointer;
+}
+
+.tab + .tab {
+    margin-left: -2px;
+}
+
+.tab.active {
+    background: var(--fg);
+    color: var(--bg);
+}
+
+/* ============================================
+   TABLE - EXACT Alpha Arena Style
+   ============================================ */
+
+.table-container {
+    overflow-x: auto;
+}
+
+.leaderboard-table {
+    width: auto;
+    border-collapse: collapse;
+    border: 2px solid var(--fg);
+}
+
+/* Header */
+.leaderboard-table thead {
+    background: var(--gray-100);
+}
+
+.leaderboard-table thead tr {
+    border-bottom: 2px solid var(--fg);
+}
+
+.leaderboard-table th {
+    padding: 2px 4px;
+    text-align: left;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    border-right: 2px solid var(--fg);
+}
+
+.leaderboard-table th:last-child {
+    border-right: none;
+}
+
+/* Data rows */
+.leaderboard-table tbody tr {
+    border-bottom: 1px solid var(--gray-300);
+    transition: background-color 0.15s;
+}
+
+.leaderboard-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.leaderboard-table td {
+    padding: 2px 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    border-right: 2px solid var(--fg);
+}
+
+.leaderboard-table td:last-child {
+    border-right: none;
+}
+
+/* Column styles */
+.col-rank {
+    text-align: center;
+    width: 1%;
+}
+
+.col-model {
+    font-weight: 500;
+}
+
+.col-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    width: 1%;
+}
+
+.col-value {
+    font-weight: 500;
+}
+
+.leaderboard-table th.col-num {
+    text-align: left;
+}
+
+/* Colors - BOLD for emphasis like Alpha Arena */
+.positive {
+    color: var(--positive);
+    font-weight: 700;
+}
+
+.negative {
+    color: var(--negative);
+    font-weight: 700;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer {
+    max-width: 1400px;
+    margin: 32px auto 0;
+    padding: 16px 64px;
+    text-align: center;
+    border-top: 1px solid var(--gray-300);
+    font-size: 10px;
+    color: #666;
+}
+
+.tagline {
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .nav-center {
+        display: none;
+    }
+    
+    .logo {
+        height: 32px;
+    }
+    
+    .main {
+        padding: 16px;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+    }
+}

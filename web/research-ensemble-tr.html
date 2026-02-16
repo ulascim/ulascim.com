@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölüm 7: Ensemble + Opus 4.5 | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        .code-block { background: #1a1a1a; color: #e5e5e5; padding: 16px; margin: 12px 0; font-size: 11px; line-height: 1.5; overflow-x: auto; border: 2px solid #000; }
+        .code-block .key { color: #7dd3fc; }
+        .code-block .string { color: #86efac; }
+        .code-block .number { color: #fcd34d; }
+        .code-block .comment { color: #6b7280; }
+
+        .arch-diagram { background: #f3f4f6; border: 2px solid #000; padding: 20px; margin: 16px 0; text-align: center; }
+        .arch-row { display: flex; justify-content: center; gap: 16px; margin: 12px 0; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 12px 20px; min-width: 140px; }
+        .arch-box.main { background: #000; color: #fff; }
+        .arch-box .title { font-size: 11px; font-weight: 700; }
+        .arch-box .desc { font-size: 9px; color: #666; margin-top: 4px; }
+        .arch-box.main .desc { color: #aaa; }
+        .arch-arrow { font-size: 20px; color: #000; }
+
+        @media (max-width: 768px) { 
+            .report { padding: 16px; } 
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .arch-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-ensemble-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-ensemble.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research-tr.html" class="back-link">Araştırmaya Dön</a>
+        
+        <h1>ENSEMBLE + OPUS 4.5</h1>
+        <p class="subtitle">Bölüm 7: Final Mimari</p>
+        <p class="authors">Omega Arena • Şubat 2026 • <strong style="color: #666;">MİMARİ TASARLANDI</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">4</div>
+                <div class="label">GİRİŞ UYGULAMASI</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">171</div>
+                <div class="label">METRİK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">4</div>
+                <div class="label">ML MODEL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3</div>
+                <div class="label">LLM BEYİN</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Dört bağımsız analitik yaklaşımı birleştiren çok katmanlı bir ensemble sistemi—
+            Omega Sinyal Motoru (171 metrik), ML fiyat tahmin modelleri (XGBoost, CatBoost, LightGBM, TFT), 
+            rejim tespit modelleri ve <strong>gerçek zamanlı haber duygu analizi</strong>—hepsi nihai karar verici olarak <strong>Claude Opus 4.5</strong>'e besleniyor.
+            LLM çelişen sinyalleri sentezler, portföy bağlamını uygular ve eyleme dönüştürülebilir trading kararları üretir.
+        </div>
+
+        <h2>1. MİMARİ GENEL BAKIŞ</h2>
+
+        <div class="arch-diagram">
+            <div class="arch-row">
+                <div class="arch-box">
+                    <div class="title">APP 1: SİNYAL MOTORU</div>
+                    <div class="desc">171 Metrik, Dinamik Parametreler</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 2: ML MODELLERİ</div>
+                    <div class="desc">XGBoost, CatBoost, LightGBM, TFT</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 3: REJİM</div>
+                    <div class="desc">HMM, Random Forest, LSTM</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 4: HABER DUYGUSU</div>
+                    <div class="desc">RSS + NewsData.io, GPT-4o</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓ ↓ ↓ ↓</div>
+            <div class="arch-row">
+                <div class="arch-box main">
+                    <div class="title">OPUS 4.5 (LLM)</div>
+                    <div class="desc">Nihai Karar Verici</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓</div>
+            <div class="arch-row">
+                <div class="arch-box">
+                    <div class="title">TRADİNG KARARLARI</div>
+                    <div class="desc">Coinler, Boyutlar, Stop'lar, Hedefler</div>
+                </div>
+            </div>
+        </div>
+
+        <p>Her APP bağımsız çalışır, piyasa verilerini farklı analitik lenslerden işler. APP 1-3 tarihsel fiyat/hacim verilerini analiz ederken, APP 4 gerçek zamanlı haberlerden ileriye dönük bağlam sağlar. Tüm çıktılar, final sentez için LLM'e beslenen yapılandırılmış JSON'dır.</p>
+
+        <h2>2. APP 1: SİNYAL ÜRETİM MOTORU</h2>
+        <p>Bölüm 3'ten Omega Sistemi—<strong>dinamik parametre ayarlaması</strong> ile 171 teknik ve temel metrik.</p>
+
+        <table>
+            <tr><th>Bileşen</th><th>Açıklama</th></tr>
+            <tr><td><strong class="good">171 Metrik</strong></td><td>Teknik, kantitatif, profesyonel, ML-grade, makro, öncü</td></tr>
+            <tr><td><strong>6 Zaman Dilimi</strong></td><td>1d, 5d, 15d, 30d, 1s, 1g ağırlıklı agregasyon ile</td></tr>
+            <tr><td><strong>Dinamik Parametreler</strong></td><td>Parametreler tespit edilen piyasa koşullarına göre ayarlanır</td></tr>
+            <tr><td><strong>Çıktı</strong></td><td>Bileşik skor (<span class="bad">-1</span> ile <span class="good">+1</span>), sinyal (<span class="good">YUKARI</span>/<span class="bad">AŞAĞI</span>/NÖTR), güven</td></tr>
+        </table>
+
+        <h3>Çıktı Formatı</h3>
+        <div class="code-block">
+{
+  <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-02-03T10:00:00Z"</span>,
+  <span class="key">"composite_score"</span>: <span style="color: #4ade80; font-weight: bold;">0.72</span>,
+  <span class="key">"signal"</span>: <span style="color: #4ade80; font-weight: bold;">"BULLISH"</span>,
+  <span class="key">"confidence"</span>: <span style="color: #4ade80; font-weight: bold;">0.68</span>,
+  <span class="key">"individual_signals"</span>: {
+    <span class="key">"rsi_signal"</span>: <span style="color: #4ade80;">0.6</span>,
+    <span class="key">"macd_signal"</span>: <span style="color: #4ade80;">0.8</span>,
+    <span class="key">"volume_signal"</span>: <span style="color: #4ade80;">0.7</span>,
+    <span class="comment">// ... 168 more metrics</span>
+  }
+}
+        </div>
+
+        <h2>3. APP 2: ML FİYAT TAHMİN MODELLERİ</h2>
+        <p>Fiyat yönü tahmini için 10 yıllık veri (2015-2025) üzerinde eğitilmiş dört makine öğrenmesi modeli.</p>
+
+        <table>
+            <tr><th>Model</th><th>Tip</th><th>En İyi AUC</th><th>Durum</th></tr>
+            <tr class="highlight"><td><strong>XGBoost</strong></td><td>Gradient Boosting</td><td class="good"><strong>0.566</strong></td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td><strong>CatBoost</strong></td><td>Gradient Boosting</td><td class="good">0.530</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td><strong>LightGBM</strong></td><td>Gradient Boosting</td><td class="good">0.520</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>TFT</td><td>Neural Network</td><td>N/A</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+        </table>
+
+        <h3>Çıktı Formatı</h3>
+        <div class="code-block">
+{
+  <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+  <span class="key">"predictions"</span>: {
+    <span class="key">"xgboost"</span>: { <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>, <span class="key">"probability"</span>: <span style="color: #4ade80;">0.58</span> },
+    <span class="key">"catboost"</span>: { <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>, <span class="key">"probability"</span>: <span style="color: #4ade80;">0.54</span> },
+    <span class="key">"lightgbm"</span>: { <span class="key">"direction"</span>: <span style="color: #f87171; font-weight: bold;">0</span>, <span class="key">"probability"</span>: <span style="color: #fcd34d;">0.52</span> }
+  },
+  <span class="key">"ensemble_vote"</span>: {
+    <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>,
+    <span class="key">"agreement"</span>: <span style="color: #4ade80;">0.75</span>,
+    <span class="key">"weighted_probability"</span>: <span style="color: #4ade80;">0.56</span>
+  }
+}
+        </div>
+
+        <h2>4. APP 3: REJİM TESPİT MODELLERİ</h2>
+        <p><strong>SADECE</strong> piyasa rejimini tespit etmeye adanmış özel modeller. Bunlar fiyat tahmin ETMİYOR—piyasa durumunu sınıflandırıyorlar.</p>
+
+        <table>
+            <tr><th>Rejim</th><th>Özellikler</th><th>Tipik Süre</th></tr>
+            <tr><td class="good"><strong>BOĞA</strong></td><td>Sürdürülen yükseliş trendi, genişleyen hacim, pozitif duyarlılık</td><td>Aylar ile yıllar</td></tr>
+            <tr><td class="bad"><strong>AYI</strong></td><td>Sürdürülen düşüş trendi, kapitülasyon olayları, negatif duyarlılık</td><td>Aylar ile yıllar</td></tr>
+            <tr><td><strong>YATAY</strong></td><td>Aralık içi, azalan volatilite, karışık sinyaller</td><td>Haftalar ile aylar</td></tr>
+            <tr><td><strong>GEÇİŞ</strong></td><td>Devam eden rejim değişikliği, yüksek belirsizlik</td><td>Günler ile haftalar</td></tr>
+        </table>
+
+        <h3>Rejim Tespit Modelleri (Bölüm 5)</h3>
+        <table>
+            <tr><th>Model</th><th>Konfigürasyon</th><th>Durum</th></tr>
+            <tr><td><strong>Hidden Markov Model (HMM)</strong></td><td>219 sayısal özellik, 2-5 durum, BIC seçimi</td><td><span class="status progress">HAZIR</span></td></tr>
+            <tr><td><strong>Random Forest Classifier</strong></td><td>235 özellik, 100 HPO denemesi, 5-katlı CV</td><td><span class="status progress">HAZIR</span></td></tr>
+            <tr><td><strong>BiLSTM + Attention</strong></td><td>90 günlük diziler, 3 katman, çok-görevli (günlük/haftalık/aylık)</td><td><span class="status progress">HAZIR</span></td></tr>
+            <tr><td><strong>Ensemble Voting</strong></td><td>Üç modelden ağırlıklı oylama</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h3>Bölüm 5 Veri Seti</h3>
+        <table>
+            <tr><th>Metrik</th><th>Değer</th></tr>
+            <tr><td><strong>Varlıklar</strong></td><td class="good"><strong>97 kripto varlık</strong></td></tr>
+            <tr><td><strong>Ham Özellikler</strong></td><td class="good"><strong>203</strong> (kodlama sonrası 235)</td></tr>
+            <tr><td><strong>Toplam Satır</strong></td><td class="good"><strong>233,507</strong></td></tr>
+            <tr><td><strong>Tarih Aralığı</strong></td><td>2014-09-17 → 2026-01-26</td></tr>
+            <tr><td><strong>Etiketler</strong></td><td>%100 hindsight-doğru (YUKARI/AŞAĞI/AYNI)</td></tr>
+            <tr><td><strong>LSTM Dizileri</strong></td><td>90 günlük pencereler, toplam 17.6 GB</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Level 7 Bağlam Özellikleri.</strong> Bölüm 5, 15 yeni bağlam-duyarlı özellik tanıttı: ATH mesafesi, 52-hafta aralığı konumu, 
+            YTD/yıllık getiriler, mevsimsellik desenleri ve Bitcoin halving döngüsü. Bunlar standart teknik göstergelerin kaçırdığı 
+            "büyük resim" bağlamını sağlar.
+        </div>
+
+        <h3>Çıktı Formatı</h3>
+        <div class="code-block">
+{
+  <span class="key">"regime_detection"</span>: {
+    <span class="key">"current_regime"</span>: <span style="color: #4ade80; font-weight: bold;">"BULL"</span>,
+    <span class="key">"confidence"</span>: <span style="color: #4ade80; font-weight: bold;">0.78</span>,
+    <span class="key">"probabilities"</span>: {
+      <span class="key">"bull"</span>: <span style="color: #4ade80; font-weight: bold;">0.78</span>,
+      <span class="key">"bear"</span>: <span style="color: #f87171;">0.12</span>,
+      <span class="key">"sideways"</span>: <span style="color: #fcd34d;">0.08</span>,
+      <span class="key">"transition"</span>: <span style="color: #fcd34d;">0.02</span>
+    },
+    <span class="key">"transition_risk"</span>: <span style="color: #4ade80;">0.15</span>
+  },
+  <span class="key">"model_votes"</span>: {
+    <span class="key">"hmm"</span>: <span style="color: #4ade80;">"BULL"</span>,
+    <span class="key">"random_forest"</span>: <span style="color: #4ade80;">"BULL"</span>,
+    <span class="key">"lstm"</span>: <span style="color: #4ade80;">"BULL"</span>
+  }
+}
+        </div>
+
+        <h2>5. APP 4: HABER DUYGU ANALİZİ</h2>
+        <p>Teknik göstergelerin yakalayamadığı <strong>ileriye dönük bağlam</strong> sağlayan gerçek zamanlı haber analizi. Bölüm 6'da oluşturuldu.</p>
+
+        <div class="finding">
+            <strong>Neden Haber?</strong> Teknik göstergeler geçmişi analiz eder. Haberler geleceği analiz eder. 
+            Piyasalar sadece tekniklere değil <strong>beklentilere</strong> göre hareket eder. Bir Fed açıklaması, 
+            borsa hack'i veya düzenleme değişikliği tüm teknik sinyalleri geçersiz kılabilir.
+        </div>
+
+        <table>
+            <tr><th>Bileşen</th><th>Açıklama</th></tr>
+            <tr><td><strong class="good">6 RSS Kaynağı</strong></td><td>CoinDesk, CoinTelegraph, Bitcoin Magazine, Decrypt, The Block, Google News</td></tr>
+            <tr><td><strong>25 Coin</strong></td><td>NewsData.io aracılığıyla BTC, ETH, SOL ve 22 çeşitlendirilmiş alt</td></tr>
+            <tr><td><strong>Çift Mod</strong></td><td>Hızlı (10dk, GPT-4o-mini) + Detaylı (6sa, GPT-4o)</td></tr>
+            <tr><td><strong>Kaynak Katmanları</strong></td><td>T1 (1.0x), T2 (0.8x), T3 (0.5x) güvenilirlik ağırlıklandırması</td></tr>
+            <tr><td><strong>Çıktı</strong></td><td>Duygu (<span class="good">YUKARI</span>/<span class="bad">AŞAĞI</span>/NÖTR), güven, önemli olaylar, riskler</td></tr>
+        </table>
+
+        <h3>Çıktı Formatı</h3>
+        <div class="code-block">
+{
+  <span class="key">"news_sentiment"</span>: {
+    <span class="key">"market_sentiment"</span>: <span style="color: #f87171; font-weight: bold;">"BEARISH"</span>,
+    <span class="key">"confidence"</span>: <span style="color: #fcd34d;">0.72</span>,
+    <span class="key">"key_events"</span>: [
+      <span class="string">"Fed şahin duruş sinyali veriyor"</span>,
+      <span class="string">"Büyük borsa likidite sorunları bildiriyor"</span>
+    ],
+    <span class="key">"asset_outlook"</span>: {
+      <span class="key">"BTC"</span>: <span style="color: #f87171;">"BEARISH"</span>,
+      <span class="key">"ETH"</span>: <span style="color: #fcd34d;">"NEUTRAL"</span>,
+      <span class="key">"ALTS"</span>: <span style="color: #f87171;">"BEARISH"</span>
+    },
+    <span class="key">"risk_factors"</span>: [<span class="string">"Düzenleyici belirsizlik"</span>, <span class="string">"Makro rüzgarlar"</span>],
+    <span class="key">"actionable_signal"</span>: <span style="color: #f87171; font-weight: bold;">"SHORT"</span>
+  },
+  <span class="key">"freshness"</span>: {
+    <span class="key">"rss_items"</span>: <span class="number">45</span>,
+    <span class="key">"newsdata_items"</span>: <span class="number">120</span>,
+    <span class="key">"analysis_time"</span>: <span class="string">"2026-02-05T14:35:09Z"</span>
+  }
+}
+        </div>
+
+        <h2>6. LLM KARAR KATMANI (OPUS 4.5)</h2>
+        <p>Nihai karar verici. Claude Opus 4.5 dört APP'ten çıktıları alır ve final trading kararlarını verir.</p>
+
+        <div class="finding">
+            <strong>Neden LLM?</strong> Geleneksel ensemble oylamadan farklı olarak, bir LLM şunları yapabilir:<br><br>
+            • Çelişen sinyalleri nüansla <strong>sentezler</strong><br>
+            • Belirsiz olduğunda ek ham veri <strong>ister</strong><br>
+            • Akıl yürütmeyi doğal dilde <strong>açıklar</strong><br>
+            • Portföy bağlamını (bütçe, pozisyonlar, risk) <strong>uygular</strong><br>
+            • Prompt güncellemeleri aracılığıyla değişen koşullara <strong>adapte olur</strong>
+        </div>
+
+        <h3>LLM Sorumlulukları</h3>
+        <table>
+            <tr><th>Adım</th><th>Aksiyon</th></tr>
+            <tr><td><strong>1. Al</strong></td><td>APP 1, APP 2, APP 3, APP 4'ten çıktılar</td></tr>
+            <tr><td><strong>2. Analiz Et</strong></td><td>Sinyaller arasındaki korelasyonlar ve çelişkiler</td></tr>
+            <tr><td><strong>3. İste</strong></td><td>Gerekirse ek ham veri (mumlar, funding rate'leri, vb.)</td></tr>
+            <tr><td><strong>4. Değerlendir</strong></td><td>Portföy durumu: bütçe, açık pozisyonlar, risk toleransı</td></tr>
+            <tr><td><strong>5. Çıktı Ver</strong></td><td>Eyleme dönüştürülebilir kararlar: boyutlar ve stop'larla AL/SAT/TUT</td></tr>
+        </table>
+
+        <h3>Giriş Bağlamı</h3>
+        <div class="code-block">
+{
+  <span class="key">"app1_signals"</span>: { <span class="comment">/* Signal Engine output */</span> },
+  <span class="key">"app2_predictions"</span>: { <span class="comment">/* ML Models output */</span> },
+  <span class="key">"app3_regime"</span>: { <span class="comment">/* Regime Detection output */</span> },
+  <span class="key">"app4_news"</span>: { <span class="comment">/* News Sentiment output */</span> },
+  <span class="key">"portfolio_state"</span>: {
+    <span class="key">"total_budget"</span>: <span class="number">100000</span>,
+    <span class="key">"available_cash"</span>: <span class="number">45000</span>,
+    <span class="key">"open_positions"</span>: [
+      { <span class="key">"asset"</span>: <span class="string">"BTC"</span>, <span class="key">"size"</span>: <span class="number">0.5</span>, <span class="key">"entry"</span>: <span class="number">42000</span>, <span class="key">"pnl"</span>: <span style="color: #4ade80; font-weight: bold;">"+8%"</span> },
+      { <span class="key">"asset"</span>: <span class="string">"ETH"</span>, <span class="key">"size"</span>: <span class="number">5.0</span>, <span class="key">"entry"</span>: <span class="number">2200</span>, <span class="key">"pnl"</span>: <span style="color: #f87171; font-weight: bold;">"-3%"</span> }
+    ],
+    <span class="key">"risk_tolerance"</span>: <span class="string">"moderate"</span>
+  }
+}
+        </div>
+
+        <h3>Karar Çıktısı</h3>
+        <div class="code-block">
+{
+  <span class="key">"decisions"</span>: [
+    {
+      <span class="key">"action"</span>: <span style="color: #4ade80; font-weight: bold;">"BUY"</span>,
+      <span class="key">"asset"</span>: <span class="string">"SOL"</span>,
+      <span class="key">"size_usd"</span>: <span style="color: #4ade80;">5000</span>,
+      <span class="key">"stop_loss"</span>: <span style="color: #f87171;">95.50</span>,
+      <span class="key">"take_profit"</span>: <span style="color: #4ade80;">125.00</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Strong bullish from APP1 (<span style="color: #4ade80;">0.72</span>), XGBoost up (<span style="color: #4ade80;">0.58</span>), regime <span style="color: #4ade80;">BULL</span>."</span>
+    },
+    {
+      <span class="key">"action"</span>: <span style="color: #fcd34d; font-weight: bold;">"HOLD"</span>,
+      <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Already positioned. Signals mixed. Wait for clarity."</span>
+    },
+    {
+      <span class="key">"action"</span>: <span style="color: #f87171; font-weight: bold;">"REDUCE"</span>,
+      <span class="key">"asset"</span>: <span class="string">"ETH"</span>,
+      <span class="key">"size_reduction"</span>: <span style="color: #f87171;">0.5</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Negative PnL, APP1 weakness, transition risk rising."</span>
+    }
+  ],
+  <span class="key">"data_requests"</span>: [
+    <span class="string">"Need 4h candles for SOL last 7 days"</span>,
+    <span class="string">"Show me ETH funding rates"</span>
+  ]
+}
+        </div>
+
+        <h2>7. VERİ AKIŞI ÖZETİ</h2>
+
+        <table>
+            <tr><th>Aşama</th><th>Giriş</th><th>İşlem</th><th>Çıkış</th></tr>
+            <tr><td><strong>Ham Veri</strong></td><td>Fiyat, Hacim, On-chain</td><td>Toplama & Temizleme</td><td>Standartlaştırılmış akışlar</td></tr>
+            <tr><td><strong>APP 1</strong></td><td>Ham veri</td><td class="good">171 metrik, sinyal agregasyonu</td><td>Bileşik skor + sinyal</td></tr>
+            <tr><td><strong>APP 2</strong></td><td>Ham veri</td><td class="good">ML model çıkarımı</td><td>Yön tahminleri</td></tr>
+            <tr><td><strong>APP 3</strong></td><td>Ham veri</td><td class="good">Rejim sınıflandırma</td><td><span class="good">Boğa</span>/<span class="bad">Ayı</span>/Yatay</td></tr>
+            <tr><td><strong>APP 4</strong></td><td>RSS + NewsData.io</td><td class="good">Haber duygu analizi</td><td><span class="good">Yükseliş</span>/<span class="bad">Düşüş</span>/Nötr</td></tr>
+            <tr class="highlight"><td><strong class="good">LLM</strong></td><td>Tüm APP çıktıları + Portföy</td><td><strong>Sentez + Akıl Yürütme</strong></td><td class="good"><strong>Trading kararları</strong></td></tr>
+            <tr><td><strong>Yürütme</strong></td><td>LLM kararları</td><td>Emir yönlendirme</td><td class="good">İşlemler yerleştirildi</td></tr>
+        </table>
+
+        <h2>8. UYGULAMA YOL HARİTASI</h2>
+
+        <h3>Faz 1: ML Eğitimi (Bölüm 4)</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>CatBoost eğitildi</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>LightGBM eğitildi</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>TFT eğitildi</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>XGBoost (500 HPO denemesi, AUC 0.566)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+        </table>
+
+        <h3>Faz 2: Rejim Tespiti (Bölüm 5)</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>Veri seti: 233K satır × 203 özellik × 97 varlık</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Hindsight etiketler (YUKARI/AŞAĞI/AYNI, BOĞA/AYI/YATAY)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Level 7 bağlam özellikleri (ATH, 52-hafta, halving döngüsü)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>ML-hazır veri setleri (train/val/test bölümleri)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>HMM eğitim scripti</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Random Forest eğitim scripti</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>BiLSTM+Attention eğitim scripti (90 günlük diziler)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>RunPod'da eğitimi çalıştır</td><td><span class="status progress">ÇALIŞIYOR</span></td></tr>
+            <tr><td>Ensemble oylama sistemi</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h3>Faz 3: Haber Duygusu (Bölüm 6)</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>RSS besleme entegrasyonu (6 kaynak)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>NewsData.io API entegrasyonu (25 coin)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Kaynak güvenilirlik katmanları (T1/T2/T3)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>LLM prompt mühendisliği (yapılandırılmış JSON çıktısı)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Çift modlu daemon (10dk hızlı + 6sa detaylı)</td><td><span class="status progress">TEST EDİLİYOR</span></td></tr>
+            <tr><td>Fiyat korelasyon doğrulaması</td><td><span class="status progress">TEST EDİLİYOR</span></td></tr>
+        </table>
+
+        <h3>Faz 5: Entegrasyon Katmanı</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>JSON çıktı şemalarını standartlaştır</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Çıkarım pipeline'ı oluştur</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Portföy durum yöneticisi oluştur</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Ham veri API'si uygula</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h3>Faz 6: LLM Entegrasyonu</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>Opus 4.5 prompt şablonlarını tasarla</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Konuşma akışını uygula</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Karar yürütme katmanı oluştur</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Loglama ve denetim izi ekle</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h3>Faz 7: Test & Canlıya Geçiş</h3>
+        <table>
+            <tr><th>Görev</th><th>Durum</th></tr>
+            <tr><td>2024-2025 verileri üzerinde backtest</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Paper trading fazı</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Risk yönetimi ince ayarı</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Küçük tahsisatla canlıya geç</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h2>9. TEMEL TASARIM KARARLARI</h2>
+
+        <h3>Neden ayrı Rejim Tespiti (APP 3)?</h3>
+        <ul>
+            <li>Rejim bireysel tahminlerden <strong>daha yüksek seviyeli bir kavram</strong></li>
+            <li>LLM'in <strong>APP1/APP2 çıktılarını uygun şekilde ağırlıklandırmasını</strong> sağlar</li>
+            <li>Rejim modelleri <strong>daha basit ve yorumlanabilir</strong> olabilir</li>
+        </ul>
+
+        <h3>Neden LLM'i final karar verici olarak kullanılıyor?</h3>
+        <ul>
+            <li>Çelişen sinyalleri nüansla <strong>sentezler</strong></li>
+            <li>Uç durumları ve anomalileri <strong>ele alır</strong></li>
+            <li>Açıklanabilir akıl yürütme <strong>sağlar</strong></li>
+            <li>Belirsiz olduğunda ek bağlam <strong>ister</strong></li>
+            <li>Yeniden eğitim olmadan prompt güncellemeleri aracılığıyla <strong>adapte olur</strong></li>
+        </ul>
+
+        <h3>Neden APP 1'de dinamik sinyal parametreleri?</h3>
+        <ul>
+            <li>Statik parametreler <strong>farklı piyasa koşullarında başarısız olur</strong></li>
+            <li>Rejim-farkındalıklı ayarlama <strong>sinyal kalitesini iyileştirir</strong></li>
+            <li>Trend olan vs yatay piyasalarda <strong>yanlış sinyalleri</strong> azaltır</li>
+        </ul>
+
+        <h3>Neden 4 ML modelinin hepsi tutuluyor?</h3>
+        <ul>
+            <li>Farklı modeller <strong>farklı desenleri yakalar</strong></li>
+            <li>Ensemble <strong>uyuşmazlığı bilgilendiricidir</strong></li>
+            <li>Yedeklilik <strong>sağlamlığı artırır</strong></li>
+        </ul>
+
+        <h3>Neden Haber Duygusu (APP 4)?</h3>
+        <ul>
+            <li>Teknik göstergeler <strong>sadece geçmişi görür</strong></li>
+            <li>Haberler <strong>ileriye dönük bağlam</strong> sağlar</li>
+            <li>Piyasalar <strong>beklentilere göre hareket eder, sadece tekniklere değil</strong></li>
+            <li>Tüm teknik sinyalleri <strong>geçersiz kılabilir</strong> (Fed, hack'ler, düzenleme)</li>
+            <li>Hibrit RSS + NewsData.io, ücretli API'lerin $200/ay'ına karşı <strong>$0.35/gün</strong> başarır</li>
+        </ul>
+
+        <h2>10. TEKNİK DEĞERLENDİRMELER</h2>
+
+        <table>
+            <tr><th>Değerlendirme</th><th>Yaklaşım</th></tr>
+            <tr><td><strong>Bölüm 4 Verisi (ML Modelleri)</strong></td><td>10 yıl (2015-2025), ~197k satır × 16k özellik</td></tr>
+            <tr><td><strong>Bölüm 5 Verisi (Rejim)</strong></td><td class="good"><strong>233K satır × 203 özellik × 97 varlık</strong></td></tr>
+            <tr><td><strong>LSTM Bellek</strong></td><td>90 günlük diziler, 17.6 GB (A100/L40 GPU gerektirir)</td></tr>
+            <tr><td><strong>LLM Maliyeti</strong></td><td>Opus 4.5 API çağrıları toplu/hız-sınırlı</td></tr>
+            <tr><td><strong>Gecikme</strong></td><td>Gerçek zamanlı kararlar toplam çıkarım için <strong class="good">&lt;5s</strong> gerektirir</td></tr>
+            <tr><td><strong>Güvenlik</strong></td><td>LLM kullanılamıyorsa, basit ensemble oylamaya geri dön</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>ÖNCE PAPER TRADİNG:</strong> Bu mimari herhangi bir gerçek sermaye kullanımından önce kapsamlı paper trading 
+            ile doğrulanacak. LLM dikkatli test gerektiren bir belirsizlik katmanı ekliyor.
+        </div>
+
+        <div class="abstract">
+            <strong>Mimari + Veri Pipeline Tamamlandı.</strong> Bu belge tam 4-katmanlı ensemble sistemini tanımlıyor. 
+            Bölüm 1 referans noktasını belirledi. Bölüm 3 Omega Sistemini belgeledi. 
+            Bölüm 4 ML eğitimini tamamladı (XGBoost AUC: 0.566). Bölüm 5 rejim tespit pipeline'ını kurdu: 
+            233K satır × 203 özellik × 97 varlık. Bölüm 6 hibrit RSS + NewsData.io ile gerçek zamanlı haber duygu analizi ekledi.
+            Bölüm 7 dört katmanı final karar verici olarak Claude Opus 4.5 ile entegre ediyor.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

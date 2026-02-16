@@ -1,0 +1,15 @@
+# Ignore everything
+/*
+
+# Allow only web-publishable folders
+!/docs/
+!/web/
+
+# Allow root files needed for GitHub Pages
+!/.gitignore
+!/index.html
+!/CNAME
+
+# OS files
+.DS_Store
+**/.DS_Store

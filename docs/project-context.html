@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Context &amp; Journey | Native Turkish LLM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as tokenizer report
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Tables */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+        .status.idea { background: #f3e8ff; color: #6b21a8; }
+
+        /* Timeline */
+        .timeline { position: relative; margin: 24px 0; padding-left: 24px; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #000; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #000; background: var(--bg); }
+        .timeline-item.done::before { background: #16a34a; border-color: #16a34a; }
+        .timeline-item.active::before { background: #2563eb; border-color: #2563eb; }
+        .timeline-item .tl-title { font-size: 13px; font-weight: 700; }
+        .timeline-item .tl-desc { font-size: 12px; color: #666; margin-top: 2px; }
+
+        /* Flow diagram */
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.next { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .flow-box.rl { background: #fef9c3; border-color: #854d0e; }
+
+        /* Quote */
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .quote .attr { font-style: normal; font-size: 11px; color: #666; margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="project-context_tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="project-context.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>BUILDING A TURKISH LLM FROM SCRATCH &ldquo;?&rdquo;</h1>
+        <p class="subtitle">Project Context, Journey &amp; What We Actually Discovered Along the Way</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; Living Document</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">5</div>
+                <div class="label">PHASES PLANNED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">1</div>
+                <div class="label">PHASE COMPLETE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">100M&ndash;4B</div>
+                <div class="label">PARAMETER RANGE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">128K</div>
+                <div class="label">TARGET CONTEXT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">TOKENIZER VOCAB</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>What is this?</strong> This is not a paper. This is a living record of building a language-native Turkish LLM 
+            from the ground up &mdash; every decision, every mistake, every &ldquo;aha&rdquo; moment. It started as a tokenizer project 
+            and evolved into something deeper: a journey through the full stack of modern AI, from byte-pair encoding to Nietzsche. 
+            The goal is not obsessively creating the &ldquo;best&rdquo; LLM &mdash; it&rsquo;s the deep understanding gained by building 
+            every layer from scratch. <strong>The path teaches more than the destination.</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. WHY THIS EXISTS</h2>
+        <!-- ============================================ -->
+
+        <p>Every major LLM is built on an English-centric foundation. When Turkish text passes through GPT-4&rsquo;s tokenizer, 
+        it costs roughly <strong>2.7&times; more tokens</strong> than it should. Turkish&rsquo;s agglutinative morphology &mdash; 
+        where meaning is packed into chains of suffixes &mdash; is alien to tokenizers trained on English.</p>
+
+        <p>Existing Turkish LLMs (Kumru, Hamza, LlamaTurk, TURNA, and work from Bo&#287;azi&ccedil;i and ODT&Uuml;) represent serious 
+        efforts with meaningful results. Some train custom tokenizers, some build from scratch, some extend multilingual bases. 
+        After examining them closely, the honest takeaway is: good work exists, but each makes different tradeoffs &mdash; 
+        and none of them gave us the full-stack understanding we were after. We wanted to build every layer ourselves, 
+        not because existing work is bad(except kumru, it is fundamentally broken), but because the <em>process</em> of building is where the learning happens.</p>
+
+        <div class="finding">
+            <strong>Motivation:</strong> Not to compete with GPT-4 or Claude. But to understand &mdash; deeply, mechanically &mdash; 
+            how these systems work by building one. Every phase cracks your brain open a little more. The tokenizer phase alone taught 
+            more about information representation than any course could. Architecture taught what &ldquo;reasoning&rdquo; really means 
+            (and doesn&rsquo;t). What comes next will teach even more.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. THE NORTH STAR: REASONING</h2>
+        <!-- ============================================ -->
+
+        <p>The primary goal is not knowledge coverage, not chat fluency, not benchmark scores. It is 
+        <strong>reasoning</strong> &mdash; extreme logic capabilities. The model must:</p>
+
+        <ul>
+            <li><strong>Understand</strong> &mdash; parse the input, identify what&rsquo;s being asked</li>
+            <li><strong>Decompose</strong> &mdash; break the problem into pieces</li>
+            <li><strong>Reason step by step</strong> &mdash; apply logical structure (if A&rarr;B and B&rarr;C, then A&rarr;C)</li>
+            <li><strong>Self-check</strong> &mdash; detect inconsistencies and correct course</li>
+            <li><strong>Act like a scientist</strong> &mdash; not mimic one, but reason like one from the inside</li>
+        </ul>
+
+        <p>Even if the model doesn&rsquo;t know many facts, it must reason correctly about whatever it does know. 
+        Facts can be retrieved; reasoning structure cannot.</p>
+
+        <div class="insight">
+            <strong>Key distinction: &ldquo;Learning reasoning&rdquo; vs &ldquo;Acting like reasoning.&rdquo;</strong><br><br>
+            From prior fine-tuning experience: putting intentional mistake-then-correction patterns in SFT data made results 
+            <strong>always worse</strong> than the base model. The model doesn&rsquo;t learn to &ldquo;catch mistakes&rdquo; &mdash; 
+            it learns to <em>produce</em> mistakes, because SFT teaches &ldquo;output should look like this.&rdquo;<br><br>
+            <strong>Genuine reasoning comes from RL (RLVR)</strong> &mdash; reinforcement learning with verifiable rewards. 
+            The model generates its own answers, gets rewarded only for correct final answers, and discovers effective reasoning 
+            strategies through trial and error. SFT teaches format. RLVR teaches thinking. That&rsquo;s the difference between 
+            acting and learning.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. THE JOURNEY SO FAR</h2>
+        <!-- ============================================ -->
+
+        <h3>Roadmap</h3>
+
+        <div class="flow">
+            <div class="flow-box done">PHASE 1<br><span style="font-weight: 400; font-size: 10px;">Tokenizer</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box next">PHASE 2<br><span style="font-weight: 400; font-size: 10px;">Architecture</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">PHASE 3<br><span style="font-weight: 400; font-size: 10px;">Pretraining</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">PHASE 4<br><span style="font-weight: 400; font-size: 10px;">SFT</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box rl">PHASE 5<br><span style="font-weight: 400; font-size: 10px;">RLVR</span></div>
+        </div>
+
+        <table>
+            <tr><th>Phase</th><th>Status</th><th>What It Teaches</th><th>Scope</th></tr>
+            <tr class="highlight">
+                <td><strong>1. Tokenizer</strong></td>
+                <td><span class="status complete">COMPLETE</span></td>
+                <td>Information representation, morphology, data scaling</td>
+                <td>64K BPE, 22 GB corpus, 11 domains, 104-sentence benchmark</td>
+            </tr>
+            <tr>
+                <td><strong>2. Architecture</strong></td>
+                <td><span class="status next">NEXT</span></td>
+                <td>How computation becomes reasoning</td>
+                <td>100M&ndash;4B params, 128K context, decoder-only, reasoning-first</td>
+            </tr>
+            <tr>
+                <td><strong>3. Pretraining</strong> <span style="font-weight:400; font-size:10px;">(the actual &ldquo;training&rdquo;)</span></td>
+                <td><span class="status progress">PENDING</span></td>
+                <td>What &ldquo;knowledge&rdquo; really means</td>
+                <td>Next-token prediction on Turkish corpus (teacher forcing)</td>
+            </tr>
+            <tr>
+                <td><strong>4. SFT</strong> <span style="font-weight:400; font-size:10px;">(fine-tuning)</span></td>
+                <td><span class="status progress">PENDING</span></td>
+                <td>Format, not reasoning</td>
+                <td>Crystal-clear instruction data only. No mistakes.</td>
+            </tr>
+            <tr>
+                <td><strong>5. RLVR</strong> <span style="font-weight:400; font-size:10px;">(advanced training via rewards)</span></td>
+                <td><span class="status progress">PENDING</span></td>
+                <td>What &ldquo;correct&rdquo; really means</td>
+                <td>Math/code/logic problems with verifiable answers</td>
+            </tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>4. PHASE 1: THE TOKENIZER &mdash; WHERE EVERYTHING BEGAN</h2>
+        <!-- ============================================ -->
+
+        <p>What started as &ldquo;just build a tokenizer&rdquo; became a deep exploration of how language is represented 
+        as numbers, why English-centric design hurts every other language, and how data and vocabulary interact in 
+        surprising ways. <em>(<a href="tokenizer-research.html">Full tokenizer report &rarr;</a>)</em></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~14%</div>
+                <div class="label">FEWER TOKENS THAN KUMRU/TABIBERT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~2.7&times;</div>
+                <div class="label">FEWER TOKENS THAN GPT-4</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">VOCABULARY SIZE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">22 GB</div>
+                <div class="label">CORPUS (27 FILES, 11 DOMAINS)</div>
+            </div>
+        </div>
+
+        <h3>Three discoveries that changed our understanding</h3>
+
+        <div class="warning">
+            <strong>Discovery 1: GPT-2 regex breaks Turkish.</strong> The pre-tokenization regex used by GPT-4, Llama 3, 
+            and Mistral contains English contraction patterns (<code>'s|'t|'re|'d</code>) that steal the first character of 
+            Turkish suffixes. <code>Ankara'dır</code> becomes <code>["Ankara", "'d", "ır"]</code> instead of 
+            <code>["Ankara", "'", "dır"]</code>. To our knowledge, this interaction was previously undocumented.
+        </div>
+
+        <div class="discovery">
+            <strong>Discovery 2: Vocabulary saturation, not data saturation.</strong> When adding data from 10 GB to 22 GB at 
+            48K vocabulary, improvement was only +0.9% (apparent diminishing returns). But training 64K on the same 22 GB yielded 
+            <strong>+10.1%</strong>. The 48K tokenizer had run out of merge slots &mdash; not data. Vocabulary and data must scale together.
+        </div>
+
+        <div class="finding">
+            <strong>Discovery 3: Pure statistics discover morphology.</strong> No linguistic rules were programmed. 
+            BPE naturally found morpheme-like boundaries from frequency patterns alone. Six grammatical forms of &ldquo;ev&rdquo; 
+            (house) &mdash; <code>ev, evde, evden, eve, evin, evler</code> &mdash; are all single tokens. 
+            <code>değerlendirilmelidir</code> (a 6-morpheme suffix chain meaning &ldquo;must be evaluated&rdquo;) is one token.
+        </div>
+
+        <p>The tokenizer phase taught us: <strong>representation is everything.</strong> Before a model can reason about Turkish, 
+        it must be able to efficiently read and write it. A bad tokenizer is like trying to think through a straw &mdash; you can 
+        still get some signal through, but you&rsquo;re wasting most of your capacity on the bottleneck.</p>
+
+        <p style="font-size: 12px; margin-top: 16px;">
+            <strong>Artifacts:</strong> 
+            <a href="tokenizer-research.html">EN report</a> &bull; 
+            <a href="tokenizer-research_tr.html">TR report</a> &bull; 
+            <code>benchmark_tokenizers.py</code> (104 sentences) &bull; 
+            <code>train_tokenizer.py</code> &bull; 
+            <code>tokenizers/turkish_bpe_64k/</code>
+        </p>
+
+        <!-- ============================================ -->
+        <h2>5. THE DOOR THE TOKENIZER OPENED</h2>
+        <!-- ============================================ -->
+
+        <p>The tokenizer phase gave us a working 64K Turkish BPE. But the deeper gift was something nobody expected: 
+        a complete shift in how we see AI, language, and the industry itself. 
+        <strong>This is the most important thing we&rsquo;ve learned in this entire project so far.</strong></p>
+
+        <h3>What is a tokenizer, really?</h3>
+
+        <p>Strip away the jargon. A tokenizer does one thing: it converts structured input into a sequence of numbers. 
+        We happened to use Turkish text as input. But nothing in the algorithm requires that input to be human language.</p>
+
+        <p>When we trained our 64K BPE, the algorithm didn&rsquo;t &ldquo;know&rdquo; it was processing Turkish. It saw 
+        byte sequences, found frequently co-occurring patterns, and merged them into tokens. The output was a mapping: 
+        <strong>input patterns &rarr; integer IDs.</strong> That&rsquo;s it. The algorithm doesn&rsquo;t care whether those 
+        patterns are Turkish suffixes, musical notes, or chemical bonds.</p>
+
+        <p>Once you truly internalize this, a door opens that never closes.</p>
+
+        <h3>The question that changed everything</h3>
+
+        <div class="philosophy">
+            <strong>What IS a &ldquo;language&rdquo;?</strong><br><br>
+            We kept saying &ldquo;language model.&rdquo; But what makes something a language? It&rsquo;s 
+            <strong>any system with a vocabulary and grammar</strong> &mdash; a set of elements and rules for 
+            how they combine. Human language is one example. It is not the only one. It is not even the most 
+            important one for practical AI.
+        </div>
+
+        <p><strong>Music is a language.</strong> Notes are the vocabulary. Chord progressions, scales, rhythm patterns, 
+        key signatures &mdash; these are the grammar. A melody is a &ldquo;sentence.&rdquo; A symphony is a &ldquo;document.&rdquo; 
+        A &ldquo;tokenizer&rdquo; for music maps note events (pitch, duration, velocity, chord) to integer IDs. A transformer 
+        trained on those token sequences learns: after this chord progression, this resolution is likely. After this rhythmic 
+        pattern, this variation follows. The transformer doesn&rsquo;t know it&rsquo;s &ldquo;making music.&rdquo; It is predicting 
+        the next token &mdash; exactly as it does with Turkish words.</p>
+
+        <p><strong>Proteins are a language.</strong> Amino acids are the vocabulary &mdash; just 20 base characters. 
+        Proteins are &ldquo;sentences&rdquo;: sequences that fold into 3D structures governed by physical rules. The 
+        &ldquo;grammar&rdquo; dictates which sequences form alpha helices, which form beta sheets, which combinations 
+        bind to specific receptors. A transformer trained on protein sequences learns this grammar &mdash; not because 
+        it understands biology, but because it finds statistical patterns in token sequences. This is literally how 
+        AlphaFold-class models work.</p>
+
+        <p><strong>Chemical formulas are a language.</strong> SMILES notation encodes molecular structures as text strings. 
+        Atoms and bonds are the vocabulary. Valence rules, ring structures, functional groups &mdash; these are the grammar. 
+        A &ldquo;tokenizer&rdquo; maps chemical symbols to integers. The transformer learns: after this molecular fragment, 
+        this binding property is likely. Drug discovery models already work this way.</p>
+
+        <p><strong>DNA is a language.</strong> Four nucleotides &mdash; A, T, C, G &mdash; that&rsquo;s the entire vocabulary. 
+        Codon triplets encode amino acids. Regulatory regions control gene expression. Genomic models tokenize these sequences 
+        and learn to predict mutations, gene function, even disease risk. A vocabulary of 4, grammar encoded by billions of 
+        years of evolution.</p>
+
+        <p><strong>A factory production line is a language.</strong> Material codes, machine settings, environmental 
+        conditions, test results &mdash; these form sequences with causal structure. The &ldquo;vocabulary&rdquo; might be 
+        500&ndash;2000 tokens. The &ldquo;grammar&rdquo; is the physical causality: <code>PVC_compound_A + temp_175 + 
+        speed_15 &rarr; tensile_PASS + shore_85</code>. A 50-million-parameter model can learn to predict production 
+        outcomes before a single meter of cable is manufactured &mdash; saving material, energy, and time.</p>
+
+        <div class="warning">
+            <strong>Critical clarification: these models do NOT &ldquo;talk.&rdquo;</strong> This is where most people get 
+            confused. A music model does not chat about music in English. Its input tokens <em>are</em> notes &mdash; 
+            literal pitch/duration/velocity values. Its output tokens <em>are</em> notes. It has never seen a single 
+            word of human language. A protein model does not describe proteins in sentences. Its tokens <em>are</em> 
+            amino acid codes &mdash; <code>M E T H I O N I N E &hellip;</code>. A factory model does not answer 
+            &ldquo;what temperature should I use?&rdquo; in Turkish. Its tokens are <code>temp_175 speed_15</code> and 
+            it outputs <code>tensile_PASS</code>.<br><br>
+            This is <strong>not fine-tuning a chatbot on domain text.</strong> That would still be an LLM talking about 
+            the domain in human language. This is a fundamentally different thing: the model&rsquo;s entire vocabulary, 
+            grammar, and thought process exist <em>within</em> the domain notation itself. No human language involved. 
+            That is why they can be so small and so accurate.
+        </div>
+
+        <div class="insight">
+            <strong>The moment it clicked:</strong> We didn&rsquo;t just build a Turkish tokenizer. We learned what 
+            tokenization fundamentally <em>is</em>. And once you see it, you can&rsquo;t unsee it: <strong>every domain 
+            with sequential structure is a &ldquo;language&rdquo; waiting for its own tokenizer and its own 
+            model.</strong> Not an LLM. Not a chatbot. A purpose-built sequence predictor.
+        </div>
+
+        <h3>The five-step chain that opens every door</h3>
+
+        <ol>
+            <li>A tokenizer is just: <strong>structured patterns &rarr; numbers</strong></li>
+            <li>A transformer is just: <strong>learn to predict the next number given previous numbers</strong></li>
+            <li>&ldquo;Language model&rdquo; is just what we call it when those numbers happen to represent words</li>
+            <li><strong>ANY</strong> sequential structured data can be tokenized</li>
+            <li>Therefore: <strong>the transformer is a universal sequence learner</strong>, not a &ldquo;language&rdquo; model</li>
+        </ol>
+
+        <h3>Every domain is a language</h3>
+
+        <table>
+            <tr><th>Domain</th><th>&ldquo;Vocabulary&rdquo;</th><th>&ldquo;Grammar&rdquo;</th><th>&ldquo;Sentences&rdquo;</th><th>Model Size</th></tr>
+            <tr>
+                <td>Human language</td>
+                <td>Words, subwords (64K BPE)</td>
+                <td>Syntax, semantics, pragmatics</td>
+                <td>Paragraphs, articles, books</td>
+                <td class="bad">Billions (open-ended)</td>
+            </tr>
+            <tr>
+                <td>Music</td>
+                <td>Notes, chords, rests, dynamics</td>
+                <td>Harmony, rhythm, key, form</td>
+                <td>Melodies, progressions, pieces</td>
+                <td>Hundreds of millions</td>
+            </tr>
+            <tr>
+                <td>Proteins</td>
+                <td>20 amino acids</td>
+                <td>Folding rules, binding affinities</td>
+                <td>Protein chains</td>
+                <td>Millions to low billions</td>
+            </tr>
+            <tr>
+                <td>Chemistry (SMILES)</td>
+                <td>Atoms, bonds, ring markers</td>
+                <td>Valence, stability, reactivity</td>
+                <td>Molecular structures</td>
+                <td>Hundreds of millions</td>
+            </tr>
+            <tr>
+                <td>Code</td>
+                <td>Keywords, operators, identifiers</td>
+                <td>Syntax rules, type systems</td>
+                <td>Functions, programs</td>
+                <td>Hundreds of millions&ndash;billions</td>
+            </tr>
+            <tr>
+                <td>DNA / Genomics</td>
+                <td>4 nucleotides (A, T, C, G)</td>
+                <td>Codon rules, regulatory patterns</td>
+                <td>Gene sequences</td>
+                <td>Millions&ndash;hundreds of millions</td>
+            </tr>
+            <tr class="highlight">
+                <td><strong>Cable factory</strong></td>
+                <td><strong>Material codes, machine settings</strong></td>
+                <td><strong>Input &rarr; output causality</strong></td>
+                <td><strong>Production runs</strong></td>
+                <td class="good"><strong>10&ndash;50M</strong></td>
+            </tr>
+            <tr class="highlight">
+                <td><strong>Any factory / lab / clinic</strong></td>
+                <td><strong>Domain-specific codes</strong></td>
+                <td><strong>Domain-specific causal rules</strong></td>
+                <td><strong>Process records</strong></td>
+                <td class="good"><strong>10&ndash;100M</strong></td>
+            </tr>
+        </table>
+
+        <div class="warning">
+            <strong>&ldquo;Talking&rdquo; is the HARDEST application.</strong> Look at the table. Human language needs 
+            <em>billions</em> of parameters because it is ambiguous, open-ended, culturally dependent, and requires vast 
+            world knowledge. Every other domain is <em>simpler</em>: smaller vocabularies, clearer rules, measurable 
+            correctness. The industry obsesses over the hardest case and ignores the enormous value sitting in every 
+            structured dataset on Earth.
+        </div>
+
+        <h3>The cable factory &mdash; a concrete example</h3>
+
+        <p>This isn&rsquo;t hypothetical. Every cable factory generates data like this every day:</p>
+
+        <ul>
+            <li><strong>Tokenizer vocabulary:</strong> ~500&ndash;2000 tokens (material codes, machine settings, test result codes)</li>
+            <li><strong>Input:</strong> <code>[MATERIAL] PVC_compound_A [SETTINGS] temp_175 speed_15 pressure_8</code></li>
+            <li><strong>Output:</strong> <code>[RESULTS] tensile_pass elongation_420 flame_V0 shore_hardness_85</code></li>
+            <li><strong>Model size:</strong> 10&ndash;50M parameters. Trains in hours on a single GPU.</li>
+            <li><strong>Value:</strong> Predict test results <em>before</em> wasting material on a production run</li>
+        </ul>
+
+        <p>This model would be more accurate than GPT-4 for this specific task, orders of magnitude cheaper, runs on a 
+        laptop, keeps your proprietary data private, and was built using the <strong>exact same skills</strong> we&rsquo;re 
+        learning by building a Turkish LLM: tokenizer design, architecture selection, training pipeline optimization.</p>
+
+        <h3>What this means: the doors that opened</h3>
+
+        <p>The moment we understood this, the project&rsquo;s scope transformed from &ldquo;build one Turkish LLM&rdquo; 
+        to &ldquo;learn to build <em>any</em> sequence model for <em>any</em> domain.&rdquo; The possibilities:</p>
+
+        <ul>
+            <li>Every factory, every lab, every hospital, every trading desk has sequential data</li>
+            <li>Each could have its own tiny model (10M&ndash;100M parameters)</li>
+            <li>These models would be <em>more accurate</em> than general LLMs for their specific domain</li>
+            <li>Cheaper to train (hours, not months), cheaper to run (laptop, not data center)</li>
+            <li>Private &mdash; your data never leaves your building</li>
+            <li>And we now know <strong>how to build them</strong> &mdash; because the LLM project teaches the entire craft</li>
+        </ul>
+
+        <div class="philosophy">
+            <strong>The LLM is the hard path that teaches everything.</strong> We chose to build the hardest kind of 
+            sequence model &mdash; one that processes human language. Along the way, we learn tokenizer design, architecture 
+            choices, training dynamics, data strategy, evaluation methodology. Every single one of these skills transfers 
+            directly to building any domain-specific model. The Turkish LLM is not the destination. It&rsquo;s the training 
+            ground. <strong>The real prize is the understanding, and that understanding has no ceiling.</strong>
+        </div>
+
+        <h3>The trap: building gods instead of tools</h3>
+
+        <div class="quote">
+            &ldquo;Maybe the human mind seeks a god again &mdash; one who was killed by Nietzsche.&rdquo;
+            <div class="attr">&mdash; from our architecture discussion, on the industry&rsquo;s obsession with building one omniscient AI</div>
+        </div>
+
+        <p>The AI industry is pouring billions into building an omniscient conversational entity &mdash; a digital god 
+        that answers everything through natural language. Every problem becomes &ldquo;talk to the AI.&rdquo;</p>
+
+        <p>But now we see clearly: most valuable real-world problems don&rsquo;t need conversation. They need prediction, 
+        pattern recognition, optimization. The &ldquo;talking&rdquo; layer is expensive overhead when your actual need is 
+        &ldquo;will this cable pass the tensile test?&rdquo;</p>
+
+        <p>Building a full LLM when you need a domain predictor is like building a 747 when you need a bicycle. The 
+        bicycle is simpler, cheaper, and gets you where you&rsquo;re going faster &mdash; if you&rsquo;re going to the shop.</p>
+
+        <h3>The orchestra vision</h3>
+
+        <p>The future is not one massive model. It is <strong>orchestration</strong>: multiple small, specialized models 
+        working together, each optimal for its domain.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #dbeafe;">PLANNER<br><span style="font-weight: 400; font-size: 10px;">Routes requests</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7;">REASONER<br><span style="font-weight: 400; font-size: 10px;">Logic &amp; decomposition</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fef9c3;">SPECIALIST<br><span style="font-weight: 400; font-size: 10px;">Domain knowledge</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #f3e8ff;">TOOLS<br><span style="font-weight: 400; font-size: 10px;">Calculator, code, search</span></div>
+        </div>
+
+        <p>We are building the reasoner. The specialists can be the factory models, the medical models, the financial 
+        models &mdash; each tiny, each accurate, each built with the same skills we are learning right now.</p>
+
+        <!-- ============================================ -->
+        <h2>6. HOW IT ACTUALLY WORKS: STEP BY STEP, DOMAIN BY DOMAIN</h2>
+        <!-- ============================================ -->
+
+        <p>Section 5 claimed every domain is a language and every sequence can be tokenized. That might still feel abstract. 
+        So let&rsquo;s make it concrete. Below are <strong>mock walkthroughs</strong> showing <em>exactly</em> what happens 
+        inside the machine &mdash; from raw input to final output &mdash; for five different domains. The process is 
+        identical every time. Only the tokens change.</p>
+
+        <h3>&#9312; Language model (Turkish LLM)</h3>
+
+        <div class="abstract">
+            <strong>User asks:</strong> <code>Ankara'n&#305;n n&uuml;fusu ka&ccedil;t&#305;r?</code><br><br>
+
+            <strong>Step 1 &mdash; Tokenize (text &rarr; numbers).</strong> The tokenizer looks up each piece in its 64K vocabulary:<br>
+            <code>&ldquo;Ankara&rdquo; &rarr; 3847 &nbsp;| &ldquo;'n&#305;n&rdquo; &rarr; 129 &nbsp;| &ldquo;n&uuml;fusu&rdquo; &rarr; 8412 &nbsp;| &ldquo;ka&ccedil;t&#305;r&rdquo; &rarr; 5903 &nbsp;| &ldquo;?&rdquo; &rarr; 30</code><br>
+            The model receives: <code>[3847, 129, 8412, 5903, 30]</code>. It has no idea these are Turkish words. It sees five integers.<br><br>
+
+            <strong>Step 2 &mdash; Model processes (numbers &rarr; numbers).</strong> The transformer takes those 5 integers, 
+            converts each to a 2048-dimensional vector, passes them through 22 layers of attention and feed-forward networks. 
+            At the end, it outputs a probability distribution over all 64,000 tokens: &ldquo;which token is most likely next?&rdquo; 
+            It picks token <code>11297</code>.<br><br>
+
+            <strong>Step 3 &mdash; Detokenize (numbers &rarr; text).</strong> The tokenizer looks up <code>11297</code> in its vocabulary: 
+            <code>11297 &rarr; &ldquo;Yakla&#351;&#305;k&rdquo;</code>. This is appended to the output.<br><br>
+
+            <strong>Step 4 &mdash; Repeat.</strong> Now the model sees <code>[3847, 129, 8412, 5903, 30, 11297]</code> and predicts the next token. 
+            Then the next. Then the next. Token by token, the answer builds up:<br>
+            <code>11297 &rarr; &ldquo;Yakla&#351;&#305;k&rdquo; | 642 &rarr; &ldquo;5&rdquo; | 1830 &rarr; &ldquo;milyon&rdquo; | 7741 &rarr; &ldquo;ki&#351;idir&rdquo; | 4 &rarr; &ldquo;.&rdquo;</code><br><br>
+
+            <strong>Final output:</strong> <code>Yakla&#351;&#305;k 5 milyon ki&#351;idir.</code><br><br>
+
+            <strong>Bonus &mdash; what if we ask: <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code></strong><br>
+            The tokenizer finds every word in its 64K vocabulary. The model processes the token sequence 
+            and generates an answer token by token: <code>&ldquo;Ankara bir ba&#351;kenttir, bir ilin ba&#351;kenti de&#287;ildir.&rdquo;</code> 
+            It works. This model was <em>built</em> for Turkish text. Turkish words are its native tokens. 
+            Conversation is literally what it was trained to do.
+        </div>
+
+        <h3>&#9313; Music model</h3>
+
+        <div class="abstract">
+            <strong>Context:</strong> A model trained on thousands of MIDI sequences. Vocabulary: ~2000 tokens 
+            (note pitches, durations, velocities, chords, rests).<br><br>
+
+            <strong>Step 1 &mdash; Tokenize (notes &rarr; numbers).</strong> A chord progression is encoded:<br>
+            <code>&ldquo;C_maj&rdquo; &rarr; 42 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;G_maj&rdquo; &rarr; 58 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;Am&rdquo; &rarr; 51 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7 &nbsp;| &ldquo;F_maj&rdquo; &rarr; 47 &nbsp;| &ldquo;quarter&rdquo; &rarr; 7</code><br>
+            Model receives: <code>[42, 7, 58, 7, 51, 7, 47, 7]</code>. No words. No language. Just integers representing a I&ndash;V&ndash;vi&ndash;IV progression.<br><br>
+
+            <strong>Step 2 &mdash; Model processes.</strong> Transformer predicts: after this progression, token <code>42</code> is most likely next.<br><br>
+
+            <strong>Step 3 &mdash; Detokenize (numbers &rarr; notes).</strong> <code>42 &rarr; &ldquo;C_maj&rdquo;</code>. The progression resolves back to the tonic.<br><br>
+
+            <strong>Step 4 &mdash; Repeat.</strong> Next token: <code>12 &rarr; &ldquo;half&rdquo;</code> (half note duration). 
+            Then: <code>71 &rarr; &ldquo;E4&rdquo;</code> (melody note). Token by token, a melody is composed.<br><br>
+
+            <strong>No words were involved at any step.</strong> The model &ldquo;speaks&rdquo; music. Its vocabulary is notes. 
+            Its output is a playable MIDI sequence.<br><br>
+
+            <strong>Bonus &mdash; what if we ask: <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code></strong><br>
+            <strong>Step 1 crashes immediately.</strong> The tokenizer tries to look up &ldquo;Ankara&rdquo; in its vocabulary. 
+            Its vocabulary contains <code>C_maj</code>, <code>quarter</code>, <code>E4</code>, <code>rest</code> &mdash; notes, 
+            durations, chords. No Turkish words. No words of any language. &ldquo;Ankara&rdquo; does not exist. 
+            &ldquo;Ba&#351;kent&rdquo; does not exist. &ldquo;Nedir&rdquo; does not exist. The input <em>cannot even be converted 
+            to numbers</em>. There is nothing to feed the model. It is like trying to insert a Turkish sentence into a piano roll. 
+            Not a wrong answer &mdash; <strong>no answer is possible</strong>. The model has never seen a word. It does not know 
+            what a word is. It does not know what a question is. It does not know what &ldquo;conversation&rdquo; means.
+        </div>
+
+        <h3>&#9314; Protein model</h3>
+
+        <div class="abstract">
+            <strong>Context:</strong> A model trained on millions of known protein sequences. Vocabulary: 25 tokens 
+            (20 amino acids + start/end/padding/unknown/mask).<br><br>
+
+            <strong>Step 1 &mdash; Tokenize (amino acids &rarr; numbers).</strong> A protein fragment:<br>
+            <code>&ldquo;M&rdquo; &rarr; 1 &nbsp;| &ldquo;A&rdquo; &rarr; 5 &nbsp;| &ldquo;L&rdquo; &rarr; 10 &nbsp;| &ldquo;W&rdquo; &rarr; 17 &nbsp;| &ldquo;K&rdquo; &rarr; 9 &nbsp;| &ldquo;L&rdquo; &rarr; 10 &nbsp;| &ldquo;P&rdquo; &rarr; 12</code><br>
+            Model receives: <code>[1, 5, 10, 17, 9, 10, 12]</code>. No English. No Turkish. Just amino acid IDs.<br><br>
+
+            <strong>Step 2 &mdash; Model processes.</strong> Given this sequence, the transformer predicts the next amino acid. 
+            It outputs a distribution over 25 tokens. Highest probability: token <code>4</code>.<br><br>
+
+            <strong>Step 3 &mdash; Detokenize (numbers &rarr; amino acids).</strong> <code>4 &rarr; &ldquo;V&rdquo;</code> (Valine). 
+            The protein chain grows.<br><br>
+
+            <strong>Step 4 &mdash; Repeat.</strong> The model continues until it predicts the &ldquo;END&rdquo; token. 
+            The output is a complete protein sequence that can be analyzed for folding, binding, or function.<br><br>
+
+            <strong>Vocabulary: 25 tokens. No human language. Just biochemistry as a sequence.</strong><br><br>
+
+            <strong>Bonus &mdash; what if we ask: <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code></strong><br>
+            <strong>Step 1 crashes.</strong> The tokenizer&rsquo;s entire vocabulary is: 
+            <code>M, A, L, W, K, P, V, G, I, F, Y, C, H, R, N, D, E, Q, S, T, START, END, PAD, UNK, MASK</code>. 
+            Twenty-five tokens. All amino acids. &ldquo;Ankara&rdquo;? The tokenizer might match individual letters 
+            &mdash; A, n, k, a, r, a &mdash; but &ldquo;n&rdquo; is not an amino acid. &ldquo;k&rdquo; is not an amino acid. 
+            Most characters map to <code>UNK</code> (unknown). The model receives a string of unknowns and random amino acid 
+            matches: <code>[UNK, 5, UNK, UNK, UNK, 5, UNK, UNK, UNK...]</code>. If forced to run, it will output a random 
+            protein fragment &mdash; not an answer, not a sentence, just meaningless amino acid noise. 
+            It has <strong>no concept of language, questions, or communication</strong>.
+        </div>
+
+        <h3>&#9315; Cable factory model</h3>
+
+        <div class="abstract">
+            <strong>Context:</strong> A model trained on 50,000 production records. Vocabulary: ~800 tokens 
+            (material codes, machine settings, test results).<br><br>
+
+            <strong>Step 1 &mdash; Tokenize (production data &rarr; numbers).</strong> An engineer enters a new production setup:<br>
+            <code>&ldquo;[MATERIAL]&rdquo; &rarr; 1 &nbsp;| &ldquo;PVC_A7&rdquo; &rarr; 34 &nbsp;| &ldquo;[TEMP]&rdquo; &rarr; 2 &nbsp;| &ldquo;175&rdquo; &rarr; 412 &nbsp;| &ldquo;[SPEED]&rdquo; &rarr; 3 &nbsp;| &ldquo;15&rdquo; &rarr; 287 &nbsp;| &ldquo;[PRESSURE]&rdquo; &rarr; 4 &nbsp;| &ldquo;8&rdquo; &rarr; 193 &nbsp;| &ldquo;[PREDICT]&rdquo; &rarr; 5</code><br>
+            Model receives: <code>[1, 34, 2, 412, 3, 287, 4, 193, 5]</code>. Not a sentence. A structured production specification.<br><br>
+
+            <strong>Step 2 &mdash; Model processes.</strong> Transformer outputs token <code>601</code>.<br><br>
+
+            <strong>Step 3 &mdash; Detokenize (numbers &rarr; results).</strong> <code>601 &rarr; &ldquo;tensile_PASS&rdquo;</code>.<br><br>
+
+            <strong>Step 4 &mdash; Repeat.</strong> Next tokens: 
+            <code>622 &rarr; &ldquo;elongation_420&rdquo; | 709 &rarr; &ldquo;flame_V0&rdquo; | 685 &rarr; &ldquo;shore_85&rdquo;</code>.<br><br>
+
+            <strong>Final output:</strong> <code>tensile_PASS elongation_420 flame_V0 shore_85</code><br>
+            The engineer now knows &mdash; <em>before manufacturing</em> &mdash; that this setup will pass all tests. 
+            <strong>800 tokens. 10M parameters. Runs on a laptop. No human language at any step.</strong><br><br>
+
+            <strong>Bonus &mdash; what if we ask: <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code></strong><br>
+            <strong>Step 1 crashes.</strong> The tokenizer knows: <code>[MATERIAL]</code>, <code>PVC_A7</code>, 
+            <code>[TEMP]</code>, <code>175</code>, <code>[SPEED]</code>, <code>tensile_PASS</code> &mdash; 800 tokens, 
+            all production codes and test results. Not a single human word. &ldquo;Ankara&rdquo; is not a material. 
+            &ldquo;Ba&#351;kent&rdquo; is not a machine setting. &ldquo;Nedir&rdquo; is not a test result. 
+            The input cannot be tokenized. Even if you forced random token mappings, the model would output something like 
+            <code>shore_72 elongation_310 flame_V1</code> &mdash; a meaningless production prediction. 
+            It has <strong>never encountered a human sentence in its entire existence</strong>. 
+            It doesn&rsquo;t know humans exist. It knows cables.
+        </div>
+
+        <h3>&#9316; DNA / Genomics model</h3>
+
+        <div class="abstract">
+            <strong>Context:</strong> A model trained on genome sequences. Vocabulary: 7 tokens 
+            (A, T, C, G + start/end/unknown).<br><br>
+
+            <strong>Step 1 &mdash; Tokenize (nucleotides &rarr; numbers).</strong> A gene fragment:<br>
+            <code>&ldquo;A&rdquo; &rarr; 1 &nbsp;| &ldquo;T&rdquo; &rarr; 2 &nbsp;| &ldquo;G&rdquo; &rarr; 3 &nbsp;| &ldquo;C&rdquo; &rarr; 4 &nbsp;| &ldquo;G&rdquo; &rarr; 3 &nbsp;| &ldquo;A&rdquo; &rarr; 1 &nbsp;| &ldquo;T&rdquo; &rarr; 2</code><br>
+            Model receives: <code>[1, 2, 3, 4, 3, 1, 2]</code>. Seven numbers. The model doesn&rsquo;t know what DNA is.<br><br>
+
+            <strong>Step 2 &mdash; Model processes.</strong> Given this context, the transformer predicts: token <code>4</code> (C) is most likely next.<br><br>
+
+            <strong>Step 3 &mdash; Detokenize.</strong> <code>4 &rarr; &ldquo;C&rdquo;</code>.<br><br>
+
+            <strong>Step 4 &mdash; Repeat.</strong> The model generates the rest of the sequence, which can then be analyzed 
+            for gene function, mutation risk, or regulatory patterns.<br><br>
+
+            <strong>Vocabulary: 7 tokens. The smallest possible &ldquo;language.&rdquo; Same transformer. Same process.</strong><br><br>
+
+            <strong>Bonus &mdash; what if we ask: <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code></strong><br>
+            <strong>Step 1 crashes.</strong> The vocabulary is: <code>A, T, C, G, START, END, UNK</code>. Seven tokens. 
+            &ldquo;Ankara&rdquo; becomes <code>[A, UNK, UNK, A, UNK, A]</code> &mdash; it can only see the letter A because 
+            Adenine happens to share that symbol. The rest is unknown. The model would output something like 
+            <code>T G C A A T G C</code> &mdash; a DNA sequence fragment. Not a word. Not a sentence. 
+            A string of nucleotides. It has <strong>never seen a human language. It has seven tokens. 
+            It cannot even represent the alphabet, let alone form a thought</strong>.
+        </div>
+
+        <div class="philosophy">
+            <strong>See the pattern?</strong> Every single example above follows the exact same four steps:<br><br>
+            <strong>1.</strong> Domain input &rarr; tokenizer &rarr; integer sequence<br>
+            <strong>2.</strong> Integer sequence &rarr; transformer &rarr; predicted next integer<br>
+            <strong>3.</strong> Predicted integer &rarr; tokenizer (reverse) &rarr; domain output<br>
+            <strong>4.</strong> Repeat until done<br><br>
+            And the Bonus examples reveal something even more important:<br><br>
+            <strong>A domain-specific model does not &ldquo;speak.&rdquo;</strong> It does not know what human language is. 
+            It does not know what a question is. It does not know what a conversation is. It has never seen a word. 
+            When you type <code>Ankara&rsquo;n&#305;n ba&#351;kenti nedir?</code> into a music model, the input <em>cannot 
+            even enter the machine</em> &mdash; the tokenizer has no mapping for human words. When you force it into a protein 
+            model, you get random amino acids back. When you force it into a factory model, you get cable test results. 
+            When you force it into a DNA model, you get nucleotides.<br><br>
+            This is the critical distinction: <strong>an LLM is just one type of transformer model</strong> &mdash; one where 
+            the tokenizer happens to map human words to numbers, and the training data happens to be human conversations and text. 
+            That&rsquo;s what gives it the ability to &ldquo;talk.&rdquo; Remove the word-based tokenizer, train on MIDI files 
+            instead of Wikipedia, and you get a model that composes music but couldn&rsquo;t say &ldquo;hello&rdquo; if its life 
+            depended on it. The transformer engine is identical. The tokenizer decides what world the model lives in.<br><br>
+            People know that LLMs convert words to numbers internally. What they often miss is that 
+            <strong>domain-specific models don&rsquo;t convert words to numbers &mdash; they were never designed to receive 
+            words at all</strong>. Their tokenizer speaks a completely different language: notes, amino acids, machine codes, 
+            nucleotides. They don&rsquo;t &ldquo;know about&rdquo; their domain through language &mdash; they <em>think in</em> 
+            their domain&rsquo;s native tokens, the way an LLM thinks in words.<br><br>
+            Now picture the damage the LLM hype causes in practice. A cable factory needs to predict test results for a new 
+            material-and-machine configuration. The &ldquo;AI = LLM&rdquo; mindset says: build (or buy) a language model. 
+            So they start. <strong>Phase 1:</strong> train a tokenizer on text &mdash; weeks. Train the base model on billions 
+            of words so it learns to <em>talk</em> &mdash; months, hundreds of thousands of dollars in compute. 
+            <strong>Phase 2:</strong> fine-tune it on domain documents &mdash; more weeks, more failed runs, more cost. 
+            <strong>Phase 3:</strong> reinforcement learning to improve accuracy &mdash; more days, more weeks. 
+            And after all of that, what is the actual input to this colossal system? A chat message:<br>
+            <code>&ldquo;Hello, the materials are XLPE, CAT113, RAL9100 dye. Machine settings: extruder speed 12, 
+            temperature 185, pressure 8. What will the test results be?&rdquo;</code><br><br>
+            Read that input again. <em>Really</em> read it. You spent months teaching a machine to understand human language, 
+            just to type a sentence that is already structured data pretending to be a conversation. The model now has to 
+            <em>parse</em> your natural language back into the structured values you already had, hope it doesn&rsquo;t 
+            hallucinate, and produce a natural-language answer that you then have to <em>parse again</em> to extract the 
+            actual numbers. You added an entire human-language layer &mdash; costing months and fortunes &mdash; as a 
+            <em>detour</em> around the direct path.<br><br>
+            The direct path? A domain tokenizer with 800 tokens. Input: <code>[1, 34, 2, 412, 3, 287, 4, 193, 5]</code>. 
+            Output: <code>tensile_PASS elongation_420 flame_V0 shore_85</code>. No conversation. No parsing. 
+            No hallucination. 10M parameters. Trained in hours on actual production records. Runs on a laptop. 
+            <strong>The entire LLM pipeline &mdash; months of pretraining, fine-tuning, reinforcement learning, prompt 
+            engineering &mdash; existed only to add a chat interface on top of what should have been a direct 
+            sequence-to-sequence prediction.</strong> That is the cost of not understanding tokenization.<br><br>
+            <strong>This is why understanding tokenizers was the most important first step of our journey.</strong> 
+            It wasn&rsquo;t just about Turkish morphology. It was about understanding that the tokenizer is the 
+            <em>entire interface</em> between any domain and the machine that learns from it. Change the tokenizer, 
+            change the world the model inhabits. The engine stays the same.
+        </div>
+
+        <div class="warning">
+            <strong>A reminder worth repeating.</strong><br><br>
+            An LLM is a <em>human-language-domain-specific</em> transformer. Nothing more, nothing less. 
+            It is not &ldquo;artificial intelligence.&rdquo; It is one application of a sequence-learning architecture 
+            to one particular domain: human text. <strong>AI is not equal to LLM.</strong><br><br>
+            Once tokenization is truly understood, this stops being a semantic argument and becomes an engineering 
+            revelation. It is not about &ldquo;talking Turkish to an English protein model.&rdquo; A protein model 
+            does not talk <em>at all</em> &mdash; not in Turkish, not in English, not in any human language. It 
+            communicates in amino acid sequences. A factory model communicates in production codes. A music model 
+            communicates in notes. These are entirely different modes of communication, as alien to human language 
+            as sonar is to speech.<br><br>
+            And this is exactly why the current industry obsession with ever-larger LLMs is a dead end for real-world 
+            problems. A 500-billion-parameter model that &ldquo;talks&rdquo; impressively is spectacular as a demo. 
+            But ask it to predict whether a cable will pass a tensile test given specific extrusion parameters, and it 
+            will hallucinate a plausible-sounding paragraph that is entirely wrong &mdash; because it has never seen a 
+            production record. It learned language patterns, not physics. Studies consistently show that 
+            <strong>roughly 95% of enterprise LLM implementations fail to deliver real value</strong>. The reason is 
+            not that the technology is bad. The reason is that the tool is wrong for the job. Companies are trying to 
+            solve domain-specific sequence problems with a human-conversation machine &mdash; and then wondering why 
+            it doesn&rsquo;t work.<br><br>
+            The tragedy is that this failure is often blamed on &ldquo;AI not being ready,&rdquo; when in fact AI 
+            <em>is</em> ready &mdash; just not in the form most people have been sold. A 10-million-parameter 
+            domain model with 800 tokens, trained on actual production data, will outperform a trillion-parameter 
+            LLM on that domain every single time &mdash; at a fraction of the cost, running on a laptop, with no 
+            hallucinations, because every token in its vocabulary maps to something real.<br><br>
+            The hype conflated &ldquo;AI&rdquo; with &ldquo;chatbot,&rdquo; and that conflation costs industries 
+            billions. Understanding tokenization is the way out. Once you see that the transformer is a 
+            <em>universal engine</em> and the tokenizer is a <em>swappable lens</em>, the entire landscape changes. 
+            The question is no longer &ldquo;how do I make the LLM understand my factory?&rdquo; The question 
+            becomes: <strong>&ldquo;what tokenizer does my factory need?&rdquo;</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. WHAT THE ARCHITECTURE TAUGHT US ABOUT REASONING</h2>
+        <!-- ============================================ -->
+
+        <p>If Sections 5 and 6 showed us that the transformer is a universal sequence learner &mdash; same four steps, any domain &mdash; this section asks: 
+        <strong>how does a sequence learner develop something that looks like reasoning?</strong> Understanding architecture 
+        required understanding what &ldquo;reasoning&rdquo; actually means inside a neural network &mdash; and what it doesn&rsquo;t. 
+        Remember: everything below applies not just to LLMs, but to <em>any</em> sequence model &mdash; the same mechanisms 
+        that let a language model &ldquo;reason&rdquo; about Turkish let a protein model &ldquo;reason&rdquo; about folding. 
+        <em>(A detailed architecture research page will follow, like the <a href="tokenizer-research.html">tokenizer report</a>.)</em></p>
+
+        <h3>The training pipeline (sequential, not a choice)</h3>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #dcfce7;">PRETRAINING<br><span style="font-weight: 400; font-size: 10px;">&ldquo;Training&rdquo; &mdash; learn language &amp; patterns</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dbeafe;">SFT<br><span style="font-weight: 400; font-size: 10px;">&ldquo;Fine-tuning&rdquo; &mdash; learn format</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fef9c3;">RLVR<br><span style="font-weight: 400; font-size: 10px;">Reinforcement learning &mdash; learn reasoning</span></div>
+        </div>
+
+        <p>These are not alternatives. They&rsquo;re sequential phases, each teaching fundamentally different things:</p>
+
+        <table>
+            <tr><th>Phase</th><th>Input</th><th>Algorithm</th><th>What It Teaches</th></tr>
+            <tr>
+                <td><strong>Pretraining</strong> (what people usually call &ldquo;training&rdquo;)</td>
+                <td>Raw text (no QA pairs)</td>
+                <td>Predict next token at every position</td>
+                <td>Language, facts, reasoning patterns</td>
+            </tr>
+            <tr>
+                <td><strong>SFT</strong> (what people usually call &ldquo;fine-tuning&rdquo;)</td>
+                <td>Clean instruction-response pairs</td>
+                <td>Same (next-token prediction)</td>
+                <td>How to follow instructions. <strong>NOT reasoning.</strong></td>
+            </tr>
+            <tr>
+                <td><strong>RLVR</strong> (reinforcement learning with verifiable rewards)</td>
+                <td>Problems with verifiable answers</td>
+                <td>Generate &rarr; verify &rarr; reward/penalize</td>
+                <td>Self-correction, decomposition, genuine reasoning</td>
+            </tr>
+        </table>
+
+        <h3>What generalizes vs what doesn&rsquo;t</h3>
+
+        <table>
+            <tr><th>Capability</th><th>How Learned</th><th>Generalizes?</th></tr>
+            <tr><td>Facts (&ldquo;Ankara is capital&rdquo;)</td><td>Memorized from data</td><td class="bad">No &mdash; only knows what it saw</td></tr>
+            <tr><td>Small arithmetic (2+3=5)</td><td>Pattern memorization</td><td class="neutral">Partially (up to ~4&ndash;5 digits)</td></tr>
+            <tr><td>Large arithmetic (234871...+12309...)</td><td>Would need precise computation</td><td class="bad">No &mdash; LLMs fail reliably</td></tr>
+            <tr class="highlight"><td><strong>Logical structure</strong> (A&rarr;B, B&rarr;C &rArr; A&rarr;C)</td><td>Learns abstract transformation in vector space</td><td class="good"><strong>Yes</strong> &mdash; transfers to new content</td></tr>
+            <tr class="highlight"><td><strong>Problem decomposition</strong></td><td>Learns structural pattern</td><td class="good"><strong>Yes</strong> &mdash; transfers across domains</td></tr>
+            <tr class="highlight"><td><strong>Tool use</strong> (&ldquo;this needs a calculator&rdquo;)</td><td>Learns WHEN to delegate</td><td class="good"><strong>Yes</strong> &mdash; genuine generalization</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>Key insight: generalization = learning STRUCTURE, not answers.</strong><br><br>
+            The model doesn&rsquo;t memorize &ldquo;2+3=5.&rdquo; It learns the <em>structure</em> of addition from thousands of examples. 
+            For small numbers, this works. For large numbers, it fails &mdash; because precise multi-digit carry operations 
+            exceed what next-token prediction can reliably do. <strong>The real generalization is knowing WHAT to do</strong> 
+            (&ldquo;this needs a calculator&rdquo;), not doing the computation itself.
+        </div>
+
+        <h3>How self-correction works (mechanistically)</h3>
+
+        <p>An LLM doesn&rsquo;t &ldquo;realize&rdquo; errors the way we do. At each token position, the attention mechanism can attend 
+        to <strong>all</strong> previous tokens. As more context accumulates, inconsistencies become statistically detectable &mdash; 
+        the probability distribution shifts toward correction tokens. &ldquo;Backtracking&rdquo; is not real backtracking: the model 
+        generates <em>new</em> tokens that redirect (&ldquo;wait, that&rsquo;s wrong&hellip;&rdquo;). The wrong tokens remain in context.</p>
+
+        <p>This self-correction ability comes from <strong>RL training</strong>, not from seeing error-correction patterns in data. 
+        RL rewards reasoning chains that self-correct AND reach correct answers. The model discovers that 
+        &ldquo;check your work&rdquo; is a rewarding strategy.</p>
+
+        <h3>Q: Is it reasoning, or is it mimicry?</h3>
+
+        <p>The honest answer: <strong>we don&rsquo;t know.</strong> The model learns reasoning patterns from data. When it encounters 
+        a new problem, it applies those patterns. Is that &ldquo;real reasoning&rdquo; or &ldquo;sophisticated pattern matching&rdquo;? 
+        The debate is unresolved. Evidence is mixed: models solve novel problems (suggesting generalization beyond mimicry) but also 
+        fail on trivially modified versions of problems they ace (suggesting pattern matching).</p>
+
+        <p>Our practical answer: <strong>the distinction may not matter.</strong> What matters is: does the model arrive at correct 
+        answers on novel problems? That&rsquo;s measurable. RLVR pushes the model from shallow mimicry toward robust application 
+        by rewarding <em>correctness</em>, not <em>looking correct</em>.</p>
+
+        <h3>Q: What is &ldquo;correct&rdquo; for a language model?</h3>
+
+        <table>
+            <tr><th>Domain</th><th>What &ldquo;Correct&rdquo; Means</th><th>Verifiable?</th></tr>
+            <tr><td>Math</td><td>The answer is right (2+2=4)</td><td class="good">Yes</td></tr>
+            <tr><td>Code</td><td>It compiles and passes tests</td><td class="good">Yes</td></tr>
+            <tr><td>Logic</td><td>Conclusion follows from premises</td><td class="good">Mostly yes</td></tr>
+            <tr><td>General language</td><td>Coherent, relevant, preferred by humans</td><td class="bad">No &mdash; subjective</td></tr>
+        </table>
+
+        <div class="philosophy">
+            <strong>The deeper insight:</strong> For general &ldquo;talking,&rdquo; there is no absolute correct. 
+            But the <em>process</em> of reasoning can be correct even when the answer is subjective. 
+            &ldquo;What do you think about X?&rdquo; has no right answer &mdash; but decomposing the question, 
+            considering multiple perspectives, identifying tradeoffs, and reaching a coherent position: 
+            that <em>process</em> can be done well or poorly. <strong>Logical validity is universal.</strong> 
+            It works whether you&rsquo;re doing math, philosophy, law, or cooking. The <em>form</em> of reasoning transfers.
+        </div>
+
+        <h3>Q: LLM reasoning = search algorithms?</h3>
+
+        <p>An insight from the architecture discussion: LLM self-correction resembles tree search 
+        (explore paths, evaluate, redirect). But with critical differences:</p>
+
+        <ol>
+            <li><strong>The tree doesn&rsquo;t exist beforehand</strong> &mdash; it&rsquo;s generated token by token</li>
+            <li><strong>No real backtracking</strong> &mdash; only forward corrections (&ldquo;wait, that&rsquo;s wrong&hellip;&rdquo;)</li>
+            <li><strong>For general language, there is no &ldquo;correct&rdquo; node</strong> &mdash; only for verifiable domains (math, code, logic)</li>
+        </ol>
+
+        <p>Research formalizes this as Tree of Thoughts, Process Reward Models, and MCTS for LLMs. 
+        The analogy holds structurally but breaks mechanistically. Still, it implies: 
+        <strong>small models can &ldquo;search&rdquo; well</strong> if given sufficient thinking budget (extended thinking = bigger search budget).</p>
+
+        <!-- ============================================ -->
+        <h2>8. DESIGN PHILOSOPHY: LESS IS MORE</h2>
+        <!-- ============================================ -->
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">100M&ndash;4B</div>
+                <div class="label">PARAMETER RANGE (FLEXIBLE)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">&#8734;</div>
+                <div class="label">SCALE IS A DESIGN CHOICE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">Quality</div>
+                <div class="label">OVER QUANTITY &mdash; ALWAYS</div>
+            </div>
+        </div>
+
+        <p>We are not committed to a single scale. We are open to 100M, 360M, 1B, 2B, 3B, 4B &mdash; and &ldquo;less is not limited.&rdquo; 
+        The belief: with extremely optimal architecture and pretraining, smaller models can match or approach bigger ones.</p>
+
+        <p>As we discovered in Section 5, this extends far beyond LLMs. Every domain with sequential structure can have its 
+        own tiny, accurate model. The world is moving toward specialized models combined into orchestras &mdash; and we are 
+        positioned to build them.</p>
+
+        <!-- ============================================ -->
+        <h2>9. IMPORTANT DECISIONS (LOCKED)</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+            <tr><td>Tokenizer</td><td>64K BPE v3 (our own)</td><td>~14% better than Kumru/TabiBERT, ~2.7&times; better than GPT-4</td></tr>
+            <tr><td>Architecture</td><td>Decoder-only</td><td>Standard for generative reasoning LLMs; encoder can be separate component</td></tr>
+            <tr><td>Parameter range</td><td>100M&ndash;4B</td><td>&ldquo;Less is more&rdquo; &mdash; optimal architecture can punch above its weight</td></tr>
+            <tr><td>Context length</td><td>128K tokens</td><td>Process entire legal cases, theses, books in one pass</td></tr>
+            <tr><td>Position encoding</td><td>RoPE under question</td><td>Prior fine-tuning showed terrible long-context results with RoPE. Prefer ALiBi/learned or validated fix.</td></tr>
+            <tr><td>Training pipeline</td><td>Pretraining (training) &rarr; SFT (fine-tuning) &rarr; RLVR (reinforcement learning)</td><td>Sequential phases, each teaches different things. Not a choice.</td></tr>
+            <tr><td>SFT data quality</td><td>Crystal-clear only</td><td>Confirmed: mistakes in SFT data = model learns to produce mistakes</td></tr>
+            <tr><td>Literature search</td><td>Required before deep decisions</td><td>Use arXiv, HF, ACL, not just Google. Avoid overconfident outdated advice.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>10. DATA STRATEGY</h2>
+        <!-- ============================================ -->
+
+        <p>This section focuses on data for our Turkish LLM. But through the lens of Section 5: everything described below 
+        is a template. Swap &ldquo;Turkish text&rdquo; for &ldquo;protein sequences&rdquo; or &ldquo;production logs,&rdquo; 
+        and the same pipeline structure applies &mdash; just with a different tokenizer and different domain data.</p>
+
+        <h3>Pretraining data &mdash; &ldquo;training&rdquo; (quantity, diverse)</h3>
+        <p>Raw Turkish text &mdash; no QA pairs, no formatting. The model reads continuous text and predicts the next token at every position.</p>
+
+        <table>
+            <tr><th>Source</th><th>Purpose</th><th>Split</th></tr>
+            <tr><td>Turkish Wikipedia, news, books, forums</td><td>Language structure, grammar, fluency</td><td rowspan="2" style="vertical-align: middle;">80&ndash;90% Turkish<br>10&ndash;20% English</td></tr>
+            <tr><td>Legal, medical, scientific, financial text</td><td>Domain vocabulary, formal reasoning</td></tr>
+            <tr><td>Code (Python, etc.)</td><td>Logical structure, precise reasoning</td><td rowspan="2" style="vertical-align: middle;">English helps with<br>cross-lingual transfer</td></tr>
+            <tr><td>Math texts, scientific papers</td><td>Reasoning patterns, formal arguments</td></tr>
+        </table>
+
+        <h3>SFT data &mdash; &ldquo;fine-tuning&rdquo; (quality, clean)</h3>
+        <p>Turkish instruction-response pairs. Clean, no mistakes. Teaches format, not reasoning.</p>
+
+        <h3>RLVR data &mdash; reinforcement learning (verifiable problems)</h3>
+        <p>Math (GSM8K-style, competition math), code problems, logic puzzles. Can be translated to Turkish. 
+        Math and logic are language-light &mdash; <code>17 &times; 23 = ?</code> works in any language. 
+        <strong>This is where reasoning is actually trained.</strong></p>
+
+        <div class="finding">
+            <strong>Why verbal examples are still needed:</strong> Pure abstract logic (A&rarr;B, B&rarr;C &rArr; A&rarr;C) 
+            is not enough on its own. The model operates on tokens (words/subwords). It needs real-world sentences to learn 
+            (1) how to <em>recognize</em> reasoning situations in natural language, (2) how to <em>parse</em> language into 
+            components it can reason about, and (3) how to <em>express</em> reasoning in natural language. 
+            The abstract logic is a small set of patterns; the verbal data teaches the model to connect those patterns to the real world.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. WHAT&rsquo;S NEXT</h2>
+        <!-- ============================================ -->
+
+        <div class="timeline">
+            <div class="timeline-item done">
+                <div class="tl-title"><span class="status complete">DONE</span> Phase 1: Tokenizer</div>
+                <div class="tl-desc">64K BPE, 22 GB corpus, 11 domains, GPT-2 regex bug discovered, vocabulary saturation phenomenon documented.</div>
+            </div>
+            <div class="timeline-item active">
+                <div class="tl-title"><span class="status next">NEXT</span> Phase 2: Architecture</div>
+                <div class="tl-desc">Select base architecture (100M&ndash;4B). Resolve position encoding (RoPE vs ALiBi vs learned). 
+                Reasoning-first design. Literature search on 2025&ndash;2026 SOTA small models.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Phase 3: Pretraining (the actual &ldquo;training&rdquo;)</div>
+                <div class="tl-desc">Build Turkish corpus pipeline. Next-token prediction on billions of tokens. 
+                Learn language, world knowledge, reasoning patterns. This is what creates the base model from scratch.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Phase 4: SFT &mdash; Supervised Fine-Tuning (what people call &ldquo;fine-tuning&rdquo;)</div>
+                <div class="tl-desc">Crystal-clear instruction data. Teach the model to follow instructions and converse. Format only, not reasoning. 
+                This is the step that turns a raw base model into a chatbot.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title">Phase 5: RLVR &mdash; Reinforcement Learning with Verifiable Rewards</div>
+                <div class="tl-desc">Reward the model for correct answers on math/code/logic. The model discovers genuine reasoning strategies through trial and error. 
+                <strong>This is where the north star is reached.</strong></div>
+            </div>
+            <div class="timeline-item">
+                <div class="tl-title"><span class="status idea">LATER</span> Orchestra &amp; Domain Models</div>
+                <div class="tl-desc">Multiple small specialized models working together. Domain-specific models (factory, materials, etc.) 
+                using the same skills learned here. The practical payoff.</div>
+            </div>
+        </div>
+
+        <div class="discovery" style="margin-top: 24px;">
+            <strong>What we know so far:</strong> The tokenizer phase taught about information representation &mdash; 
+            and then blew the entire project open by revealing that <em>every</em> sequential domain is a language (Section 5) &mdash; 
+            and Section 6 proved it with concrete step-by-step walkthroughs, domain by domain. 
+            The architecture discussion taught what reasoning really is (and isn&rsquo;t) inside a neural network. 
+            Pretraining will teach what &ldquo;knowledge&rdquo; means. SFT will teach what &ldquo;format&rdquo; means. 
+            RLVR will teach what &ldquo;correct&rdquo; means. Each phase opens the mind a little more. And every lesson 
+            applies not just to our Turkish LLM, but to any sequence model we might build for any domain.<br><br>
+            Even if the final model isn&rsquo;t the best in the world, the person who deeply understands every layer of the stack 
+            is more dangerous than the person who trains the biggest model. The biggest model is just money. 
+            <strong>Understanding is leverage.</strong>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>12. REPO SNAPSHOT</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Path</th><th>What It Contains</th></tr>
+            <tr><td><code>tokenizers/turkish_bpe_64k/</code></td><td>Selected tokenizer (64K BPE v3)</td></tr>
+            <tr><td><code>tokenizers/turkish_bpe_{16k,32k,48k}_*/</code></td><td>All experimental versions preserved</td></tr>
+            <tr><td><code>tokenizers/kumru_2b_reference/</code></td><td>Kumru baseline for comparison</td></tr>
+            <tr><td><code>data/processed/</code></td><td>22 GB training corpus (27 files, 11 domains)</td></tr>
+            <tr><td><code>train_tokenizer.py</code></td><td>Tokenizer training script</td></tr>
+            <tr><td><code>benchmark_tokenizers.py</code></td><td>104-sentence benchmark (21 core + 83 hard/edgy)</td></tr>
+            <tr><td><code>docs/tokenizer-research.html</code></td><td>Full tokenizer research report (EN)</td></tr>
+            <tr><td><code>docs/tokenizer-research_tr.html</code></td><td>Full tokenizer research report (TR)</td></tr>
+            <tr><td><code>docs/project-context.html</code></td><td>This file &mdash; the journey document</td></tr>
+            <tr><td><code>reference_architecture/</code></td><td>Config examples, literature review, README</td></tr>
+            <tr><td><code>PROJECT_CONTEXT.md</code></td><td>Machine-readable project context (for AI sessions)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+
+        <div class="abstract" style="margin-top: 36px;">
+            <strong>Final thought.</strong> This project started with a simple question: &ldquo;Can we build a better Turkish tokenizer?&rdquo; 
+            That question led somewhere nobody expected. We learned how language becomes numbers &mdash; and then realized 
+            <em>everything</em> becomes numbers the same way. Music, proteins, factory data, DNA. The tokenizer wasn&rsquo;t 
+            just a Turkish text tool. It was the universal interface between any domain and a learning machine. That single 
+            realization broke the project wide open.<br><br>
+            It also broke the biggest illusion in the industry: that AI equals LLM. It doesn&rsquo;t. An LLM is a 
+            human-language-domain-specific transformer &mdash; one application of a universal engine to one particular domain. 
+            Once you see that, you see why trillion-parameter chatbots fail at factory floors, why 95% of enterprise LLM 
+            projects collapse, and why the answer was never &ldquo;make the LLM bigger.&rdquo; The answer is: build the 
+            right tokenizer for the right domain, and let a tiny model do what a giant one never could. We went from 
+            byte-pair encoding to Nietzsche to industrial economics in a single conversation.<br><br>
+            The tokenizer opened the first door. Architecture opened the second. There are more doors ahead &mdash; 
+            pretraining, SFT, RLVR, orchestration, domain models. Each one will teach something that no paper or course can: 
+            the understanding that comes from building it yourself, hitting walls, and figuring out why. And every lesson 
+            will reinforce the same truth: the transformer is the engine, the tokenizer is the lens, and the world is full 
+            of domains waiting for their own small, precise, purpose-built models.<br><br>
+            <em style="font-size: 12px;">This is a living document. It will grow with every phase completed, 
+            every decision made, every insight earned.</em>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Independent Research &bull; 
+            <a href="tokenizer-research.html" style="color: #888;">Tokenizer Report</a> &bull; 
+            <a href="tokenizer-research_tr.html" style="color: #888;">Tokenizer Raporu (TR)</a>
+        </p>
+    </main>
+
+</body>
+</html>

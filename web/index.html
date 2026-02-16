@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omega Arena | The Final Word on Trading</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">LIVE</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link active">LEADERBOARD</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="index-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+        <h1 class="page-title">LEADERBOARD</h1>
+
+        <div class="controls">
+            <div class="control-left">
+                <div class="tabs">
+                    <button class="tab active">OVERALL STATS</button>
+                    <button class="tab">ADVANCED ANALYTICS</button>
+                </div>
+            </div>
+            <div class="control-right">
+                <span class="control-label">ASSET:</span>
+                <select class="control-select" id="asset-select">
+                    <option>BTC-USD</option>
+                    <option>ETH-USD</option>
+                </select>
+                <span class="control-label">PERIOD:</span>
+                <select class="control-select" id="period-select">
+                    <option>5 Years Backtest</option>
+                    <option>1 Year Backtest</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th class="col-rank">RANK</th>
+                        <th class="col-model">STRATEGY</th>
+                        <th class="col-num">ACCT VALUE</th>
+                        <th class="col-num">RETURN %</th>
+                        <th class="col-num">TOTAL P&L</th>
+                        <th class="col-num">WIN RATE</th>
+                        <th class="col-num">BIGGEST WIN</th>
+                        <th class="col-num">BIGGEST LOSS</th>
+                        <th class="col-num">SHARPE</th>
+                        <th class="col-num">TRADES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="col-rank">1</td>
+                        <td class="col-model">🐱 CAT-ON-KEYBOARD - 1: RANDOM MASH</td>
+                        <td class="col-num col-value">$12,847</td>
+                        <td class="col-num positive">+28.47%</td>
+                        <td class="col-num positive">+$2,847</td>
+                        <td class="col-num">52.3%</td>
+                        <td class="col-num positive">$891.20</td>
+                        <td class="col-num negative">-$234.50</td>
+                        <td class="col-num">0.847</td>
+                        <td class="col-num">1,247</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">2</td>
+                        <td class="col-model">🌙 MOON-PHASE - 2: FULL MOON BUY</td>
+                        <td class="col-num col-value">$11,923</td>
+                        <td class="col-num positive">+19.23%</td>
+                        <td class="col-num positive">+$1,923</td>
+                        <td class="col-num">48.7%</td>
+                        <td class="col-num positive">$1,205.00</td>
+                        <td class="col-num negative">-$445.20</td>
+                        <td class="col-num">0.632</td>
+                        <td class="col-num">89</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">3</td>
+                        <td class="col-model">🎱 MAGIC-8-BALL - 1: ASK AND TRADE</td>
+                        <td class="col-num col-value">$11,456</td>
+                        <td class="col-num positive">+14.56%</td>
+                        <td class="col-num positive">+$1,456</td>
+                        <td class="col-num">51.2%</td>
+                        <td class="col-num positive">$678.90</td>
+                        <td class="col-num negative">-$312.00</td>
+                        <td class="col-num">0.521</td>
+                        <td class="col-num">342</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">4</td>
+                        <td class="col-model">🪙 COIN-FLIP - 1: HEADS BUY TAILS SELL</td>
+                        <td class="col-num col-value">$10,892</td>
+                        <td class="col-num positive">+8.92%</td>
+                        <td class="col-num positive">+$892</td>
+                        <td class="col-num">50.1%</td>
+                        <td class="col-num positive">$445.00</td>
+                        <td class="col-num negative">-$398.70</td>
+                        <td class="col-num">0.312</td>
+                        <td class="col-num">2,891</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">5</td>
+                        <td class="col-model">🎲 DICE-ROLL - 1: SIX SIDED STRATEGY</td>
+                        <td class="col-num col-value">$10,234</td>
+                        <td class="col-num positive">+2.34%</td>
+                        <td class="col-num positive">+$234</td>
+                        <td class="col-num">49.8%</td>
+                        <td class="col-num positive">$567.80</td>
+                        <td class="col-num negative">-$521.30</td>
+                        <td class="col-num">0.089</td>
+                        <td class="col-num">1,456</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">6</td>
+                        <td class="col-model">💩 POOP-INDICATOR - 1: BATHROOM BREAK</td>
+                        <td class="col-num col-value">$10,123</td>
+                        <td class="col-num positive">+1.23%</td>
+                        <td class="col-num positive">+$123</td>
+                        <td class="col-num">50.0%</td>
+                        <td class="col-num positive">$234.50</td>
+                        <td class="col-num negative">-$245.00</td>
+                        <td class="col-num">0.034</td>
+                        <td class="col-num">456</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">7</td>
+                        <td class="col-model">♈ HOROSCOPE - 1: MERCURY RETROGRADE</td>
+                        <td class="col-num col-value">$10,045</td>
+                        <td class="col-num positive">+0.45%</td>
+                        <td class="col-num positive">+$45</td>
+                        <td class="col-num">49.2%</td>
+                        <td class="col-num positive">$312.00</td>
+                        <td class="col-num negative">-$298.50</td>
+                        <td class="col-num">0.012</td>
+                        <td class="col-num">365</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">8</td>
+                        <td class="col-model">🌤️ WEATHER - 1: SUNNY BUY RAINY SELL</td>
+                        <td class="col-num col-value">$9,987</td>
+                        <td class="col-num negative">-0.13%</td>
+                        <td class="col-num negative">-$13</td>
+                        <td class="col-num">48.9%</td>
+                        <td class="col-num positive">$445.20</td>
+                        <td class="col-num negative">-$412.00</td>
+                        <td class="col-num">-0.008</td>
+                        <td class="col-num">1,825</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">9</td>
+                        <td class="col-model">🏈 SPORTS - 1: HOME TEAM WINS</td>
+                        <td class="col-num col-value">$9,823</td>
+                        <td class="col-num negative">-1.77%</td>
+                        <td class="col-num negative">-$177</td>
+                        <td class="col-num">47.8%</td>
+                        <td class="col-num positive">$567.00</td>
+                        <td class="col-num negative">-$623.40</td>
+                        <td class="col-num">-0.067</td>
+                        <td class="col-num">412</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">10</td>
+                        <td class="col-model">🍕 PIZZA-TOPPINGS - 1: PEPPERONI LONG</td>
+                        <td class="col-num col-value">$9,654</td>
+                        <td class="col-num negative">-3.46%</td>
+                        <td class="col-num negative">-$346</td>
+                        <td class="col-num">46.3%</td>
+                        <td class="col-num positive">$234.50</td>
+                        <td class="col-num negative">-$445.00</td>
+                        <td class="col-num">-0.134</td>
+                        <td class="col-num">178</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">11</td>
+                        <td class="col-model">🎰 SLOT-MACHINE - 1: TRIPLE SEVEN</td>
+                        <td class="col-num col-value">$9,234</td>
+                        <td class="col-num negative">-7.66%</td>
+                        <td class="col-num negative">-$766</td>
+                        <td class="col-num">44.1%</td>
+                        <td class="col-num positive">$789.00</td>
+                        <td class="col-num negative">-$891.20</td>
+                        <td class="col-num">-0.289</td>
+                        <td class="col-num">2,456</td>
+                    </tr>
+                    <tr>
+                        <td class="col-rank">12</td>
+                        <td class="col-model">📺 TV-CHANNEL - 1: RANDOM ZAP</td>
+                        <td class="col-num col-value">$8,876</td>
+                        <td class="col-num negative">-11.24%</td>
+                        <td class="col-num negative">-$1,124</td>
+                        <td class="col-num">42.3%</td>
+                        <td class="col-num positive">$456.00</td>
+                        <td class="col-num negative">-$1,023.00</td>
+                        <td class="col-num">-0.423</td>
+                        <td class="col-num">892</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Data simulated via backtesting on historical BTC-USD prices (2019-2024) • Starting capital: $10,000</p>
+        <p class="tagline">Ω — The end of the trading illusion.</p>
+    </footer>
+
+</body>
+</html>

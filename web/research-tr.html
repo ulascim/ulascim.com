@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araştırma | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .research-card {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.15s ease;
+        }
+        .research-card:hover {
+            background: #000;
+            color: #fff;
+        }
+        .research-card:hover .card-tag {
+            background: #fff;
+            color: #000;
+        }
+        .research-card:hover .card-arrow {
+            transform: translateX(4px);
+        }
+        .card-tag {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            font-size: 10px;
+            padding: 4px 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .research-card:hover .card-subtitle {
+            color: #aaa;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        .research-card:hover .card-meta {
+            border-top-color: #444;
+            color: #888;
+        }
+        .card-arrow {
+            font-size: 16px;
+            transition: transform 0.15s ease;
+        }
+        .card-stats {
+            display: flex;
+            gap: 16px;
+        }
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .coming-soon {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .coming-soon .card-tag {
+            background: #888;
+        }
+        /* In Progress cards (orange) */
+        .research-card.in-progress {
+            border: 3px solid #f59e0b;
+            background: #fffbeb;
+        }
+        .research-card.in-progress .card-tag {
+            background: #f59e0b;
+        }
+        .research-card.in-progress:hover {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .research-card.in-progress:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.in-progress:hover .card-tag {
+            background: #fff;
+            color: #f59e0b;
+        }
+        .research-card.in-progress:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        /* Testing cards (green) */
+        .research-card.testing {
+            border: 3px solid #22c55e;
+            background: #f0fdf4;
+        }
+        .research-card.testing .card-tag {
+            background: #22c55e;
+        }
+        .research-card.testing:hover {
+            background: #22c55e;
+            color: #fff;
+        }
+        .research-card.testing:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.testing:hover .card-tag {
+            background: #fff;
+            color: #22c55e;
+        }
+        .research-card.testing:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        /* Architecture cards (purple) */
+        .research-card.architecture {
+            border: 3px solid #6366f1;
+            background: #eef2ff;
+        }
+        .research-card.architecture .card-tag {
+            background: #6366f1;
+        }
+        .research-card.architecture:hover {
+            background: #6366f1;
+            color: #fff;
+        }
+        .research-card.architecture:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.architecture:hover .card-tag {
+            background: #fff;
+            color: #6366f1;
+        }
+        .research-card.architecture:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+        <h1 class="page-title">ARAŞTIRMA</h1>
+        <p class="page-subtitle">Rastgele yazı-tura atmaktan 171 metrikli sinyal motoruna. Nihai AI trading ensemble'ını inşa ediyoruz.</p>
+
+        <div class="research-grid">
+            <!-- Bölüm 1: Aptal vs HODL (Kripto) -->
+            <a href="research-monkeys-tr.html" class="research-card">
+                <span class="card-tag">BÖLÜM 1 • YAYINDA</span>
+                <h2 class="card-title">APTAL vs HODL (BASELINE)</h2>
+                <p class="card-subtitle">Yazı-tura, zar atma ve gezegen yerçekimi vs Al-ve-Tut. HODL'u yenmenin düşük bir çıta olduğunu kanıtlıyor.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">KRİPTO</span>
+                        <span class="card-stat">38.778 test</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 2: Aptal vs HODL (Hisse) -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">BÖLÜM 2 • YAKINDA</span>
+                <h2 class="card-title">APTAL vs HODL (HİSSE)</h2>
+                <p class="card-subtitle">Aynı aptalca stratejiler S&P 500, NASDAQ ve büyük hisse senetlerine uygulandı. Kalıp geçerli mi?</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">HİSSE</span>
+                        <span class="card-stat">Aptal</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+
+            <!-- Bölüm 3: Omega Sistemi -->
+            <a href="research-omega-system-tr.html" class="research-card">
+                <span class="card-tag">BÖLÜM 3 • YAYINDA</span>
+                <h2 class="card-title">OMEGA SİSTEMİ</h2>
+                <p class="card-subtitle">6 seviyede 171 metrik. Teknik, kantitatif, ML, makro ve öncü göstergeler. 2021'de $10K → $1.15M.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">171 METRİK</span>
+                        <span class="card-stat">%9.868 getiri</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 4: ML Model Eğitimi -->
+            <a href="research-ml-models-tr.html" class="research-card in-progress">
+                <span class="card-tag">BÖLÜM 4 • YAYINDA</span>
+                <h2 class="card-title">ML MODEL EĞİTİMİ</h2>
+                <p class="card-subtitle">Başarısız LLM deneylerinden Gradient Boosting başarısına. 94 varlık, 10 yıllık veri üzerinde XGBoost, CatBoost, LightGBM.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">XGBoost</span>
+                        <span class="card-stat">AUC: 0.566</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 5: Rejim Tespiti -->
+            <a href="research-regime-detection-tr.html" class="research-card in-progress">
+                <span class="card-tag">BÖLÜM 5 • DEVAM EDİYOR</span>
+                <h2 class="card-title">REJİM TESPİTİ</h2>
+                <p class="card-subtitle">Boğa/Ayı/Yatay tespiti için HMM, Random Forest, BiLSTM+Attention. 233K satır, 203 özellik, 97 varlık.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">3 MODEL</span>
+                        <span class="card-stat">90-GÜN LSTM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 6: Haber Duygu Analizi -->
+            <a href="research-news-sentiment-tr.html" class="research-card testing">
+                <span class="card-tag">BÖLÜM 6 • TEST EDİLİYOR</span>
+                <h2 class="card-title">HABER DUYGU ANALİZİ</h2>
+                <p class="card-subtitle">Hibrit RSS + NewsData.io ile gerçek zamanlı haber analizi. Pahalı API'ler başarısız ($200/ay), optimal ücretsiz çözüm bulundu. Duygu skorlaması için GPT-4o.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">6 RSS KAYNAĞI</span>
+                        <span class="card-stat">25 COİN</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 7: Ensemble + LLM -->
+            <a href="research-ensemble-tr.html" class="research-card architecture">
+                <span class="card-tag">BÖLÜM 7 • YAYINDA</span>
+                <h2 class="card-title">ENSEMBLE + OPUS 4.5</h2>
+                <p class="card-subtitle">4 katmanlı ensemble: Sinyal Motoru + ML Modelleri + Rejim Tespiti + Haber Duygusu. Son karar verici olarak Claude Opus 4.5.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">4 UYGULAMA</span>
+                        <span class="card-stat">1 LLM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Bölüm 8: Sistem vs Aptal -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">BÖLÜM 8 • YAKINDA</span>
+                <h2 class="card-title">SİSTEM vs APTAL</h2>
+                <p class="card-subtitle">Nihai hesaplaşma: Tam Omega Sistemi vs Bölüm 1'in yazı-turaları, zar atmaları ve gezegen yerçekimi. Maymunlar gerçek trading zekasını yenebilir mi?</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">171 METRİK</span>
+                        <span class="card-stat">vs RASTGELE</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+
+            <!-- Bölüm 9: Çoklu-Agent Sürüsü -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">BÖLÜM 9 • YAKINDA</span>
+                <h2 class="card-title">ÇOKLU-AGENT SÜRÜSÜ</h2>
+                <p class="card-subtitle">Birden fazla AI agent işbirliği yapıyor, tartışıyor ve birlikte trade'leri gerçekleştiriyor. Son evrim.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">TÜM PİYASALAR</span>
+                        <span class="card-stat">SÜRÜ</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Ω — Trading illüzyonunun sonu.</p>
+    </footer>
+
+</body>
+</html>

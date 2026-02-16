@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native Turkish BPE Tokenizer | Research Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as Omega Arena
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Tables */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+
+        /* Token visualization */
+        .token-vis { margin: 12px 0; font-size: 12px; }
+        .token-vis .label { font-weight: 700; margin-bottom: 4px; }
+        .token { display: inline-block; padding: 2px 5px; margin: 1px; border: 1px solid #999; border-radius: 2px; font-size: 11px; }
+        .token.good-tok { background: #dcfce7; border-color: #16a34a; }
+        .token.bad-tok { background: #fee2e2; border-color: #dc2626; }
+        .token.neutral-tok { background: #f3f4f6; border-color: #999; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="tokenizer-research_tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="tokenizer-research.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>NATIVE TURKISH BPE TOKENIZER</h1>
+        <p class="subtitle">Toward a 'Proper' Turkish Language-Native LLM: Phase 1 &mdash; Tokenization</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status complete">COMPLETE</span></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~14%</div>
+                <div class="label">FEWER TOKENS THAN KUMRU/TABIBERT (50K)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~2.7&times;</div>
+                <div class="label">FEWER TOKENS THAN GPT-4 (21 SENTENCES)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">64K</div>
+                <div class="label">VOCABULARY SIZE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">22 GB</div>
+                <div class="label">TRAINING CORPUS (27 FILES)</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> Most widely used large language models rely on tokenizers designed for English. When Turkish text 
+            is processed by such systems, it is tokenized roughly 2&times; less efficiently &mdash; a hidden &ldquo;language tax&rdquo; 
+            affecting tens of millions of speakers. This report documents the construction of a purpose-built Turkish BPE tokenizer 
+            and the experiments that led to it. During development, it was found that the GPT-2 pre-tokenization regex (used by GPT-4, 
+            Llama, and Mistral) breaks Turkish apostrophe-suffix patterns &mdash; a previously undocumented interaction. Through three 
+            iterative training rounds (1.7GB &rarr; 10GB &rarr; 22GB across 11 domains) and systematic vocabulary-size experiments 
+            (16K&ndash;64K), a further finding emerged: apparent &ldquo;diminishing returns&rdquo; at 48K were due to vocabulary 
+            saturation, not data redundancy; moving to 64K on the same corpus yielded a <strong>10.1%</strong> improvement. On the 21-sentence 
+            benchmark, the resulting 64K tokenizer uses <strong>~14%</strong> fewer tokens than Kumru and TabiBERT (both ~50K vocab), and 
+            roughly <strong>2.7&times;</strong> fewer than GPT-4.             At 128K context length, this corresponds to the equivalent of 
+            ~149K Kumru tokens or ~352K GPT-4 tokens of Turkish text.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. THE PROBLEM: THE LANGUAGE TAX</h2>
+        <!-- ============================================ -->
+
+        <p>When Turkish text is processed by any major LLM, it passes through a tokenizer designed for English. 
+        Turkish's agglutinative structure &mdash; where meaning is packed into suffixes &mdash; is alien to these tokenizers.</p>
+
+        <h3>Same sentence, different cost</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Vocab Size</th><th>Tokens</th><th>Ratio</th></tr>
+            <tr class="highlight"><td><strong>Turkish 64K v3 (this work)</strong></td><td>64,000</td><td class="good"><strong>9</strong></td><td class="good"><strong>1.0x</strong></td></tr>
+            <tr><td>Kumru-2B</td><td>50,176</td><td>9</td><td>1.0x</td></tr>
+            <tr><td>GPT-4o (o200k)</td><td>200,019</td><td>12</td><td>1.3x</td></tr>
+            <tr><td>GPT-4 (cl100k)</td><td>100,277</td><td class="bad">17</td><td class="bad">1.9x</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">Test sentence: &ldquo;T&uuml;rkiye Cumhuriyeti'nin ba&#351;kenti Ankara'd&#305;r.&rdquo;</p>
+
+        <p>This means every Turkish API call can cost roughly 2&times; more tokens. Context windows hold proportionally less 
+        Turkish text; training runs process fewer sentences per batch. The tax compounds with length.</p>
+
+        <!-- ============================================ -->
+        <h2>2. RELATED WORK</h2>
+        <!-- ============================================ -->
+
+        <p>Several Turkish language models and tokenizers exist. Hamza (Acikgoz, &ldquo;Bridging the Bosphorus&rdquo;) provides 
+        Turkish LLMs from 124M to 1.3B parameters, including models adapted from GPT-2 and Mistral; the Hamza tokenizer 
+        uses vocabulary size 50,257 &mdash; identical to GPT-2 &mdash; and is not optimized for Turkish morphology. 
+        TabiBERT (BOUN TabiLab) is a ModernBERT-based encoder trained on 1T tokens for Turkish NLP; vocabulary size 50,176. 
+        Kumru-2B uses a 50,176-vocabulary BPE tokenizer. LlamaTurk (METU NLP) adapts LLaMA with a 28K BPE tokenizer trained 
+        on Turkish OSCAR.</p>
+        <p>A consistent pattern is that existing Turkish decoder LLMs converge on ~50K vocabulary: 50,257 (GPT-2 size) when 
+        the base model is GPT-2, and 50,176 for others. This appears to follow from adaptation of English-base tokenizers 
+        rather than from systematic vocabulary-size experiments for Turkish. No prior work is known to the author that 
+        reports (1) the GPT-2 pre-tokenization regex breaking Turkish apostrophe suffixes, (2) vocabulary saturation versus 
+        data saturation in tokenizer training, or (3) systematic comparison of 16K&ndash;64K vocabulary on the same corpus.</p>
+
+        <!-- ============================================ -->
+        <h2>3. NOVEL FINDING: GPT-2 REGEX BREAKS TURKISH</h2>
+        <!-- ============================================ -->
+
+        <p>During development, it was discovered that the GPT-2 pre-tokenization regex &mdash; the same pattern used by GPT-4, GPT-4o, Llama 3, 
+        and Mistral &mdash; contains English contraction patterns (<code>'s|'t|'re|'ve|'m|'ll|'d</code>) that actively damage Turkish tokenization.</p>
+
+        <div class="warning">
+            <strong>THE BUG:</strong> The pattern <code>'d</code> (English contraction "I'd") matches the start of Turkish 
+            <code>-dA</code> suffixes &mdash; one of the most common suffix families in Turkish (locative, ablative). 
+            The same problem occurs with <code>'s</code> (conditional suffix), <code>'t</code>, and <code>'m</code>.
+        </div>
+
+        <h3>How GPT-4 tokenizes Turkish apostrophe suffixes</h3>
+        <table>
+            <tr><th>Turkish Text</th><th>GPT-4 Tokenization</th><th>Problem</th></tr>
+            <tr><td>Ankara'd&#305;r</td><td><code>["Ankara", <strong class="bad">"'d"</strong>, "&#305;r"]</code></td><td class="bad">'d steals the d from "d&#305;r"</td></tr>
+            <tr><td>&#304;stanbul'da</td><td><code>["&#304;stanbul", <strong class="bad">"'d"</strong>, "a"]</code></td><td class="bad">'d steals the d from "da"</td></tr>
+            <tr><td>Ali'den</td><td><code>["Ali", <strong class="bad">"'d"</strong>, "en"]</code></td><td class="bad">'d steals the d from "den"</td></tr>
+        </table>
+
+        <h3>The fix: cleaned Turkish regex</h3>
+        <table>
+            <tr><th>Turkish Text</th><th>Corrected Tokenization</th><th>Result</th></tr>
+            <tr><td>Ankara'd&#305;r</td><td><code>["Ankara", "'", <strong class="good">"d&#305;r"</strong>]</code></td><td class="good">Suffix stays intact</td></tr>
+            <tr><td>&#304;stanbul'da</td><td><code>["&#304;stanbul", "'", <strong class="good">"da"</strong>]</code></td><td class="good">Suffix stays intact</td></tr>
+            <tr><td>Ali'den</td><td><code>["Ali", "'", <strong class="good">"den"</strong>]</code></td><td class="good">Suffix stays intact</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Implementation:</strong> The solution involves a custom pre-tokenization regex with English contraction patterns 
+            stripped, chained with a byte-level encoder configured to bypass its internal regex. This two-stage approach ensures 
+            Turkish suffixes remain linguistically intact while maintaining full byte-level coverage. The critical insight is that 
+            the byte-level encoder's default behavior re-applies the problematic GPT-2 regex &mdash; a subtle interaction that must 
+            be explicitly disabled. To the author's knowledge, this specific interaction between the GPT-2 regex and Turkish 
+            morphology has not been previously documented.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. ARCHITECTURE DECISIONS</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Component</th><th>Choice</th><th>Rationale</th></tr>
+            <tr><td><strong>Algorithm</strong></td><td>Byte-level BPE</td><td>Industry standard (GPT-4, Llama 3, Mistral)</td></tr>
+            <tr><td><strong>Normalization</strong></td><td>NFC Unicode</td><td>Unifies composed/decomposed forms of &ccedil;, &#351;, &#287;, &ouml;, &uuml;, &#304;</td></tr>
+            <tr><td><strong>Pre-tokenization</strong></td><td>Custom Turkish regex + ByteLevel</td><td>GPT-2 style with English contractions removed</td></tr>
+            <tr><td><strong>Byte-level config</strong></td><td>Internal regex disabled</td><td>Prevents re-application of problematic patterns</td></tr>
+            <tr><td><strong>Special tokens</strong></td><td>Llama-3 style (7 tokens)</td><td>Future instruction-tuning compatibility</td></tr>
+            <tr><td><strong>Min frequency</strong></td><td>2</td><td>Filters typos/noise without losing rare morphemes</td></tr>
+            <tr><td><strong>Library</strong></td><td>HuggingFace tokenizers (Rust)</td><td>Production-grade, fast training</td></tr>
+        </table>
+
+        <h3>Special tokens</h3>
+        <table>
+            <tr><th>Token</th><th>ID</th><th>Purpose</th></tr>
+            <tr><td><code>&lt;|begin_of_text|&gt;</code></td><td>0</td><td>Start of document/sequence</td></tr>
+            <tr><td><code>&lt;|end_of_text|&gt;</code></td><td>1</td><td>End of document/sequence</td></tr>
+            <tr><td><code>&lt;|pad|&gt;</code></td><td>2</td><td>Padding for batch processing</td></tr>
+            <tr><td><code>&lt;|unk|&gt;</code></td><td>3</td><td>Unknown (safety fallback, rarely triggered)</td></tr>
+            <tr><td><code>&lt;|start_header_id|&gt;</code></td><td>4</td><td>Instruction tuning: role header start</td></tr>
+            <tr><td><code>&lt;|end_header_id|&gt;</code></td><td>5</td><td>Instruction tuning: role header end</td></tr>
+            <tr><td><code>&lt;|eot_id|&gt;</code></td><td>6</td><td>Instruction tuning: end of turn</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>5. TRAINING CORPUS: 3 ITERATIONS</h2>
+        <!-- ============================================ -->
+
+        <p>The tokenizer was trained through three iterative rounds, each adding new data domains. 
+        This process revealed critical insights about the relationship between corpus diversity and tokenizer quality.</p>
+
+        <h3>v1: Foundation (1.7 GB, 14 files)</h3>
+        <table>
+            <tr><th>Domain</th><th>Source</th><th>Size</th></tr>
+            <tr><td>General Knowledge</td><td>Wikipedia TR (520K articles)</td><td>866 MB</td></tr>
+            <tr><td>Code</td><td>Python corpus</td><td>569 MB</td></tr>
+            <tr><td>Reasoning</td><td>Math problems, RAG, Chain-of-thought</td><td>221 MB</td></tr>
+            <tr><td>Literary</td><td>TED talks, classic literature, poems, songs, folk, idioms</td><td>46 MB</td></tr>
+            <tr><td>Vocabulary</td><td>TDK dictionary (full + simplified)</td><td>15 MB</td></tr>
+        </table>
+
+        <h3>v2: Quality Boost (10 GB, 16 files) &mdash; curated literary &amp; academic data added</h3>
+        <table>
+            <tr><th>Domain (NEW)</th><th>Source</th><th>Size</th></tr>
+            <tr class="highlight"><td><strong>Cultural/Literary Web</strong></td><td>BellaTurca &Ouml;zenliDerlem (1.4M curated docs)</td><td class="good">4.4 GB</td></tr>
+            <tr class="highlight"><td><strong>Academic/Thesis</strong></td><td>BellaTurca AkademikDerlem (668K papers)</td><td class="good">3.5 GB</td></tr>
+        </table>
+
+        <h3>v3: Domain Coverage (22 GB, 27 files) &mdash; 7 new specialized domains</h3>
+        <table>
+            <tr><th>Domain (NEW)</th><th>Source</th><th>Size</th></tr>
+            <tr class="highlight"><td><strong>News/Journalism</strong></td><td>1.8M news articles + summarization corpus</td><td class="good">4.5 GB</td></tr>
+            <tr class="highlight"><td><strong>Legal/Law</strong></td><td>700K court decisions + Constitutional Court rulings</td><td class="good">3.7 GB</td></tr>
+            <tr class="highlight"><td><strong>Instructions</strong></td><td>2.5M instruction-answer pairs</td><td>3.7 GB</td></tr>
+            <tr class="highlight"><td><strong>Financial</strong></td><td>KAP announcements, capital markets (256K docs)</td><td>425 MB</td></tr>
+            <tr class="highlight"><td><strong>Education</strong></td><td>Education QA + MMLU exam questions (8 subjects)</td><td>91 MB</td></tr>
+            <tr class="highlight"><td><strong>Medical</strong></td><td>Medical reasoning + hospital articles</td><td>108 MB</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">1.7 GB</div>
+                <div class="label">v1: 14 FILES, 5 DOMAINS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10 GB</div>
+                <div class="label">v2: 16 FILES, 7 DOMAINS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">22 GB</div>
+                <div class="label">v3: 27 FILES, 11 DOMAINS</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. DATA &amp; VOCABULARY SCALING EXPERIMENTS</h2>
+        <!-- ============================================ -->
+
+        <p>Two systematic experiments were conducted: (1) scaling training data from 1.7GB to 22GB at fixed 48K vocabulary, 
+        and (2) scaling vocabulary from 48K to 64K on the full 22GB corpus. The combination revealed a critical insight 
+        about the interaction between data volume and vocabulary capacity.</p>
+
+        <h3>Experiment A: Data scaling at 48K vocabulary</h3>
+        <table>
+            <tr><th>Sentence</th><th>48k_v1</th><th>48k_v2</th><th>48k_v3</th><th>Kumru</th></tr>
+            <tr><td>Merhaba d&uuml;nya, nas&#305;ls&#305;n?</td><td>6</td><td class="good">6</td><td class="good">6</td><td>8</td></tr>
+            <tr><td>Evlerdekilere s&ouml;yleyin, yar&#305;n geliyoruz.</td><td>11</td><td class="good">9</td><td class="good">9</td><td>12</td></tr>
+            <tr><td>&Ccedil;ekoslovakyal&#305;la&#351;t&#305;ramad&#305;klar&#305;m&#305;zdan m&#305;s&#305;n&#305;z?</td><td>12</td><td class="good">9</td><td>10</td><td>13</td></tr>
+            <tr><td>D&uuml;n ak&#351;am arkada&#351;lar&#305;mla bulu&#351;tuk...</td><td>15</td><td class="good">10</td><td class="good">10</td><td>15</td></tr>
+            <tr><td>Spinoza'n&#305;n t&ouml;z ontolojisi...</td><td>33</td><td class="good">29</td><td>32</td><td>30</td></tr>
+            <tr><td>San&#305;&#287;&#305;n mahkumiyet karar&#305;na... (legal)</td><td>12</td><td>11</td><td class="good"><strong>8</strong></td><td>12</td></tr>
+            <tr><td>Anayasa Mahkemesi ba&#351;vuruyu... (legal)</td><td>10</td><td>9</td><td class="good"><strong>7</strong></td><td>11</td></tr>
+            <tr><td>Hastan&#305;n ameliyat sonras&#305;... (medical)</td><td>10</td><td>8</td><td class="good"><strong>7</strong></td><td>8</td></tr>
+            <tr class="highlight"><td><strong>TOTAL (21 sentences)</strong></td><td><strong>261</strong></td><td><strong>235</strong></td><td><strong>233</strong></td><td><strong>267</strong></td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px;">Totals above use a truncated sentence set. Section 7 reports the same tokenizers on full sentences (192 / 199 / 224).</p>
+        <p>v1&rarr;v2 (1.7GB &rarr; 10GB): <strong>+10.0% improvement.</strong> 
+        v2&rarr;v3 (10GB &rarr; 22GB): <strong>+0.9% improvement</strong> &mdash; apparent diminishing returns.</p>
+
+        <h3>Experiment B: Vocabulary scaling &mdash; the breakthrough</h3>
+        <p>The near-zero improvement from v2&rarr;v3 at 48K initially suggested data saturation. 
+        However, training a 64K tokenizer on the same v3 corpus revealed a fundamentally different result:</p>
+
+        <table>
+            <tr><th>Tokenizer</th><th>Data</th><th>Total Tokens</th><th>vs Kumru</th></tr>
+            <tr><td>48k_v1</td><td>1.7 GB</td><td>261</td><td>+2.2%</td></tr>
+            <tr><td>48k_v2</td><td>10 GB</td><td>235</td><td>+12.0%</td></tr>
+            <tr><td>48k_v3</td><td>22 GB</td><td>233</td><td>+12.7%</td></tr>
+            <tr><td>64k_v1</td><td>1.7 GB</td><td>247</td><td>+7.5%</td></tr>
+            <tr class="highlight"><td><strong>64k_v3</strong></td><td><strong>22 GB</strong></td><td class="good"><strong>222</strong></td><td class="good"><strong>+16.9%</strong></td></tr>
+            <tr><td>Kumru (50k)</td><td>~500 GB</td><td>267</td><td>baseline (truncated set)</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">+0.9%</div>
+                <div class="label">48K: v2&rarr;v3 (SATURATED)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">+10.1%</div>
+                <div class="label">64K: v1&rarr;v3 (ABSORBING)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">+4.7%</div>
+                <div class="label">64K vs 48K (SAME DATA)</div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>KEY FINDING: Vocabulary Saturation, Not Data Saturation.</strong>
+            <br><br>The "diminishing returns" observed at 48K were <strong>not</strong> caused by redundant data &mdash; they were 
+            caused by a full vocabulary. At 48,000 merge slots, the tokenizer had no room left to encode new domain-specific 
+            patterns from the legal, medical, and financial data added in v3.
+            <br><br>When the same 22GB corpus was used to train a 64K tokenizer, the extra 16,000 vocabulary slots absorbed the 
+            domain vocabulary that 48K had to discard, producing a <strong>10.1% improvement</strong> (64k_v1&rarr;64k_v3) on the 
+            same data that only yielded 0.9% at 48K.
+            <br><br>
+            <strong>Implication:</strong> Vocabulary size and training data must be scaled together. Adding data without vocabulary 
+            capacity, or vocabulary without data diversity, both produce diminishing returns. The optimal tokenizer requires 
+            both sufficient vocabulary slots <em>and</em> sufficiently diverse training data to fill them.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. HEAD-TO-HEAD: 64K v3 vs TURKISH &amp; ENGLISH TOKENIZERS</h2>
+        <!-- ============================================ -->
+
+        <p>Comparison across tokenizers on 21 test sentences covering daily speech, formal language, 
+        agglutination, code, and six specialized domains. Turkish tokenizers (this work, Kumru, TabiBERT, Hamza) 
+        were evaluated on the same full-sentence set; GPT-4/GPT-4o use different tokenizers and are included for reference.</p>
+
+        <table>
+            <tr><th>Test Sentence</th><th>64k v3</th><th>48k v3</th><th>Kumru</th><th>TabiBERT</th><th>Hamza</th><th>GPT-4o</th><th>GPT-4</th></tr>
+            <tr><td>Merhaba d&uuml;nya, nas&#305;ls&#305;n?</td><td class="good"><strong>6</strong></td><td>6</td><td>7</td><td>7</td><td>14</td><td>9</td><td>11</td></tr>
+            <tr><td>T&uuml;rkiye Cumhuriyeti'nin ba&#351;kenti Ankara'd&#305;r.</td><td>9</td><td>9</td><td>8</td><td>8</td><td>21</td><td>12</td><td>17</td></tr>
+            <tr><td>Evlerdekilere s&ouml;yleyin, yar&#305;n geliyoruz.</td><td class="good"><strong>8</strong></td><td>9</td><td>11</td><td>11</td><td>21</td><td>12</td><td>18</td></tr>
+            <tr><td>&Ccedil;ekoslovakyal&#305;la&#351;t&#305;ramad&#305;klar&#305;m&#305;zdan m&#305;s&#305;n&#305;z?</td><td class="good"><strong>9</strong></td><td>10</td><td>12</td><td>12</td><td>29</td><td>19</td><td>21</td></tr>
+            <tr><td>G&ouml;r&uuml;&#351;ebilece&#287;imizi umuyorum.</td><td class="good"><strong>5</strong></td><td>6</td><td>6</td><td>6</td><td>15</td><td>11</td><td>14</td></tr>
+            <tr><td>D&uuml;n ak&#351;am arkada&#351;lar&#305;mla bulu&#351;tuk.</td><td class="good"><strong>5</strong></td><td>5</td><td>9</td><td>9</td><td>20</td><td>20</td><td>25</td></tr>
+            <tr><td>Edebiyat&#305;m&#305;z&#305;n en &ouml;nemli eserlerinden...</td><td>15</td><td>16</td><td>16</td><td>16</td><td>42</td><td>27</td><td>40</td></tr>
+            <tr><td>Osmanl&#305; &#304;mparatorlu&#287;u'nun son...</td><td>12</td><td>12</td><td class="good">11</td><td class="good">11</td><td>47</td><td>28</td><td>43</td></tr>
+            <tr><td>Spinoza'n&#305;n t&ouml;z ontolojisi...</td><td>17</td><td>17</td><td>16</td><td>16</td><td>33</td><td>37</td><td>53</td></tr>
+            <tr><td>def __init__(self, value):</td><td class="good"><strong>8</strong></td><td>8</td><td class="bad">11</td><td class="bad">11</td><td>9</td><td>8</td><td>8</td></tr>
+            <tr><td>for i in range(len(dataset)):</td><td>9</td><td>9</td><td class="bad">13</td><td class="bad">13</td><td>12</td><td class="good">7</td><td class="good">7</td></tr>
+            <tr><td>Makine &ouml;&#287;renmesi algoritmalar&#305;n&#305;n...</td><td>10</td><td>10</td><td>11</td><td>11</td><td>36</td><td>20</td><td>33</td></tr>
+            <tr><td>B&uuml;y&uuml;k&#351;ehir belediyesi toplu ta&#351;&#305;ma...</td><td class="good"><strong>8</strong></td><td>9</td><td>8</td><td>8</td><td>28</td><td>17</td><td>28</td></tr>
+            <tr><td>&#304;stanbul'dan Ankara'ya tren...</td><td class="good"><strong>11</strong></td><td>11</td><td>11</td><td>11</td><td>19</td><td>14</td><td>16</td></tr>
+            <tr><td>2024 y&#305;l&#305;nda T&uuml;rkiye'nin n&uuml;fusu...</td><td class="good"><strong>11</strong></td><td>11</td><td class="bad">15</td><td class="bad">15</td><td>32</td><td>15</td><td>26</td></tr>
+            <tr><td>San&#305;&#287;&#305;n mahkumiyet karar&#305;na... (legal)</td><td class="good"><strong>7</strong></td><td>7</td><td>11</td><td>11</td><td>26</td><td>17</td><td>24</td></tr>
+            <tr><td>Anayasa Mahkemesi ba&#351;vuruyu... (legal)</td><td class="good"><strong>6</strong></td><td>7</td><td>10</td><td>10</td><td>23</td><td>16</td><td>20</td></tr>
+            <tr><td>Hastan&#305;n ameliyat sonras&#305;... (medical)</td><td class="good"><strong>7</strong></td><td>7</td><td>7</td><td>7</td><td>30</td><td>15</td><td>26</td></tr>
+            <tr><td>&#350;irketin halka arz s&uuml;recinde... (finance)</td><td class="good"><strong>11</strong></td><td>11</td><td>11</td><td>11</td><td>36</td><td>20</td><td>30</td></tr>
+            <tr><td>Fotosentez s&#305;ras&#305;nda... (science)</td><td class="good"><strong>11</strong></td><td>11</td><td>12</td><td>12</td><td>36</td><td>29</td><td>38</td></tr>
+            <tr><td>Cumhurba&#351;kanl&#305;&#287;&#305; S&ouml;zc&uuml;s&uuml; bas&#305;n...</td><td class="good"><strong>7</strong></td><td>8</td><td>8</td><td>8</td><td>39</td><td>18</td><td>29</td></tr>
+            <tr class="highlight"><td><strong>TOTAL (21 sentences)</strong></td><td class="good"><strong>192</strong></td><td>199</td><td>224</td><td>224</td><td class="bad">568</td><td>371</td><td class="bad">527</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">Totals from <code>benchmark_tokenizers.py</code> on 21 full sentences. Hamza uses GPT-2 tokenizer (50,257 vocab); Kumru and TabiBERT use ~50K BPE.</p>
+        <p class="finding" style="margin-top: 12px;">
+            <strong>Observation:</strong> Kumru and TabiBERT produce <strong>identical token counts on every sentence</strong> in this benchmark (same vocabulary size 50,176; same total 224). Exact agreement across all 21 sentences is uncommon for independently trained BPE tokenizers. The finding is reported here without further interpretation.
+        </p>
+
+        <h3>Extended benchmark: 104 sentences (21 core + 83 hard/edgy)</h3>
+        <p>The same tokenizers were run on an extended set: the 21 core sentences above plus 83 &ldquo;hard&rdquo; sentences 
+        (long agglutination, legal/medical/financial phrasing, colloquial/slang, numbers and dates, code snippets, 
+        punctuation and abbreviations, loanwords, case/diacritic edge cases). All counts from <code>benchmark_tokenizers.py</code>.</p>
+        <table>
+            <tr><th>Tokenizer</th><th>Total tokens (104 sent)</th><th>vs best</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>1,041</strong></td><td>baseline (best)</td></tr>
+            <tr><td>48k v3</td><td>1,073</td><td>+3.1%</td></tr>
+            <tr><td>32k v2</td><td>1,163</td><td>+11.7%</td></tr>
+            <tr><td>16k v1</td><td>1,359</td><td>+30.5%</td></tr>
+            <tr><td>Kumru</td><td>1,198</td><td>+15.1%</td></tr>
+            <tr><td>TabiBERT</td><td>1,198</td><td>+15.1%</td></tr>
+            <tr><td>Hamza</td><td class="bad">2,451</td><td class="bad">+135.4%</td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px;">64K remains best on the extended set; Kumru and TabiBERT again match each other (1,198). 
+        The hard set includes e.g. <em>Muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesine</em>, 
+        legal (HMK 353, tahkim), medical (pankreatikoduodenektomi, kardiyovasküler), financial (BIST 100, SPK), 
+        slang (N'olcak, bişey), code (<code>return {'key': value}</code>), and loanwords (Startup'lar, API endpoint'i).</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">192</div>
+                <div class="label">THIS WORK (64K v3)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">224</div>
+                <div class="label">KUMRU / TABIBERT (50K)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value bad">568</div>
+                <div class="label">HAMZA (GPT-2 TOKENIZER)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value bad">527</div>
+                <div class="label">GPT-4 (100K)</div>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <strong>Result:</strong> On the same 21-sentence set, the 64K tokenizer uses <strong>192</strong> tokens versus 
+            <strong>224</strong> for Kumru and TabiBERT (~14% fewer) and <strong>568</strong> for Hamza (~66% fewer). 
+            Hamza&rsquo;s tokenizer has vocabulary size 50,257 (identical to GPT-2) and is not optimized for Turkish. 
+            The 64K tokenizer matches or outperforms GPT-4/GPT-4o on code and shows substantial gains on legal, medical, 
+            and news domains. Kumru and TabiBERT perform similarly to each other; both use ~50K BPE.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>8. DOMAIN-SPECIFIC ANALYSIS</h2>
+        <!-- ============================================ -->
+
+        <p>Domain-targeted training data produces measurable improvements in specialized vocabulary handling. 
+        Below are token-level comparisons for each new domain.</p>
+
+        <h3>Legal Turkish</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Tokens</th><th>"Anayasa Mahkemesi ba&#351;vuruyu oybirli&#287;iyle reddetti."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>6</strong></td><td><code>Anayasa | Mahkemesi | ba&#351;vuruyu | oybirli&#287;iyle | reddetti | .</code></td></tr>
+            <tr><td>Kumru</td><td>10</td><td><code>Anayasa | Mahkemesi | ba&#351;vur | uyu | oy | bir | li&#287;iyle | reddet | ti | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>10</td><td>(same as Kumru)</td></tr>
+            <tr><td>Hamza</td><td class="bad">23</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">20</td><td class="neutral">(fragmented into sub-word pieces)</td></tr>
+        </table>
+        <p><code>ba&#351;vuruyu</code> (the application) and <code>oybirli&#287;iyle</code> (unanimously) are each single tokens 
+        in 64K. Kumru and TabiBERT fragment the first into 2 pieces and the second into 3 pieces. <code>reddetti</code> (rejected) is also 
+        a single token &mdash; Kumru/TabiBERT need 2 (<code>reddet | ti</code>). Result: <strong>6 vs 10</strong> (Kumru/TabiBERT), 
+        <strong>6 vs 23</strong> (Hamza).</p>
+
+        <h3>Medical Turkish</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Tokens</th><th>"Hastan&#305;n ameliyat sonras&#305; komplikasyon riski de&#287;erlendirilmelidir."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>7</strong></td><td><code>Hastan&#305;n | ameliyat | sonras&#305; | komplikasyon | riski | de&#287;erlendirilmelidir | .</code></td></tr>
+            <tr><td>Kumru</td><td>7</td><td><code>Hastan&#305;n | ameliyat | sonras&#305; | komplikasyon | riski | de&#287;erlendirilmelidir | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>7</td><td>(same as Kumru)</td></tr>
+            <tr><td>Hamza</td><td class="bad">30</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">26</td><td class="neutral">(fragmented into sub-word pieces)</td></tr>
+        </table>
+        <p><code>Hastan&#305;n</code> (of the patient) is a single token. <code>de&#287;erlendirilmelidir</code> (must be evaluated) &mdash; 
+        a 6-morpheme suffix chain &mdash; is also a single token. Kumru/TabiBERT tie at 7; Hamza 30; GPT-4 26.</p>
+
+        <h3>Financial Turkish</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Tokens</th><th>"&#350;irketin halka arz s&uuml;recinde sermaye piyasas&#305; kurulu onay&#305; gerekmektedir."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>11</strong></td><td><code>&#350;irket | in | halka | arz | s&uuml;recinde | sermaye | piyasas&#305; | kurulu | onay&#305; | gerekmektedir | .</code></td></tr>
+            <tr><td>Kumru</td><td>11</td><td><code>&#350;irket | in | halka | arz | s&uuml;recinde | sermaye | piyasas&#305; | kurulu | onay&#305; | gerekmektedir | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>11</td><td>(same as Kumru)</td></tr>
+            <tr><td>Hamza</td><td class="bad">36</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">30</td><td class="neutral">(fragmented into sub-word pieces)</td></tr>
+        </table>
+
+        <h3>News/Journalism Turkish</h3>
+        <table>
+            <tr><th>Tokenizer</th><th>Tokens</th><th>"Cumhurba&#351;kanl&#305;&#287;&#305; S&ouml;zc&uuml;s&uuml; bas&#305;n toplant&#305;s&#305;nda a&ccedil;&#305;klamalarda bulundu."</th></tr>
+            <tr class="highlight"><td><strong>64k v3</strong></td><td class="good"><strong>7</strong></td><td><code>Cumhurba&#351;kanl&#305;&#287;&#305; | S&ouml;zc&uuml;s&uuml; | bas&#305;n | toplant&#305;s&#305;nda | a&ccedil;&#305;klamalarda | bulundu | .</code></td></tr>
+            <tr><td>Kumru</td><td>8</td><td><code>Cumhurba&#351;kanl&#305;&#287;&#305; | S&ouml;zc | &uuml;s&uuml; | bas&#305;n | toplant&#305;s&#305;nda | a&ccedil;&#305;klamalarda | bulundu | .</code></td></tr>
+            <tr><td>TabiBERT</td><td>8</td><td>(same as Kumru)</td></tr>
+            <tr><td>Hamza</td><td class="bad">39</td><td class="neutral">(GPT-2 tokenizer)</td></tr>
+            <tr><td>GPT-4</td><td class="bad">29</td><td class="neutral">(fragmented into sub-word pieces)</td></tr>
+        </table>
+        <p><code>Cumhurba&#351;kanl&#305;&#287;&#305;</code> (Presidency) and <code>S&ouml;zc&uuml;s&uuml;</code> (Spokesperson) are each 
+        single tokens in 64K. Kumru and TabiBERT split <code>S&ouml;zc&uuml;s&uuml;</code> into 2 pieces; Hamza 39 tokens. 
+        The extra vocabulary capacity allows 64K to capture these high-frequency institutional terms as atomic units.</p>
+
+        <!-- ============================================ -->
+        <h2>9. MORPHOLOGICAL ANALYSIS</h2>
+        <!-- ============================================ -->
+
+        <p>The tokenizer learned Turkish morphology from pure statistics &mdash; no linguistic rules were programmed. 
+        BPE naturally discovered morpheme-like boundaries through frequency analysis of 22GB of text.</p>
+
+        <h3>Verb morphology (learned, not coded)</h3>
+        <table>
+            <tr><th>Word</th><th>Tokens</th><th>Morphological Interpretation</th></tr>
+            <tr><td>geliyorum</td><td><code>gel | iyorum</code></td><td>stem + present continuous 1st person</td></tr>
+            <tr><td>geldim</td><td><code>gel | dim</code></td><td>stem + past tense 1st person</td></tr>
+            <tr><td>gelecek</td><td><code>gelecek</code></td><td>single token (very common word)</td></tr>
+            <tr><td>gelmi&#351;</td><td><code>gelmi&#351;</code></td><td>single token (common evidential)</td></tr>
+            <tr><td>geliyoruz</td><td><code>geliyoruz</code></td><td>single token (common 1st person plural)</td></tr>
+        </table>
+
+        <h3>Noun case suffixes</h3>
+        <table>
+            <tr><th>Word</th><th>Tokens</th><th>Count</th></tr>
+            <tr><td>ev (house)</td><td><code>ev</code></td><td class="good">1</td></tr>
+            <tr><td>evde (in the house)</td><td><code>evde</code></td><td class="good">1</td></tr>
+            <tr><td>evden (from the house)</td><td><code>evden</code></td><td class="good">1</td></tr>
+            <tr><td>eve (to the house)</td><td><code>eve</code></td><td class="good">1</td></tr>
+            <tr><td>evin (of the house)</td><td><code>evin</code></td><td class="good">1</td></tr>
+            <tr><td>evler (houses)</td><td><code>evler</code></td><td class="good">1</td></tr>
+        </table>
+        <p>Six different grammatical forms of "ev" &mdash; all encoded as single tokens.</p>
+
+        <h3>Suffix chain handling</h3>
+        <table>
+            <tr><th>Word</th><th>Tokens</th><th>Count</th></tr>
+            <tr><td>de&#287;erlendirilmelidir</td><td><code>de&#287;erlendirilmelidir</code></td><td class="good">1</td></tr>
+            <tr><td>lar&#305;m&#305;zdan (from our ...s)</td><td><code>lar&#305;m&#305;zdan</code></td><td class="good">1</td></tr>
+            <tr><td>gidebilirsiniz (you can go)</td><td><code>gidebilirsiniz</code></td><td class="good">1</td></tr>
+            <tr><td>oybirli&#287;iyle (unanimously)</td><td><code>oybirli&#287;iyle</code></td><td class="good">1</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>10. DIACRITIC ROBUSTNESS</h2>
+        <!-- ============================================ -->
+
+        <p>Turkish users sometimes type without diacritics (c instead of &ccedil;, s instead of &#351;, i instead of &#305;). 
+        The tokenizer handles both forms, but correct Turkish is significantly more token-efficient &mdash; by design.</p>
+
+        <table>
+            <tr><th>Correct Turkish</th><th>Tokens</th><th>Without Diacritics</th><th>Tokens</th><th>Cost</th></tr>
+            <tr><td>&#351;ehir</td><td class="good">1</td><td>sehir</td><td>3</td><td class="bad">+2</td></tr>
+            <tr><td>b&uuml;y&uuml;k&#351;ehir</td><td class="good">2</td><td>buyuksehir</td><td>6</td><td class="bad">+4</td></tr>
+            <tr><td>T&uuml;rkiye</td><td class="good">1</td><td>Turkiye</td><td>2</td><td class="bad">+1</td></tr>
+            <tr><td>&ouml;&#287;renci</td><td class="good">1</td><td>ogrenci</td><td>3</td><td class="bad">+2</td></tr>
+            <tr><td>g&uuml;nayd&#305;n</td><td class="good">2</td><td>gunaydin</td><td>3</td><td class="bad">+1</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Design choice:</strong> Diacritic-free Turkish was deliberately excluded from the training corpus. 
+            This ensures that input without diacritics is still processable (nothing breaks &mdash; byte-level BPE can represent anything) 
+            but costs more tokens. The model trained on this tokenizer will accept sloppy input while always 
+            <strong>producing correct Turkish in its output</strong> &mdash; because correct Turkish is all it was trained on.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. CONTEXT WINDOW: THE COMPOUNDING ADVANTAGE</h2>
+        <!-- ============================================ -->
+
+        <p>Tokenizer efficiency is not a fixed saving &mdash; it is a <strong>multiplier on context length</strong>. 
+        The longer the context window, the more the advantage compounds. This has direct architectural implications 
+        for the target model.</p>
+
+        <h3>Effective context capacity</h3>
+        <p>At each context length, the 64K tokenizer holds significantly more Turkish text than competitors 
+        could fit in the same number of token slots:</p>
+        <table>
+            <tr><th>Context Length</th><th>This Work (64K)</th><th>Kumru Equivalent</th><th>GPT-4 Equivalent</th><th>Extra Text Capacity</th></tr>
+            <tr><td>2,048 tokens</td><td>2,048</td><td>~2,387</td><td>~5,627</td><td>+339 vs Kumru</td></tr>
+            <tr><td>4,096 tokens</td><td>4,096</td><td>~4,773</td><td>~11,253</td><td>+677 vs Kumru</td></tr>
+            <tr><td>32,768 tokens</td><td>32,768</td><td>~38,187</td><td>~90,027</td><td class="good">+5,419 vs Kumru</td></tr>
+            <tr><td>128,000 tokens</td><td>128,000</td><td>~149,333</td><td>~351,667</td><td class="good"><strong>+21,333 vs Kumru</strong></td></tr>
+        </table>
+        <p class="neutral" style="font-size: 11px; margin-top: -8px;">
+        &ldquo;Kumru Equivalent&rdquo; = how many Kumru tokens would be needed to hold the same amount of Turkish text. 
+        Calculated from the efficiency gaps measured in Section 7.</p>
+
+        <h3>Architectural implication: small model, massive context</h3>
+        <p>The efficiency advantage fundamentally changes the optimal model architecture for Turkish. 
+        Two strategies were considered:</p>
+        <table>
+            <tr><th>Strategy</th><th>Parameters</th><th>Context</th><th>Turkish Text Capacity</th><th>Trainability</th></tr>
+            <tr><td>Large model, short context</td><td>7B</td><td>4,096</td><td>~3&ndash;4 pages</td><td class="bad">Requires 40&ndash;80 GB VRAM</td></tr>
+            <tr class="highlight"><td><strong>Small model, long context</strong></td><td><strong>1&ndash;2B</strong></td><td><strong>128K</strong></td><td class="good"><strong>~entire book</strong></td><td class="good">Trainable on consumer hardware</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Strategic decision:</strong> A 1&ndash;2B parameter model with 128K context length is selected as the 
+            target architecture. With the 64K tokenizer, this configuration holds Turkish text equivalent to what a Kumru-tokenized 
+            model would need ~150K tokens for, or what GPT-4 would need ~303K tokens for.             Most existing Turkish language models 
+            offer context lengths of 4K&ndash;8K tokens. A native-tokenized model with 128K context would be capable of 
+            processing entire legal case files, academic theses, or literary works in a single pass.
+            <br><br>
+            The embedding layer overhead of 64K vocabulary at 1B scale is approximately 3.3% of total parameters &mdash; 
+            a negligible cost for a permanent ~14% efficiency advantage over Kumru/TabiBERT on every token processed.
+        </div>
+
+        <!-- ============================================ -->
+        <h2>12. PRACTICAL IMPLICATIONS</h2>
+        <!-- ============================================ -->
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">~2.7&times;</div>
+                <div class="label">FEWER TOKENS (vs GPT-4, 21 SENT.)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~14%</div>
+                <div class="label">FEWER TOKENS vs KUMRU/TABIBERT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">66%</div>
+                <div class="label">FEWER TOKENS vs HAMZA (GPT-2)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">11</div>
+                <div class="label">DOMAINS COVERED</div>
+            </div>
+        </div>
+
+        <p>Turkish text processed by English-centric tokenizers incurs a roughly 2&times; token penalty across context length, speed, cost, 
+        and training efficiency. A native Turkish tokenizer eliminates this tax entirely.</p>
+
+        <p>The tokenizer covers 11 specialized domains (general, academic, legal, medical, financial, education, 
+        news, code, literary, reasoning, instructions), ensuring efficient tokenization regardless of subject matter.</p>
+
+        <!-- ============================================ -->
+        <h2>13. PROJECT STATUS</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Phase</th><th>Status</th><th>Key Result</th></tr>
+            <tr class="highlight"><td><strong>Phase 1: Tokenizer</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">64K vocab, ~14% fewer tokens than Kumru/TabiBERT, ~2.7&times; vs GPT-4, 11 domains</td></tr>
+            <tr><td><strong>Phase 2: Architecture</strong></td><td><span class="status next">NEXT</span></td><td>1&ndash;2B parameters, 128K context target</td></tr>
+            <tr><td><strong>Phase 3: Pre-training</strong></td><td><span class="status next">NEXT</span></td><td>Language learning from Turkish corpus</td></tr>
+            <tr><td><strong>Phase 4: Fine-tuning</strong></td><td><span class="status next">NEXT</span></td><td>Instruction following, chat capability</td></tr>
+        </table>
+
+        <h2>14. REPRODUCIBILITY</h2>
+        <p>Code, data sources, and trained tokenizers are available.</p>
+        <ul>
+            <li><strong>Training script:</strong> <code>train_tokenizer.py</code></li>
+            <li><strong>Benchmark script:</strong> <code>benchmark_tokenizers.py</code> (104-sentence comparison: 21 core + 83 hard/edgy)</li>
+            <li><strong>Training data:</strong> 22 GB across 27 files, 11 domains</li>
+            <li><strong>Selected tokenizer:</strong> <code>tokenizers/turkish_bpe_64k/tokenizer.json</code></li>
+            <li><strong>Versions preserved:</strong> 16K, 32K, 48K, 64K &times; v1/v2/v3</li>
+            <li><strong>Baselines:</strong> Kumru-2B (50,176), TabiBERT (50,176), Hamza (50,257, GPT-2 tokenizer), GPT-4 (cl100k_base), GPT-4o (o200k_base)</li>
+        </ul>
+
+        <div class="abstract" style="margin-top: 32px;">
+            <strong>Conclusion.</strong> A purpose-built Turkish tokenizer is a prerequisite for efficient Turkish language modeling. 
+            The efficiency penalty imposed by English-centric tokenizers is measurable and eliminable. Three findings are emphasized: 
+            (1) the GPT-2 pre-tokenization regex breaks Turkish apostrophe-suffix patterns &mdash; an interaction not previously 
+            documented; (2) vocabulary saturation, not data redundancy, explains apparent diminishing returns at 48K &mdash; with 
+            implications for agglutinative languages; and (3) tokenizer efficiency compounds with context length, favoring 
+            smaller, long-context architectures. This report documents Phase 1 of an independent effort to build a 
+            Turkish language&ndash;native LLM from scratch.
+            <br><br>
+            <em style="font-size: 12px;">A special note of gratitude is owed to Kumru AI: their Turkish LLM&rsquo;s 
+            well-documented limitations in reasoning and Turkish morphology provided the initial motivation to build 
+            a proper Turkish language model from scratch. Hamza (emrecanacikgoz) and TabiBERT (boun-tabilab) tokenizers 
+            were also compared; see Section 7 and <code>benchmark_tokenizers.py</code>.</em>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Independent Research
+        </p>
+    </main>
+
+</body>
+</html>

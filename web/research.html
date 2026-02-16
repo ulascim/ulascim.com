@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .research-card {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.15s ease;
+        }
+        .research-card:hover {
+            background: #000;
+            color: #fff;
+        }
+        .research-card:hover .card-tag {
+            background: #fff;
+            color: #000;
+        }
+        .research-card:hover .card-arrow {
+            transform: translateX(4px);
+        }
+        .card-tag {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            font-size: 10px;
+            padding: 4px 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .research-card:hover .card-subtitle {
+            color: #aaa;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        .research-card:hover .card-meta {
+            border-top-color: #444;
+            color: #888;
+        }
+        .card-arrow {
+            font-size: 16px;
+            transition: transform 0.15s ease;
+        }
+        .card-stats {
+            display: flex;
+            gap: 16px;
+        }
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .coming-soon {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .coming-soon .card-tag {
+            background: #888;
+        }
+        /* In Progress cards (orange) */
+        .research-card.in-progress {
+            border: 3px solid #f59e0b;
+            background: #fffbeb;
+        }
+        .research-card.in-progress .card-tag {
+            background: #f59e0b;
+        }
+        .research-card.in-progress:hover {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .research-card.in-progress:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.in-progress:hover .card-tag {
+            background: #fff;
+            color: #f59e0b;
+        }
+        .research-card.in-progress:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        /* Testing cards (green) */
+        .research-card.testing {
+            border: 3px solid #22c55e;
+            background: #f0fdf4;
+        }
+        .research-card.testing .card-tag {
+            background: #22c55e;
+        }
+        .research-card.testing:hover {
+            background: #22c55e;
+            color: #fff;
+        }
+        .research-card.testing:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.testing:hover .card-tag {
+            background: #fff;
+            color: #22c55e;
+        }
+        .research-card.testing:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        /* Architecture cards (purple) */
+        .research-card.architecture {
+            border: 3px solid #6366f1;
+            background: #eef2ff;
+        }
+        .research-card.architecture .card-tag {
+            background: #6366f1;
+        }
+        .research-card.architecture:hover {
+            background: #6366f1;
+            color: #fff;
+        }
+        .research-card.architecture:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.architecture:hover .card-tag {
+            background: #fff;
+            color: #6366f1;
+        }
+        .research-card.architecture:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">LIVE</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link">LEADERBOARD</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link active">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main">
+        <h1 class="page-title">RESEARCH</h1>
+        <p class="page-subtitle">From random coin flips to a 171-metric signal engine. Building the ultimate AI trading ensemble.</p>
+
+        <div class="research-grid">
+            <!-- Part 1: Stupid vs HODL (Crypto) -->
+            <a href="research-monkeys.html" class="research-card">
+                <span class="card-tag">PART 1 • PUBLISHED</span>
+                <h2 class="card-title">STUPID vs HODL (BASELINE)</h2>
+                <p class="card-subtitle">Coin flips, dice rolls, and planetary gravity vs Buy-and-Hold. Establishes that beating HODL is a low bar.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">CRYPTO</span>
+                        <span class="card-stat">38,778 tests</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 2: Stupid vs HODL (Stocks) -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">PART 2 • COMING SOON</span>
+                <h2 class="card-title">STUPID vs HODL (STOCKS)</h2>
+                <p class="card-subtitle">Same stupid strategies applied to S&P 500, NASDAQ, and major stocks. Does the pattern hold?</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">STOCKS</span>
+                        <span class="card-stat">Stupid</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+
+            <!-- Part 3: The Omega System -->
+            <a href="research-omega-system.html" class="research-card">
+                <span class="card-tag">PART 3 • PUBLISHED</span>
+                <h2 class="card-title">THE OMEGA SYSTEM</h2>
+                <p class="card-subtitle">171 metrics across 6 levels. Technical, quantitative, ML, macro, and leading indicators. $10K → $1.15M in 2021.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">171 METRICS</span>
+                        <span class="card-stat">9,868% return</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 4: ML Model Training -->
+            <a href="research-ml-models.html" class="research-card in-progress">
+                <span class="card-tag">PART 4 • PUBLISHED</span>
+                <h2 class="card-title">ML MODEL TRAINING</h2>
+                <p class="card-subtitle">From failed LLM experiments to gradient boosting success. XGBoost, CatBoost, LightGBM on 94 assets, 10 years of data.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">XGBoost</span>
+                        <span class="card-stat">AUC: 0.566</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 5: Regime Detection -->
+            <a href="research-regime-detection.html" class="research-card in-progress">
+                <span class="card-tag">PART 5 • IN PROGRESS</span>
+                <h2 class="card-title">REGIME DETECTION</h2>
+                <p class="card-subtitle">HMM, Random Forest, BiLSTM+Attention for detecting Bull/Bear/Sideways. 233K rows, 203 features, 97 assets.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">3 MODELS</span>
+                        <span class="card-stat">90-DAY LSTM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 6: News Sentiment Analysis -->
+            <a href="research-news-sentiment.html" class="research-card testing">
+                <span class="card-tag">PART 6 • TESTING</span>
+                <h2 class="card-title">NEWS SENTIMENT</h2>
+                <p class="card-subtitle">Real-time news analysis via hybrid RSS + NewsData.io. Failed expensive APIs ($200/mo), found optimal free solution. GPT-4o for sentiment scoring.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">6 RSS FEEDS</span>
+                        <span class="card-stat">25 COINS</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 7: Ensemble + LLM -->
+            <a href="research-ensemble.html" class="research-card architecture">
+                <span class="card-tag">PART 7 • PUBLISHED</span>
+                <h2 class="card-title">ENSEMBLE + OPUS 4.5</h2>
+                <p class="card-subtitle">4-layer ensemble: Signal Engine + ML Models + Regime Detection + News Sentiment. Claude Opus 4.5 as final decision maker.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">4 APPS</span>
+                        <span class="card-stat">1 LLM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </a>
+
+            <!-- Part 8: System vs Stupid -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">PART 8 • COMING SOON</span>
+                <h2 class="card-title">SYSTEM vs STUPID</h2>
+                <p class="card-subtitle">The ultimate showdown: Full Omega System vs Part 1's coin flips, dice rolls, and planetary gravity. Can monkeys beat real trading intelligence?</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">171 METRICS</span>
+                        <span class="card-stat">vs RANDOM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+
+            <!-- Part 9: Multi-Agent Swarm -->
+            <div class="research-card coming-soon">
+                <span class="card-tag">PART 9 • COMING SOON</span>
+                <h2 class="card-title">MULTI-AGENT SWARM</h2>
+                <p class="card-subtitle">Multiple AI agents collaborating, debating, and executing trades together. The final evolution.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">ALL MARKETS</span>
+                        <span class="card-stat">SWARM</span>
+                    </div>
+                    <span class="card-arrow">→</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Ω — The end of the trading illusion.</p>
+    </footer>
+
+</body>
+</html>

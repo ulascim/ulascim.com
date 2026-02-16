@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 5: Regime Detection | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 28px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.abandoned { background: #fee2e2; color: #991b1b; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        @media (max-width: 768px) { .report { padding: 16px; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">LIVE</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link">LEADERBOARD</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link active">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-regime-detection-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-regime-detection.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research.html" class="back-link">Back to Research</a>
+        
+        <h1>REGIME DETECTION</h1>
+        <p class="subtitle">Part 5: Bull, Bear, or Sideways — Let the Models Decide</p>
+        <p class="authors">Omega Arena • February 2026 • <strong style="color: #f59e0b;">IN PROGRESS</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">97</div>
+                <div class="label">ASSETS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">233K</div>
+                <div class="label">ROWS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">203</div>
+                <div class="label">FEATURES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3</div>
+                <div class="label">MODELS</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> Part 4 trained models to predict price direction. Here a different approach is taken: 
+            <strong>regime detection</strong>. Instead of asking "will price go up tomorrow?", the question becomes "what kind of market is this?"
+            Three models—HMM (unsupervised), Random Forest (supervised), and BiLSTM with Attention—work together to classify 
+            market conditions as Bull, Bear, or Sideways. With 100% hindsight-accurate labels and 203 features, 
+            these models learn from perfect historical truth.
+        </div>
+
+        <h2>1. WHY REGIME DETECTION?</h2>
+        <p>Part 4's price prediction models achieved AUC scores around 0.52-0.57. Better than random, but modest. The problem? <strong>Markets behave differently in different conditions.</strong></p>
+        <p>A strategy that works in a bull market may fail catastrophically in a bear market. The same signal that means "buy the dip" in an uptrend means "catch a falling knife" in a downtrend.</p>
+        
+        <div class="finding">
+            <strong>Regime detection provides context.</strong> Instead of one model trying to predict everything, 
+            specialized models first identify the market state. Then other models can adapt their behavior accordingly.
+        </div>
+
+        <h3>The Three Regimes</h3>
+        <table>
+            <tr><th>Regime</th><th>Daily Label</th><th>Weekly/Monthly Label</th><th>Definition</th></tr>
+            <tr><td class="good"><strong>BULL</strong></td><td>UP</td><td>BULL</td><td>Positive % change</td></tr>
+            <tr><td class="bad"><strong>BEAR</strong></td><td>DOWN</td><td>BEAR</td><td>Negative % change</td></tr>
+            <tr><td><strong>SIDEWAYS</strong></td><td>SAME</td><td>SIDEWAYS</td><td>Zero % change</td></tr>
+        </table>
+
+        <h2>2. THE DATASET: ENTERPRISE-GRADE</h2>
+        <p>No corners were cut. This dataset represents months of data engineering.</p>
+
+        <h3>Data Sources</h3>
+        <table>
+            <tr><th>Source</th><th>Features</th><th>Description</th></tr>
+            <tr><td>Level 1</td><td>43</td><td>RSI, MACD, Bollinger Bands, ATR, ADX, Ichimoku, etc.</td></tr>
+            <tr><td>Level 2</td><td>18</td><td>Sharpe, Sortino, VaR, CVaR, Max Drawdown, etc.</td></tr>
+            <tr><td>Level 3</td><td>52</td><td>Volatility regimes, trend strength, fear/greed, exhaustion</td></tr>
+            <tr><td>Level 5</td><td>19</td><td>VIX, DXY, SPY correlation, macro signals</td></tr>
+            <tr><td>Level 6</td><td>21</td><td>COT data, yield curve, credit spreads</td></tr>
+            <tr><td>Level 7</td><td>15</td><td>Context-aware: ATH %, 52-week range, halving cycle</td></tr>
+            <tr><td>FRED</td><td>13</td><td>Economic indicators from Federal Reserve</td></tr>
+            <tr class="highlight"><td><strong>TOTAL</strong></td><td><strong>203</strong></td><td><strong>After processing: 235 (with one-hot encoding)</strong></td></tr>
+        </table>
+
+        <h3>Temporal Split</h3>
+        <table>
+            <tr><th>Split</th><th>Date Range</th><th>Rows</th><th>Purpose</th></tr>
+            <tr><td><strong>Train</strong></td><td>2014-09-17 → 2023-12-31</td><td class="good">163,574</td><td>Model learning</td></tr>
+            <tr><td><strong>Validation</strong></td><td>2024-01-01 → 2024-12-31</td><td>34,402</td><td>Hyperparameter tuning</td></tr>
+            <tr><td><strong>Test</strong></td><td>2025-01-01 → 2026-01-26</td><td>35,531</td><td>Final evaluation</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>No data leakage.</strong> Strict temporal ordering ensures models never see future data during training.
+            Test data is truly unseen—from a year the models have never encountered.
+        </div>
+
+        <h3>Why Level 7 Context Features?</h3>
+        <p>Standard technical indicators (Levels 1-3) capture short-term patterns: RSI, MACD, Bollinger Bands operate on windows of 14-50 days. But <strong>regime detection requires longer-term context</strong>. A price at $50K means something completely different when it's the all-time high versus when it's 50% below ATH.</p>
+        
+        <div class="finding">
+            <strong>The problem:</strong> Existing features couldn't answer questions like "Where is the market in the bigger picture?" 
+            Level 7 was engineered specifically to provide this missing context for regime classification.
+        </div>
+
+        <table>
+            <tr><th>Feature Category</th><th>What It Captures</th><th>Why It Matters for Regimes</th></tr>
+            <tr>
+                <td><strong>ATH Context</strong></td>
+                <td>Distance from all-time high, days since ATH</td>
+                <td>Bull markets push ATHs; bear markets drift away from them</td>
+            </tr>
+            <tr>
+                <td><strong>52-Week Range</strong></td>
+                <td>Position within yearly high/low range</td>
+                <td>Near yearly lows = possible accumulation; near highs = possible distribution</td>
+            </tr>
+            <tr>
+                <td><strong>Period Returns</strong></td>
+                <td>YTD return, yearly return, multi-period momentum</td>
+                <td>Regime persistence: bull years stay bullish, bear years stay bearish</td>
+            </tr>
+            <tr>
+                <td><strong>Seasonality</strong></td>
+                <td>Day of week, month, quarter, quarter-end flags</td>
+                <td>Historical patterns: "Sell in May", Q4 rallies, weekend effects</td>
+            </tr>
+            <tr>
+                <td><strong>Halving Cycle</strong></td>
+                <td>Days since/until Bitcoin halving, cycle position %</td>
+                <td>Crypto-specific: halvings historically correlate with bull market onsets</td>
+            </tr>
+        </table>
+
+        <p>Without Level 7, models would see identical feature patterns at completely different market contexts. With Level 7, a -5% daily drop at ATH looks different from -5% drop at yearly lows—because it IS different.</p>
+
+        <h2>3. THE LABELS: 100% HINDSIGHT ACCURACY</h2>
+        <p>This is the key insight that makes regime detection different from price prediction.</p>
+        
+        <div class="finding">
+            <strong>Hindsight is 20/20.</strong> When labeling historical data, exactly what happened is known. 
+            If the price went up, it's UP. If it went down, it's DOWN. No thresholds. No guessing. 
+            The model's job is to learn which feature patterns correspond to which outcomes.
+        </div>
+
+        <h3>Label Distribution (Train Set)</h3>
+        <table>
+            <tr><th>Label Type</th><th>UP/BULL</th><th>DOWN/BEAR</th><th>SAME/SIDEWAYS</th></tr>
+            <tr><td>Daily Direction</td><td class="good">~50%</td><td class="bad">~49%</td><td>~1%</td></tr>
+            <tr><td>Weekly Regime</td><td class="good">~51%</td><td class="bad">~48%</td><td>~1%</td></tr>
+            <tr><td>Monthly Regime</td><td class="good">~52%</td><td class="bad">~47%</td><td>~1%</td></tr>
+        </table>
+
+        <h2>4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
+        <p><strong>Unsupervised learning.</strong> HMM doesn't see the labels. It discovers hidden states purely from the feature patterns.</p>
+
+        <h3>Why HMM?</h3>
+        <ul>
+            <li><strong>Natural regime switching:</strong> Markets transition between states—HMM models this explicitly</li>
+            <li><strong>No label bias:</strong> Discovers patterns that might not have been thought to label</li>
+            <li><strong>Interpretable:</strong> Each state has clear statistical properties</li>
+        </ul>
+
+        <h3>Configuration</h3>
+        <table>
+            <tr><th>Parameter</th><th>Value</th><th>Reason</th></tr>
+            <tr><td>Features</td><td>219 (numeric only)</td><td>HMM requires continuous features</td></tr>
+            <tr><td>States to try</td><td>2, 3, 4, 5</td><td>Find optimal number via BIC</td></tr>
+            <tr><td>Covariance</td><td>Diagonal</td><td>Numerical stability with many features</td></tr>
+            <tr><td>Iterations</td><td>300</td><td>Ensure convergence</td></tr>
+            <tr><td>Initializations</td><td>10</td><td>Avoid local minima</td></tr>
+        </table>
+
+        <h3>HMM Status</h3>
+        <table>
+            <tr><th>Step</th><th>Status</th></tr>
+            <tr><td>Data preparation</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training script</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training execution</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>State analysis</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h2>5. MODEL 2: RANDOM FOREST</h2>
+        <p><strong>Supervised learning.</strong> Random Forest sees the hindsight-accurate labels and learns to predict them from features.</p>
+
+        <h3>Why Random Forest?</h3>
+        <ul>
+            <li><strong>Handles tabular data excellently:</strong> Gold standard for structured data</li>
+            <li><strong>Feature importance:</strong> Tells us which metrics matter most</li>
+            <li><strong>Robust to noise:</strong> Ensemble of trees averages out errors</li>
+            <li><strong>No scaling required:</strong> Tree-based models don't need normalized data</li>
+        </ul>
+
+        <h3>Configuration</h3>
+        <table>
+            <tr><th>Parameter</th><th>Search Range</th></tr>
+            <tr><td>n_estimators</td><td>500 - 1,250</td></tr>
+            <tr><td>max_depth</td><td>15 - 35, None</td></tr>
+            <tr><td>min_samples_split</td><td>2 - 15</td></tr>
+            <tr><td>min_samples_leaf</td><td>1 - 6</td></tr>
+            <tr><td>max_features</td><td>sqrt, log2, 0.3, 0.5</td></tr>
+            <tr><td>class_weight</td><td>balanced, balanced_subsample</td></tr>
+        </table>
+
+        <h3>Training Approach</h3>
+        <ul>
+            <li><strong>RandomizedSearchCV:</strong> 100 hyperparameter combinations</li>
+            <li><strong>5-fold cross-validation:</strong> Robust performance estimation</li>
+            <li><strong>Scoring metric:</strong> F1-macro (balanced across classes)</li>
+            <li><strong>Three separate models:</strong> Daily, Weekly, Monthly predictions</li>
+        </ul>
+
+        <h3>Random Forest Status</h3>
+        <table>
+            <tr><th>Step</th><th>Status</th></tr>
+            <tr><td>Data preparation</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training script</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training execution</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Feature importance analysis</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h2>6. MODEL 3: BIDIRECTIONAL LSTM + ATTENTION</h2>
+        <p><strong>Deep learning for sequences.</strong> LSTM processes 90 consecutive days and predicts the next day's regime.</p>
+
+        <h3>Why LSTM with Attention?</h3>
+        <ul>
+            <li><strong>Sequence modeling:</strong> Learns temporal patterns across 90 days</li>
+            <li><strong>Bidirectional:</strong> Reads sequences forward and backward</li>
+            <li><strong>Attention mechanism:</strong> Learns which days in the sequence matter most</li>
+            <li><strong>Multi-task:</strong> One model predicts daily, weekly, AND monthly simultaneously</li>
+        </ul>
+
+        <h3>Architecture</h3>
+        <table>
+            <tr><th>Component</th><th>Configuration</th></tr>
+            <tr><td>Input</td><td>(batch, 90 days, 235 features)</td></tr>
+            <tr><td>LayerNorm</td><td>Normalize inputs</td></tr>
+            <tr><td>BiLSTM</td><td>3 layers, hidden_size=256</td></tr>
+            <tr><td>Attention</td><td>Learn important timesteps</td></tr>
+            <tr><td>Shared Dense</td><td>256 → 128 with dropout</td></tr>
+            <tr><td>Output Heads</td><td>3 separate heads (daily/weekly/monthly)</td></tr>
+        </table>
+
+        <h3>Training Configuration</h3>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Sequence length</td><td class="good">90 days</td></tr>
+            <tr><td>Batch size</td><td>128</td></tr>
+            <tr><td>Epochs</td><td>150 (with early stopping)</td></tr>
+            <tr><td>Learning rate</td><td>1e-3</td></tr>
+            <tr><td>Dropout</td><td>0.3</td></tr>
+            <tr><td>Early stopping patience</td><td>20 epochs</td></tr>
+            <tr><td>Optimizer</td><td>AdamW with weight decay</td></tr>
+            <tr><td>Scheduler</td><td>ReduceLROnPlateau</td></tr>
+            <tr><td>Class weighting</td><td>Inverse frequency</td></tr>
+        </table>
+
+        <h3>LSTM Data</h3>
+        <table>
+            <tr><th>Split</th><th>Sequences</th><th>Shape</th><th>Size</th></tr>
+            <tr><td>Train</td><td>154,844</td><td>(154K, 90, 235)</td><td class="good">13.1 GB</td></tr>
+            <tr><td>Validation</td><td>25,942</td><td>(26K, 90, 235)</td><td>2.2 GB</td></tr>
+            <tr><td>Test</td><td>27,020</td><td>(27K, 90, 235)</td><td>2.3 GB</td></tr>
+        </table>
+
+        <h3>LSTM Status</h3>
+        <table>
+            <tr><th>Step</th><th>Status</th></tr>
+            <tr><td>Data preparation (90-day sequences)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Model architecture</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training script</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Training execution (GPU)</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h2>7. DATA PIPELINE: 10 VERIFICATION CHECKS</h2>
+        <p>Enterprise-grade data preparation means verifying everything multiple times.</p>
+
+        <table>
+            <tr><th>#</th><th>Check</th><th>Result</th></tr>
+            <tr><td>1</td><td>DB columns match dataset</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>2</td><td>All table features present</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>3</td><td>Sample data matches DB</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>4</td><td>Row counts match</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>5</td><td>No empty columns</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>6</td><td>Data types correct</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>7</td><td>No duplicates, price integrity</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>8</td><td>Date continuity</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>9</td><td>Random sample cross-validation</td><td><span class="status complete">✓ PASS</span></td></tr>
+            <tr><td>10</td><td>Label consistency (sign = direction)</td><td><span class="status complete">✓ PASS</span></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>10/10 checks passed.</strong> The dataset is verified, cleaned, and ready for training.
+        </div>
+
+        <h2>8. INFRASTRUCTURE</h2>
+        <p>Training requires significant compute resources.</p>
+
+        <table>
+            <tr><th>Model</th><th>Compute</th><th>Memory</th><th>Est. Time</th></tr>
+            <tr><td>HMM</td><td>CPU</td><td>~4 GB RAM</td><td>1-2 hours</td></tr>
+            <tr><td>Random Forest</td><td>CPU (all cores)</td><td>~8-16 GB RAM</td><td>2-4 hours</td></tr>
+            <tr><td>LSTM</td><td class="good">GPU (A100/L40)</td><td>~30-40 GB VRAM</td><td>4-8 hours</td></tr>
+        </table>
+
+        <h2>9. CURRENT STATUS</h2>
+        <table>
+            <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
+            <tr class="highlight"><td><strong>Dataset</strong></td><td><span class="status complete">DONE</span></td><td>233K rows × 203 features × 97 assets</td></tr>
+            <tr class="highlight"><td><strong>ML Final Datasets</strong></td><td><span class="status complete">DONE</span></td><td>train/val/test splits, ~18 GB total</td></tr>
+            <tr class="highlight"><td><strong>HMM Data</strong></td><td><span class="status complete">DONE</span></td><td>219 numeric features, 137 MB</td></tr>
+            <tr class="highlight"><td><strong>RF Data</strong></td><td><span class="status complete">DONE</span></td><td>235 features, 212 MB</td></tr>
+            <tr class="highlight"><td><strong>LSTM Data</strong></td><td><span class="status complete">DONE</span></td><td>90-day sequences, 17.6 GB</td></tr>
+            <tr><td><strong>HMM Training</strong></td><td><span class="status pending">PENDING</span></td><td>Ready to run on RunPod CPU</td></tr>
+            <tr><td><strong>RF Training</strong></td><td><span class="status pending">PENDING</span></td><td>Ready to run on RunPod CPU</td></tr>
+            <tr><td><strong>LSTM Training</strong></td><td><span class="status pending">PENDING</span></td><td>Ready to run on RunPod GPU</td></tr>
+            <tr><td><strong>Ensemble</strong></td><td><span class="status pending">PENDING</span></td><td>After individual models complete</td></tr>
+        </table>
+
+        <h2>10. NEXT STEPS</h2>
+        <ol>
+            <li>Upload 18 GB dataset to RunPod network volume</li>
+            <li>Train HMM (CPU pod, ~2 hours)</li>
+            <li>Train Random Forest (CPU pod, ~4 hours)</li>
+            <li>Train LSTM (GPU pod A100/L40, ~6 hours)</li>
+            <li>Analyze results and compare models</li>
+            <li>Build ensemble voting system</li>
+            <li>Integrate with Part 6 (Claude Opus 4.5 decision layer)</li>
+        </ol>
+
+        <div class="abstract">
+            <strong>Part 5 Status: IN PROGRESS</strong><br>
+            Data preparation complete. Training scripts ready. Awaiting execution on RunPod infrastructure.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

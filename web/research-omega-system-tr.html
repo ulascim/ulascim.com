@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölüm 3: Omega Sistemi | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .timeline { margin: 16px 0; padding-left: 20px; border-left: 2px solid #000; }
+        .timeline-item { margin-bottom: 20px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -26px; top: 4px; width: 10px; height: 10px; background: #000; }
+        .timeline-date { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: 600; }
+        .timeline-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .timeline-desc { font-size: 12px; color: #666; }
+
+        @media (max-width: 768px) { .report { padding: 16px; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-omega-system-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-omega-system.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research-tr.html" class="back-link">Araştırmaya Dön</a>
+        
+        <h1>171 METRİKLİ SİNYAL MOTORU İNŞA ETMEK</h1>
+        <p class="subtitle">Bölüm 3: Omega Sistemi</p>
+        <p class="authors">Omega Arena • Şubat 2026</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">171</div>
+                <div class="label">METRİK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">SEVİYE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$1.15M</div>
+                <div class="label">ZİRVE (2021)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">9,868%</div>
+                <div class="label">GETİRİ</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Omega Sistemi, <strong>6 hiyerarşik seviyede 171 metriği</strong> birleştiren çoklu zaman dilimli, 
+            çoklu varlıklı bir trading sinyal üreticisidir: teknik indikatörler, kantitatif metrikler, profesyonel seviye türetilmiş sinyaller, 
+            makine öğrenmesi yöntemleri, makro analiz ve öncü göstergeler. 2021 backtestinde bu sistem $10,000'ı $1,154,043'e çevirdi—
+            %95.59 kazanma oranıyla <strong>%9,868 getiri</strong>.
+        </div>
+
+        <h2>1. SİSTEM MİMARİSİ</h2>
+        <p>Sistem, her seviyenin bir öncekinin üzerine inşa edildiği hiyerarşik bir veri akış desenini takip eder:</p>
+        
+        <table>
+            <tr><th>Akış</th><th>Seviye</th><th>Metrik</th><th>Örnekler</th></tr>
+            <tr><td>↓</td><td><strong>HAM VERİ (L0)</strong></td><td>OHLCV</td><td>Open, High, Low, Close, Volume × 6 zaman dilimi</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 1: Teknik</strong></td><td><strong>27</strong></td><td>RSI, MACD, Bollinger, Ichimoku, ADX, ATR, OBV, VWAP</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 2: Kantitatif</strong></td><td><strong>26</strong></td><td>Sharpe, Sortino, VaR, CVaR, Skewness, Kurtosis, Beta</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 3: Profesyonel</strong></td><td><strong>48</strong></td><td>Regime Detection, Hurst, Volatility Cones, FOMO/Capitulation</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 4: ML-Grade</strong></td><td><strong>20</strong></td><td>HMM, GARCH, Isolation Forest, DTW, Entropy</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 5: Makro</strong></td><td><strong>10</strong></td><td>VIX, DXY, SPY korelasyonu, Risk Rejimi, Yield Curve</td></tr>
+            <tr><td>↓</td><td><strong>SEVİYE 6: Öncü</strong></td><td><strong>17+</strong></td><td>COT, SEC FTD, Insider Trading, Options Flow, FRED</td></tr>
+            <tr class="highlight"><td><strong>→</strong></td><td><strong>SİNYAL AGREGASYONU</strong></td><td><strong>171</strong></td><td>Normalize → Ağırlıklandır → Filtrele → AL/SAT/TUT</td></tr>
+        </table>
+
+        <h3>1.1 Zaman Dilimi Ağırlıkları</h3>
+        <table>
+            <tr><th>Zaman Dilimi</th><th>Ağırlık</th><th>Amaç</th></tr>
+            <tr><td><strong>1 Gün</strong></td><td><strong>%25</strong></td><td>Ana trend yönü</td></tr>
+            <tr><td><strong>1 Saat</strong></td><td><strong>%25</strong></td><td>Gün içi trend onayı</td></tr>
+            <tr><td>30 Dk</td><td>%15</td><td>Giriş/çıkış zamanlaması</td></tr>
+            <tr><td>15 Dk</td><td>%15</td><td>İnce ayarlı girişler</td></tr>
+            <tr><td>5 Dk</td><td>%12</td><td>Scalping sinyalleri</td></tr>
+            <tr><td>1 Dk</td><td>%8</td><td>Gürültü filtreleme</td></tr>
+        </table>
+
+        <h3>1.2 Seviye Ağırlıkları</h3>
+        <table>
+            <tr><th>Seviye</th><th>Ağırlık</th><th>Gerekçe</th></tr>
+            <tr><td>Seviye 1: Teknik</td><td>1.0x</td><td>Temel indikatörler</td></tr>
+            <tr><td>Seviye 2: Kantitatif</td><td>1.2x</td><td>Risk-ayarlı metrikler</td></tr>
+            <tr><td>Seviye 3: Profesyonel</td><td>1.5x</td><td>Profesyonel seviye analiz</td></tr>
+            <tr><td>Seviye 4: ML-Grade</td><td>1.8x</td><td>ML desen tanıma</td></tr>
+            <tr><td><strong>Seviye 5: Makro</strong></td><td><strong>2.0x</strong></td><td>Makro bağlam</td></tr>
+            <tr><td><strong>Seviye 6: Öncü</strong></td><td><strong>2.2x</strong></td><td>Öncü göstergeler</td></tr>
+        </table>
+
+        <h2>2. 171 METRİK</h2>
+        
+        <h3>2.1 Seviye 1: Teknik İndikatörler (27 metrik)</h3>
+        <table>
+            <tr><th>Kategori</th><th>İndikatörler</th><th>Sayı</th></tr>
+            <tr><td><strong>Momentum</strong></td><td>RSI (14), MACD (12-26-9), Stochastic (%K, %D), CCI (20), Williams %R</td><td><strong>8</strong></td></tr>
+            <tr><td><strong>Trend</strong></td><td>SMA (20, 50, 200), EMA (12, 26), WMA, HMA, ZLMA, ADX (+DI, -DI)</td><td><strong>9</strong></td></tr>
+            <tr><td><strong>Volatilite</strong></td><td>Bollinger Bands (%B, Width), ATR (14), Keltner, Donchian</td><td><strong>4</strong></td></tr>
+            <tr><td><strong>Hacim</strong></td><td>OBV, A/D Line, Chaikin Oscillator, VWAP, MFI</td><td><strong>5</strong></td></tr>
+            <tr><td><strong>Gelişmiş</strong></td><td>Ichimoku (5 çizgi), Aroon, Fisher Transform, DeMark, Fibonacci, RRG</td><td><strong>6</strong></td></tr>
+        </table>
+
+        <h3>2.2 Seviye 2: Kantitatif Metrikler (26 metrik)</h3>
+        <table>
+            <tr><th>Kategori</th><th>Metrikler</th></tr>
+            <tr><td><strong>Performans</strong></td><td>Sharpe (20d, 60d), Sortino, Omega, Calmar, Information Ratio</td></tr>
+            <tr><td><strong>Risk</strong></td><td>VaR (95%, 99%), CVaR, Maximum Drawdown, Beta, Ulcer Index</td></tr>
+            <tr><td><strong>Dağılım</strong></td><td>Skewness, Kurtosis, Tail Ratio, Quantiles</td></tr>
+            <tr><td><strong>İstatistiksel</strong></td><td>Jarque-Bera, ADF (durağanlık), Autocorrelation</td></tr>
+        </table>
+
+        <h3>2.3 Seviye 3: Profesyonel Türetilmiş (48 metrik)</h3>
+        <table>
+            <tr><th>Kategori</th><th>Metrikler</th></tr>
+            <tr><td><strong>Volatilite</strong></td><td>Realized Vol, Parkinson, Garman-Klass, Vol Ratio, Vol Percentile, VoV, Term Structure</td></tr>
+            <tr><td><strong>Rejim</strong></td><td>Trend Rejimi, Volatilite Rejimi, Hurst Exponent, Market State Cluster</td></tr>
+            <tr><td><strong>Momentum</strong></td><td>Multi-TF Momentum, MA'dan Z-Score, RSI Divergence, MACD Divergence</td></tr>
+            <tr><td><strong>Çapraz Varlık</strong></td><td>ETH/BTC Oranı, Rolling Correlation, BTC'ye Beta, S&P Korelasyonu, DXY Korelasyonu</td></tr>
+            <tr><td><strong>Zaman Desenleri</strong></td><td>Hafta-Günü Etkisi, Saat Etkisi, Aylık Mevsimsellik, Hafta Sonu Etkisi</td></tr>
+            <tr><td><strong>Duyarlılık</strong></td><td>Fear & Greed, Aşırı Uzama, Capitulation Detektörü, FOMO İndikatörü, Tükenme</td></tr>
+        </table>
+
+        <h3>2.4 Seviye 4: ML-Grade Yöntemler (20 metrik)</h3>
+        <table>
+            <tr><th>Kategori</th><th>Yöntemler</th></tr>
+            <tr><td><strong>Desen Tanıma</strong></td><td>Candlestick Pattern AI, Chart Pattern Detection, Benzer Dönem Arama, DTW Matching</td></tr>
+            <tr><td><strong>İstatistiksel Modeller</strong></td><td>GARCH(1,1) Volatilite, Hidden Markov Model (2-4 durum), VAR Model, Yapısal Kırılma Tespiti</td></tr>
+            <tr><td><strong>Anomali Tespiti</strong></td><td>Z-Score Anomali, Isolation Forest, Mahalanobis Distance</td></tr>
+            <tr><td><strong>Bilgi Teorisi</strong></td><td>Market Entropy, Mutual Information (çapraz varlık), Transfer Entropy (nedensellik)</td></tr>
+        </table>
+
+        <h3>2.5 Seviye 5: Makro/Dış (10 metrik)</h3>
+        <table>
+            <tr><th>Metrik</th><th>Kaynak</th><th>Sinyal</th></tr>
+            <tr><td><strong>VIX Seviyesi</strong></td><td>CBOE VIX</td><td>&lt;15 = risk-on, &gt;35 = kriz</td></tr>
+            <tr><td><strong>DXY Trendi</strong></td><td>Dollar Index</td><td>Kripto ile ters korelasyon</td></tr>
+            <tr><td><strong>SPY Momentum</strong></td><td>S&P 500</td><td>Risk iştahı göstergesi</td></tr>
+            <tr><td>Yield Curve</td><td>TNX</td><td>Resesyon tahmincisi</td></tr>
+            <tr><td>Kredi Spreadi</td><td>HYG</td><td>Kredi riski göstergesi</td></tr>
+            <tr><td>Risk İştahı</td><td>SPY/GLD</td><td>Güvenli limana kaçış tespiti</td></tr>
+        </table>
+
+        <h3>2.6 Seviye 6: Öncü Göstergeler (17+ metrik)</h3>
+        <table>
+            <tr><th>Kaynak</th><th>Göstergeler</th></tr>
+            <tr><td><strong>COT Verileri</strong></td><td>BTC futures, Altın, S&P 500'de kurumsal pozisyonlama</td></tr>
+            <tr><td><strong>SEC Dosyalamaları</strong></td><td>Insider trading duyarlılığı, Fail-to-Deliver artışları, 13F kurumsal holdingler</td></tr>
+            <tr><td><strong>FRED Ekonomik</strong></td><td>Financial Stress Index, Yield Curve spreadi, Kredi spreadleri</td></tr>
+            <tr><td><strong>Options Flow</strong></td><td>Kripto hisseler (MSTR, COIN) ve piyasa (SPY, QQQ) için Put/Call oranları</td></tr>
+            <tr><td><strong>VIX Ailesi</strong></td><td>VIX, VVIX (vol'ün vol'u), SKEW (kuyruk riski)</td></tr>
+        </table>
+
+        <h2>3. SİNYAL AGREGASYONU</h2>
+
+        <h3>3.1 Sinyal Normalizasyonu</h3>
+        <p>Her metrik <strong>-1</strong> (güçlü sat) ile <strong>+1</strong> (güçlü al) arasında normalize edilmiş bir skora dönüştürülür:</p>
+        <table>
+            <tr><th>RSI Değeri</th><th>Sinyal</th><th>Skor</th></tr>
+            <tr><td>≤ 20</td><td class="good"><strong>GÜÇLÜ AL</strong></td><td class="good"><strong>+1.0</strong></td></tr>
+            <tr><td>≤ 30</td><td class="good">AL</td><td class="good">+0.5</td></tr>
+            <tr><td>31-69</td><td>NÖTR</td><td>0.0</td></tr>
+            <tr><td>≥ 70</td><td class="bad">SAT</td><td class="bad">-0.5</td></tr>
+            <tr><td>≥ 80</td><td class="bad"><strong>GÜÇLÜ SAT</strong></td><td class="bad"><strong>-1.0</strong></td></tr>
+        </table>
+
+        <h3>3.2 Karar Eşikleri</h3>
+        <table>
+            <tr><th>Karar</th><th>Skor Aralığı</th></tr>
+            <tr><td class="good"><strong>GÜÇLÜ_AL</strong></td><td class="good"><strong>skor &gt; +0.6</strong></td></tr>
+            <tr><td class="good">AL</td><td class="good">skor &gt; +0.3</td></tr>
+            <tr><td>TUT</td><td>-0.3 ≤ skor ≤ +0.3</td></tr>
+            <tr><td class="bad">SAT</td><td class="bad">skor &lt; -0.3</td></tr>
+            <tr><td class="bad"><strong>GÜÇLÜ_SAT</strong></td><td class="bad"><strong>skor &lt; -0.6</strong></td></tr>
+        </table>
+
+        <h3>3.3 Rejim Filtreleme</h3>
+        <table>
+            <tr><th>Rejim</th><th>Tespit</th><th>Ayarlama</th></tr>
+            <tr><td><strong>Güçlü Yükseliş</strong></td><td>Fiyat &gt; SMA50 &gt; SMA200, ADX &gt; 25</td><td class="good">Long tercih et, geniş stop</td></tr>
+            <tr><td><strong>Yatay</strong></td><td>ADX &lt; 20, Hurst ≈ 0.5</td><td>Ortalamaya dönüş, dar hedefler</td></tr>
+            <tr><td><strong>Yüksek Volatilite</strong></td><td>Vol yüzdelik &gt; %80</td><td class="bad">Boyut küçült, geniş stop</td></tr>
+            <tr><td><strong>Risk-Off</strong></td><td>VIX &gt; 25, DXY yükseliyor</td><td class="bad">Defansif mod</td></tr>
+        </table>
+
+        <h2>4. BACKTEST MOTORU</h2>
+
+        <h3>4.1 İşlem Yönetim Kuralları</h3>
+        <table>
+            <tr><th>Parametre</th><th>Değer</th><th>Açıklama</th></tr>
+            <tr><td><strong>Pozisyon Boyutlandırma</strong></td><td><strong>ATR-tabanlı</strong></td><td>Varlık başına maks %10</td></tr>
+            <tr><td><strong>Stop Loss</strong></td><td><strong>2-3x ATR</strong></td><td>Dinamik, volatilite-ayarlı</td></tr>
+            <tr><td><strong>Take Profit</strong></td><td><strong>2:1 R:R min</strong></td><td>Risk-ödül zorunluluğu</td></tr>
+            <tr><td><strong>Maks Drawdown</strong></td><td class="bad"><strong>%15</strong></td><td>Sert devre kesici</td></tr>
+            <tr><td><strong>Günlük Kayıp Limiti</strong></td><td class="bad"><strong>%3</strong></td><td>Günlük limit</td></tr>
+            <tr><td>Portföy Maruziyeti</td><td>maks %80</td><td>Nakit tamponu</td></tr>
+            <tr><td>İşlem Ücretleri</td><td>%0.1</td><td>Binance-eşdeğeri</td></tr>
+        </table>
+
+        <h2>5. SONUÇLAR</h2>
+        
+        <h3>5.1 2021 Boğa Piyasası Performansı</h3>
+        
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">$1,154,043</div>
+                <div class="label">ZİRVE SERMAYE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">+9,868.99%</div>
+                <div class="label">TOPLAM GETİRİ</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">4.14</div>
+                <div class="label">SHARPE RATIO</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">95.59%</div>
+                <div class="label">KAZANMA ORANI</div>
+            </div>
+        </div>
+
+        <table>
+            <tr><th>Metrik</th><th>Omega Sistemi</th><th>HODL</th></tr>
+            <tr><td>Başlangıç Sermayesi</td><td>$10,000</td><td>$10,000</td></tr>
+            <tr><td><strong>Zirve Sermaye</strong></td><td class="good"><strong>$1,154,043</strong></td><td>—</td></tr>
+            <tr><td><strong>Final Sermaye (31 Ara)</strong></td><td class="good"><strong>$994,300</strong></td><td>$33,093</td></tr>
+            <tr><td><strong>Toplam Getiri</strong></td><td class="good"><strong>+9,868.99%</strong></td><td class="good">+230.93%</td></tr>
+            <tr><td>Sharpe Ratio</td><td><strong>4.14</strong></td><td>1.2</td></tr>
+            <tr><td>Sortino Ratio</td><td><strong>8.61</strong></td><td>—</td></tr>
+            <tr><td>Maksimum Drawdown</td><td class="bad">-32.33%</td><td class="bad">-53%</td></tr>
+            <tr><td>Kazanma Oranı</td><td><strong>95.59%</strong></td><td>—</td></tr>
+            <tr><td>Kâr Faktörü</td><td><strong>1,686.22</strong></td><td>—</td></tr>
+            <tr><td>Toplam İşlem</td><td>190</td><td>1</td></tr>
+        </table>
+
+        <h3>5.2 Sermaye Eğrisi Zaman Çizelgesi</h3>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">20 Şubat 2021</div>
+                <div class="timeline-title">Sistem Aktivasyonu</div>
+                <div class="timeline-desc">Başlangıç sermayesi: $10,000. Isınma tamamlandı, ilk sinyaller üretildi.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">Nisan 2021</div>
+                <div class="timeline-title">İlk Büyük Kazançlar</div>
+                <div class="timeline-desc">BTC $64K ATH'ye doğru ilerlerken sermaye $100,000'ı geçti.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">Mayıs 2021</div>
+                <div class="timeline-title">Çöküş Navigasyonu</div>
+                <div class="timeline-desc">Sistem rejim değişikliğini tespit etti, %50 BTC çöküşünden önce maruziyeti azalttı.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">8 Kasım 2021</div>
+                <div class="timeline-title">Zirve Sermaye: $1,154,043</div>
+                <div class="timeline-desc">BTC $69K ATH'ye ulaştı. Sistem 115x toplam kazançla ralliyi yakaladı.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">31 Aralık 2021</div>
+                <div class="timeline-title">Yıl Sonu</div>
+                <div class="timeline-desc">Final sermaye: $994,300. Sistem Aralık düzeltmesi sırasında kazançların çoğunluğunu korudu.</div>
+            </div>
+        </div>
+
+        <h3>5.3 Diğer Dönemler</h3>
+        <table>
+            <tr><th>Dönem</th><th>Getiri</th><th>HODL</th><th>Sharpe</th><th>Maks DD</th><th>Kazanma %</th></tr>
+            <tr class="highlight"><td><strong>2021</strong></td><td class="good"><strong>+9,868.99%</strong></td><td class="good">+230.93%</td><td><strong>4.14</strong></td><td class="bad">-32.33%</td><td><strong>95.59%</strong></td></tr>
+            <tr><td><strong>2023</strong></td><td class="good"><strong>+394.64%</strong></td><td class="good">+122.10%</td><td><strong>3.01</strong></td><td class="bad">-13.21%</td><td><strong>97.06%</strong></td></tr>
+        </table>
+
+        <h2>6. SINIRLAMALAR</h2>
+        
+        <div class="warning">
+            <strong>BACKTEST ≠ CANLI:</strong> Bu sonuçlar tarihi backtestlerden elde edildi. Canlı trading tamamen yansıtılmayan uygulama riskleri, kayma ve piyasa etkisi içerir.<br><br>
+            <strong>OVERFITTING RİSKİ:</strong> 171 metrikle, tarihi desenlere overfitting riski mevcut. Out-of-sample testi kritik önem taşır.<br><br>
+            <strong>REJİM BAĞIMLILIĞI:</strong> Performans piyasa rejimine göre önemli ölçüde değişir. Boğa piyasalarını yenmek ayı piyasalarından daha zordur.<br><br>
+            <strong>VERİ KALİTESİ:</strong> Sonuçlar veri doğruluğuna bağlıdır. Bazı Seviye 6 göstergeleri gecikmeli erişime sahiptir (COT, SEC dosyalamaları).
+        </div>
+
+        <h3>Gelecek Çalışmalar</h3>
+        <p><strong>Not:</strong> Bu makale BTC ve ETH'yi kapsarken, devam eden ML model eğitimi <strong>94 kripto varlık</strong> ve 10 yıllık tarihi veri (2015-2025) içeren genişletilmiş bir veri seti kullanıyor, ~197,000 satır × 16,000 mühendislik edilmiş özellik.</p>
+        <ul>
+            <li><strong>ML Model Entegrasyonu (Devam Ediyor):</strong> 94 varlık üzerinde XGBoost, CatBoost, LightGBM, TFT eğitimi. XGBoost şu anda en iyi AUC 0.566 ile %78 tamamlanma oranında.</li>
+            <li><strong>Rejim Tespit Modelleri:</strong> Bull/Bear/Sideways sınıflandırması için özel HMM/LSTM</li>
+            <li><strong>LLM Ensemble:</strong> Tüm model çıktılarını sentezleyen final karar katmanı olarak Claude Opus 4.5</li>
+            <li><strong>Canlı Paper Trading:</strong> Gerçek sermaye kullanımından önce canlı piyasa verileri üzerinde doğrulama</li>
+        </ul>
+
+        <h2>7. SONUÇ</h2>
+        
+        <p>Omega Sistemi, kapsamlı, çok seviyeli bir sinyal agregasyonu yaklaşımının basit al-ve-tut stratejilerinden, özellikle volatil piyasalarda, önemli ölçüde daha iyi performans gösterebildiğini ortaya koyuyor.</p>
+        <p><strong>$10,000'ı $1.1 milyonun üzerine</strong> çıkaran 2021 backtest sonucu, BTC/ETH tutmaya kıyasla 3.3x'e karşı 115x getiri temsil ediyor. Daha da önemlisi, sistem bunu <strong>HODL için %53'e karşı %32 maksimum drawdown</strong> ile başardı, üstün risk-ayarlı getiriler sergiledi.</p>
+
+        <h3>Teori vs. Kanıt</h3>
+        <p>Bu proje bir hipotezle başladı: <strong>trading bir dolandırıcılık, kumarhanelerden daha kötü.</strong> Etkin piyasa hipotezi tutarlı piyasa yenmenin imkansız olduğunu öne sürer. Teknik analiz genellikle finans kardeşleri için astroloji olarak reddedilir. Kasa her zaman kazanır.</p>
+        <p>Yine de—veriler rahatsız edici bir şey sunuyor.</p>
+        <p><strong>10 yıl boyunca 94 kripto varlık</strong> üzerinde devam eden ML model eğitimi tutarlı olarak %50'nin üzerinde tahmin doğruluğu gösteriyor. XGBoost out-of-sample test verileri üzerinde <strong>0.566 AUC skorları</strong> elde ediyor. CatBoost ve LightGBM benzer desenler gösteriyor. Bunlar seçilmiş sonuçlar değil—modellerin hiç görmediği veriler üzerindeki doğrulama metrikleri.</p>
+        <p>Piyasalar gerçekten rastgele yürüyüşler olsaydı, AUC ≈ 0.50 beklenirdi. Sonuçlar ölçülebilir şekilde daha iyi bir şey gösteriyor. Dramatik olarak daha iyi değil—bu bir çabuk zengin ol şeması değil—ama istatistiksel olarak anlamlı. Yazı-turadan daha iyi.</p>
+        <p>Buradaki en dürüst pozisyon entelektüel rahatsızlık: <strong>orijinal hipotez yanlış olabilir.</strong> İyi araştırma varsayımları gerçekliğe karşı test eder ve gerçeklik geri itiyor. Bu avantajın canlı trading, işlem maliyetleri ve piyasa adaptasyonunu atlatıp atlatamayacağı henüz görülecek. Ancak ön kanıtlar devam eden araştırmayı gerektiriyor.</p>
+
+        <div class="abstract">
+            <strong>Bölüm 3 Tamamlandı.</strong> Bu temeli oluşturuyor—171 metrik, çok seviyeli mimari, güçlü backtest sonuçları. 
+            Bölüm 4 ML model eğitimi yolculuğunu belgeliyor. Bölüm 5 rejim tespitini kapsayacak. Bölüm 6 her şeyi LLM ensemble ile bir araya getiriyor.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

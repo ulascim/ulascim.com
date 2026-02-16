@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 7: Ensemble + Opus 4.5 | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        .code-block { background: #1a1a1a; color: #e5e5e5; padding: 16px; margin: 12px 0; font-size: 11px; line-height: 1.5; overflow-x: auto; border: 2px solid #000; }
+        .code-block .key { color: #7dd3fc; }
+        .code-block .string { color: #86efac; }
+        .code-block .number { color: #fcd34d; }
+        .code-block .comment { color: #6b7280; }
+
+        .arch-diagram { background: #f3f4f6; border: 2px solid #000; padding: 20px; margin: 16px 0; text-align: center; }
+        .arch-row { display: flex; justify-content: center; gap: 16px; margin: 12px 0; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 12px 20px; min-width: 140px; }
+        .arch-box.main { background: #000; color: #fff; }
+        .arch-box .title { font-size: 11px; font-weight: 700; }
+        .arch-box .desc { font-size: 9px; color: #666; margin-top: 4px; }
+        .arch-box.main .desc { color: #aaa; }
+        .arch-arrow { font-size: 20px; color: #000; }
+
+        @media (max-width: 768px) { 
+            .report { padding: 16px; } 
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .arch-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">LIVE</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link">LEADERBOARD</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link active">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-ensemble-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-ensemble.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research.html" class="back-link">Back to Research</a>
+        
+        <h1>ENSEMBLE + OPUS 4.5</h1>
+        <p class="subtitle">Part 7: The Final Architecture</p>
+        <p class="authors">Omega Arena • February 2026 • <strong style="color: #666;">ARCHITECTURE DESIGNED</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">4</div>
+                <div class="label">INPUT APPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">171</div>
+                <div class="label">METRICS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">4</div>
+                <div class="label">ML MODELS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3</div>
+                <div class="label">LLM BRAIN</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> A multi-layered ensemble system combining four independent analytical approaches—
+            the Omega Signal Engine (171 metrics), ML price prediction models (XGBoost, CatBoost, LightGBM, TFT), 
+            regime detection models, and <strong>real-time news sentiment analysis</strong>—all feeding into <strong>Claude Opus 4.5</strong> as the ultimate decision maker.
+            The LLM synthesizes conflicting signals, applies portfolio context, and generates actionable trading decisions.
+        </div>
+
+        <h2>1. ARCHITECTURE OVERVIEW</h2>
+
+        <div class="arch-diagram">
+            <div class="arch-row">
+                <div class="arch-box">
+                    <div class="title">APP 1: SIGNAL ENGINE</div>
+                    <div class="desc">171 Metrics, Dynamic Params</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 2: ML MODELS</div>
+                    <div class="desc">XGBoost, CatBoost, LightGBM, TFT</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 3: REGIME</div>
+                    <div class="desc">HMM, Random Forest, LSTM</div>
+                </div>
+                <div class="arch-box">
+                    <div class="title">APP 4: NEWS SENTIMENT</div>
+                    <div class="desc">RSS + NewsData.io, GPT-4o</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓ ↓ ↓ ↓</div>
+            <div class="arch-row">
+                <div class="arch-box main">
+                    <div class="title">OPUS 4.5 (LLM)</div>
+                    <div class="desc">Ultimate Decision Maker</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓</div>
+            <div class="arch-row">
+                <div class="arch-box">
+                    <div class="title">TRADING DECISIONS</div>
+                    <div class="desc">Coins, Sizes, Stops, Targets</div>
+                </div>
+            </div>
+        </div>
+
+        <p>Each APP operates independently, processing market data through different analytical lenses. APPs 1-3 analyze historical price/volume data, while APP 4 provides forward-looking context from real-time news. All outputs are structured JSON that feeds into the LLM for final synthesis.</p>
+
+        <h2>2. APP 1: SIGNAL GENERATION ENGINE</h2>
+        <p>The Omega System from Part 3—171 technical and fundamental metrics with <strong>dynamic parameter adjustment</strong>.</p>
+
+        <table>
+            <tr><th>Component</th><th>Description</th></tr>
+            <tr><td><strong class="good">171 Metrics</strong></td><td>Technical, quantitative, professional, ML-grade, macro, leading</td></tr>
+            <tr><td><strong>6 Timeframes</strong></td><td>1m, 5m, 15m, 30m, 1h, 1d with weighted aggregation</td></tr>
+            <tr><td><strong>Dynamic Params</strong></td><td>Parameters adjust based on detected market conditions</td></tr>
+            <tr><td><strong>Output</strong></td><td>Composite score (<span class="bad">-1</span> to <span class="good">+1</span>), signal (<span class="good">BULLISH</span>/<span class="bad">BEARISH</span>/NEUTRAL), confidence</td></tr>
+        </table>
+
+        <h3>Output Format</h3>
+        <div class="code-block">
+{
+  <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-02-03T10:00:00Z"</span>,
+  <span class="key">"composite_score"</span>: <span style="color: #4ade80; font-weight: bold;">0.72</span>,
+  <span class="key">"signal"</span>: <span style="color: #4ade80; font-weight: bold;">"BULLISH"</span>,
+  <span class="key">"confidence"</span>: <span style="color: #4ade80; font-weight: bold;">0.68</span>,
+  <span class="key">"individual_signals"</span>: {
+    <span class="key">"rsi_signal"</span>: <span style="color: #4ade80;">0.6</span>,
+    <span class="key">"macd_signal"</span>: <span style="color: #4ade80;">0.8</span>,
+    <span class="key">"volume_signal"</span>: <span style="color: #4ade80;">0.7</span>,
+    <span class="comment">// ... 168 more metrics</span>
+  }
+}
+        </div>
+
+        <h2>3. APP 2: ML PRICE PREDICTION MODELS</h2>
+        <p>Four machine learning models trained on 10 years of data (2015-2025) for price direction prediction.</p>
+
+        <table>
+            <tr><th>Model</th><th>Type</th><th>Best AUC</th><th>Status</th></tr>
+            <tr class="highlight"><td><strong>XGBoost</strong></td><td>Gradient Boosting</td><td class="good"><strong>0.566</strong></td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td><strong>CatBoost</strong></td><td>Gradient Boosting</td><td class="good">0.530</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td><strong>LightGBM</strong></td><td>Gradient Boosting</td><td class="good">0.520</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>TFT</td><td>Neural Network</td><td>N/A</td><td><span class="status complete">DONE</span></td></tr>
+        </table>
+
+        <h3>Output Format</h3>
+        <div class="code-block">
+{
+  <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+  <span class="key">"predictions"</span>: {
+    <span class="key">"xgboost"</span>: { <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>, <span class="key">"probability"</span>: <span style="color: #4ade80;">0.58</span> },
+    <span class="key">"catboost"</span>: { <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>, <span class="key">"probability"</span>: <span style="color: #4ade80;">0.54</span> },
+    <span class="key">"lightgbm"</span>: { <span class="key">"direction"</span>: <span style="color: #f87171; font-weight: bold;">0</span>, <span class="key">"probability"</span>: <span style="color: #fcd34d;">0.52</span> }
+  },
+  <span class="key">"ensemble_vote"</span>: {
+    <span class="key">"direction"</span>: <span style="color: #4ade80; font-weight: bold;">1</span>,
+    <span class="key">"agreement"</span>: <span style="color: #4ade80;">0.75</span>,
+    <span class="key">"weighted_probability"</span>: <span style="color: #4ade80;">0.56</span>
+  }
+}
+        </div>
+
+        <h2>4. APP 3: REGIME DETECTION MODELS</h2>
+        <p>Specialized models dedicated <strong>ONLY</strong> to detecting market regime. These do NOT predict price—they classify the market state.</p>
+
+        <table>
+            <tr><th>Regime</th><th>Characteristics</th><th>Typical Duration</th></tr>
+            <tr><td class="good"><strong>BULL</strong></td><td>Sustained uptrend, expanding volume, positive sentiment</td><td>Months to years</td></tr>
+            <tr><td class="bad"><strong>BEAR</strong></td><td>Sustained downtrend, capitulation events, negative sentiment</td><td>Months to years</td></tr>
+            <tr><td><strong>SIDEWAYS</strong></td><td>Range-bound, decreasing volatility, mixed signals</td><td>Weeks to months</td></tr>
+            <tr><td><strong>TRANSITION</strong></td><td>Regime change in progress, high uncertainty</td><td>Days to weeks</td></tr>
+        </table>
+
+        <h3>Regime Detection Models (Part 5)</h3>
+        <table>
+            <tr><th>Model</th><th>Configuration</th><th>Status</th></tr>
+            <tr><td><strong>Hidden Markov Model (HMM)</strong></td><td>219 numeric features, 2-5 states, BIC selection</td><td><span class="status progress">READY</span></td></tr>
+            <tr><td><strong>Random Forest Classifier</strong></td><td>235 features, 100 HPO trials, 5-fold CV</td><td><span class="status progress">READY</span></td></tr>
+            <tr><td><strong>BiLSTM + Attention</strong></td><td>90-day sequences, 3 layers, multi-task (daily/weekly/monthly)</td><td><span class="status progress">READY</span></td></tr>
+            <tr><td><strong>Ensemble Voting</strong></td><td>Weighted voting from all three models</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h3>Part 5 Dataset</h3>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td><strong>Assets</strong></td><td class="good"><strong>97 crypto assets</strong></td></tr>
+            <tr><td><strong>Raw Features</strong></td><td class="good"><strong>203</strong> (235 after encoding)</td></tr>
+            <tr><td><strong>Total Rows</strong></td><td class="good"><strong>233,507</strong></td></tr>
+            <tr><td><strong>Date Range</strong></td><td>2014-09-17 → 2026-01-26</td></tr>
+            <tr><td><strong>Labels</strong></td><td>100% hindsight-accurate (UP/DOWN/SAME)</td></tr>
+            <tr><td><strong>LSTM Sequences</strong></td><td>90-day windows, 17.6 GB total</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Level 7 Context Features.</strong> Part 5 introduced 15 new context-aware features: ATH distance, 52-week range position, 
+            YTD/yearly returns, seasonality patterns, and Bitcoin halving cycle. These provide the "bigger picture" context 
+            that standard technical indicators miss.
+        </div>
+
+        <h3>Output Format</h3>
+        <div class="code-block">
+{
+  <span class="key">"regime_detection"</span>: {
+    <span class="key">"current_regime"</span>: <span style="color: #4ade80; font-weight: bold;">"BULL"</span>,
+    <span class="key">"confidence"</span>: <span style="color: #4ade80; font-weight: bold;">0.78</span>,
+    <span class="key">"probabilities"</span>: {
+      <span class="key">"bull"</span>: <span style="color: #4ade80; font-weight: bold;">0.78</span>,
+      <span class="key">"bear"</span>: <span style="color: #f87171;">0.12</span>,
+      <span class="key">"sideways"</span>: <span style="color: #fcd34d;">0.08</span>,
+      <span class="key">"transition"</span>: <span style="color: #fcd34d;">0.02</span>
+    },
+    <span class="key">"transition_risk"</span>: <span style="color: #4ade80;">0.15</span>
+  },
+  <span class="key">"model_votes"</span>: {
+    <span class="key">"hmm"</span>: <span style="color: #4ade80;">"BULL"</span>,
+    <span class="key">"random_forest"</span>: <span style="color: #4ade80;">"BULL"</span>,
+    <span class="key">"lstm"</span>: <span style="color: #4ade80;">"BULL"</span>
+  }
+}
+        </div>
+
+        <h2>5. APP 4: NEWS SENTIMENT ANALYSIS</h2>
+        <p>Real-time news analysis providing <strong>forward-looking context</strong> that technical indicators cannot capture. Built in Part 6.</p>
+
+        <div class="finding">
+            <strong>Why News?</strong> Technical indicators analyze the past. News analyzes the future. 
+            Markets move on <strong>expectations</strong>, not just technicals. A Fed announcement, 
+            exchange hack, or regulatory change can invalidate all technical signals.
+        </div>
+
+        <table>
+            <tr><th>Component</th><th>Description</th></tr>
+            <tr><td><strong class="good">6 RSS Feeds</strong></td><td>CoinDesk, CoinTelegraph, Bitcoin Magazine, Decrypt, The Block, Google News</td></tr>
+            <tr><td><strong>25 Coins</strong></td><td>BTC, ETH, SOL, and 22 diversified alts via NewsData.io</td></tr>
+            <tr><td><strong>Dual-Mode</strong></td><td>Quick (10m, GPT-4o-mini) + Full (6h, GPT-4o)</td></tr>
+            <tr><td><strong>Source Tiers</strong></td><td>T1 (1.0x), T2 (0.8x), T3 (0.5x) credibility weighting</td></tr>
+            <tr><td><strong>Output</strong></td><td>Sentiment (<span class="good">BULLISH</span>/<span class="bad">BEARISH</span>/NEUTRAL), confidence, key events, risks</td></tr>
+        </table>
+
+        <h3>Output Format</h3>
+        <div class="code-block">
+{
+  <span class="key">"news_sentiment"</span>: {
+    <span class="key">"market_sentiment"</span>: <span style="color: #f87171; font-weight: bold;">"BEARISH"</span>,
+    <span class="key">"confidence"</span>: <span style="color: #fcd34d;">0.72</span>,
+    <span class="key">"key_events"</span>: [
+      <span class="string">"Fed signals hawkish stance"</span>,
+      <span class="string">"Major exchange reports liquidity issues"</span>
+    ],
+    <span class="key">"asset_outlook"</span>: {
+      <span class="key">"BTC"</span>: <span style="color: #f87171;">"BEARISH"</span>,
+      <span class="key">"ETH"</span>: <span style="color: #fcd34d;">"NEUTRAL"</span>,
+      <span class="key">"ALTS"</span>: <span style="color: #f87171;">"BEARISH"</span>
+    },
+    <span class="key">"risk_factors"</span>: [<span class="string">"Regulatory uncertainty"</span>, <span class="string">"Macro headwinds"</span>],
+    <span class="key">"actionable_signal"</span>: <span style="color: #f87171; font-weight: bold;">"SHORT"</span>
+  },
+  <span class="key">"freshness"</span>: {
+    <span class="key">"rss_items"</span>: <span class="number">45</span>,
+    <span class="key">"newsdata_items"</span>: <span class="number">120</span>,
+    <span class="key">"analysis_time"</span>: <span class="string">"2026-02-05T14:35:09Z"</span>
+  }
+}
+        </div>
+
+        <h2>6. THE LLM DECISION LAYER (OPUS 4.5)</h2>
+        <p>The ultimate decision maker. Claude Opus 4.5 receives outputs from all three APPs and makes final trading decisions.</p>
+
+        <div class="finding">
+            <strong>Why an LLM?</strong> Unlike traditional ensemble voting, an LLM can:<br><br>
+            • <strong>Synthesize</strong> conflicting signals with nuance<br>
+            • <strong>Request</strong> additional raw data when uncertain<br>
+            • <strong>Explain</strong> reasoning in natural language<br>
+            • <strong>Apply</strong> portfolio context (budget, positions, risk)<br>
+            • <strong>Adapt</strong> to changing conditions via prompt updates
+        </div>
+
+        <h3>LLM Responsibilities</h3>
+        <table>
+            <tr><th>Step</th><th>Action</th></tr>
+            <tr><td><strong>1. Receive</strong></td><td>Outputs from APP 1, APP 2, APP 3, APP 4</td></tr>
+            <tr><td><strong>2. Analyze</strong></td><td>Correlations and contradictions between signals</td></tr>
+            <tr><td><strong>3. Request</strong></td><td>Additional raw data if needed (candles, funding rates, etc.)</td></tr>
+            <tr><td><strong>4. Consider</strong></td><td>Portfolio state: budget, open positions, risk tolerance</td></tr>
+            <tr><td><strong>5. Output</strong></td><td>Actionable decisions: BUY/SELL/HOLD with sizes and stops</td></tr>
+        </table>
+
+        <h3>Input Context</h3>
+        <div class="code-block">
+{
+  <span class="key">"app1_signals"</span>: { <span class="comment">/* Signal Engine output */</span> },
+  <span class="key">"app2_predictions"</span>: { <span class="comment">/* ML Models output */</span> },
+  <span class="key">"app3_regime"</span>: { <span class="comment">/* Regime Detection output */</span> },
+  <span class="key">"app4_news"</span>: { <span class="comment">/* News Sentiment output */</span> },
+  <span class="key">"portfolio_state"</span>: {
+    <span class="key">"total_budget"</span>: <span class="number">100000</span>,
+    <span class="key">"available_cash"</span>: <span class="number">45000</span>,
+    <span class="key">"open_positions"</span>: [
+      { <span class="key">"asset"</span>: <span class="string">"BTC"</span>, <span class="key">"size"</span>: <span class="number">0.5</span>, <span class="key">"entry"</span>: <span class="number">42000</span>, <span class="key">"pnl"</span>: <span style="color: #4ade80; font-weight: bold;">"+8%"</span> },
+      { <span class="key">"asset"</span>: <span class="string">"ETH"</span>, <span class="key">"size"</span>: <span class="number">5.0</span>, <span class="key">"entry"</span>: <span class="number">2200</span>, <span class="key">"pnl"</span>: <span style="color: #f87171; font-weight: bold;">"-3%"</span> }
+    ],
+    <span class="key">"risk_tolerance"</span>: <span class="string">"moderate"</span>
+  }
+}
+        </div>
+
+        <h3>Decision Output</h3>
+        <div class="code-block">
+{
+  <span class="key">"decisions"</span>: [
+    {
+      <span class="key">"action"</span>: <span style="color: #4ade80; font-weight: bold;">"BUY"</span>,
+      <span class="key">"asset"</span>: <span class="string">"SOL"</span>,
+      <span class="key">"size_usd"</span>: <span style="color: #4ade80;">5000</span>,
+      <span class="key">"stop_loss"</span>: <span style="color: #f87171;">95.50</span>,
+      <span class="key">"take_profit"</span>: <span style="color: #4ade80;">125.00</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Strong bullish from APP1 (<span style="color: #4ade80;">0.72</span>), XGBoost up (<span style="color: #4ade80;">0.58</span>), regime <span style="color: #4ade80;">BULL</span>."</span>
+    },
+    {
+      <span class="key">"action"</span>: <span style="color: #fcd34d; font-weight: bold;">"HOLD"</span>,
+      <span class="key">"asset"</span>: <span class="string">"BTC"</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Already positioned. Signals mixed. Wait for clarity."</span>
+    },
+    {
+      <span class="key">"action"</span>: <span style="color: #f87171; font-weight: bold;">"REDUCE"</span>,
+      <span class="key">"asset"</span>: <span class="string">"ETH"</span>,
+      <span class="key">"size_reduction"</span>: <span style="color: #f87171;">0.5</span>,
+      <span class="key">"reasoning"</span>: <span class="string">"Negative PnL, APP1 weakness, transition risk rising."</span>
+    }
+  ],
+  <span class="key">"data_requests"</span>: [
+    <span class="string">"Need 4h candles for SOL last 7 days"</span>,
+    <span class="string">"Show me ETH funding rates"</span>
+  ]
+}
+        </div>
+
+        <h2>7. DATA FLOW SUMMARY</h2>
+
+        <table>
+            <tr><th>Stage</th><th>Input</th><th>Process</th><th>Output</th></tr>
+            <tr><td><strong>Raw Data</strong></td><td>Price, Volume, On-chain</td><td>Collection & Cleaning</td><td>Standardized feeds</td></tr>
+            <tr><td><strong>APP 1</strong></td><td>Raw data</td><td class="good">171 metrics, signal aggregation</td><td>Composite score + signal</td></tr>
+            <tr><td><strong>APP 2</strong></td><td>Raw data</td><td class="good">ML model inference</td><td>Direction predictions</td></tr>
+            <tr><td><strong>APP 3</strong></td><td>Raw data</td><td class="good">Regime classification</td><td><span class="good">Bull</span>/<span class="bad">Bear</span>/Sideways</td></tr>
+            <tr><td><strong>APP 4</strong></td><td>RSS + NewsData.io</td><td class="good">News sentiment analysis</td><td><span class="good">Bullish</span>/<span class="bad">Bearish</span>/Neutral</td></tr>
+            <tr class="highlight"><td><strong class="good">LLM</strong></td><td>All APP outputs + Portfolio</td><td><strong>Synthesis + Reasoning</strong></td><td class="good"><strong>Trading decisions</strong></td></tr>
+            <tr><td><strong>Execution</strong></td><td>LLM decisions</td><td>Order routing</td><td class="good">Trades placed</td></tr>
+        </table>
+
+        <h2>8. IMPLEMENTATION ROADMAP</h2>
+
+        <h3>Phase 1: ML Training (Part 4)</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>CatBoost trained</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>LightGBM trained</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>TFT trained</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>XGBoost (500 HPO trials, AUC 0.566)</td><td><span class="status complete">DONE</span></td></tr>
+        </table>
+
+        <h3>Phase 2: Regime Detection (Part 5)</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>Dataset: 233K rows × 203 features × 97 assets</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Hindsight labels (UP/DOWN/SAME, BULL/BEAR/SIDEWAYS)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Level 7 context features (ATH, 52-week, halving cycle)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>ML-ready datasets (train/val/test splits)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>HMM training script</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Random Forest training script</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>BiLSTM+Attention training script (90-day sequences)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Execute training on RunPod</td><td><span class="status progress">RUNNING</span></td></tr>
+            <tr><td>Ensemble voting system</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h3>Phase 3: News Sentiment (Part 6)</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>RSS feed integration (6 sources)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>NewsData.io API integration (25 coins)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Source credibility tiers (T1/T2/T3)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>LLM prompt engineering (structured JSON output)</td><td><span class="status complete">DONE</span></td></tr>
+            <tr><td>Dual-mode daemon (10m quick + 6h full)</td><td><span class="status progress">TESTING</span></td></tr>
+            <tr><td>Price correlation validation</td><td><span class="status progress">TESTING</span></td></tr>
+        </table>
+
+        <h3>Phase 5: Integration Layer</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>Standardize JSON output schemas</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Build inference pipeline</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Create portfolio state manager</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Implement raw data API</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h3>Phase 6: LLM Integration</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>Design Opus 4.5 prompt templates</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Implement conversation flow</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Build decision execution layer</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Add logging and audit trail</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h3>Phase 7: Testing & Go-Live</h3>
+        <table>
+            <tr><th>Task</th><th>Status</th></tr>
+            <tr><td>Backtest on 2024-2025 data</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Paper trading phase</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Risk management fine-tuning</td><td><span class="status pending">PENDING</span></td></tr>
+            <tr><td>Go live with small allocation</td><td><span class="status pending">PENDING</span></td></tr>
+        </table>
+
+        <h2>9. KEY DESIGN DECISIONS</h2>
+
+        <h3>Why separate Regime Detection (APP 3)?</h3>
+        <ul>
+            <li>Regime is a <strong>higher-level concept</strong> than individual predictions</li>
+            <li>Allows the LLM to <strong>weight APP1/APP2 outputs appropriately</strong></li>
+            <li>Regime models can be <strong>simpler and more interpretable</strong></li>
+        </ul>
+
+        <h3>Why use LLM as final decision maker?</h3>
+        <ul>
+            <li><strong>Synthesizes</strong> conflicting signals with nuance</li>
+            <li><strong>Handles</strong> edge cases and anomalies</li>
+            <li><strong>Provides</strong> explainable reasoning</li>
+            <li><strong>Requests</strong> additional context when uncertain</li>
+            <li><strong>Adapts</strong> via prompt updates without retraining</li>
+        </ul>
+
+        <h3>Why dynamic signal parameters in APP 1?</h3>
+        <ul>
+            <li>Static parameters <strong>fail in different market conditions</strong></li>
+            <li>Regime-aware adjustment <strong>improves signal quality</strong></li>
+            <li>Reduces <strong>false signals</strong> in trending vs ranging markets</li>
+        </ul>
+
+        <h3>Why keep all 4 ML models?</h3>
+        <ul>
+            <li>Different models <strong>capture different patterns</strong></li>
+            <li>Ensemble <strong>disagreement is informative</strong></li>
+            <li>Redundancy <strong>improves robustness</strong></li>
+        </ul>
+
+        <h3>Why add News Sentiment (APP 4)?</h3>
+        <ul>
+            <li>Technical indicators <strong>only see the past</strong></li>
+            <li>News provides <strong>forward-looking context</strong></li>
+            <li>Markets move on <strong>expectations, not just technicals</strong></li>
+            <li>Can <strong>invalidate</strong> all technical signals (Fed, hacks, regulation)</li>
+            <li>Hybrid RSS + NewsData.io achieves <strong>$0.35/day</strong> vs $200/mo paid APIs</li>
+        </ul>
+
+        <h2>10. TECHNICAL CONSIDERATIONS</h2>
+
+        <table>
+            <tr><th>Consideration</th><th>Approach</th></tr>
+            <tr><td><strong>Part 4 Data (ML Models)</strong></td><td>10 years (2015-2025), ~197k rows × 16k features</td></tr>
+            <tr><td><strong>Part 5 Data (Regime)</strong></td><td class="good"><strong>233K rows × 203 features × 97 assets</strong></td></tr>
+            <tr><td><strong>LSTM Memory</strong></td><td>90-day sequences, 17.6 GB (requires A100/L40 GPU)</td></tr>
+            <tr><td><strong>LLM Cost</strong></td><td>Opus 4.5 API calls batched/rate-limited</td></tr>
+            <tr><td><strong>Latency</strong></td><td>Real-time decisions need <strong class="good">&lt;5s</strong> total inference</td></tr>
+            <tr><td><strong>Failsafe</strong></td><td>If LLM unavailable, fall back to simple ensemble voting</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>PAPER TRADING FIRST:</strong> This architecture will be validated through extensive paper trading 
+            before any real capital deployment. The LLM adds a layer of uncertainty that requires careful testing.
+        </div>
+
+        <div class="abstract">
+            <strong>Architecture + Data Pipeline Complete.</strong> This document defines the full 4-layer ensemble system. 
+            Part 1 established the baseline. Part 3 documented the Omega System. 
+            Part 4 completed ML training (XGBoost AUC: 0.566). Part 5 built the regime detection pipeline: 
+            233K rows × 203 features × 97 assets. Part 6 added real-time news sentiment analysis via hybrid RSS + NewsData.io.
+            Part 7 integrates all four layers with Claude Opus 4.5 as the final decision maker.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

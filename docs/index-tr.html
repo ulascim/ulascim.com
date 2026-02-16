@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara&#351;t&#305;rma | Ba&#287;&#305;ms&#305;z Ara&#351;t&#305;rma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as project reports
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-center { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 24px; }
+        .nav-link { color: var(--fg); text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.05em; }
+        .nav-link:hover { color: #2563eb; }
+        .nav-link.active { color: #2563eb; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report .card-title { border-bottom: none; margin-top: 0; padding-bottom: 0; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Tables */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+        .status.idea { background: #f3e8ff; color: #6b21a8; }
+
+        /* Timeline */
+        .timeline { position: relative; margin: 24px 0; padding-left: 24px; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #000; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #000; background: var(--bg); }
+        .timeline-item.done::before { background: #16a34a; border-color: #16a34a; }
+        .timeline-item.active::before { background: #2563eb; border-color: #2563eb; }
+        .timeline-item .tl-title { font-size: 13px; font-weight: 700; }
+        .timeline-item .tl-desc { font-size: 12px; color: #666; margin-top: 2px; }
+
+        /* Flow diagram */
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.next { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .flow-box.rl { background: #fef9c3; border-color: #854d0e; }
+
+        /* Quote */
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .quote .attr { font-style: normal; font-size: 11px; color: #666; margin-top: 4px; }
+
+        /* ============================================
+           RESEARCH CARDS
+           ============================================ */
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .research-card {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.15s ease;
+        }
+        .research-card:hover {
+            background: #000;
+            color: #fff;
+        }
+        .research-card:hover .card-tag {
+            background: #fff;
+            color: #000;
+        }
+        .research-card:hover .card-arrow {
+            transform: translateX(4px);
+        }
+        .research-card:hover .card-subtitle {
+            color: #aaa;
+        }
+        .research-card:hover .card-meta {
+            border-top-color: #444;
+            color: #888;
+        }
+        .card-tag {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            font-size: 10px;
+            padding: 4px 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            border-bottom: none;
+            margin-top: 0;
+            padding-bottom: 0;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        .card-stats {
+            display: flex;
+            gap: 16px;
+        }
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-arrow {
+            font-size: 16px;
+            transition: transform 0.15s ease;
+        }
+        /* In Progress (orange) */
+        .research-card.in-progress {
+            border: 3px solid #f59e0b;
+            background: #fffbeb;
+        }
+        .research-card.in-progress .card-tag {
+            background: #f59e0b;
+        }
+        .research-card.in-progress:hover {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .research-card.in-progress:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.in-progress:hover .card-tag {
+            background: #fff;
+            color: #f59e0b;
+        }
+        .research-card.in-progress:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        /* Testing (green) */
+        .research-card.testing {
+            border: 3px solid #22c55e;
+            background: #f0fdf4;
+        }
+        .research-card.testing .card-tag {
+            background: #22c55e;
+        }
+        .research-card.testing:hover {
+            background: #22c55e;
+            color: #fff;
+        }
+        .research-card.testing:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.testing:hover .card-tag {
+            background: #fff;
+            color: #22c55e;
+        }
+        .research-card.testing:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .research-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index-tr.html" style="position: absolute; left: 40px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9;">UG</a>
+                <a href="about-tr.html" class="nav-logo">HAKKINDA</a>
+            </div>
+            <div class="nav-right">
+                <a href="index-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <div class="research-grid">
+            <div class="research-card" style="cursor: default;">
+                <span class="card-tag">ERP SYSTEM</span>
+                <h2 class="card-title">BUILDING CABLE FACTORY ERP SYSTEM</h2>
+                <p class="card-subtitle">Kablo fabrikas&#305; i&ccedil;in u&ccedil;tan uca ERP sistemi. Malzeme takibi, &uuml;retim ak&#305;&#351;&#305;, laboratuvar testleri, stok &mdash; ML ve AI gerekti&#287;i yerde.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">FASTAPI</span>
+                        <span class="card-stat">POSTGRESQL</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <a href="token-sequencer-tr.html" class="research-card in-progress">
+                <span class="card-tag">TOKEN SEQUENCER</span>
+                <h2 class="card-title">CREATING AI FROM SCRATCH</h2>
+                <p class="card-subtitle">T&uuml;rk&ccedil;e tokenizer ile ba&#351;lad&#305;, her &#351;eyin bir dil oldu&#287;unu ke&#351;fetti. 64K kelime, GPT-4&rsquo;e g&ouml;re 2.7 kat verimli. S&#305;f&#305;rdan domain-spesifik AI.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">64K VOCAB</span>
+                        <span class="card-stat">2.7x EFFICIENCY</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
+
+            <a href="../web/research-tr.html" class="research-card testing">
+                <span class="card-tag">TRADING SYSTEM</span>
+                <h2 class="card-title">BUILDING ULTIMATE TRADING SYSTEM</h2>
+                <p class="card-subtitle">Yaz&#305; tura ve zar atmadan 171 metrikli sinyal motoruna. XGBoost, rejim alg&#305;lama, haber duygu analizi ve son karar verici olarak bir LLM.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">171 METRICS</span>
+                        <span class="card-stat">94 ASSETS</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
+        </div>
+    </main>
+
+</body>
+</html>

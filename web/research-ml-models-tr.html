@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölüm 4: ML Model Eğitimi | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.abandoned { background: #fee2e2; color: #991b1b; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        @media (max-width: 768px) { .report { padding: 16px; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-ml-models-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-ml-models.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research-tr.html" class="back-link">Araştırmaya Dön</a>
+        
+        <h1>ML MODEL EĞİTİMİ</h1>
+        <p class="subtitle">Bölüm 4: Başarısız LLM'lerden Gradient Boosting Başarısına</p>
+        <p class="authors">Omega Arena • Şubat 2026 • <strong style="color: #16a34a;">TAMAMLANDI</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">94</div>
+                <div class="label">VARLIK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10</div>
+                <div class="label">YIL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">197K</div>
+                <div class="label">SATIR</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">0.566</div>
+                <div class="label">XGBOOST AUC</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Bölüm 3'te Omega Sistemi—171 elle hazırlanmış metrik—belgelendi. Burada makine öğrenmesinin 
+            aynı verilerde desenler bulup bulamayacağı araştırılıyor. LLM'ler ve pekiştirmeli öğrenme ile başarısız denemelerden sonra, 
+            gradient boosting modelleri (XGBoost, CatBoost, LightGBM) <strong>0.50'nin üzerinde AUC skorları</strong> elde etti—rastgele şanstan daha iyi. 
+            Bu, verilerde öğrenilebilir desenlerin var olduğunu gösteriyor.
+        </div>
+
+        <h2>1. SORU</h2>
+        <p>Bölüm 3'ün Omega Sistemi elle kodlanmış sinyal agregasyon kuralları kullandı. Sonuçlar etkileyiciydi: 2021 backtestlerinde %9,868 getiri. Ancak bu kurallar piyasalar hakkında insan varsayımlarını kodluyor.</p>
+        <p><strong>Ya makine öğrenmesinin desenleri bulmasına izin verilirse?</strong></p>
+        <p>Hedef: aynı 171 özellik üzerinde (feature engineering ile ~16,000'e genişletilmiş) modeller eğitmek ve fiyat yönünü tahmin edip edemeyeceklerini görmek. Elle kodlanmış kural yok. Sadece veri.</p>
+
+        <h2>2. VERİ SETİ</h2>
+        <table>
+            <tr><th>Parametre</th><th>Değer</th></tr>
+            <tr><td><strong>Varlıklar</strong></td><td><strong>94 kripto para</strong></td></tr>
+            <tr><td><strong>Zaman Aralığı</strong></td><td>2015 - 2025 (10 yıl)</td></tr>
+            <tr><td><strong>Satır</strong></td><td>~197,000</td></tr>
+            <tr><td>Temel Özellikler</td><td>171 (Omega Sisteminden)</td></tr>
+            <tr><td>Mühendislik Özellikleri</td><td>~16,000</td></tr>
+            <tr><td>Hedef Değişken</td><td>Fiyat yönü (binary: yukarı/aşağı)</td></tr>
+            <tr><td>Train/Test Bölümü</td><td>90/10 zaman-tabanlı (lookahead yok)</td></tr>
+        </table>
+        <p>Feature engineering, 171 temel metriği rolling window'lar, lag'ler, etkileşimler ve çapraz varlık ilişkileri aracılığıyla ~16,000'e genişletti. Eğitim verimliliği için, varyansa göre en iyi 500-1000 özellik seçildi.</p>
+
+        <h2>3. BAŞARISIZ DENEY: BÜYÜK DİL MODELLERİ</h2>
+        <p>İlk yaklaşım iddialıydı: <strong>fiyatları tahmin etmek için bir Large Language Model (Qwen 3 4B) eğitmek.</strong></p>
+        <p>Mantık sağlam görünüyordu—LLM'ler desen tanımada olağanüstü yetenekler gösterdi ve finansal veriler sonuçta sıralı bilgilerdir.</p>
+
+        <div class="warning">
+            <strong>SONUÇ: TERK EDİLDİ</strong><br><br>
+            LLM'ler temelde dil için tasarlandı—semantik anlama sahip ayrık token'lar. 
+            Finansal zaman serileri sürekli sayısal verilerdir. Bunlar farklı mimariler gerektiren farklı alanlardır.
+        </div>
+
+        <h3>LLM'ler Neden Başarısız Oldu</h3>
+        <table>
+            <tr><th>Problem</th><th>Açıklama</th></tr>
+            <tr><td><strong>Tokenizasyon uyumsuzluğu</strong></td><td>Sayılar tutarsız şekilde tokenize ediliyor ("123.45" → birden fazla token)</td></tr>
+            <tr><td><strong>Sayısal akıl yürütme yok</strong></td><td>LLM'ler 50.1 > 49.9'un anlamlı bir şekilde olduğunu anlamıyor</td></tr>
+            <tr><td><strong>Eğitim verimliliği</strong></td><td>Dil anlayışı gerektirmeyen bir görev için milyarlarca parametre</td></tr>
+            <tr><td><strong>Hallucination riski</strong></td><td>LLM'ler makul görünen ama yanlış tahminler üretebilir</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Not:</strong> LLM'ler Bölüm 6'da hâlâ kullanılacak—tahmin için değil, <em>karar sentezi</em> için. 
+            Claude Opus 4.5 model çıktılarını yorumlayacak ve final trading kararlarını verecek. LLM'lerin iyi olduğu şey bu.
+        </div>
+
+        <h2>4. BAŞARISIZ DENEY: PEKİŞTİRMELİ ÖĞRENME (PPO)</h2>
+        <p>İkinci yaklaşım: <strong>trading yapmak için bir Proximal Policy Optimization (PPO) ajanı eğitmek.</strong></p>
+        <p>Supervised learning'den (yukarı/aşağı tahmin et) farklı olarak, RL ajanları etkileşim yoluyla öğrenir. Ajan aksiyonlar alır (AL/SAT/TUT), ödüller alır (kâr/zarar) ve bir policy öğrenir.</p>
+
+        <div class="warning">
+            <strong>SONUÇ: TERK EDİLDİ</strong><br><br>
+            40,000+ timestep eğitimden sonra, ajan tek bir aksiyona çöktü: <strong>TUT</strong>. 
+            Hiçbir şey yapmamanın kayıplardan kaçınmanın en güvenli yolu olduğunu öğrendi.
+        </div>
+
+        <h3>Çöküşten Önceki Eğitim Metrikleri</h3>
+        <table>
+            <tr><th>Metrik</th><th>Değer</th><th>Yorumlama</th></tr>
+            <tr><td>entropy_loss</td><td>-0.106 → -0.155</td><td class="bad">Tek aksiyona çöküyor</td></tr>
+            <tr><td>explained_variance</td><td>0.874 → 0.272</td><td class="bad">Tahmin gücünü kaybediyor</td></tr>
+            <tr><td>mean_reward</td><td>-0.01</td><td class="bad">Hafif negatif (ücretler kârı yiyor)</td></tr>
+            <tr><td>episode_length</td><td>39,434</td><td>Pozisyonları asla kapatmıyor</td></tr>
+        </table>
+
+        <h3>PPO Neden Başarısız Oldu</h3>
+        <ul>
+            <li><strong>Seyrek ödüller:</strong> Trading ödülleri episode sonunda geliyor, kredi atamasını zorlaştırıyor</li>
+            <li><strong>Uzun episode'lar:</strong> Herhangi bir geri bildirim sinyalinden önce 39,000+ adım</li>
+            <li><strong>Yerel minimum:</strong> TUT kayıplardan kaçınır, bu yüzden ajan orada takılır</li>
+            <li><strong>Keşif çöküşü:</strong> Entropy düştü, yani ajan alternatifleri keşfetmeyi bıraktı</li>
+        </ul>
+
+        <h2>5. İŞE YARAYAN: GRADIENT BOOSTING</h2>
+        <p>LLM ve RL başarısızlıklarından sonra, odak tabular veriler için kanıtlanmış yaklaşımlara kaydı: <strong>Gradient Boosting Decision Trees (GBDT)</strong>.</p>
+        <p>Üç model seçildi: XGBoost, CatBoost ve LightGBM. Her biri biraz farklı algoritmalara sahip, ensemble çeşitliliği sağlıyor.</p>
+
+        <h3>Model Durumu</h3>
+        <table>
+            <tr><th>Model</th><th>Durum</th><th>HPO Denemeleri</th><th>En İyi AUC</th><th>Notlar</th></tr>
+            <tr class="highlight"><td><strong>XGBoost</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>500/500</td><td class="good"><strong>0.566</strong></td><td>En iyi performans</td></tr>
+            <tr><td><strong>CatBoost</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>500/500</td><td class="good"><strong>0.530</strong></td><td>GPU-hızlandırılmış</td></tr>
+            <tr><td><strong>LightGBM</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>500/500</td><td class="good"><strong>0.520</strong></td><td>Bellek-optimize</td></tr>
+            <tr><td>TFT</td><td><span class="status complete">TAMAMLANDI</span></td><td>—</td><td>N/A</td><td>Classification için zayıf uyum</td></tr>
+        </table>
+
+        <h3>Hiperparametre Optimizasyonu</h3>
+        <p>Her model <strong>TPESampler ile Optuna</strong> kullanarak 500 deneme Bayesian optimizasyonundan geçti. Bu rastgele arama değil—optimizer umut vaat eden parametre bölgelerini keşfetmek için önceki denemelerden öğrenir.</p>
+        <table>
+            <tr><th>Parametre</th><th>Arama Aralığı</th></tr>
+            <tr><td>n_estimators</td><td>500 - 3000</td></tr>
+            <tr><td>max_depth</td><td>4 - 15</td></tr>
+            <tr><td>learning_rate</td><td>0.001 - 0.1 (log ölçek)</td></tr>
+            <tr><td>subsample</td><td>0.5 - 1.0</td></tr>
+            <tr><td>colsample_bytree</td><td>0.5 - 1.0</td></tr>
+            <tr><td>reg_alpha</td><td>1e-8 - 10 (log ölçek)</td></tr>
+            <tr><td>reg_lambda</td><td>1e-8 - 10 (log ölçek)</td></tr>
+        </table>
+
+        <h3>XGBoost En İyi Konfigürasyon</h3>
+        <table>
+            <tr><th>Parametre</th><th>Değer</th></tr>
+            <tr><td>n_estimators</td><td>2,520</td></tr>
+            <tr><td>max_depth</td><td>14</td></tr>
+            <tr><td>learning_rate</td><td>0.084</td></tr>
+            <tr><td>min_child_weight</td><td>10</td></tr>
+            <tr><td>subsample</td><td>0.633</td></tr>
+            <tr><td>colsample_bytree</td><td>0.857</td></tr>
+            <tr><td>gamma</td><td>1.22</td></tr>
+            <tr class="highlight"><td><strong>En İyi AUC</strong></td><td class="good"><strong>0.566</strong></td></tr>
+        </table>
+
+        <h2>6. SONUÇLARI ANLAMAK</h2>
+
+        <h3>AUC 0.566 Ne Anlama Geliyor?</h3>
+        <p>AUC (Area Under ROC Curve) bir modelin sınıfları ne kadar iyi ayırt ettiğini ölçer:</p>
+        <table>
+            <tr><th>AUC Değeri</th><th>Yorumlama</th></tr>
+            <tr><td>0.50</td><td>Rastgele şans (yazı-tura)</td></tr>
+            <tr><td>0.50 - 0.60</td><td>Zayıf, ama rastgeleden iyi</td></tr>
+            <tr><td>0.60 - 0.70</td><td>Orta düzey tahmin gücü</td></tr>
+            <tr><td>0.70 - 0.80</td><td>İyi</td></tr>
+            <tr><td>0.80+</td><td>Mükemmel (finansal veri için şüpheli)</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>AUC 0.566 mütevazı ama anlamlı.</strong> Model yazı-turadan daha sık doğru demek. 
+            Finansal piyasalarda, küçük avantajlar bile binlerce işlem üzerinden bileşir.
+        </div>
+
+        <h3>HPO vs Final Test AUC</h3>
+        <p>Önemli uyarı: HPO AUC skorları validation verisinden. Gerçekten görülmemiş veriler üzerindeki final test skorları genellikle daha düşük:</p>
+        <table>
+            <tr><th>Model</th><th>HPO En İyi AUC</th><th>Final Test AUC</th><th>Düşüş</th></tr>
+            <tr><td>CatBoost</td><td>0.530</td><td>~0.51</td><td class="bad">-0.02</td></tr>
+            <tr><td>LightGBM</td><td>0.520</td><td>~0.50</td><td class="bad">-0.02</td></tr>
+            <tr><td>XGBoost</td><td class="good"><strong>0.566</strong></td><td>BELİRLENECEK</td><td>—</td></tr>
+        </table>
+
+        <h2>7. TFT: SİNİR AĞI DENEMESİ</h2>
+        <p><strong>Temporal Fusion Transformer (TFT)</strong> zaman serisi tahmini için tasarlanmış bir sinir ağı mimarisidir.</p>
+
+        <div class="finding">
+            <strong>SONUÇ: TAMAMLANDI AMA ZAYIF UYUM</strong><br><br>
+            TFT başarıyla eğitildi, ancak <em>regression</em> (sürekli değerleri tahmin etme) için tasarlandı, 
+            <em>classification</em> (yukarı/aşağı tahmin) için değil. Fiyat büyüklüğü tahmini için tekrar ziyaret edilebilir.
+        </div>
+
+        <h2>8. TEKNİK ZORLUKLAR</h2>
+        <p>197K satır × 16K özellik üzerinde eğitim mühendislik zorlukları sundu:</p>
+
+        <h3>Bellek Yönetimi</h3>
+        <ul>
+            <li>Orijinal veri seti 128GB+ RAM gerektirdi</li>
+            <li>Varyansa göre en iyi 500 özelliği seçen düşük bellekli versiyon oluşturuldu</li>
+            <li>Tüm özellikler float32'ye cast edildi (float64'ün yarısı bellek)</li>
+            <li>İşlemler arasında açık garbage collection</li>
+        </ul>
+
+        <h3>Veri Tipi Sorunları</h3>
+        <ul>
+            <li>Karışık object/numeric sütunlar eğitim başarısızlıklarına neden oldu</li>
+            <li><code>pd.to_numeric(errors='coerce')</code> ön işleme eklendi</li>
+            <li>Sonsuzluk değerleri <code>replace([np.inf, -np.inf], 0)</code> ile ele alındı</li>
+        </ul>
+
+        <h3>Model Kaydetme</h3>
+        <ul>
+            <li>Kaydetmeden önce çökmeler nedeniyle birden fazla eğitim çalışması kaybedildi</li>
+            <li>Eğitimden sonra, değerlendirmeden önce anında kaydetme uygulandı</li>
+            <li>Üzerine yazmaları önlemek için zaman damgalı yedeklemeler eklendi</li>
+        </ul>
+
+        <h2>9. FİNAL DURUM</h2>
+        <table>
+            <tr><th>Model</th><th>Durum</th><th>Sonuç</th></tr>
+            <tr class="highlight"><td><strong>XGBoost</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td class="good">AUC 0.566 — En iyi performans</td></tr>
+            <tr><td><strong>CatBoost</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td class="good">AUC 0.530</td></tr>
+            <tr><td><strong>LightGBM</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td class="good">AUC 0.520</td></tr>
+            <tr><td>TFT</td><td><span class="status complete">TAMAMLANDI</span></td><td>Classification için zayıf uyum</td></tr>
+            <tr><td>PPO</td><td><span class="status abandoned">TERK EDİLDİ</span></td><td>TUT aksiyonuna çöktü</td></tr>
+            <tr><td>Qwen LLM</td><td><span class="status abandoned">TERK EDİLDİ</span></td><td>Sayısal veri için yanlış mimari</td></tr>
+        </table>
+
+        <h2>10. SIRADA: REJİM TESPİTİ (BÖLÜM 5)</h2>
+        <p>Fiyat tahmin modelleri tamamlanmış olarak, sonraki aşama <strong>rejim tespiti</strong>—piyasa koşullarını Boğa, Ayı veya Yatay olarak sınıflandırmak için özel modeller.</p>
+        <p>Bu modeller fiyatları tahmin etmiyor. <em>Bağlam</em> sağlıyorlar. Ensemble "ayı piyasasındayız" bildiğinde, sinyalleri ağırlıklandırabilir ve risk parametrelerini ayarlayabilir.</p>
+
+        <div class="finding">
+            <strong>BÖLÜM 5 İÇİN GELİŞTİRİLİYOR:</strong><br><br>
+            • <strong>Hidden Markov Model (HMM)</strong> — 219 özellik ile denetimsiz rejim keşfi<br>
+            • <strong>Random Forest Classifier</strong> — 235 özellik ile denetimli sınıflandırma, hiperparametre-optimize<br>
+            • <strong>Bidirectional LSTM + Attention</strong> — 90 günlük diziler, çok görevli öğrenme (günlük/haftalık/aylık)<br>
+            • <strong>Ensemble Voting</strong> — Sağlam rejim sinyalleri için üçünü birleştir<br><br>
+            <strong>Veri Seti:</strong> 233,507 satır × 203 özellik × 97 varlık (2014-2026)<br>
+            <strong>Etiketler:</strong> %100 hindsight-doğru (YUKARI/AŞAĞI/AYNI, BOĞA/AYI/YATAY)
+        </div>
+
+        <h2>11. ÖN SONUÇ</h2>
+        <p>LLM'lerden gradient boosting'e yolculuk, makine öğrenmesinde temel bir gerçeği yansıtır: <strong>mimariyi probleme eşleştir</strong>.</p>
+        <ul>
+            <li>LLM'ler dilde mükemmel, sayılarda değil</li>
+            <li>Pekiştirmeli öğrenme dikkatli ödül tasarımı gerektirir</li>
+            <li>Gradient boosting tabular veriler için altın standart olmaya devam ediyor</li>
+            <li>Hiperparametre optimizasyonu önemli—Deneme 244 vs Deneme 3, 0.49 vs 0.57 AUC</li>
+        </ul>
+        <p>Modeller out-of-sample verilerde tutarlı >%50 doğruluk gösteriyor. Bu trading kârlarının garantisi değil, ancak öğrenilebilir desenlerin var olduğunun kanıtı. Bu desenlerin canlı piyasalarda devam edip etmeyeceği nihai testtir.</p>
+
+        <div class="discovery">
+            <strong>Bölüm 4 Durumu: TAMAMLANDI</strong><br>
+            Tüm gradient boosting modelleri eğitildi. XGBoost en iyi AUC'yi (0.566) elde etti. 
+            Rejim tespit modelleri (Bölüm 5) şu anda geliştiriliyor.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

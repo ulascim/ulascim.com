@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölüm 5: Rejim Tespiti | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 28px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.abandoned { background: #fee2e2; color: #991b1b; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        @media (max-width: 768px) { .report { padding: 16px; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-regime-detection-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-regime-detection.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research-tr.html" class="back-link">Araştırmaya Dön</a>
+        
+        <h1>REJİM TESPİTİ</h1>
+        <p class="subtitle">Bölüm 5: Boğa, Ayı veya Yatay — Modeller Karar Versin</p>
+        <p class="authors">Omega Arena • Şubat 2026 • <strong style="color: #f59e0b;">DEVAM EDİYOR</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">97</div>
+                <div class="label">VARLIK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">233K</div>
+                <div class="label">SATIR</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">203</div>
+                <div class="label">ÖZELLİK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3</div>
+                <div class="label">MODEL</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Bölüm 4'te fiyat yönünü tahmin eden modeller eğitildi. Burada farklı bir yaklaşım benimsiyoruz: 
+            <strong>rejim tespiti</strong>. "Yarın fiyat yükselecek mi?" yerine "ne tür bir piyasadayız?" diye soruyoruz.
+            Üç model—HMM (denetimsiz), Random Forest (denetimli) ve Attention'lı BiLSTM—piyasa koşullarını Boğa, Ayı veya Yatay olarak 
+            sınıflandırmak için birlikte çalışıyor. %100 hindsight-doğru etiketler ve 203 özellik ile 
+            bu modeller mükemmel tarihsel gerçekten öğreniyor.
+        </div>
+
+        <h2>1. NEDEN REJİM TESPİTİ?</h2>
+        <p>Bölüm 4'ün fiyat tahmin modelleri 0.52-0.57 civarında AUC skorları elde etti. Rastgeleden iyi, ama mütevazı. Sorun? <strong>Piyasalar farklı koşullarda farklı davranır.</strong></p>
+        <p>Boğa piyasasında işe yarayan bir strateji, ayı piyasasında felaket olabilir. Yükseliş trendinde "düşüşü satın al" anlamına gelen sinyal, düşüş trendinde "düşen bıçağı yakala" anlamına gelir.</p>
+        
+        <div class="finding">
+            <strong>Rejim tespiti bağlam sağlar.</strong> Tek bir modelin her şeyi tahmin etmeye çalışması yerine, 
+            önce piyasa durumunu belirleyen özel modeller var. Sonra diğer modeller davranışlarını buna göre uyarlayabilir.
+        </div>
+
+        <h3>Üç Rejim</h3>
+        <table>
+            <tr><th>Rejim</th><th>Günlük Etiket</th><th>Haftalık/Aylık Etiket</th><th>Tanım</th></tr>
+            <tr><td class="good"><strong>BOĞA</strong></td><td>YUKARI</td><td>BOĞA</td><td>Pozitif % değişim</td></tr>
+            <tr><td class="bad"><strong>AYI</strong></td><td>AŞAĞI</td><td>AYI</td><td>Negatif % değişim</td></tr>
+            <tr><td><strong>YATAY</strong></td><td>AYNI</td><td>YATAY</td><td>Sıfır % değişim</td></tr>
+        </table>
+
+        <h2>2. VERİ SETİ: KURUMSAL DÜZEY</h2>
+        <p>Kestirmeden gitmedik. Bu veri seti aylarca süren veri mühendisliğini temsil ediyor.</p>
+
+        <h3>Veri Kaynakları</h3>
+        <table>
+            <tr><th>Kaynak</th><th>Özellik</th><th>Açıklama</th></tr>
+            <tr><td>Level 1</td><td>43</td><td>RSI, MACD, Bollinger Bands, ATR, ADX, Ichimoku, vb.</td></tr>
+            <tr><td>Level 2</td><td>18</td><td>Sharpe, Sortino, VaR, CVaR, Max Drawdown, vb.</td></tr>
+            <tr><td>Level 3</td><td>52</td><td>Volatilite rejimleri, trend gücü, korku/açgözlülük, tükenme</td></tr>
+            <tr><td>Level 5</td><td>19</td><td>VIX, DXY, SPY korelasyonu, makro sinyaller</td></tr>
+            <tr><td>Level 6</td><td>21</td><td>COT verileri, verim eğrisi, kredi spread'leri</td></tr>
+            <tr><td>Level 7</td><td>15</td><td>Bağlam-duyarlı: ATH %, 52-hafta aralığı, halving döngüsü</td></tr>
+            <tr><td>FRED</td><td>13</td><td>Federal Reserve ekonomik göstergeleri</td></tr>
+            <tr class="highlight"><td><strong>TOPLAM</strong></td><td><strong>203</strong></td><td><strong>İşleme sonrası: 235 (one-hot encoding ile)</strong></td></tr>
+        </table>
+
+        <h3>Temporal Bölüm</h3>
+        <table>
+            <tr><th>Bölüm</th><th>Tarih Aralığı</th><th>Satır</th><th>Amaç</th></tr>
+            <tr><td><strong>Eğitim</strong></td><td>2014-09-17 → 2023-12-31</td><td class="good">163,574</td><td>Model öğrenimi</td></tr>
+            <tr><td><strong>Doğrulama</strong></td><td>2024-01-01 → 2024-12-31</td><td>34,402</td><td>Hiperparametre ayarı</td></tr>
+            <tr><td><strong>Test</strong></td><td>2025-01-01 → 2026-01-26</td><td>35,531</td><td>Final değerlendirme</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Veri sızıntısı yok.</strong> Katı temporal sıralama, modellerin eğitim sırasında gelecek verileri asla görmemesini sağlar.
+            Test verisi gerçekten görülmemiş—modellerin hiç karşılaşmadığı bir yıldan.
+        </div>
+
+        <h3>Neden Level 7 Bağlam Özellikleri?</h3>
+        <p>Standart teknik göstergeler (Level 1-3) kısa vadeli kalıpları yakalar: RSI, MACD, Bollinger Bands 14-50 günlük pencerelerde çalışır. Ancak <strong>rejim tespiti uzun vadeli bağlam gerektirir</strong>. $50K'daki fiyat, tüm zamanların en yükseği olduğunda ve ATH'nin %50 altında olduğunda tamamen farklı şeyler ifade eder.</p>
+        
+        <div class="finding">
+            <strong>Problem:</strong> Mevcut özellikler "Büyük resimde neredeyiz?" gibi soruları cevaplayamıyordu. 
+            Level 7, rejim sınıflandırması için bu eksik bağlamı sağlamak üzere özel olarak tasarlandı.
+        </div>
+
+        <table>
+            <tr><th>Özellik Kategorisi</th><th>Neyi Yakalar</th><th>Rejimler İçin Neden Önemli</th></tr>
+            <tr>
+                <td><strong>ATH Bağlamı</strong></td>
+                <td>Tüm zamanların en yükseğinden uzaklık, ATH'den bu yana gün</td>
+                <td>Boğa piyasaları ATH'leri iter; ayı piyasaları onlardan uzaklaşır</td>
+            </tr>
+            <tr>
+                <td><strong>52-Hafta Aralığı</strong></td>
+                <td>Yıllık en yüksek/en düşük aralığındaki konum</td>
+                <td>Yıllık diplere yakın = olası birikim; zirvelere yakın = olası dağıtım</td>
+            </tr>
+            <tr>
+                <td><strong>Dönem Getirileri</strong></td>
+                <td>YTD getiri, yıllık getiri, çoklu dönem momentum</td>
+                <td>Rejim kalıcılığı: boğa yılları boğa kalır, ayı yılları ayı kalır</td>
+            </tr>
+            <tr>
+                <td><strong>Mevsimsellik</strong></td>
+                <td>Haftanın günü, ay, çeyrek, çeyrek sonu bayrakları</td>
+                <td>Tarihsel kalıplar: "Mayıs'ta sat", Q4 rallileri, hafta sonu etkileri</td>
+            </tr>
+            <tr>
+                <td><strong>Halving Döngüsü</strong></td>
+                <td>Bitcoin halving'inden bu yana/halving'e gün, döngü konumu %</td>
+                <td>Kripto-spesifik: halving'ler tarihsel olarak boğa piyasası başlangıçlarıyla ilişkili</td>
+            </tr>
+        </table>
+
+        <p>Level 7 olmadan, modeller tamamen farklı piyasa bağlamlarında aynı özellik kalıplarını görürdü. Level 7 ile, ATH'deki -%5 günlük düşüş, yıllık diplerdeki -%5 düşüşten farklı görünür—çünkü gerçekten farklıdır.</p>
+
+        <h2>3. ETİKETLER: %100 HİNDSİGHT DOĞRULUĞU</h2>
+        <p>Bu, rejim tespitini fiyat tahmininden farklı kılan temel içgörüdür.</p>
+        
+        <div class="finding">
+            <strong>Biz zaman yolcularıyız.</strong> Tarihsel verileri etiketlerken, tam olarak ne olduğunu biliyoruz. 
+            Fiyat yükseldiyse, YUKARI. Düştüyse, AŞAĞI. Eşik yok. Tahmin yok. 
+            Modelin görevi, hangi özellik kalıplarının hangi sonuçlara karşılık geldiğini öğrenmek.
+        </div>
+
+        <h3>Etiket Dağılımı (Eğitim Seti)</h3>
+        <table>
+            <tr><th>Etiket Türü</th><th>YUKARI/BOĞA</th><th>AŞAĞI/AYI</th><th>AYNI/YATAY</th></tr>
+            <tr><td>Günlük Yön</td><td class="good">~%50</td><td class="bad">~%49</td><td>~%1</td></tr>
+            <tr><td>Haftalık Rejim</td><td class="good">~%51</td><td class="bad">~%48</td><td>~%1</td></tr>
+            <tr><td>Aylık Rejim</td><td class="good">~%52</td><td class="bad">~%47</td><td>~%1</td></tr>
+        </table>
+
+        <h2>4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
+        <p><strong>Denetimsiz öğrenme.</strong> HMM etiketlerimizi görmez. Gizli durumları tamamen özellik kalıplarından keşfeder.</p>
+
+        <h3>Neden HMM?</h3>
+        <ul>
+            <li><strong>Doğal rejim geçişi:</strong> Piyasalar durumlar arasında geçiş yapar—HMM bunu açıkça modelliyor</li>
+            <li><strong>Etiket önyargısı yok:</strong> Etiketlemeyi düşünmediğimiz kalıpları keşfeder</li>
+            <li><strong>Yorumlanabilir:</strong> Her durumun net istatistiksel özellikleri var</li>
+        </ul>
+
+        <h3>Konfigürasyon</h3>
+        <table>
+            <tr><th>Parametre</th><th>Değer</th><th>Sebep</th></tr>
+            <tr><td>Özellikler</td><td>219 (sadece sayısal)</td><td>HMM sürekli özellikler gerektirir</td></tr>
+            <tr><td>Denenecek durumlar</td><td>2, 3, 4, 5</td><td>BIC ile optimal sayıyı bul</td></tr>
+            <tr><td>Kovaryans</td><td>Diagonal</td><td>Çok özellikle sayısal stabilite</td></tr>
+            <tr><td>İterasyonlar</td><td>300</td><td>Yakınsama sağla</td></tr>
+            <tr><td>Başlatmalar</td><td>10</td><td>Yerel minimumdan kaçın</td></tr>
+        </table>
+
+        <h3>HMM Durumu</h3>
+        <table>
+            <tr><th>Adım</th><th>Durum</th></tr>
+            <tr><td>Veri hazırlığı</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim scripti</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim çalıştırma</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Durum analizi</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h2>5. MODEL 2: RANDOM FOREST</h2>
+        <p><strong>Denetimli öğrenme.</strong> Random Forest hindsight-doğru etiketlerimizi görür ve bunları özelliklerden tahmin etmeyi öğrenir.</p>
+
+        <h3>Neden Random Forest?</h3>
+        <ul>
+            <li><strong>Tabular veriyi mükemmel işler:</strong> Yapılandırılmış veri için altın standart</li>
+            <li><strong>Özellik önemi:</strong> Hangi metriklerin en önemli olduğunu söyler</li>
+            <li><strong>Gürültüye dayanıklı:</strong> Ağaç topluluğu hataları ortalar</li>
+            <li><strong>Ölçekleme gerektirmez:</strong> Ağaç tabanlı modeller normalize veri gerektirmez</li>
+        </ul>
+
+        <h3>Konfigürasyon</h3>
+        <table>
+            <tr><th>Parametre</th><th>Arama Aralığı</th></tr>
+            <tr><td>n_estimators</td><td>500 - 1,250</td></tr>
+            <tr><td>max_depth</td><td>15 - 35, None</td></tr>
+            <tr><td>min_samples_split</td><td>2 - 15</td></tr>
+            <tr><td>min_samples_leaf</td><td>1 - 6</td></tr>
+            <tr><td>max_features</td><td>sqrt, log2, 0.3, 0.5</td></tr>
+            <tr><td>class_weight</td><td>balanced, balanced_subsample</td></tr>
+        </table>
+
+        <h3>Eğitim Yaklaşımı</h3>
+        <ul>
+            <li><strong>RandomizedSearchCV:</strong> 100 hiperparametre kombinasyonu</li>
+            <li><strong>5-katlı çapraz doğrulama:</strong> Sağlam performans tahmini</li>
+            <li><strong>Puanlama metriği:</strong> F1-macro (sınıflar arasında dengeli)</li>
+            <li><strong>Üç ayrı model:</strong> Günlük, Haftalık, Aylık tahminler</li>
+        </ul>
+
+        <h3>Random Forest Durumu</h3>
+        <table>
+            <tr><th>Adım</th><th>Durum</th></tr>
+            <tr><td>Veri hazırlığı</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim scripti</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim çalıştırma</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+            <tr><td>Özellik önemi analizi</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h2>6. MODEL 3: BİDİRECTİONAL LSTM + ATTENTİON</h2>
+        <p><strong>Diziler için derin öğrenme.</strong> LSTM 90 ardışık günü işler ve sonraki günün rejimini tahmin eder.</p>
+
+        <h3>Neden Attention'lı LSTM?</h3>
+        <ul>
+            <li><strong>Dizi modelleme:</strong> 90 gün boyunca temporal kalıpları öğrenir</li>
+            <li><strong>Bidirectional:</strong> Dizileri ileri ve geri okur</li>
+            <li><strong>Attention mekanizması:</strong> Dizideki hangi günlerin en önemli olduğunu öğrenir</li>
+            <li><strong>Çok görevli:</strong> Tek model günlük, haftalık VE aylık aynı anda tahmin eder</li>
+        </ul>
+
+        <h3>Mimari</h3>
+        <table>
+            <tr><th>Bileşen</th><th>Konfigürasyon</th></tr>
+            <tr><td>Girdi</td><td>(batch, 90 gün, 235 özellik)</td></tr>
+            <tr><td>LayerNorm</td><td>Girdileri normalize et</td></tr>
+            <tr><td>BiLSTM</td><td>3 katman, hidden_size=256</td></tr>
+            <tr><td>Attention</td><td>Önemli zaman adımlarını öğren</td></tr>
+            <tr><td>Paylaşılan Dense</td><td>256 → 128 dropout ile</td></tr>
+            <tr><td>Çıktı Başlıkları</td><td>3 ayrı başlık (günlük/haftalık/aylık)</td></tr>
+        </table>
+
+        <h3>Eğitim Konfigürasyonu</h3>
+        <table>
+            <tr><th>Parametre</th><th>Değer</th></tr>
+            <tr><td>Dizi uzunluğu</td><td class="good">90 gün</td></tr>
+            <tr><td>Batch boyutu</td><td>128</td></tr>
+            <tr><td>Epoch</td><td>150 (erken durdurma ile)</td></tr>
+            <tr><td>Öğrenme oranı</td><td>1e-3</td></tr>
+            <tr><td>Dropout</td><td>0.3</td></tr>
+            <tr><td>Erken durdurma sabrı</td><td>20 epoch</td></tr>
+            <tr><td>Optimizer</td><td>AdamW weight decay ile</td></tr>
+            <tr><td>Scheduler</td><td>ReduceLROnPlateau</td></tr>
+            <tr><td>Sınıf ağırlıklandırma</td><td>Ters frekans</td></tr>
+        </table>
+
+        <h3>LSTM Verileri</h3>
+        <table>
+            <tr><th>Bölüm</th><th>Diziler</th><th>Şekil</th><th>Boyut</th></tr>
+            <tr><td>Eğitim</td><td>154,844</td><td>(154K, 90, 235)</td><td class="good">13.1 GB</td></tr>
+            <tr><td>Doğrulama</td><td>25,942</td><td>(26K, 90, 235)</td><td>2.2 GB</td></tr>
+            <tr><td>Test</td><td>27,020</td><td>(27K, 90, 235)</td><td>2.3 GB</td></tr>
+        </table>
+
+        <h3>LSTM Durumu</h3>
+        <table>
+            <tr><th>Adım</th><th>Durum</th></tr>
+            <tr><td>Veri hazırlığı (90 günlük diziler)</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Model mimarisi</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim scripti</td><td><span class="status complete">TAMAMLANDI</span></td></tr>
+            <tr><td>Eğitim çalıştırma (GPU)</td><td><span class="status pending">BEKLİYOR</span></td></tr>
+        </table>
+
+        <h2>7. VERİ PAYPLİNE: 10 DOĞRULAMA KONTROLÜ</h2>
+        <p>Kurumsal düzey veri hazırlığı her şeyi birden fazla kez doğrulamak demektir.</p>
+
+        <table>
+            <tr><th>#</th><th>Kontrol</th><th>Sonuç</th></tr>
+            <tr><td>1</td><td>DB sütunları veri setiyle eşleşiyor</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>2</td><td>Tüm tablo özellikleri mevcut</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>3</td><td>Örnek veri DB ile eşleşiyor</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>4</td><td>Satır sayıları eşleşiyor</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>5</td><td>Boş sütun yok</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>6</td><td>Veri tipleri doğru</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>7</td><td>Duplicate yok, fiyat bütünlüğü</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>8</td><td>Tarih sürekliliği</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>9</td><td>Rastgele örnek çapraz doğrulama</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+            <tr><td>10</td><td>Etiket tutarlılığı (işaret = yön)</td><td><span class="status complete">✓ GEÇTİ</span></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>10/10 kontrol geçti.</strong> Veri seti doğrulandı, temizlendi ve eğitime hazır.
+        </div>
+
+        <h2>8. ALTYAPI</h2>
+        <p>Eğitim önemli hesaplama kaynakları gerektiriyor.</p>
+
+        <table>
+            <tr><th>Model</th><th>Hesaplama</th><th>Bellek</th><th>Tahmini Süre</th></tr>
+            <tr><td>HMM</td><td>CPU</td><td>~4 GB RAM</td><td>1-2 saat</td></tr>
+            <tr><td>Random Forest</td><td>CPU (tüm çekirdekler)</td><td>~8-16 GB RAM</td><td>2-4 saat</td></tr>
+            <tr><td>LSTM</td><td class="good">GPU (A100/L40)</td><td>~30-40 GB VRAM</td><td>4-8 saat</td></tr>
+        </table>
+
+        <h2>9. MEVCUT DURUM</h2>
+        <table>
+            <tr><th>Bileşen</th><th>Durum</th><th>Notlar</th></tr>
+            <tr class="highlight"><td><strong>Veri Seti</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>233K satır × 203 özellik × 97 varlık</td></tr>
+            <tr class="highlight"><td><strong>ML Final Veri Setleri</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>train/val/test bölümleri, toplam ~18 GB</td></tr>
+            <tr class="highlight"><td><strong>HMM Verisi</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>219 sayısal özellik, 137 MB</td></tr>
+            <tr class="highlight"><td><strong>RF Verisi</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>235 özellik, 212 MB</td></tr>
+            <tr class="highlight"><td><strong>LSTM Verisi</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>90 günlük diziler, 17.6 GB</td></tr>
+            <tr><td><strong>HMM Eğitimi</strong></td><td><span class="status pending">BEKLİYOR</span></td><td>RunPod CPU'da çalıştırmaya hazır</td></tr>
+            <tr><td><strong>RF Eğitimi</strong></td><td><span class="status pending">BEKLİYOR</span></td><td>RunPod CPU'da çalıştırmaya hazır</td></tr>
+            <tr><td><strong>LSTM Eğitimi</strong></td><td><span class="status pending">BEKLİYOR</span></td><td>RunPod GPU'da çalıştırmaya hazır</td></tr>
+            <tr><td><strong>Ensemble</strong></td><td><span class="status pending">BEKLİYOR</span></td><td>Bireysel modeller tamamlandıktan sonra</td></tr>
+        </table>
+
+        <h2>10. SONRAKİ ADIMLAR</h2>
+        <ol>
+            <li>18 GB veri setini RunPod network volume'a yükle</li>
+            <li>HMM eğit (CPU pod, ~2 saat)</li>
+            <li>Random Forest eğit (CPU pod, ~4 saat)</li>
+            <li>LSTM eğit (GPU pod A100/L40, ~6 saat)</li>
+            <li>Sonuçları analiz et ve modelleri karşılaştır</li>
+            <li>Ensemble oylama sistemi oluştur</li>
+            <li>Bölüm 6 ile entegre et (Claude Opus 4.5 karar katmanı)</li>
+        </ol>
+
+        <div class="abstract">
+            <strong>Bölüm 5 Durumu: DEVAM EDİYOR</strong><br>
+            Veri hazırlığı tamamlandı. Eğitim scriptleri hazır. RunPod altyapısında çalıştırılmayı bekliyor.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

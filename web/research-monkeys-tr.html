@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ω OMEGA ARENA | Araştırma Raporu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; text-align: justify; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; }
+        .report code { font-family: 'IBM Plex Mono', monospace; background: #f0f0e8; padding: 2px 6px; font-size: 11px; }
+        .report .code-block { background: #1a1a1a; color: #0f0; padding: 16px; font-size: 11px; overflow-x: auto; margin: 12px 0; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .chart { background: #fafafa; border: 1px solid #ddd; padding: 20px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+        .bar { background: #000; height: 16px; margin: 4px 0; display: inline-block; }
+        .bar.negative { background: #c00; }
+        .bar.positive { background: #080; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+        .scroll-table { overflow-x: auto; margin: 16px 0; }
+
+        /* TABLE - Match Leaderboard Style */
+        .report table {
+            width: auto;
+            border-collapse: collapse;
+            border: 2px solid #000;
+            margin: 16px 0;
+        }
+        /* Header row (first tr with th) */
+        .report tr:first-child {
+            background: #f3f4f6;
+            border-bottom: 2px solid #000;
+        }
+        .report th {
+            padding: 4px 10px;
+            text-align: left;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            border-right: 2px solid #000;
+            background: #f3f4f6;
+            color: #000;
+        }
+        .report th:last-child {
+            border-right: none;
+        }
+        /* Data rows */
+        .report tr:not(:first-child) {
+            border-bottom: 1px solid #d1d5db;
+        }
+        .report tr:last-child {
+            border-bottom: none;
+        }
+        .report td {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            border-right: 2px solid #000;
+        }
+        .report td:last-child {
+            border-right: none;
+        }
+        .report .highlight {
+            background: #f5f5f0;
+        }
+        /* Hover effect on data rows */
+        .report tr:not(:first-child):hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Colors - Bold like leaderboard */
+        .good {
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .bad {
+            color: #dc2626;
+            font-weight: 700;
+        }
+        
+        /* Small table variant */
+        .small-table { font-size: 10px; }
+        .small-table th { font-size: 0.55rem; padding: 3px 6px; }
+        .small-table td { font-size: 0.65rem; padding: 3px 6px; }
+        .back-link {
+            display: inline-block;
+            font-size: 12px;
+            color: #666;
+            text-decoration: none;
+            margin-bottom: 24px;
+            padding: 8px 0;
+        }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research-tr.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index-tr.html" class="nav-link">CANLI</a>
+                <span class="nav-divider">|</span>
+                <a href="index-tr.html" class="nav-link">SIRALAMA</a>
+                <span class="nav-divider">|</span>
+                <a href="research-tr.html" class="nav-link active">ARAŞTIRMA</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-monkeys-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-monkeys.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research-tr.html" class="back-link">Araştırmaya Dön</a>
+        <h1>MAYMUNLAR PİYASAYI YENEBİLİR Mİ?</h1>
+        <p class="subtitle">Bölüm 1: Al-ve-Tut'a Karşı Referans Noktası Belirleme</p>
+        <p class="authors">Omega Arena • Ocak 2026</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">38.778</div>
+                <div class="label">TEST</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">100</div>
+                <div class="label">VARLIK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">13</div>
+                <div class="label">YIL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">7</div>
+                <div class="label">İSTATİSTİK TESTİ</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Özet.</strong> Bu, çok bölümlü bir araştırma serisinin <strong>Bölüm 1</strong>'idir. Burada 12 saçma trading stratejisi—yazı-tura, zar atma ve NASA kalitesinde gezegen yerçekimi kuvvetleri—al-ve-tut'a (HODL) karşı test edilerek bir referans noktası belirleniyor. 38.778 backtest ve titiz istatistiksel testlerden sonra, aptal stratejilerin HODL'u yenebildiği, ancak <strong>HODL'u yenmenin önemsiz derecede düşük bir çıta olduğu</strong> bulundu. Çıkış mekanizması olan herhangi bir strateji çöküşlerde daha iyi performans gösterir. Asıl soru—<strong>maymunlar gerçek profesyonel trading stratejilerini yenebilir mi?</strong>—aynı aptal stratejilerin 171 metrikli tam Omega Sistemi ile karşılaştırıldığı <strong>Bölüm 7</strong>'de cevaplanacak.
+        </div>
+
+        <h2>1. METODOLOJİ</h2>
+        
+        <h3>1.1 Veri Toplama</h3>
+        <p>Tarihsel OHLCV verileri, piyasa değerine göre ilk 100 kripto para için yfinance API aracılığıyla Yahoo Finance'ten toplandı. Veriler Eylül 2014'ten (BTC'nin borsada başlangıcı) Ocak 2026'ya kadar uzanıyor.</p>
+        
+        <table>
+            <tr><th>Aralık</th><th>Tarih Aralığı</th><th>Toplam Satır</th><th>Varlık</th></tr>
+            <tr><td><strong>1 day</strong></td><td>2014-09-17 → 2026-01-22</td><td><strong>242,290</strong></td><td><strong>100</strong></td></tr>
+            <tr><td><strong>1 hour</strong></td><td>2024-01-23 → 2026-01-22</td><td><strong>1,530,832</strong></td><td>89</td></tr>
+            <tr><td><strong>30 min</strong></td><td>2025-11-23 → 2026-01-22</td><td>251,665</td><td>89</td></tr>
+            <tr><td><strong>15 min</strong></td><td>2025-11-23 → 2026-01-22</td><td>502,775</td><td>89</td></tr>
+            <tr><td><strong>5 min</strong></td><td>2025-11-23 → 2026-01-22</td><td><strong>1,487,288</strong></td><td>89</td></tr>
+            <tr><td><strong>1 min</strong></td><td>2026-01-14 → 2026-01-22</td><td>957,235</td><td>89</td></tr>
+        </table>
+        <p><strong>Toplam: 5 milyondan fazla veri noktasında 4.972.085 fiyat mumu.</strong></p>
+
+        <h3>1.2 Gezegen Verileri (Burç Stratejisi için)</h3>
+        <p>NASA JPL efemeris verileri (DE421) kullanılarak gök cisimlerinin Türkiye'de bulunan 1.5kg'lık bir MacBook üzerinde uyguladığı gerçek yerçekimi kuvvetleri hesaplandı. 71.016 benzersiz zaman damgasının her biri için hesaplanan:</p>
+        <ul>
+            <li>Güneş, Ay, Merkür, Venüs, Mars, Jüpiter, Satürn için ekliptik boylam ve mesafe</li>
+            <li>Yerçekimi kuvveti: F = G × m₁ × m₂ / r² (Newton Yasası)</li>
+            <li>Trigonometrik ayrıştırma kullanarak net kuvvet vektörü (Fx, Fy) ve yönü</li>
+        </ul>
+
+        <h3>1.3 Trading Kuralları</h3>
+        <ul>
+            <li>Başlangıç sermayesi: $10.000 USD</li>
+            <li>Pozisyon boyutu: %100 (her işlemde tümü)</li>
+            <li>İşlem ücreti: İşlem başına %0.1 (Binance spot oranı)</li>
+            <li>Uygulama fiyatı: Mum kapanışı</li>
+            <li>Hayatta kalma önyargısını önlemek için backtest'ler takvim yılına göre bölündü</li>
+            <li>Her strateji için hem NORMAL hem de TERS mantık test edildi</li>
+        </ul>
+
+        <h3>1.4 İstatistiksel Titizlik</h3>
+        <p>Bulguların istatistiksel tesadüfler olmadığından emin olmak için 7 titiz test uygulandı:</p>
+        <ul>
+            <li><strong>Bonferroni Düzeltmesi:</strong> Çoklu test için p-değeri eşiğini ayarlar (α/m = 0.05/23)</li>
+            <li><strong>Benjamini-Hochberg FDR:</strong> Yanlış keşif oranını kontrol eder</li>
+            <li><strong>Cohen's h Etki Büyüklüğü:</strong> Pratik (sadece istatistiksel değil) anlamlılığı ölçer</li>
+            <li><strong>Wilson Güven Aralıkları:</strong> Yenme oranları için %95 GA</li>
+            <li><strong>Örneklem Dışı Test:</strong> Eğitim (2014-2021) vs Test (2022-2024) ayrımı</li>
+            <li><strong>Sharpe Oranı Anlamlılığı:</strong> Riske göre düzeltilmiş getiri testi</li>
+            <li><strong>5-Katlı Çapraz Doğrulama:</strong> Veri dilimleri arasında kararlılık</li>
+        </ul>
+
+        <h2>2. STRATEJİLER</h2>
+        
+        <table>
+            <tr><th>Strateji</th><th>Mantık</th><th>Ort. İşlem/Yıl</th></tr>
+            <tr><td><strong>HODL</strong></td><td>Başta al, sonda sat</td><td><strong>2</strong></td></tr>
+            <tr><td><strong>Yazı-Tura</strong></td><td>Her mumda %50 al, %50 sat</td><td>151</td></tr>
+            <tr><td><strong>Zar Atma</strong></td><td>1-2: al, 3-4: tut, 5-6: sat</td><td>101</td></tr>
+            <tr><td><strong>Magic 8-Ball</strong></td><td>20 klasik yanıt → al/tut/sat</td><td>83</td></tr>
+            <tr><td><strong>Sarhoş Denizci</strong></td><td>Sürüklenme önyargılı rastgele yürüyüş</td><td>117</td></tr>
+            <tr><td><strong>Fibonacci Aptalı</strong></td><td>Sadece #1,2,3,5,8,13,21... mumlarında işlem yap</td><td><strong>11</strong></td></tr>
+            <tr><td><strong>Şanslı 7</strong></td><td>Fiyat 7 ile biterse al, 3 ile biterse sat</td><td>18</td></tr>
+            <tr><td><strong>Pi Trader</strong></td><td>π rakamlarını kullan: 0-3=al, 4-6=tut, 7-9=sat</td><td>122</td></tr>
+            <tr><td><strong>Üç Kırmızı</strong></td><td>3 kırmızı mumdan sonra al, 3 yeşilden sonra sat</td><td>20</td></tr>
+            <tr><td><strong>FOMO Maymunu</strong></td><td>Hacim artışında al, -%2 düşüşte panikle sat</td><td>32</td></tr>
+            <tr class="highlight"><td><strong>Burç Güneş</strong></td><td>Net gezegen kuvveti yönü > 0° ise al</td><td><strong>2.5</strong></td></tr>
+            <tr class="highlight"><td><strong>Burç GüneşHariç</strong></td><td>Aynı ama Güneş kuvveti hariç</td><td>22</td></tr>
+        </table>
+
+        <h2>3. SONUÇLAR</h2>
+
+        <h3>3.1 İstatistiksel Anlamlılık (Z-Testi)</h3>
+        <p>Her stratejinin "HODL'u yenme" oranının %50'den (rastgele şans) anlamlı şekilde farklı olup olmadığı test edildi:</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>HODL'u Yen</th><th>N</th><th>Z-Skoru</th><th>Sonuç</th></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td class="good"><strong>%56.4</strong></td><td>729</td><td><strong>+3.44</strong></td><td class="good">✓ ANLAMLI (p<0.001)</td></tr>
+            <tr class="highlight"><td><strong>fibonacci_aptalı normal</strong></td><td class="good"><strong>%53.8</strong></td><td>730</td><td><strong>+2.07</strong></td><td class="good">✓ ANLAMLI (p<0.05)</td></tr>
+            <tr><td><strong>burç_güneşhariç ters</strong></td><td>%53.5</td><td>723</td><td>+1.90</td><td>Anlamlı değil</td></tr>
+            <tr><td><strong>şanslı_7 normal</strong></td><td>%53.3</td><td>737</td><td>+1.80</td><td>Anlamlı değil</td></tr>
+            <tr><td><strong>yazı_tura normal</strong></td><td class="bad">%45.2</td><td>732</td><td><strong>-2.59</strong></td><td class="bad">✓ DAHA KÖTÜ (p<0.05)</td></tr>
+            <tr><td><strong>yazı_tura ters</strong></td><td class="bad">%43.2</td><td>732</td><td><strong>-3.70</strong></td><td class="bad">✓ DAHA KÖTÜ (p<0.001)</td></tr>
+            <tr><td><strong>burç_güneşhariç normal</strong></td><td class="bad">%41.8</td><td>737</td><td><strong>-4.46</strong></td><td class="bad">✓ DAHA KÖTÜ (p<0.001)</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>🎯 Önemli Keşif:</strong> Burç Güneş Ters, HODL'u zamanın %56.4'ünde yeniyor (p<0.001, Bonferroni'yi geçiyor). Ancak bunun düşündüğünüz anlama gelmediğini Bölüm 7'de görün.
+        </div>
+
+        <h3>3.2 Aralığa Göre Performans</h3>
+        <table>
+            <tr><th>Aralık</th><th>Ort. Getiri</th><th>HODL'u Yen</th><th>Ort. İşlem</th><th>Sonuç</th></tr>
+            <tr class="highlight"><td><strong>1 gün</strong></td><td class="good">+%2.3</td><td><strong>%48.3</strong></td><td><strong>62</strong></td><td class="good">✓ TEK KARLI</td></tr>
+            <tr><td><strong>30 dk</strong></td><td class="bad">-%21.0</td><td>%25.4</td><td>258</td><td class="bad">✗ Zarar</td></tr>
+            <tr><td><strong>15 dk</strong></td><td class="bad">-%32.3</td><td>%23.2</td><td>513</td><td class="bad">✗ Zarar</td></tr>
+            <tr><td><strong>1 saat</strong></td><td class="bad">-%35.0</td><td>%23.8</td><td>1.056</td><td class="bad">✗ Zarar</td></tr>
+            <tr><td><strong>1 dk</strong></td><td class="bad">-%47.9</td><td>%31.1</td><td><strong>1.863</strong></td><td class="bad">✗ Zarar</td></tr>
+            <tr><td><strong>5 dk</strong></td><td class="bad">-%48.5</td><td>%21.4</td><td>1.509</td><td class="bad">✗ Zarar</td></tr>
+        </table>
+        <p><strong>Sonuç:</strong> Sadece günlük aralıklı trading karlı. Yüksek frekanslar ücretler tarafından yok ediliyor.</p>
+
+        <h3>3.3 Ücret Etkisi Analizi</h3>
+        <p>%0.1 trading ücreti yıkıcı şekilde bileşiyor:</p>
+        <table>
+            <tr><th>Strateji</th><th>İşlem</th><th>Ödenen Ücret</th><th>Gerçek Getiri</th><th>Ücretsiz Olsaydı</th></tr>
+            <tr><td><strong>yazı_tura</strong></td><td><strong>151</strong></td><td><strong>-%15.1</strong></td><td class="bad">-%5.7</td><td class="good">+%9.5</td></tr>
+            <tr><td><strong>pi_trader</strong></td><td><strong>122</strong></td><td><strong>-%12.2</strong></td><td class="bad">-%1.5</td><td class="good">+%10.7</td></tr>
+            <tr><td><strong>burç_güneş ters</strong></td><td><strong>3</strong></td><td>-%0.3</td><td class="good">+%32.9</td><td>+%33.1</td></tr>
+            <tr><td><strong>fibonacci_aptalı</strong></td><td><strong>11</strong></td><td>-%1.1</td><td class="good">+%5.7</td><td>+%6.8</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Bulgu:</strong> Yazı-tura ücretsiz olsaydı +%9.5 karlı olurdu. %0.1 ücret × 151 işlem = %15.1 ücretlere gitti, -%5.7 zarara dönüştü.
+        </div>
+
+        <h3>3.4 İşlem Sıklığı Etkisi</h3>
+        <table>
+            <tr><th>İşlem/Yıl</th><th>Ort. Getiri</th><th>HODL'u Yen</th><th>Örnek</th></tr>
+            <tr><td><strong>0-9</strong></td><td class="good">+6.9%</td><td>48.3%</td><td>3,977</td></tr>
+            <tr><td><strong>10-49</strong></td><td class="good">+7.9%</td><td class="good">50.6%</td><td><strong>5,934</strong></td></tr>
+            <tr><td><strong>50-99</strong></td><td class="bad">-1.1%</td><td>51.6%</td><td>1,148</td></tr>
+            <tr><td><strong>100-199</strong></td><td class="bad">-6.8%</td><td>45.7%</td><td><strong>4,857</strong></td></tr>
+            <tr><td><strong>200+</strong></td><td class="bad">-9.5%</td><td class="bad">25.9%</td><td>212</td></tr>
+        </table>
+
+        <h3>3.5 Bitcoin 4-Yıllık Döngüsü</h3>
+        <table>
+            <tr><th>Döngü Pozisyonu</th><th>Ort. HODL Getiri</th><th>Yorum</th></tr>
+            <tr class="highlight"><td><strong>Halving Sonrası Yıl</strong></td><td class="good"><strong>+%818.4</strong></td><td>🚀 Büyük kazançlar (2013, 2017, 2021)</td></tr>
+            <tr><td><strong>Döngü Ortası</strong></td><td class="good">+%389.2</td><td>Hala güçlü</td></tr>
+            <tr><td><strong>Halving Öncesi</strong></td><td class="good">+%366.0</td><td>Birikim aşaması</td></tr>
+            <tr><td><strong>Halving Yılı</strong></td><td class="good">+%224.0</td><td>Etkinlik beklentisi</td></tr>
+        </table>
+
+        <h2>4. COİN BAZLI ANALİZ</h2>
+
+        <h3>4.1 Stratejilerin En İyi Çalıştığı İlk 20 Coin</h3>
+        <div class="scroll-table">
+        <table class="small-table">
+            <tr><th>Varlık</th><th>HODL'u Yen</th><th>Test</th><th>Ort. HODL</th><th>En İyi Getiri</th><th>Not</th></tr>
+            <tr><td><strong>APT-USD</strong></td><td class="good"><strong>%81.1</strong></td><td>106</td><td>-%49.6</td><td>+%362.4</td><td>Yeni coin, volatil</td></tr>
+            <tr><td><strong>COMP-USD</strong></td><td class="good"><strong>%74.2</strong></td><td>62</td><td>-%96.6</td><td>+%304.2</td><td>DeFi token</td></tr>
+            <tr><td><strong>CRV-USD</strong></td><td class="good">%68.9</td><td>132</td><td>-%33.5</td><td>+%274.8</td><td>Curve Finance</td></tr>
+            <tr><td><strong>ZIL-USD</strong></td><td class="good">%67.6</td><td>176</td><td>-%37.2</td><td>+%285.9</td><td>Zilliqa</td></tr>
+            <tr><td><strong>AUDIO-USD</strong></td><td class="good">%65.9</td><td>132</td><td>-%23.7</td><td>+%275.4</td><td>Audius</td></tr>
+            <tr><td><strong>BAL-USD</strong></td><td class="good">%64.3</td><td>154</td><td>-%28.9</td><td>+%264.6</td><td>Balancer</td></tr>
+            <tr><td><strong>GALA-USD</strong></td><td class="good">%63.6</td><td>132</td><td>-%16.7</td><td><strong>+%483.5</strong></td><td>Gaming</td></tr>
+            <tr><td><strong>1INCH-USD</strong></td><td class="good">%62.9</td><td>132</td><td>-%9.9</td><td>+%387.7</td><td>DEX aggregator</td></tr>
+            <tr><td><strong>FLOW-USD</strong></td><td class="good">%62.9</td><td>132</td><td>-%26.2</td><td><strong>+%460.0</strong></td><td>NFT chain</td></tr>
+            <tr><td><strong>AVAX-USD</strong></td><td class="good">%61.1</td><td>131</td><td>+%4.0</td><td>+%288.9</td><td>L1 chain</td></tr>
+        </table>
+        </div>
+        <p><em>Kalıp: Stratejiler, piyasa dışında olmanın avantajlı olduğu volatil, düşen coinlerde en iyi çalışıyor.</em></p>
+
+        <h3>4.2 Stratejilerin Başarısız Olduğu Son 20 Coin</h3>
+        <div class="scroll-table">
+        <table class="small-table">
+            <tr><th>Varlık</th><th>HODL'u Yen</th><th>Test</th><th>Ort. HODL</th><th>Not</th></tr>
+            <tr><td><strong>USDC-USD</strong></td><td class="bad">%11.6</td><td>198</td><td>+%0.0</td><td>Stablecoin (sadece ücret)</td></tr>
+            <tr><td><strong>TUSD-USD</strong></td><td class="bad">%14.6</td><td>198</td><td>-%0.1</td><td>Stablecoin</td></tr>
+            <tr><td><strong>DAI-USD</strong></td><td class="bad">%15.9</td><td>176</td><td>+%0.0</td><td>Stablecoin</td></tr>
+            <tr><td><strong>USDT-USD</strong></td><td class="bad">%15.9</td><td>220</td><td>-%0.1</td><td>Stablecoin</td></tr>
+            <tr><td><strong>BNB-USD</strong></td><td class="bad">%29.8</td><td>198</td><td class="good">+%81.0</td><td>Güçlü performans</td></tr>
+            <tr><td><strong>ETH-USD</strong></td><td class="bad">%30.4</td><td><strong>217</strong></td><td class="good">+%91.5</td><td>Güçlü performans</td></tr>
+            <tr><td><strong>BTC-USD</strong></td><td class="bad">%30.7</td><td><strong>264</strong></td><td class="good">+%58.2</td><td>Güçlü performans</td></tr>
+        </table>
+        </div>
+        <p><em>Kalıp: Stratejiler stablecoin'lerde (saf ücret kaybı) ve güçlü performans gösterenlerde (HODL kazanır) başarısız.</em></p>
+
+        <h3>4.3 Büyük Coinler - Coin Başına En İyi Strateji</h3>
+        <table>
+            <tr><th>Coin</th><th>En İyi Strateji</th><th>HODL'u Yen</th><th>Ort. Getiri</th></tr>
+            <tr><td><strong>BTC-USD</strong></td><td><strong>horoscope_sun reversed</strong></td><td><strong>58.3%</strong></td><td>+40.5%</td></tr>
+            <tr><td><strong>ETH-USD</strong></td><td><strong>fibonacci_fool normal</strong></td><td><strong>62.5%</strong></td><td>+15.1%</td></tr>
+            <tr><td><strong>BNB-USD</strong></td><td><strong>fomo_monkey reversed</strong></td><td>55.6%</td><td><strong>+93.7%</strong></td></tr>
+            <tr><td><strong>SOL-USD</strong></td><td><strong>coin_flip normal</strong></td><td><strong>60.0%</strong></td><td>+42.5%</td></tr>
+            <tr><td><strong>XRP-USD</strong></td><td><strong>fibonacci_fool normal</strong></td><td><strong>66.7%</strong></td><td>+9.7%</td></tr>
+            <tr><td><strong>ADA-USD</strong></td><td><strong>magic_8ball reversed</strong></td><td><strong>75.0%</strong></td><td>+31.0%</td></tr>
+            <tr><td><strong>DOGE-USD</strong></td><td><strong>magic_8ball normal</strong></td><td class="good"><strong>87.5%</strong></td><td>+51.1%</td></tr>
+            <tr><td><strong>DOT-USD</strong></td><td><strong>horoscope_sun reversed</strong></td><td><strong>71.4%</strong></td><td><strong>+73.1%</strong></td></tr>
+            <tr><td><strong>LINK-USD</strong></td><td><strong>horoscope_nosun reversed</strong></td><td>55.6%</td><td><strong>+91.4%</strong></td></tr>
+            <tr><td><strong>AVAX-USD</strong></td><td><strong>dice_roll reversed</strong></td><td class="good"><strong>83.3%</strong></td><td>-4.2%</td></tr>
+        </table>
+
+        <h3>4.4 Portföy Simülasyonu (2019-2024)</h3>
+        <p>$10.000 ile başlayarak, yıllık getirileri bileştirme:</p>
+        <table>
+            <tr><th>Portföy</th><th>2019</th><th>2020</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th><th>Son</th></tr>
+            <tr class="highlight"><td><strong>Sadece Astro</strong></td><td>+%17.6</td><td>+%20.7</td><td><strong>+%137.2</strong></td><td>-%6.4</td><td><strong>+%79.3</strong></td><td><strong>+%86.5</strong></td><td class="good"><strong>$105.326</strong></td></tr>
+            <tr><td><strong>Sadece İlk 2</strong></td><td>+%2.7</td><td>+%26.3</td><td><strong>+%109.0</strong></td><td>-%17.5</td><td>+%74.5</td><td>+%36.7</td><td class="good"><strong>$53.374</strong></td></tr>
+            <tr><td><strong>Saf HODL</strong></td><td>+%8.8</td><td><strong>+%110.2</strong></td><td><strong>+%125.3</strong></td><td><strong>-%72.3</strong></td><td>+%73.9</td><td>+%11.1</td><td><strong>$27.568</strong></td></tr>
+            <tr><td><strong>Tüm Aptallar</strong></td><td>-%0.7</td><td>+%28.6</td><td>+%74.7</td><td>-%35.8</td><td>+%46.1</td><td>+%17.2</td><td><strong>$24.529</strong></td></tr>
+            <tr><td><strong>Banka Mevduatı</strong></td><td>+%2.0</td><td>+%0.5</td><td>+%0.1</td><td>+%1.0</td><td>+%4.5</td><td>+%5.0</td><td><strong>$11.367</strong></td></tr>
+            <tr><td><strong>Sadece Rastgele</strong></td><td>-%1.8</td><td>+%34.4</td><td>+%44.8</td><td><strong>-%51.2</strong></td><td>+%17.1</td><td>-%0.7</td><td class="bad"><strong>$10.828</strong></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>🚀 Şok Edici Sonuç:</strong> "Sadece Astro" portföyü (burç_güneş + burç_güneşhariç ters) $10.000'ı 6 yılda $105.326'ya dönüştürdü—saf HODL'dan neredeyse 4 kat daha iyi!
+        </div>
+
+        <h2>5. BURÇ NEDEN ÇALIŞIYOR</h2>
+        
+        <p>Burç_güneş stratejisi, Türkiye'deki bir MacBook üzerindeki tüm gezegenlerden gelen net yerçekimi kuvveti yönüne göre işlem yapıyor. TERS versiyonun neden çalıştığı:</p>
+        
+        <ul>
+            <li><strong>Güneş yönü > 0</strong> yılda ~186 gün (ilkbahar/yaz)</li>
+            <li><strong>Güneş yönü < 0</strong> yılda ~179 gün (sonbahar/kış)</li>
+        </ul>
+        
+        <table>
+            <tr><th>Mantık</th><th>İlkbahar/Yaz</th><th>Sonbahar/Kış</th><th>Sonuç</th></tr>
+            <tr><td><strong>NORMAL</strong></td><td><strong>AL</strong></td><td><strong>SAT</strong></td><td class="bad">%47.3 HODL'u yendi</td></tr>
+            <tr class="highlight"><td><strong>TERS</strong></td><td><strong>SAT</strong></td><td><strong>AL</strong></td><td class="good"><strong>%56.4 HODL'u yendi</strong></td></tr>
+        </table>
+        
+        <p><strong>İçgörü:</strong> Kripto tarihsel olarak Q4'te (sonbahar/kış) daha iyi performans gösteriyor. Ters burç, yazın DIŞARDA ve kışın İÇERDE olarak bu mevsimselliği yanlışlıkla yakalıyor.</p>
+
+        <h2>6. TEMEL BULGULAR (Bölüm 1)</h2>
+        
+        <table>
+            <tr><th>#</th><th>Bulgu</th><th>Kanıt</th><th>Sonuç</th></tr>
+            <tr class="highlight"><td><strong>1</strong></td><td><strong>Aptal stratejiler HODL'u yeniyor</strong></td><td>%56.4 yenme oranı (p<0.001)</td><td>Ama HODL düşük bir çıta</td></tr>
+            <tr class="highlight"><td><strong>2</strong></td><td><strong>TÜM stratejiler SADECE BEAR piyasalarında başarılı</strong></td><td>Çöküşlerde %81-85, boğalarda %7-41</td><td>Çıkış mekanizması "avantaj"</td></tr>
+            <tr class="highlight"><td><strong>3</strong></td><td><strong>Etki büyüklüğü İHMAL EDİLEBİLİR</strong></td><td>Cohen's h = 0.128</td><td>Pratik avantaj çok küçük</td></tr>
+            <tr><td><strong>4</strong></td><td><strong>HODL'u yenmek ≠ Piyasayı yenmek</strong></td><td>HODL çöküşlerde %70 kaybediyor</td><td>Gerçek stratejilere karşı test gerekli</td></tr>
+            <tr><td><strong>5</strong></td><td><strong>Ücretler yüksek frekanslı işlemi yok ediyor</strong></td><td>200+ işlem: sadece %25.9 kazanıyor</td><td>Daha az işlem = daha çok kazanç</td></tr>
+            <tr><td><strong>6</strong></td><td><strong>Günlük aralık tek karlı olan</strong></td><td>ort. +%2.3 vs 5-dk için -%48.5</td><td>Daha yavaş = daha iyi</td></tr>
+            <tr><td><strong>7</strong></td><td><strong>Çapraz doğrulama YÜKSEK varyans gösteriyor</strong></td><td>katlar arasında σ = %28.2</td><td>Sonuçlar kararsız</td></tr>
+            <tr><td><strong>8</strong></td><td><strong>Rastgele baseline ~%45 (%50 değil)</strong></td><td>Yazı-tura: %45.2, Z=-2.59</td><td>Ücretler baseline'ı aşağı çekiyor</td></tr>
+        </table>
+        
+        <div class="finding">
+            <strong>Bölüm 1 Sınırlaması:</strong> HODL adil bir kıyaslama değil—stratejinin yokluğu. "Maymunlar piyasayı yenebilir mi"yi gerçekten test etmek için <strong>gerçek profesyonel trading stratejileriyle</strong> karşılaştırma gerekiyor. Bu karşılaştırma <strong>Bölüm 7</strong>'de yapılacak.
+        </div>
+
+        <h2>7. İSTATİSTİKSEL TİTİZLİK ANALİZİ</h2>
+        
+        <p>Bulguların istatistiksel tesadüfler olmadığından emin olmak için akademik araştırmalarda kullanılan titiz hipotez testi yöntemleri uygulandı.</p>
+
+        <h3>7.1 Çoklu Test Düzeltmesi</h3>
+        <p><strong>Problem:</strong> α=0.05'te 23 stratejiyi test etmek, sadece şansla ~1.2 yanlış pozitif beklendiği anlamına geliyor.</p>
+        <p><strong>Çözüm:</strong> Bonferroni düzeltmesi (α/m = 0.05/23 = 0.00217) ve FDR (Benjamini-Hochberg) uygula.</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>p-değeri</th><th>Bonferroni</th><th>FDR</th></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td><strong>0.000572</strong></td><td class="good">✓ GEÇTİ</td><td class="good">✓ GEÇTİ</td></tr>
+            <tr><td><strong>burç_güneşhariç normal</strong></td><td>0.000008</td><td class="good">✓ GEÇTİ</td><td class="good">✓ GEÇTİ</td></tr>
+            <tr><td><strong>yazı_tura ters</strong></td><td>0.000219</td><td class="good">✓ GEÇTİ</td><td class="good">✓ GEÇTİ</td></tr>
+            <tr><td><strong>pi_trader normal</strong></td><td>0.001180</td><td class="good">✓ GEÇTİ</td><td class="good">✓ GEÇTİ</td></tr>
+            <tr><td><strong>yazı_tura normal</strong></td><td>0.009674</td><td class="bad">✗ KALDI</td><td class="good">✓ GEÇTİ</td></tr>
+            <tr><td><strong>fibonacci_aptalı normal</strong></td><td>0.038205</td><td class="bad">✗ KALDI</td><td class="bad">✗ KALDI</td></tr>
+        </table>
+        
+        <div class="finding">
+            <strong>⚠️ Kritik Güncelleme:</strong> Bonferroni düzeltmesinden sonra, <strong>burç_güneş ters</strong> anlamlı kalıyor, ancak <strong>fibonacci_aptalı normal</strong> daha katı eşiği GEÇMİYOR.
+        </div>
+
+        <h3>7.2 Etki Büyüklüğü (Cohen's h)</h3>
+        <p><strong>Problem:</strong> p-değerleri bir etkinin VAR olup olmadığını söyler, NE KADAR BÜYÜK olduğunu değil. Büyük örneklemler küçük etkileri "anlamlı" yapabilir.</p>
+        <p><strong>Yorum:</strong> |h| < 0.2 = ihmal edilebilir, 0.2-0.5 = küçük, 0.5-0.8 = orta, > 0.8 = büyük</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>Yen%</th><th>Cohen's h</th><th>Etki Büyüklüğü</th></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td><strong>%56.4</strong></td><td><strong>+0.128</strong></td><td class="bad">İHMAL EDİLEBİLİR</td></tr>
+            <tr><td><strong>fibonacci_aptalı normal</strong></td><td>%53.8</td><td>+0.077</td><td class="bad">İHMAL EDİLEBİLİR</td></tr>
+            <tr><td><strong>burç_güneşhariç ters</strong></td><td>%53.5</td><td>+0.071</td><td class="bad">İHMAL EDİLEBİLİR</td></tr>
+        </table>
+        
+        <div class="finding">
+            <strong>Gerçeklik Kontrolü:</strong> En iyi strateji bile <strong>İHMAL EDİLEBİLİR</strong> pratik etki büyüklüğüne sahip. İstatistiksel olarak anlamlı ≠ pratik olarak anlamlı.
+        </div>
+
+        <h3>7.3 Örneklem Dışı Test</h3>
+        <p><strong>Problem:</strong> Tarihsel veride bulunan kalıplar gelecekte geçerli olmayabilir (aşırı uyum).</p>
+        <p><strong>Çözüm:</strong> Veriyi böl: Eğitim (2014-2021) vs Test (2022-2024).</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>Eğitim (2014-2021)</th><th>Test (2022-2024)</th><th>Sonuç</th></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td>%44.4</td><td class="good"><strong>%63.4</strong></td><td class="good">✓ GELİŞİYOR</td></tr>
+            <tr><td><strong>fibonacci_aptalı normal</strong></td><td>%42.5</td><td class="good"><strong>%60.4</strong></td><td class="good">✓ GELİŞİYOR</td></tr>
+            <tr><td><strong>şanslı_7 normal</strong></td><td>%43.8</td><td class="good"><strong>%58.9</strong></td><td class="good">✓ GELİŞİYOR</td></tr>
+            <tr><td><strong>burç_güneşhariç normal</strong></td><td>%44.3</td><td class="bad">%40.3</td><td class="bad">✗ DÜŞÜYOR</td></tr>
+        </table>
+
+        <h3>7.4 Piyasa Durumuna Göre Performans</h3>
+        <p><strong>Bu en önemli bulgu.</strong> Backtest'ler piyasa koşullarına göre bölündü:</p>
+        <ul>
+            <li><strong>Boğa:</strong> HODL getirisi > %50</li>
+            <li><strong>Ayı:</strong> HODL getirisi < -%30</li>
+            <li><strong>Yatay:</strong> -%30 ile +%50 arası</li>
+        </ul>
+        
+        <table>
+            <tr><th>Strateji</th><th>Boğa Piyasası</th><th>Ayı Piyasası</th><th>Yatay</th><th>En İyi</th></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td class="bad">%41.3</td><td class="good"><strong>%81.2</strong></td><td>%40.6</td><td><strong>AYI</strong></td></tr>
+            <tr><td><strong>yazı_tura normal</strong></td><td class="bad">%7.8</td><td class="good"><strong>%84.1</strong></td><td>%33.6</td><td><strong>AYI</strong></td></tr>
+            <tr><td><strong>zar_atma normal</strong></td><td class="bad">%11.2</td><td class="good"><strong>%85.3</strong></td><td>%35.7</td><td><strong>AYI</strong></td></tr>
+            <tr><td><strong>üç_kırmızı ters</strong></td><td class="bad">%17.1</td><td class="good"><strong>%83.5</strong></td><td>%33.2</td><td><strong>AYI</strong></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>🔥 YIKICI KEŞİF:</strong> TÜM stratejiler HODL'u öncelikle <strong>AYI PİYASALARINDA</strong> yeniyor! Bu çok mantıklı—piyasa çöktüğünde, HODL para kaybeder ve bazen satan HERHANGİ bir strateji daha iyi performans gösterir. Aptal stratejilerin "becerisi" basitçe <strong>çıkış mekanizmasına sahip olmak</strong>.
+        </div>
+
+        <h3>7.5 Sharpe Oranı Analizi</h3>
+        <p><strong>Sharpe Oranı</strong> = (Getiri - Risksiz) / Volatilite. Yüksek = daha iyi riske göre düzeltilmiş getiri.</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>Ort. Getiri</th><th>StdDev</th><th>Sharpe</th><th>Anlamlı?</th></tr>
+            <tr class="highlight"><td><strong>burç_güneşhariç ters</strong></td><td class="good">+%29.3</td><td>%86.3</td><td><strong>0.339</strong></td><td class="good">✓ (Z=8.87)</td></tr>
+            <tr class="highlight"><td><strong>burç_güneş ters</strong></td><td class="good">+%32.9</td><td>%108.4</td><td><strong>0.304</strong></td><td class="good">✓ (Z=8.01)</td></tr>
+            <tr><td><strong>HODL</strong></td><td>+%19.9</td><td>%111.9</td><td>0.178</td><td class="good">✓ (Z=4.79)</td></tr>
+            <tr><td><strong>üç_kırmızı ters</strong></td><td>+%12.4</td><td>%87.3</td><td>0.143</td><td class="good">✓ (Z=3.84)</td></tr>
+            <tr><td><strong>yazı_tura normal</strong></td><td class="bad">-%5.7</td><td>%72.8</td><td class="bad">-0.078</td><td>HAYIR</td></tr>
+        </table>
+
+        <h3>7.6 Çapraz Doğrulama Kararlılığı</h3>
+        <p>5-katlı çapraz doğrulama, sonuçların farklı veri dilimlerinde geçerli olup olmadığını test eder:</p>
+        
+        <table>
+            <tr><th>Strateji</th><th>Ortalama</th><th>StdDev</th><th>%95 GA</th><th>Kararlı?</th></tr>
+            <tr><td><strong>burç_güneş ters</strong></td><td>%56.7</td><td class="bad">%28.2</td><td>[%1.3 - %112.0]</td><td class="bad">⚠️ KARARSIZ</td></tr>
+            <tr><td><strong>üç_kırmızı ters</strong></td><td>%47.5</td><td>%8.0</td><td>[%31.8 - %63.3]</td><td class="bad">⚠️ KARARSIZ</td></tr>
+            <tr><td><strong>yazı_tura normal</strong></td><td>%45.1</td><td>%7.3</td><td>[%30.8 - %59.3]</td><td class="bad">⚠️ KARARSIZ</td></tr>
+        </table>
+        
+        <div class="finding">
+            <strong>Uyarı:</strong> Yüksek varyans (burç_güneş için %28.2 std) sonuçların farklı zaman dilimlerinde çılgınca değiştiği anlamına geliyor.
+        </div>
+
+        <h3>7.7 İstatistiksel Titizlik Özeti</h3>
+        <table>
+            <tr><th>Test</th><th>burç_güneş ters</th><th>Yorum</th></tr>
+            <tr><td><strong>Ham p-değeri</strong></td><td class="good">0.0006</td><td>Yüksek anlamlı</td></tr>
+            <tr><td><strong>Bonferroni düzeltilmiş</strong></td><td class="good">✓ GEÇTİ</td><td>En katı düzeltmeyi geçti</td></tr>
+            <tr><td><strong>Etki büyüklüğü (Cohen's h)</strong></td><td class="bad">0.128 (İHMAL EDİLEBİLİR)</td><td>Pratik etki çok küçük</td></tr>
+            <tr><td><strong>%95 Güven Aralığı</strong></td><td class="good">[%52.8 - %59.9]</td><td>%50 ile örtüşMÜYOR</td></tr>
+            <tr><td><strong>Örneklem Dışı (2022-24)</strong></td><td class="good">%63.4 yenme oranı</td><td>Görülmemiş veride çalışıyor</td></tr>
+            <tr><td><strong>Ayı Piyasası Performansı</strong></td><td class="good">%81.2 yenme oranı</td><td>HODL çöktüğünde başarılı</td></tr>
+            <tr><td><strong>Boğa Piyasası Performansı</strong></td><td class="bad">%41.3 yenme oranı</td><td>HODL yükselirken başarısız</td></tr>
+            <tr><td><strong>Çapraz Doğrulama Kararlılığı</strong></td><td class="bad">σ = %28.2</td><td>Yüksek değişkenlik</td></tr>
+        </table>
+
+        <h2>8. SONUÇLAR</h2>
+        
+        <h3>Bölüm 1 Bulguları</h3>
+        <p>Titiz istatistiksel testler uygulandıktan sonra:</p>
+        
+        <ol>
+            <li><strong>Aptal stratejiler HODL'u yenebilir mi?</strong> EVET—burç_güneş ters %56.4 başarıyor (p<0.001, Bonferroni'yi geçiyor).</li>
+            <li><strong>Ama HODL'u yenmek DÜŞÜK bir ÇITA.</strong> Herhangi bir çıkış mekanizması çöküşlerde al-ve-tut'u yener. HODL bir trading stratejisi değil—bir stratejinin yokluğu.</li>
+            <li><strong>Etki büyüklüğü İHMAL EDİLEBİLİR.</strong> Cohen's h = 0.128 pratik avantajın çok küçük olduğu anlamına geliyor.</li>
+            <li><strong>Sonuçlar KARARSIZ.</strong> Çapraz doğrulama katları arasında %28 standart sapma.</li>
+        </ol>
+
+        <div class="finding">
+            <strong>Bölüm 1 Kararı:</strong> HODL'u yenmek hiçbir şey kanıtlamıyor. HODL ayı piyasalarında %70 kaybediyor—elbette sat düğmesi olan herhangi bir strateji daha iyi performans gösterir. Bu, park halindeki bir arabayı geçebildiğinizi kutlamak gibi.
+        </div>
+
+        <h3>Asıl Soru</h3>
+        <p>Gerçek test "Maymunlar hiçbir şey yapmamayı yenebilir mi?" değil. Şu:</p>
+        <ul>
+            <li><strong>Maymunlar RSI'ı yenebilir mi?</strong></li>
+            <li><strong>Maymunlar MACD'yi yenebilir mi?</strong></li>
+            <li><strong>Maymunlar Bollinger Bands'i yenebilir mi?</strong></li>
+            <li><strong>Maymunlar makine öğrenmesi modellerini yenebilir mi?</strong></li>
+        </ul>
+        
+        <p>Bu meşru trading stratejilerinin de çıkış mekanizmaları var. Onlar da çöküşlerde tutmaktan kaçınıyor. Aptal stratejiler ONLARI yenebilirse, bu gerçekten dikkat çekici olurdu.</p>
+
+        <div class="discovery">
+            <strong>🔮 Bölüm 7'de:</strong> Tam Omega Sistemi (6 seviye, 171 metrik) aynı aptal stratejilerle karşılaştırılacak. Sonra nihai soru cevaplanacak: <strong>Yazı-turalar ve burçlar gerçek trading zekasını yenebilir mi?</strong>
+        </div>
+
+        <h3>Araştırma Serisi Yol Haritası</h3>
+        <table>
+            <tr><th>Bölüm</th><th>Başlık</th><th>Durum</th></tr>
+            <tr class="highlight"><td><strong>1</strong></td><td><strong>Maymunlar HODL'u Yenebilir mi?</strong> (Baseline)</td><td class="good">✓ TAMAMLANDI</td></tr>
+            <tr><td><strong>2</strong></td><td>Maymun Stratejilerini Hisse Piyasalarına Uygulama</td><td>Yakında</td></tr>
+            <tr><td><strong>3</strong></td><td>Meşru Quant Stratejilerini Uygulama</td><td>Yakında</td></tr>
+            <tr class="highlight"><td><strong>4</strong></td><td><strong>Maymunlar vs. Profesyonel Stratejiler</strong> (ANA ETKİNLİK)</td><td>Yakında</td></tr>
+            <tr><td><strong>5</strong></td><td>Tam Özet & Meta-Analiz</td><td>Yakında</td></tr>
+            <tr><td><strong>6</strong></td><td>Canlı AI Agent Trading</td><td>Yakında</td></tr>
+        </table>
+
+        <div class="abstract">
+            <strong>Bölüm 1 Son Kararı:</strong> Aptal stratejiler HODL'u yeniyor, ama bu etkileyici değil—HODL korkunç bir kıyaslama. Asıl soru rastgeleliğin gerçek trading zekasıyla rekabet edip edemeyeceği. Yazı-turanın 171 metrikli bir sistemi yenip yenemeyeceğinin öğrenileceği Bölüm 7'yi bekleyin.
+        </div>
+
+        <h2>EK: STRATEJİ KODU</h2>
+        <div class="code-block">
+<strong># COIN FLIP</strong>
+for close in prices:
+    if random.random() < 0.5:  # HEADS
+        if cash > 0: position = cash * 0.999 / close; cash = 0
+    else:  # TAILS
+        if position > 0: cash = position * close * 0.999; position = 0
+
+<strong># HOROSCOPE (NASA Gravity) - REVERSED</strong>
+for timestamp, close, net_direction in data:
+    if net_direction > 0:  # Planets pull NORTH → SELL (reversed)
+        if position > 0: cash = position * close * 0.999; position = 0
+    else:  # Planets pull SOUTH → BUY (reversed)
+        if cash > 0: position = cash * 0.999 / close; cash = 0
+
+<strong># FIBONACCI FOOL</strong>
+fibs = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987...}
+for i, close in enumerate(prices):
+    if (i + 1) in fibs:  # Trade at Fibonacci candle numbers
+        # Alternate buy/sell
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            Tam kaynak kodu, veri ve replikasyon materyalleri github.com/omega-arena adresinde<br>
+            Veritabanı: 38.778 backtest kaydı | 1.2 GB SQLite<br>
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>

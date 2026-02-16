@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 6: News Sentiment Analysis | Omega Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 28px; }
+        .report li { margin-bottom: 6px; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "← "; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.abandoned { background: #fee2e2; color: #991b1b; }
+        .status.pending { background: #f3f4f6; color: #666; }
+
+        @media (max-width: 768px) { .report { padding: 16px; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../docs/index.html" style="position: absolute; left: 20px; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9; font-family: IBM Plex Mono, monospace;">UG</a>
+                <a href="research.html"><img src="logos/omega-logo.png" alt="Omega Arena" class="logo"></a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">LIVE</a>
+                <span class="nav-divider">|</span>
+                <a href="index.html" class="nav-link">LEADERBOARD</a>
+                <span class="nav-divider">|</span>
+                <a href="research.html" class="nav-link active">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="research-news-sentiment-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="research-news-sentiment.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="research.html" class="back-link">Back to Research</a>
+        
+        <h1>NEWS SENTIMENT ANALYSIS</h1>
+        <p class="subtitle">Part 6: Real-Time Context Awareness for AI Trading</p>
+        <p class="authors">Omega Arena • February 2026 • <strong style="color: #f59e0b;">IN PROGRESS</strong></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">RSS FEEDS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">25</div>
+                <div class="label">COINS TRACKED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10m</div>
+                <div class="label">QUICK INTERVAL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6h</div>
+                <div class="label">FULL INTERVAL</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> Technical indicators analyze the past. News analyzes the future. 
+            Parts 3-5 built a comprehensive signal engine using historical patterns. But markets move on 
+            <strong>expectations</strong>, not just technicals. This part adds real-time news sentiment 
+            as the fourth layer of the Omega ensemble, creating a forward-looking context awareness 
+            that traditional trading systems lack.
+        </div>
+
+        <h2>1. THE PROBLEM: BLIND TO THE FUTURE</h2>
+        <p>Parts 3-5 created a powerful analytical engine with 171+ metrics. But all of them share one limitation: <strong>they only see the past.</strong></p>
+        
+        <ul>
+            <li>RSI sees the last 14 days</li>
+            <li>MACD sees the last 26 days</li>
+            <li>Even LSTM sees the last 90 days</li>
+        </ul>
+
+        <p>None of these know that the Fed is announcing rates tomorrow, that a major exchange was just hacked, or that a country just banned crypto. News moves markets <strong>before</strong> technicals can react.</p>
+
+        <div class="finding">
+            <strong>The gap:</strong> Technical analysis tells us "the trend is up." News analysis tells us 
+            "but regulation news might reverse it tomorrow." Both perspectives are needed.
+        </div>
+
+        <h2>2. FAILED APPROACHES: THE $200/MONTH WALL</h2>
+        <p>Several professional crypto news APIs were evaluated. The results were discouraging.</p>
+
+        <h3>CryptoPanic API</h3>
+        <table>
+            <tr><th>Tier</th><th>Price</th><th>Delay</th><th>Requests</th><th>Features</th></tr>
+            <tr><td>Free (Dev)</td><td class="good">$0</td><td class="bad">24h delay</td><td>100/month</td><td>Title only</td></tr>
+            <tr><td>Growth</td><td class="bad">$199/mo</td><td class="good">Real-time</td><td>3,000/month</td><td>Full content, sentiment</td></tr>
+            <tr><td>Enterprise</td><td class="bad">$899/mo</td><td class="good">Real-time</td><td>Custom</td><td>Push API, search</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>Verdict:</strong> Free tier is useless (24h delay defeats the purpose). 
+            $200/month for a hobby project is not justified.
+        </div>
+
+        <h3>NewsData.io Crypto API</h3>
+        <table>
+            <tr><th>Tier</th><th>Price</th><th>Credits/Day</th><th>Delay</th><th>Features</th></tr>
+            <tr><td>Free</td><td class="good">$0</td><td>200</td><td class="bad">12h delay</td><td>Title, description, source priority</td></tr>
+            <tr><td>Basic</td><td class="bad">$199/mo</td><td>20,000</td><td class="good">Real-time</td><td>Full content, AI summary</td></tr>
+            <tr><td>Professional</td><td class="bad">$349/mo</td><td>50,000</td><td class="good">Real-time</td><td>Sentiment analysis</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Interesting:</strong> Free tier provides <code>source_priority</code> — a numerical 
+            ranking of source credibility based on traffic and authenticity. This is valuable metadata 
+            even with the 12h delay.
+        </div>
+
+        <h3>Other APIs Evaluated</h3>
+        <table>
+            <tr><th>API</th><th>Status</th><th>Issue</th></tr>
+            <tr><td>NewsAPI.org</td><td><span class="status abandoned">REJECTED</span></td><td>No crypto-specific endpoint</td></tr>
+            <tr><td>CoinGecko</td><td><span class="status abandoned">REJECTED</span></td><td>No news API in free tier</td></tr>
+            <tr><td>Messari</td><td><span class="status abandoned">REJECTED</span></td><td>Enterprise pricing only</td></tr>
+        </table>
+
+        <h2>3. THE SOLUTION: HYBRID FREE ARCHITECTURE</h2>
+        <p>The realization came that two free sources could be combined to achieve professional-grade coverage:</p>
+
+        <div class="discovery">
+            <strong>RSS feeds are free, unlimited, and real-time.</strong> Major crypto publications 
+            expose their headlines via RSS. Combined with NewsData.io's free tier for enrichment, 
+            a hybrid system that costs $0/month was built.
+        </div>
+
+        <h3>RSS Sources (Tier 1 & 2)</h3>
+        <table>
+            <tr><th>Source</th><th>Tier</th><th>Type</th><th>Credibility</th></tr>
+            <tr><td>Google News (Crypto)</td><td class="good">T1</td><td>Aggregator</td><td>Aggregates major outlets</td></tr>
+            <tr><td>CoinDesk</td><td class="good">T1</td><td>Original</td><td>Industry standard</td></tr>
+            <tr><td>CoinTelegraph</td><td>T2</td><td>Original</td><td>Crypto-native</td></tr>
+            <tr><td>Bitcoin Magazine</td><td>T2</td><td>Original</td><td>BTC-focused</td></tr>
+            <tr><td>Decrypt</td><td>T2</td><td>Original</td><td>Web3-focused</td></tr>
+            <tr><td>The Block</td><td class="good">T1</td><td>Original</td><td>Institutional focus</td></tr>
+        </table>
+
+        <h3>NewsData.io Free Tier (Enrichment)</h3>
+        <ul>
+            <li><strong>200 credits/day</strong> — Each credit returns up to 10 articles</li>
+            <li><strong>12h delay</strong> — Not real-time, but provides detailed descriptions</li>
+            <li><strong>Source priority scores</strong> — Numerical credibility ranking</li>
+            <li><strong>25 coins tracked</strong> — BTC, ETH, SOL, and 22 diversified alts</li>
+        </ul>
+
+        <h3>Source Credibility Tiers</h3>
+        <table>
+            <tr><th>Tier</th><th>Impact Weight</th><th>Sources</th><th>Rationale</th></tr>
+            <tr><td class="good"><strong>T1</strong></td><td>1.0x</td><td>Reuters, Bloomberg, CoinDesk, The Block</td><td>Institutional-grade, fact-checked</td></tr>
+            <tr><td><strong>T2</strong></td><td>0.8x</td><td>CoinTelegraph, Decrypt, Bitcoin Magazine</td><td>Crypto-native, generally reliable</td></tr>
+            <tr><td class="bad"><strong>T3</strong></td><td>0.5x</td><td>BeInCrypto, AMBCrypto, aggregators</td><td>Higher speculation, verify claims</td></tr>
+        </table>
+
+        <h2>4. DUAL-MODE MONITORING SYSTEM</h2>
+        <p>Two complementary analysis modes run continuously:</p>
+
+        <h3>Quick Mode (Every 10 Minutes)</h3>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Data source</td><td>RSS feeds only (T1/T2)</td></tr>
+            <tr><td>LLM</td><td>GPT-4o-mini</td></tr>
+            <tr><td>Cost per call</td><td>~$0.001</td></tr>
+            <tr><td>Daily cost</td><td>~$0.15</td></tr>
+            <tr><td>Purpose</td><td>Catch breaking news quickly</td></tr>
+        </table>
+
+        <h3>Full Mode (Every 6 Hours)</h3>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Data source</td><td>RSS + NewsData.io (all tiers)</td></tr>
+            <tr><td>LLM</td><td>GPT-4o</td></tr>
+            <tr><td>Cost per call</td><td>~$0.05</td></tr>
+            <tr><td>Daily cost</td><td>~$0.20</td></tr>
+            <tr><td>Purpose</td><td>Deep analysis with enriched context</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Total daily cost: ~$0.35</strong> — This is 570x cheaper than CryptoPanic's $200/month 
+            while providing both real-time (RSS) and enriched (NewsData) coverage.
+        </div>
+
+        <h2>5. LLM ANALYSIS PIPELINE</h2>
+        <p>Raw headlines are not useful. They must be synthesized into actionable intelligence. A carefully engineered prompt transforms news into structured signals.</p>
+
+        <h3>LLM Role Definition</h3>
+        <ul>
+            <li><strong>Skeptical:</strong> Assume manipulation until proven otherwise</li>
+            <li><strong>Probabilistic:</strong> Express confidence levels, not certainties</li>
+            <li><strong>Contrarian:</strong> Consider opposite interpretations</li>
+            <li><strong>Time-aware:</strong> Pay attention to publication timestamps</li>
+        </ul>
+
+        <h3>Structured Output</h3>
+        <table>
+            <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+            <tr><td>market_sentiment</td><td>BULLISH/BEARISH/NEUTRAL</td><td>Overall market direction</td></tr>
+            <tr><td>confidence</td><td>0-100%</td><td>How strongly the LLM believes this</td></tr>
+            <tr><td>key_events</td><td>Array</td><td>Most impactful news items</td></tr>
+            <tr><td>asset_outlook</td><td>Object</td><td>Per-asset sentiment (BTC, ETH, ALTS)</td></tr>
+            <tr><td>risk_factors</td><td>Array</td><td>What could go wrong</td></tr>
+            <tr><td>contrarian_view</td><td>String</td><td>Devil's advocate perspective</td></tr>
+            <tr><td>actionable_signal</td><td>LONG/SHORT/HOLD</td><td>Trading recommendation</td></tr>
+        </table>
+
+        <h3>Prompt Engineering Principles</h3>
+        <ol>
+            <li><strong>Timestamp awareness:</strong> News items include publication times so LLM understands chronology</li>
+            <li><strong>Freshness indicators:</strong> RSS marked as real-time, NewsData marked as 12h delayed</li>
+            <li><strong>Source credibility:</strong> Tier information passed to weight importance</li>
+            <li><strong>Structured JSON output:</strong> Enforced via system prompt for programmatic parsing</li>
+        </ol>
+
+        <h2>6. CURRENT TESTING</h2>
+        <p>A live daemon is running, collecting and analyzing news in real-time. Early results are being validated against actual price movements.</p>
+
+        <h3>Validation Methodology</h3>
+        <ul>
+            <li>Record BTC price at time of each analysis</li>
+            <li>Record predicted direction (BULLISH/BEARISH)</li>
+            <li>Check actual price movement in subsequent hours</li>
+            <li>Calculate prediction accuracy over time</li>
+        </ul>
+
+        <div class="finding">
+            <strong>Early observation:</strong> System correctly predicted bearish sentiment during 
+            a BTC drop from $70,733 to $69,632 on Feb 5, 2026. Sample size is still too small 
+            for statistical significance.
+        </div>
+
+        <h3>Testing Status</h3>
+        <table>
+            <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
+            <tr><td>RSS collection</td><td><span class="status complete">WORKING</span></td><td>6 feeds, real-time</td></tr>
+            <tr><td>NewsData.io integration</td><td><span class="status complete">WORKING</span></td><td>25 coins, 200 credits/day</td></tr>
+            <tr><td>Quick analysis (10m)</td><td><span class="status progress">TESTING</span></td><td>GPT-4o-mini</td></tr>
+            <tr><td>Full analysis (6h)</td><td><span class="status progress">TESTING</span></td><td>GPT-4o</td></tr>
+            <tr><td>Price correlation</td><td><span class="status progress">TESTING</span></td><td>Manual validation ongoing</td></tr>
+        </table>
+
+        <h2>7. COINS TRACKED</h2>
+        <p>NewsData.io free tier limits daily calls. A diversified selection of 25 coins was chosen to maximize coverage without exceeding limits.</p>
+
+        <table>
+            <tr><th>Category</th><th>Coins</th></tr>
+            <tr><td>Major</td><td>BTC, ETH</td></tr>
+            <tr><td>Layer 1</td><td>SOL, ADA, AVAX, DOT, NEAR, ATOM, SUI, APT, SEI</td></tr>
+            <tr><td>Layer 2</td><td>MATIC, ARB, OP</td></tr>
+            <tr><td>DeFi</td><td>UNI, AAVE, LINK, MKR</td></tr>
+            <tr><td>Exchange</td><td>BNB</td></tr>
+            <tr><td>Meme (sentiment)</td><td>DOGE, SHIB</td></tr>
+            <tr><td>Other</td><td>XRP, LTC, TRX</td></tr>
+        </table>
+
+        <h2>8. INTEGRATION WITH ENSEMBLE</h2>
+        <p>News sentiment becomes the fourth layer in the Omega ensemble architecture (Part 7).</p>
+
+        <table>
+            <tr><th>Layer</th><th>Source</th><th>Signal Type</th></tr>
+            <tr><td>1</td><td>Signal Engine (171 metrics)</td><td>Technical/Quantitative</td></tr>
+            <tr><td>2</td><td>ML Models (XGBoost, etc.)</td><td>Pattern Recognition</td></tr>
+            <tr><td>3</td><td>Regime Detection (HMM/RF/LSTM)</td><td>Market State</td></tr>
+            <tr class="highlight"><td><strong>4</strong></td><td><strong>News Sentiment</strong></td><td><strong>Forward-Looking Context</strong></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Claude Opus 4.5 receives all four layers.</strong> It can now consider not just 
+            "what the technicals say" but also "what the news says" when making final trading decisions.
+        </div>
+
+        <h2>9. LIMITATIONS & FUTURE WORK</h2>
+
+        <h3>Current Limitations</h3>
+        <ul>
+            <li><strong>Headlines only:</strong> RSS provides titles, not full articles</li>
+            <li><strong>12h delay:</strong> NewsData.io free tier is not real-time</li>
+            <li><strong>English only:</strong> Non-English news not captured</li>
+            <li><strong>No historical training:</strong> LLM analysis is zero-shot, not trained on past news-price correlations</li>
+        </ul>
+
+        <h3>Future Improvements</h3>
+        <ul>
+            <li>Build historical dataset of news → price movements</li>
+            <li>Train a fine-tuned model for crypto-specific sentiment</li>
+            <li>Add social media signals (Twitter/X, Reddit)</li>
+            <li>Implement "priced in" detection by correlating news timing with price charts</li>
+        </ul>
+
+        <h2>10. CURRENT STATUS</h2>
+        <table>
+            <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
+            <tr class="highlight"><td><strong>RSS Pipeline</strong></td><td><span class="status complete">DONE</span></td><td>6 sources, unlimited calls</td></tr>
+            <tr class="highlight"><td><strong>NewsData.io Integration</strong></td><td><span class="status complete">DONE</span></td><td>25 coins, free tier</td></tr>
+            <tr class="highlight"><td><strong>Source Credibility Tiers</strong></td><td><span class="status complete">DONE</span></td><td>T1/T2/T3 classification</td></tr>
+            <tr class="highlight"><td><strong>LLM Prompt Engineering</strong></td><td><span class="status complete">DONE</span></td><td>Structured JSON output</td></tr>
+            <tr><td><strong>Dual-Mode Daemon</strong></td><td><span class="status progress">TESTING</span></td><td>10m quick + 6h full</td></tr>
+            <tr><td><strong>Price Correlation Analysis</strong></td><td><span class="status progress">TESTING</span></td><td>Manual validation</td></tr>
+            <tr><td><strong>Ensemble Integration</strong></td><td><span class="status pending">PENDING</span></td><td>After testing complete</td></tr>
+        </table>
+
+        <div class="abstract">
+            <strong>Part 6 Status: IN PROGRESS</strong><br>
+            Infrastructure complete. Live testing daemon running. Validating predictions against real market movements.
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            © 2026 Omega Arena
+        </p>
+    </main>
+
+</body>
+</html>
