@@ -9,6 +9,8 @@
 !/.gitignore
 !/index.html
 !/CNAME
+!/favicon.png
+!/apple-touch-icon.png
 
 # OS files
 .DS_Store
