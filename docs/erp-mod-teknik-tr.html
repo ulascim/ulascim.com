@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teknik Mod&uuml;l&uuml; | Kablo Fabrikas&#305; ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 16px; font-weight: 700; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system-tr.html" class="nav-logo">ERP S&#304;STEM&#304;</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-teknik-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-teknik.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives-tr.html" class="back-link">Mod&uuml;llere D&ouml;n</a>
+        <h1>TEKN&#304;K &mdash; TEMEL MOD&Uuml;L</h1>
+        <p class="subtitle">Alt&#305;ndaki her &scedil;ey buna ba&#287;l&#305;. Burada tan&#305;mlanan veri olmadan ne sipari&scedil;, ne &uuml;retim, ne de test ba&scedil;layabilir.</p>
+        <p class="authors">&Scedil;ubat 2026 &bull; Solen Kablo &bull; Ya&scedil;ayan Dok&uuml;man</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Teknik, kablonun do&#287;du&#287;u yerdir.</strong> Tek bir metre tel &ccedil;ekilmeden, m&uuml;&scedil;teri sipari&scedil;i al&#305;nmadan, test atanmadan &ouml;nce &mdash; birinin fabrika hangi kablolar&#305; &uuml;retebilir, hangi makineler var, bu makineler hangi parametreleri kabul eder, kablolar hangi standartlar&#305; ge&ccedil;meli ve &uuml;zerlerine ne yaz&#305;lmal&#305;y&#305; tan&#305;mlamas&#305; gerekir. Teknik t&uuml;m bunlar&#305; bar&#305;nd&#305;r&#305;r. Di&#287;er her mod&uuml;l&uuml;n okudu&#287;u ama asla yazmad&#305;&#287;&#305; tek do&#287;ru kayna&#287;&#305;d&#305;r.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">6</div>
+                <div class="label">ALT MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~75</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">12</div>
+                <div class="label">VER&#304;TABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">4000+</div>
+                <div class="label">FRONTEND SATIRI</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. TEKN&#304;K NE YAPAR</h2>
+        <!-- ============================================ -->
+
+        <p>Teknik mod&uuml;l&uuml;, t&uuml;m fabrikan&#305;n ba&#287;l&#305; oldu&#287;u be&scedil; soruyu yan&#305;tlar:</p>
+
+        <ol>
+            <li><strong>Hangi kablolar&#305; &uuml;retebiliriz?</strong> &mdash; Cable Playground tasar&#305;mlar&#305; yapar. Cable Database onaylanan sonu&ccedil;lar&#305; saklar. Her kablo, kesin parametrelerle s&#305;ral&#305; makine ad&#305;mlar&#305; olarak tan&#305;mlan&#305;r.</li>
+            <li><strong>Hangi makinelerimiz var?</strong> &mdash; Makine Y&ouml;netimi, 7 makine tipini fiziksel kapasiteleriyle (h&#305;z aral&#305;klar&#305;, &ccedil;ap limitleri, kal&#305;nl&#305;k aral&#305;klar&#305;) kay&#305;t alt&#305;na al&#305;r. Playground bunlar&#305; kullanarak tasar&#305;m&#305;n fiziksel olarak &uuml;retilebilir oldu&#287;unu do&#287;rular.</li>
+            <li><strong>Hangi kalite standartlar&#305; kar&scedil;&#305;lanmal&#305;?</strong> &mdash; Standart Y&ouml;netimi her testi (IEC-EN, UL, SLN) parametreleri, ge&ccedil;/kal kriterleri ve test frekanslar&#305;yla tan&#305;mlar. Bunlar kablo tasar&#305;mlar&#305;na ba&#287;l&#305;d&#305;r &mdash; her tasar&#305;m hangi &uuml;retim ad&#305;m&#305;nda hangi testlerin gerekti&#287;ini bilir.</li>
+            <li><strong>Kablonun &uuml;zerine ne yaz&#305;l&#305;r?</strong> &mdash; Markalama, ekstr&uuml;derin &uuml;retim s&#305;ras&#305;nda yazd&#305;&#287;&#305; s&#305;ral&#305; kelime dizilerini tan&#305;mlar (&scedil;irket ad&#305;, standart, voltaj, kesit vb.).</li>
+            <li><strong>Makineleri kim kullan&#305;r?</strong> &mdash; Operat&ouml;r Y&ouml;netimi, &uuml;retim oturumlar&#305;na atanan operat&ouml;rlerin kayd&#305;n&#305; tutar.</li>
+        </ol>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>S&#305;f&#305;r ba&#287;&#305;ml&#305;l&#305;k.</strong> Teknik hi&ccedil;bir i&scedil; mod&uuml;l&uuml;ne ba&#287;l&#305; de&#287;ildir. Sadece <code>users</code> tablosunu okur (<code>created_by</code> takibi i&ccedil;in). Di&#287;er her mod&uuml;l &mdash; Sipari&scedil;, &Uuml;retim, Lab, Stok &mdash; Teknik&rsquo;e ba&#287;l&#305;d&#305;r. Bu onu t&uuml;m sistemin temel katman&#305; yapar.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. VER&#304; AKI&Scedil;I</h2>
+        <!-- ============================================ -->
+
+        <p>Veri tek y&ouml;nde akar: Teknik&rsquo;ten d&#305;&scedil;ar&#305;ya. Her alt mod&uuml;l&uuml;n sistemi nas&#305;l besledi&#287;i a&scedil;a&#287;&#305;da g&ouml;sterilmi&scedil;tir.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">MAK&#304;NELER<br><span style="font-size:9px;color:#666;">Kapasite tan&#305;mla</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">PLAYGROUND<br><span style="font-size:9px;color:#666;">Kablo tasar&#305;m&#305;</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">KABLO DB<br><span style="font-size:9px;color:#666;">Onayl&#305;lar&#305; sakla</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">S&#304;PAR&#304;&Scedil;<br><span style="font-size:9px;color:#666;">Kablo se&ccedil;</span></div>
+        </div>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">STANDARTLAR<br><span style="font-size:9px;color:#666;">Test tan&#305;mla</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">PLAYGROUND<br><span style="font-size:9px;color:#666;">Ad&#305;mlara ata</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">KABLO DB<br><span style="font-size:9px;color:#666;">Gereksinimleri sakla</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fce7f3; border-color: #db2777;">LAB<br><span style="font-size:9px;color:#666;">Testleri uygula</span></div>
+        </div>
+
+        <p>Kablo Veritaban&#305; birle&scedil;me noktas&#305;d&#305;r. Tamamlanm&#305;&scedil; tasar&#305;m&#305; yap&#305;land&#305;r&#305;lm&#305;&scedil; JSON olarak saklar: eksiksiz &uuml;retim ak&#305;&scedil;&#305;, olu&scedil;turulacak her yar&#305; mamul, hammadde listesi ve t&uuml;m test gereksinimleri. Sipari&scedil; malzeme ihtiyac&#305;n&#305; hesaplarken veya &Uuml;retim i&scedil; kartlar&#305; olu&scedil;tururken Kablo Veritaban&#305;&rsquo;ndan okur &mdash; asla do&#287;rudan Playground veya Makinelerden de&#287;il.</p>
+
+        <!-- ============================================ -->
+        <h2>3. VER&#304;TABANI KATMANI</h2>
+        <!-- ============================================ -->
+
+        <p>Teknik mod&uuml;l&uuml;ne 12 tablo hizmet eder. D&ouml;rt gruba ayr&#305;l&#305;rlar:</p>
+
+        <h3>Makine Tablolar&#305; (7)</h3>
+        <p>Her makine tipi i&ccedil;in bir tablo. Her biri o makinenin fiziksel kapasitesini min/maks/art&#305;&scedil; aral&#305;klar&#305; olarak saklar. Sistem bu aral&#305;klarda ilerleyerek a&ccedil;&#305;l&#305;r men&uuml; se&ccedil;eneklerini olu&scedil;turur.</p>
+
+        <table>
+            <tr><th>Tablo</th><th>&Ouml;zel Konfig&uuml;rasyon</th><th>Girdi Kodu</th></tr>
+            <tr><td><code>kabatel_cekme_machines</code></td><td>h&#305;z, tav (tavlama ak&#305;m&#305;), &ccedil;&#305;k&#305;&scedil; &ccedil;ap&#305;</td><td>A</td></tr>
+            <tr><td><code>kalaylama_machines</code></td><td>h&#305;z, kalay kal&#305;nl&#305;&#287;&#305; (&mu;m)</td><td>X</td></tr>
+            <tr><td><code>incetel_cekme_machines</code></td><td>h&#305;z, girdi say&#305;s&#305;, &ccedil;&#305;k&#305;&scedil; &ccedil;ap&#305;, tav</td><td>&mdash;</td></tr>
+            <tr><td><code>buncher_machines</code></td><td>h&#305;z, hatve (b&uuml;k&uuml;m uzunlu&#287;u), girdi say&#305;s&#305;</td><td>Z,T,U</td></tr>
+            <tr><td><code>extruder_machines</code></td><td>h&#305;z, izolasyon kal&#305;nl&#305;&#287;&#305;, k&#305;l&#305;f kal&#305;nl&#305;&#287;&#305;</td><td>T,Z</td></tr>
+            <tr><td><code>ebeam_machines</code></td><td>h&#305;z, radyasyon seviyesi (kGy)</td><td>&mdash;</td></tr>
+            <tr><td><code>aktarma_machines</code></td><td>(sadece marka/model)</td><td>&mdash;</td></tr>
+        </table>
+
+        <p>Her yap&#305;land&#305;r&#305;labilir parametrenin veritaban&#305; seviyesinde <code>CHECK</code> k&#305;s&#305;tlamas&#305; vard&#305;r: <code>max &gt; min</code>, <code>increment &gt; 0</code>, <code>min &ge; 0</code>. Bu, ge&ccedil;ersiz makine konfig&uuml;rasyonlar&#305;n&#305;n kaydedilmesini imkans&#305;z k&#305;lar &mdash; veritaban&#305; fiziksel tutarl&#305;l&#305;&#287;&#305; kendi ba&scedil;&#305;na zorlar.</p>
+
+        <h3>Tasar&#305;m Tablolar&#305; (3)</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar Alanlar</th></tr>
+            <tr><td><code>cable_designs</code></td><td>Playground&rsquo;dan tasar&#305;m oturumlar&#305;</td><td><code>design_code</code> (benzersiz), <code>standard</code> (EN/UL/SLN), <code>cross_section</code>, <code>design_data</code> (JSON)</td></tr>
+            <tr><td><code>design_steps</code></td><td>Tasar&#305;m i&ccedil;indeki bireysel &uuml;retim ad&#305;mlar&#305;</td><td><code>step_number</code>, <code>machine_type</code>, <code>configuration</code> (JSON), <code>inputs/outputs</code> (JSON), <code>tests</code> (JSON)</td></tr>
+            <tr><td><code>cable_database</code></td><td>Tamamlanm&#305;&scedil;, onayl&#305; kablo tan&#305;mlar&#305;</td><td><code>cable_code</code> (benzersiz), <code>production_flow</code> (JSON), <code>half_products</code> (JSON), <code>raw_materials</code> (JSON), <code>test_requirements</code> (JSON)</td></tr>
+        </table>
+
+        <p>&#304;li&scedil;ki: <code>CableDesign</code> &rarr; birden fazla <code>DesignStep</code> (kademeli silme) &rarr; tamamlamada bir <code>CableDatabase</code> kayd&#305;. Kablo Veritaban&#305; her &scedil;eyi denormalize JSON blob&rsquo;lar&#305; olarak saklar &mdash; bilerek. Malzeme Hesaplay&#305;c&#305; bir sipari&scedil; i&ccedil;in bak&#305;r gereksinimini hesaplamas&#305; gerekti&#287;inde, <code>cable_database</code>&rsquo;den tek bir sat&#305;r okur ve hi&ccedil;bir join olmadan eksiksiz &uuml;retim ak&#305;&scedil;&#305;na sahip olur.</p>
+
+        <h3>Kalite Tablolar&#305; (2)</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar Alanlar</th></tr>
+            <tr><td><code>test_standards</code></td><td>Test tan&#305;mlar&#305;</td><td><code>standard_category</code> (IEC-EN/UL/SLN), <code>test_name</code>, <code>standard_number</code>, <code>test_samples</code></td></tr>
+            <tr><td><code>test_parameters</code></td><td>Test i&ccedil;indeki parametreler</td><td><code>parameter_name</code>, <code>parameter_unit</code>, <code>parameter_order</code>, <code>is_required</code></td></tr>
+        </table>
+
+        <p>Bir test standard&#305;n&#305;n N parametresi vard&#305;r (kademeli silme). Playground&rsquo;da bir tasar&#305;m ad&#305;m&#305;na test atan&#305;rken, standart ID ve frekans (ba&scedil;lang&#305;&ccedil;/biti&scedil;/her makara) ad&#305;m&#305;n JSON&rsquo;&#305;na g&ouml;m&uuml;l&uuml;r. Bu, Kablo Veritaban&#305;&rsquo;n&#305;n tam test haritas&#305;n&#305; ta&scedil;&#305;mas&#305; demektir &mdash; Lab, &uuml;retim s&#305;ras&#305;nda Teknik&rsquo;i sorgulamadan neyi ne zaman test edece&#287;ini bilir.</p>
+
+        <h3>Destekleyici Tablolar</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>product_codes</code></td><td>Stok tekille&scedil;tirme i&ccedil;in SHA-256 hash&rsquo;li &uuml;r&uuml;n tan&#305;mlay&#305;c&#305;lar&#305;. <code>system_code</code> (okunabilir, &ouml;rn. <code>HALF_BN_73X030</code>) + <code>spec_hash</code> (spesifikasyonlar&#305;n deterministik hash&rsquo;i). Farkl&#305; tasar&#305;mlardaki ayn&#305; &uuml;r&uuml;nlerin ayn&#305; stok havuzunu payla&scedil;mas&#305;n&#305; sa&#287;lar.</td></tr>
+            <tr><td><code>markings</code></td><td>Kablo bask&#305; &scedil;ablonlar&#305;. <code>name</code> (benzersiz) + <code>words</code> (JSON dize dizisi). Her sipari&scedil;-kablo bir markay&#305; referans al&#305;r.</td></tr>
+            <tr><td><code>production_operators</code></td><td>Operat&ouml;r kayd&#305;. <code>name</code> (benzersiz). &Uuml;retim oturumlar&#305; taraf&#305;ndan referans al&#305;n&#305;r.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>4. BACKEND M&#304;MAR&#304;S&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>Teknik backend&rsquo;i <code>/api/teknik/</code> alt&#305;na monte edilmi&scedil; <strong>6 route dosyas&#305;</strong> ve Playground&rsquo;un sim&uuml;lasyon motorunu &ccedil;al&#305;&scedil;t&#305;ran <strong>6 yard&#305;mc&#305; mod&uuml;l</strong>den olu&scedil;ur.</p>
+
+        <h3>Route Dosyalar&#305;</h3>
+        <table>
+            <tr><th>Dosya</th><th>&Ouml;nek</th><th>Endpoint</th><th>Sorumluluk</th></tr>
+            <tr><td><code>machine_routes.py</code></td><td>/teknik/machines</td><td>~45</td><td>7 makine tipi i&ccedil;in CRUD + se&ccedil;enekler</td></tr>
+            <tr><td><code>design_routes.py</code></td><td>/teknik/design</td><td>~22</td><td>Playground oturumlar&#305;, ad&#305;mlar, konfig, geri al/yinele, tamamla</td></tr>
+            <tr><td><code>cable_database_routes.py</code></td><td>/teknik/cable-database</td><td>~15</td><td>Onayl&#305; kablolar, &uuml;r&uuml;n kodlar&#305;, analitik</td></tr>
+            <tr><td><code>standards_routes.py</code></td><td>/teknik/standards</td><td>~12</td><td>Test standartlar&#305;, parametreler, sonu&ccedil;lar</td></tr>
+            <tr><td><code>marking_routes.py</code></td><td>/markings</td><td>~6</td><td>Markalama &scedil;ablonu CRUD</td></tr>
+            <tr><td><code>operator_routes.py</code></td><td>/operators</td><td>~4</td><td>Operat&ouml;r CRUD</td></tr>
+        </table>
+
+        <h3>Playground Motoru (6 yard&#305;mc&#305; mod&uuml;l)</h3>
+        <p>Cable Playground basit bir CRUD sayfas&#305; de&#287;ildir &mdash; tamamen bellekte &ccedil;al&#305;&scedil;an bir <strong>ger&ccedil;ek zamanl&#305; sim&uuml;lasyon motorudur</strong>. &#304;&scedil;te onu &ccedil;al&#305;&scedil;t&#305;ran mod&uuml;ller:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Oturum Y&ouml;neticisi</h4>
+                <p>Bellek i&ccedil;i oturum depolama. Her tasar&#305;m oturumunun benzersiz ID&rsquo;si, ad&#305;m saya&ccedil;&#305;, geri al/yinele y&#305;&#287;&#305;nlar&#305; (maks 50 durum), otomatik kaydetme zamanlay&#305;c&#305;s&#305; (varsay&#305;lan 30sn) ve atomik i&scedil;lemler i&ccedil;in checkpoint/restore&rsquo;u vard&#305;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&#304;lerleme Motoru</h4>
+                <p>Her ad&#305;mdan sonra neyin var oldu&#287;unu takip eder. &Ouml;&#287;elerin kodlar&#305;, miktarlar&#305;, durumlar&#305; (aktif/t&uuml;ketilmi&scedil;) vard&#305;r. Her makine tipinin girdileri t&uuml;keten ve do&#287;ru kodlarla &ccedil;&#305;kt&#305; &uuml;reten kendi i&scedil;leme fonksiyonu vard&#305;r (&ouml;rn. <code>BN_73X030</code>).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Form Entegrasyonu</h4>
+                <p>Veritaban&#305; + mevcut ilerleme durumundan frontend a&ccedil;&#305;l&#305;r men&uuml;lerini doldurur. Makine tipine g&ouml;re mevcut girdileri filtreler (&ouml;rn. Buncher sadece Z/T/U kodlu &ouml;&#287;eleri g&ouml;r&uuml;r). Konfig&uuml;rasyon &ouml;ncesi miktarlar&#305; do&#287;rular.</p>
+            </div>
+            <div class="arch-box">
+                <h4>DB Entegrasyonu</h4>
+                <p>Ger&ccedil;ek makine tablolar&#305;n&#305; okur. Birden fazla makine se&ccedil;ildi&#287;inde kapasite kesi&scedil;imini hesaplar &mdash; sadece SE&Ccedil;&#304;LEN T&Uuml;M makinelerin &uuml;retebilece&#287;i parametre de&#287;erlerini d&ouml;nd&uuml;r&uuml;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Do&#287;rulama Motoru</h4>
+                <p>&#304;ki do&#287;rulay&#305;c&#305;: <code>MachineValidator</code> konfig&uuml;rasyonlar&#305; makine aral&#305;klar&#305;na kar&scedil;&#305; kontrol eder. <code>ProductionFlowValidator</code> ad&#305;m s&#305;ralar&#305;n&#305;, paralel gruplar&#305; ve test atamalar&#305;n&#305; kontrol eder.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Kod &Uuml;reteci</h4>
+                <p>Deterministik &uuml;r&uuml;n kodu &uuml;retimi. Stok tekille&scedil;tirme i&ccedil;in SHA-256 spec hash&rsquo;leme. Okunabilir sistem kodlar&#305; (&ouml;rn. <code>HALF_KC_180</code>). Son kablo kodlar&#305; standart, kesit, yap&#305; ve katman kal&#305;nl&#305;klar&#305;n&#305; kodlar.</p>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>5. FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <p><code>/teknik/*</code> alt&#305;nda 7 sayfa, <code>canTeknik</code> eri&scedil;im bayra&#287;&#305;yla korunur. T&uuml;m sayfalar Ant Design Pro&rsquo;nun <code>ProTable</code> bile&scedil;enini T&uuml;rk&ccedil;e yerel ayar, istemci tarafl&#305; arama ve bulan&#305;k arkaplan modallar&#305;yla kullan&#305;r.</p>
+
+        <table>
+            <tr><th>Route</th><th>Sayfa</th><th>Sat&#305;r</th><th>Karma&scedil;&#305;kl&#305;k</th></tr>
+            <tr><td>/teknik/dashboard</td><td>Dashboard</td><td>~400</td><td>&#304;statistikler, h&#305;zl&#305; i&scedil;lemler, son tasar&#305;mlar</td></tr>
+            <tr><td>/teknik/playground</td><td>Cable Playground</td><td>~4.300</td><td>SVG canvas, 6 konfig formu, 3 g&ouml;r&uuml;n&uuml;m, geri al/yinele, otomatik kaydet</td></tr>
+            <tr><td>/teknik/cable-database</td><td>Kablo Veritaban&#305;</td><td>~690</td><td>Tablo + 3 sekmeli detay &ccedil;ekmecesi</td></tr>
+            <tr><td>/teknik/machines</td><td>Makine Y&ouml;netimi</td><td>~730</td><td>7 makine sekmesi, dinamik formlar</td></tr>
+            <tr><td>/teknik/standards</td><td>Standartlar</td><td>~550</td><td>Standart CRUD + parametre formlar&#305;</td></tr>
+            <tr><td>/teknik/markalama</td><td>Markalama</td><td>~370</td><td>Kelime dizili markalama &scedil;ablonlar&#305;</td></tr>
+            <tr><td>/teknik/operator-yonetimi</td><td>Operat&ouml;rler</td><td>~280</td><td>Basit isim CRUD</td></tr>
+        </table>
+
+        <p>Cable Playground tek ba&scedil;&#305;na frontend kodunun yar&#305;s&#305;ndan fazlas&#305;n&#305; olu&scedil;turur. Mod&uuml;ler bir bile&scedil;en sistemi olarak in&scedil;a edilmi&scedil;tir: <code>usePlayground</code> hook&rsquo;u durum ve API &ccedil;a&#287;r&#305;lar&#305;n&#305; y&ouml;netir, <code>FlowCanvas</code> SVG diyagram&#305;n&#305; &ccedil;izer, <code>MachineLibrary</code> yan panel paletidir, <code>ConfigurationDrawer</code> 6 makineye &ouml;zg&uuml; formu bar&#305;nd&#305;r&#305;r (1.215 sat&#305;r) ve <code>ProgressionPanel</code> ger&ccedil;ek zamanl&#305; malzeme takibini g&ouml;sterir.</p>
+
+        <!-- ============================================ -->
+        <h2>6. ALT MOD&Uuml;LLER</h2>
+        <!-- ============================================ -->
+
+        <p>A&scedil;a&#287;&#305;daki b&ouml;l&uuml;mler her alt mod&uuml;l&uuml; tam detay&#305;yla belgeler &mdash; her form alan&#305;, her API endpoint, her veritaban&#305; s&uuml;tunu, her do&#287;rulama kural&#305; ve arkas&#305;ndaki tasar&#305;m kararlar&#305;.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">1</div>
+            <div class="submod-body">
+                <h4>Cable Playground</h4>
+                <p>G&ouml;rsel kablo tasar&#305;m at&ouml;lyesi. Makineleri canvas&rsquo;a s&uuml;r&uuml;kleyin, parametreleri yap&#305;land&#305;r&#305;n, &uuml;retim ak&#305;&scedil;&#305;n&#305;n ger&ccedil;ek zamanl&#305; olu&scedil;umunu izleyin. Oturum tabanl&#305;, bellek i&ccedil;i sim&uuml;lasyon; geri al/yinele, otomatik kaydetme ve &uuml;&ccedil; g&ouml;r&uuml;n&uuml;m modu.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">22 ENDPOINTS</span>
+                    <span class="submod-tag">4,300 LOC</span>
+                    <span class="submod-tag">6 UTILITY MODULES</span>
+                    <span class="submod-tag">SVG CANVAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">2</div>
+            <div class="submod-body">
+                <h4>Kablo Veritaban&#305;</h4>
+                <p>Onayl&#305; kablo tasar&#305;mlar&#305;n&#305;n k&uuml;t&uuml;phanesi. Her kay&#305;t eksiksiz &uuml;retim ak&#305;&scedil;&#305;n&#305;, yar&#305; mamul a&#287;ac&#305;n&#305;, hammadde listesini ve test gereksinimlerini yap&#305;land&#305;r&#305;lm&#305;&scedil; JSON olarak saklar. Sipari&scedil; ve &Uuml;retim i&ccedil;in tek do&#287;ru kaynak.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">15 ENDPOINTS</span>
+                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
+                    <span class="submod-tag">ANALYTICS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">3</div>
+            <div class="submod-body">
+                <h4>Makine Y&ouml;netimi</h4>
+                <p>7 fabrika makine tipi i&ccedil;in CRUD. Her tipin min/maks/art&#305;&scedil; aral&#305;klar&#305;yla benzersiz konfig&uuml;rasyon &scedil;emas&#305; vard&#305;r. Playground, tasar&#305;mlar&#305;n fiziksel olarak &uuml;retilebilir oldu&#287;unu do&#287;rulamak i&ccedil;in bunlar&#305; okur.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">~45 ENDPOINTS</span>
+                    <span class="submod-tag">7 MACHINE TYPES</span>
+                    <span class="submod-tag">DB CHECK CONSTRAINTS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">4</div>
+            <div class="submod-body">
+                <h4>Standart Y&ouml;netimi</h4>
+                <p>Dinamik parametreler, ge&ccedil;/kal kriterleri ve test frekans kurallar&#305;yla test standard&#305; tan&#305;mlar&#305;. Ad&#305;m seviyesinde kablo tasar&#305;mlar&#305;na ba&#287;l&#305;d&#305;r &mdash; Lab mod&uuml;l&uuml; neyi ne zaman test edece&#287;ini bilmek i&ccedil;in bunlar&#305; okur.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">12 ENDPOINTS</span>
+                    <span class="submod-tag">3 CATEGORIES</span>
+                    <span class="submod-tag">DYNAMIC PARAMETERS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">5</div>
+            <div class="submod-body">
+                <h4>Markalama</h4>
+                <p>Markalama &scedil;ablonlar&#305;, ekstr&uuml;zyon s&#305;ras&#305;nda kablolar&#305;n &uuml;zerine yaz&#305;lan metni tan&#305;mlar. De&#287;i&scedil;ken deste&#287;iyle s&#305;ral&#305; kelime dizileri olarak saklan&#305;r (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code> vb.). Her sipari&scedil;-kablo bir markalama &scedil;ablonunu referans al&#305;r.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">6 ENDPOINTS</span>
+                    <span class="submod-tag">WORD ARRAYS</span>
+                    <span class="submod-tag">VARIABLES</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6</div>
+            <div class="submod-body">
+                <h4>Operat&ouml;r Y&ouml;netimi</h4>
+                <p>&Uuml;retim operat&ouml;r&uuml; kayd&#305;. Operat&ouml;rler oturumu ba&scedil;latan ki&scedil;i taraf&#305;ndan &uuml;retim oturumlar&#305;na atan&#305;r &mdash; sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur. Benzersizlik k&#305;s&#305;tlamas&#305;yla basit isim CRUD.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">4 ENDPOINTS</span>
+                    <span class="submod-tag">SIMPLE CRUD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>Bundan sonras&#305;:</strong> Yukar&#305;daki her alt mod&uuml;l, veritaban&#305; &scedil;emalar&#305;, eksiksiz API endpoint dok&uuml;mantasyonu, frontend form alanlar&#305;, do&#287;rulama kurallar&#305;, kod par&ccedil;alar&#305; ve temel tasar&#305;m kararlar&#305;n&#305;n arkas&#305;ndaki mant&#305;kla tam bir b&ouml;l&uuml;me geni&scedil;letilecektir.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>

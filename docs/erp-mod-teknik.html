@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teknik Module | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 16px; font-weight: 700; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-teknik-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-teknik.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
+        <h1>TEKNIK &mdash; THE FOUNDATION MODULE</h1>
+        <p class="subtitle">Everything downstream depends on this. No order, no production, no test can exist without data defined here.</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Teknik is where a cable is born.</strong> Before a single meter of wire is drawn, before a customer order is placed, before a test can be assigned &mdash; someone has to define what cables the factory can produce, what machines exist, what parameters those machines accept, what standards the cables must pass, and what gets printed on them. Teknik holds all of this. It is the single source of truth that every other module reads from but never writes to.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">6</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~75</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">12</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">4000+</div>
+                <div class="label">LINES OF FRONTEND</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. WHAT TEKNIK DOES</h2>
+        <!-- ============================================ -->
+
+        <p>The Teknik module answers five questions that the entire factory depends on:</p>
+
+        <ol>
+            <li><strong>What cables can we produce?</strong> &mdash; Cable Playground designs them. Cable Database stores the approved results. Every cable is defined as an ordered sequence of machine steps with exact parameters.</li>
+            <li><strong>What machines do we have?</strong> &mdash; Machine Management registers all 7 machine types with their physical capabilities (speed ranges, diameter limits, thickness ranges). The Playground uses these to validate that a design is physically producible.</li>
+            <li><strong>What quality standards must be met?</strong> &mdash; Standards Management defines every test (IEC-EN, UL, SLN) with parameters, pass/fail criteria, and test frequencies. These are linked to cable designs &mdash; each design knows exactly which tests it requires at which production step.</li>
+            <li><strong>What gets printed on the cable?</strong> &mdash; Markalama defines the ordered word arrays that the extruder prints during production (company name, standard, voltage, cross-section, etc.).</li>
+            <li><strong>Who operates the machines?</strong> &mdash; Operator Management maintains the registry of production operators who are assigned to sessions.</li>
+        </ol>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Zero dependencies.</strong> Teknik depends on no other business module. It reads only from the <code>users</code> table (for <code>created_by</code> tracking). Every other module &mdash; Sipari&scedil;, &Uuml;retim, Lab, Stok &mdash; depends on Teknik. This makes it the foundation layer of the entire system.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <p>Data flows in one direction: from Teknik outward. Here is how each submodule feeds the rest of the system.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">MACHINES<br><span style="font-size:9px;color:#666;">Define capabilities</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">PLAYGROUND<br><span style="font-size:9px;color:#666;">Design cables</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">CABLE DB<br><span style="font-size:9px;color:#666;">Store approved</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">ORDERS<br><span style="font-size:9px;color:#666;">Select cables</span></div>
+        </div>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">STANDARDS<br><span style="font-size:9px;color:#666;">Define tests</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">PLAYGROUND<br><span style="font-size:9px;color:#666;">Assign to steps</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">CABLE DB<br><span style="font-size:9px;color:#666;">Store requirements</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fce7f3; border-color: #db2777;">LAB<br><span style="font-size:9px;color:#666;">Execute tests</span></div>
+        </div>
+
+        <p>The Cable Database is the convergence point. It stores the finalized design as structured JSON: the complete production flow, every half-product that will be created, the bill of raw materials, and all test requirements. When Sipari&scedil; calculates material needs or &Uuml;retim generates work cards, they read from Cable Database &mdash; never from the Playground or Machines directly.</p>
+
+        <!-- ============================================ -->
+        <h2>3. THE DATABASE LAYER</h2>
+        <!-- ============================================ -->
+
+        <p>12 tables serve the Teknik module. They fall into four groups:</p>
+
+        <h3>Machine Tables (7)</h3>
+        <p>One table per machine type. Each stores the physical capabilities of that machine as min/max/increment ranges. The system generates dropdown options by stepping through these ranges.</p>
+
+        <table>
+            <tr><th>Table</th><th>Unique Config</th><th>Input Code</th></tr>
+            <tr><td><code>kabatel_cekme_machines</code></td><td>speed, tav (anneal current), output diameter</td><td>A</td></tr>
+            <tr><td><code>kalaylama_machines</code></td><td>speed, tin thickness (&mu;m)</td><td>X</td></tr>
+            <tr><td><code>incetel_cekme_machines</code></td><td>speed, input count, output diameter, tav</td><td>&mdash;</td></tr>
+            <tr><td><code>buncher_machines</code></td><td>speed, hatve (lay length), input count</td><td>Z,T,U</td></tr>
+            <tr><td><code>extruder_machines</code></td><td>speed, insulation thickness, sheath thickness</td><td>T,Z</td></tr>
+            <tr><td><code>ebeam_machines</code></td><td>speed, radiation level (kGy)</td><td>&mdash;</td></tr>
+            <tr><td><code>aktarma_machines</code></td><td>(brand/model only)</td><td>&mdash;</td></tr>
+        </table>
+
+        <p>Every configurable parameter has a database-level <code>CHECK</code> constraint: <code>max &gt; min</code>, <code>increment &gt; 0</code>, <code>min &ge; 0</code>. This means invalid machine configurations are impossible to save &mdash; the database itself enforces physical sanity.</p>
+
+        <h3>Design Tables (3)</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Fields</th></tr>
+            <tr><td><code>cable_designs</code></td><td>Design sessions from the Playground</td><td><code>design_code</code> (unique), <code>standard</code> (EN/UL/SLN), <code>cross_section</code>, <code>design_data</code> (JSON)</td></tr>
+            <tr><td><code>design_steps</code></td><td>Individual production steps within a design</td><td><code>step_number</code>, <code>machine_type</code>, <code>configuration</code> (JSON), <code>inputs/outputs</code> (JSON), <code>tests</code> (JSON)</td></tr>
+            <tr><td><code>cable_database</code></td><td>Finalized, approved cable definitions</td><td><code>cable_code</code> (unique), <code>production_flow</code> (JSON), <code>half_products</code> (JSON), <code>raw_materials</code> (JSON), <code>test_requirements</code> (JSON)</td></tr>
+        </table>
+
+        <p>The relationship: <code>CableDesign</code> &rarr; many <code>DesignStep</code> (cascade delete) &rarr; one <code>CableDatabase</code> entry on finalize. The Cable Database stores everything as denormalized JSON blobs &mdash; intentionally. When the Material Calculator needs to compute copper requirements for an order, it reads one row from <code>cable_database</code> and has the complete production flow without any joins.</p>
+
+        <h3>Quality Tables (2)</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Fields</th></tr>
+            <tr><td><code>test_standards</code></td><td>Test definitions</td><td><code>standard_category</code> (IEC-EN/UL/SLN), <code>test_name</code>, <code>standard_number</code>, <code>test_samples</code></td></tr>
+            <tr><td><code>test_parameters</code></td><td>Parameters within a test</td><td><code>parameter_name</code>, <code>parameter_unit</code>, <code>parameter_order</code>, <code>is_required</code></td></tr>
+        </table>
+
+        <p>A test standard has N parameters (cascade delete). When a test is assigned to a design step in the Playground, the standard ID and frequency (start/end/every reel) are embedded in the step&rsquo;s JSON. This means the Cable Database carries the complete test map &mdash; Lab knows exactly what to test and when, without querying Teknik at production time.</p>
+
+        <h3>Supporting Tables</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th></tr>
+            <tr><td><code>product_codes</code></td><td>SHA-256 hashed product identifiers for stock deduplication. <code>system_code</code> (human-readable, e.g. <code>HALF_BN_73X030</code>) + <code>spec_hash</code> (deterministic hash of specifications). Ensures identical products across different designs share the same stock pool.</td></tr>
+            <tr><td><code>markings</code></td><td>Cable printing templates. <code>name</code> (unique) + <code>words</code> (JSON array of strings). Each order-cable references a marking.</td></tr>
+            <tr><td><code>production_operators</code></td><td>Operator registry. <code>name</code> (unique). Referenced by production sessions.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>4. THE BACKEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <p>The Teknik backend is split into <strong>6 route files</strong> mounted under <code>/api/teknik/</code> and <strong>6 utility modules</strong> that power the Playground&rsquo;s simulation engine.</p>
+
+        <h3>Route Files</h3>
+        <table>
+            <tr><th>File</th><th>Prefix</th><th>Endpoints</th><th>Responsibility</th></tr>
+            <tr><td><code>machine_routes.py</code></td><td>/teknik/machines</td><td>~45</td><td>CRUD + options for 7 machine types</td></tr>
+            <tr><td><code>design_routes.py</code></td><td>/teknik/design</td><td>~22</td><td>Playground sessions, steps, config, undo/redo, finalize</td></tr>
+            <tr><td><code>cable_database_routes.py</code></td><td>/teknik/cable-database</td><td>~15</td><td>Approved cables, product codes, analytics</td></tr>
+            <tr><td><code>standards_routes.py</code></td><td>/teknik/standards</td><td>~12</td><td>Test standards, parameters, results</td></tr>
+            <tr><td><code>marking_routes.py</code></td><td>/markings</td><td>~6</td><td>Marking template CRUD</td></tr>
+            <tr><td><code>operator_routes.py</code></td><td>/operators</td><td>~4</td><td>Operator CRUD</td></tr>
+        </table>
+
+        <h3>Playground Engine (6 utility modules)</h3>
+        <p>The Cable Playground is not a simple CRUD page &mdash; it is a <strong>real-time simulation engine</strong> that runs entirely in-memory on the backend. These are the modules that make it work:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Session Manager</h4>
+                <p>In-memory session storage. Each design session has a unique ID, a step counter, undo/redo stacks (max 50 states), autosave timer (default 30s), and checkpoint/restore for atomic transactions.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Progression Engine</h4>
+                <p>Tracks what exists after each step. Items have codes, quantities, statuses (active/consumed). Each machine type has its own processing function that consumes inputs and produces outputs with correct codes (e.g., <code>BN_73X030</code>).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Form Integration</h4>
+                <p>Populates frontend dropdowns from database + current progression state. Filters available inputs per machine type (e.g., Buncher only sees Z/T/U coded items). Validates quantities before configuration.</p>
+            </div>
+            <div class="arch-box">
+                <h4>DB Integration</h4>
+                <p>Reads real machine tables. Calculates capability intersection when multiple machines are selected &mdash; returns only parameter values ALL selected machines can produce.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Validation Engine</h4>
+                <p>Two validators: <code>MachineValidator</code> checks configs against machine ranges. <code>ProductionFlowValidator</code> checks step sequences, parallel groups, and test assignments.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Code Generator</h4>
+                <p>Deterministic product code generation. SHA-256 spec hashing for stock deduplication. Human-readable system codes (e.g., <code>HALF_KC_180</code>). Final cable codes encode standard, cross-section, structure, and layer thicknesses.</p>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>5. THE FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <p>7 pages under <code>/teknik/*</code>, protected by the <code>canTeknik</code> access flag. All pages use Ant Design Pro&rsquo;s <code>ProTable</code> with Turkish locale, client-side search, and blurred backdrop modals.</p>
+
+        <table>
+            <tr><th>Route</th><th>Page</th><th>Lines</th><th>Complexity</th></tr>
+            <tr><td>/teknik/dashboard</td><td>Dashboard</td><td>~400</td><td>Stats, quick actions, recent designs</td></tr>
+            <tr><td>/teknik/playground</td><td>Cable Playground</td><td>~4,300</td><td>SVG canvas, 6 config forms, 3 view modes, undo/redo, autosave</td></tr>
+            <tr><td>/teknik/cable-database</td><td>Cable Database</td><td>~690</td><td>Table + detail drawer with 3 tabs</td></tr>
+            <tr><td>/teknik/machines</td><td>Machine Management</td><td>~730</td><td>7 machine tabs, dynamic forms</td></tr>
+            <tr><td>/teknik/standards</td><td>Standards</td><td>~550</td><td>Standards CRUD + parameter forms</td></tr>
+            <tr><td>/teknik/markalama</td><td>Markalama</td><td>~370</td><td>Marking templates with word arrays</td></tr>
+            <tr><td>/teknik/operator-yonetimi</td><td>Operators</td><td>~280</td><td>Simple name CRUD</td></tr>
+        </table>
+
+        <p>The Cable Playground alone accounts for more than half the frontend code. It is built as a modular component system: a <code>usePlayground</code> hook manages state and API calls, <code>FlowCanvas</code> renders the SVG diagram, <code>MachineLibrary</code> is the sidebar palette, <code>ConfigurationDrawer</code> holds 6 machine-specific forms (1,215 lines), and <code>ProgressionPanel</code> shows real-time material tracking.</p>
+
+        <!-- ============================================ -->
+        <h2>6. THE SUBMODULES</h2>
+        <!-- ============================================ -->
+
+        <p>The sections that follow document each submodule in full detail &mdash; every form field, every API endpoint, every database column, every validation rule, and the design decisions behind them.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">1</div>
+            <div class="submod-body">
+                <h4>Cable Playground</h4>
+                <p>The visual cable design workshop. Drag machines onto a canvas, configure parameters, watch the production flow build in real-time. Session-based, in-memory simulation with undo/redo, autosave, and three view modes.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">22 ENDPOINTS</span>
+                    <span class="submod-tag">4,300 LOC</span>
+                    <span class="submod-tag">6 UTILITY MODULES</span>
+                    <span class="submod-tag">SVG CANVAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">2</div>
+            <div class="submod-body">
+                <h4>Cable Database</h4>
+                <p>The library of approved cable designs. Each entry stores the complete production flow, half-product tree, bill of materials, and test requirements as structured JSON. The single source of truth for Orders and Production.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">15 ENDPOINTS</span>
+                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
+                    <span class="submod-tag">ANALYTICS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">3</div>
+            <div class="submod-body">
+                <h4>Machine Management</h4>
+                <p>CRUD for all 7 factory machine types. Each type has a unique configuration schema with min/max/increment ranges. The Playground reads these to validate that designs are physically producible.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">~45 ENDPOINTS</span>
+                    <span class="submod-tag">7 MACHINE TYPES</span>
+                    <span class="submod-tag">DB CHECK CONSTRAINTS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">4</div>
+            <div class="submod-body">
+                <h4>Standards Management</h4>
+                <p>Test standard definitions with dynamic parameters, pass/fail criteria, and test frequency rules. Linked to cable designs at the step level &mdash; the Lab module reads these to know what to test and when.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">12 ENDPOINTS</span>
+                    <span class="submod-tag">3 CATEGORIES</span>
+                    <span class="submod-tag">DYNAMIC PARAMETERS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">5</div>
+            <div class="submod-body">
+                <h4>Markalama (Cable Marking)</h4>
+                <p>Marking templates define the text printed on cables during extrusion. Stored as ordered word arrays with variable support (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code>, etc.). Each order-cable references a marking template.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">6 ENDPOINTS</span>
+                    <span class="submod-tag">WORD ARRAYS</span>
+                    <span class="submod-tag">VARIABLES</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6</div>
+            <div class="submod-body">
+                <h4>Operator Management</h4>
+                <p>Production operator registry. Operators are assigned to production sessions by the person starting the session &mdash; they don&rsquo;t need system logins. Simple name CRUD with uniqueness constraint.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">4 ENDPOINTS</span>
+                    <span class="submod-tag">SIMPLE CRUD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>What follows:</strong> Each submodule above will be expanded into a full section with database schemas, complete API endpoint documentation, frontend form fields, validation rules, code snippets, and the reasoning behind key design decisions.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
