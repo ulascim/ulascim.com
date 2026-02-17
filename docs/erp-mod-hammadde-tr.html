@@ -885,7 +885,7 @@ registerPageButtons({
                 <div class="stat-label">Sipari&#351; iptal edildi</div>
             </div>
         </div>
-        <p>Durum ge&ccedil;i&#351;leri do&#287;rudan tablodan ger&ccedil;ekle&#351;ir &mdash; durum s&uuml;tunu salt okunur bir etiket de&#287;il, sat&#305;r i&ccedil;i bir a&ccedil;&#305;l&#305;r se&ccedil;icidir. Kullan&#305;c&#305; mevcut durum etiketine t&#305;klar ve yenisini se&ccedil;er. Durum &ldquo;Teslim Al&#305;nd&#305;&rdquo; olarak de&#287;i&#351;ti&#287;inde, sistem otomatik olarak bug&uuml;n&uuml;n tarihini teslimat tarihi olarak kaydeder.</p>
+        <p>Durum ge&ccedil;i&#351;leri iki &#351;ekilde ger&ccedil;ekle&#351;ebilir. Birincisi, tablodaki durum s&uuml;tunu sat&#305;r i&ccedil;i bir a&ccedil;&#305;l&#305;r se&ccedil;icidir &mdash; kullan&#305;c&#305; mevcut durum etiketine t&#305;klar ve yenisini se&ccedil;er. &#304;kincisi ve daha &ouml;nemlisi, <strong>durum, gelen malzemeler bir sipari&#351;e ba&#287;land&#305;&#287;&#305;nda Hammadde Giri&#351;i mod&uuml;l&uuml; taraf&#305;ndan otomatik olarak &ldquo;Teslim Al&#305;nd&#305;&rdquo; yap&#305;l&#305;r</strong>. Hammadde Giri&#351;i &uuml;zerinden bir teslimat kaydedildi&#287;inde, backend sipari&#351;in durumunu otomatik olarak teslim edilmi&#351; yapar, bug&uuml;n&uuml;n tarihini teslimat tarihi olarak damgalar ve teslim edilen miktar&#305; art&#305;r&#305;r. Bu, en yayg&#305;n durum ge&ccedil;i&#351;inin (beklemede &rarr; teslim al&#305;nd&#305;) bu sayfadaki manuel etkile&#351;imle de&#287;il, malzeme alma i&#351; ak&#305;&#351;&#305;n&#305;n par&ccedil;as&#305; olarak otomatik ger&ccedil;ekle&#351;ti&#287;i anlam&#305;na gelir.</p>
 
         <h3>6.2.3 &mdash; Sipari&#351; Grup Kodlar&#305; (G&ouml;nderim Gruplama)</h3>
         <p>Bir tedarik&ccedil;iden gelen tek bir g&ouml;nderim genellikle birden fazla farkl&#305; malzeme i&ccedil;erir. &Ouml;rne&#287;in, Tedarik&ccedil;i X&rsquo;ten gelen bir kamyon 5 ton HF-500 plastik gran&uuml;l <em>ve</em> 2 ton kataliz&ouml;r ta&#351;&#305;yor olabilir. Bunlar&#305; tamamen ayr&#305; sipari&#351;ler olarak ele almak yerine, sistem onlar&#305; payla&#351;&#305;lan bir <strong>Sipari&#351; Grup Kodu</strong> alt&#305;nda gruplar.</p>
@@ -1046,17 +1046,44 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Varsayılan sıralama bir hikaye anlatır:</strong> siparişler <code>expected_date ASC</code> ile sıralanır &mdash; en yakın teslimatlar en üstte görünür. Kırmızı gecikme vurgulamasıyla birleşince, tablo doğal olarak en acil kalemleri en üste iter. Depo müdürü bu sayfayı açtığında neyin geciktiğini ve sırada neyin olduğunu anında görür.</p>
         </div>
 
-        <h3>6.2.14 &mdash; Silme Davranışı</h3>
+        <h3>6.2.14 &mdash; Malzeme Sipari&#351;lerinin Stok Projeksiyon Sistemini (Projeksiyon) Beslemesi</h3>
+        <p>Bu, Malzeme Sipari&#351;leri verisinin muhtemelen en &ouml;nemli alt ak&#305;&#351; t&uuml;keticisidir ve sipari&#351; sayfas&#305;n&#305;n kendisinden tamamen farkl&#305; bir soyutlama seviyesinde &ccedil;al&#305;&#351;&#305;r.</p>
+        <p><strong>Projeksiyon</strong> (Stok Projeksiyon) sistemi, t&uuml;m fabrika genelinde hammadde kullan&#305;labilirli&#287;inin haftal&#305;k tahminini sa&#287;lar. Şu soruyu cevaplar: &ldquo;Hafta hafta, her malzemeden yeterince olacak m&#305;, yoksa eksik mi kalaca&#287;&#305;z?&rdquo; Bunu cevaplamak i&ccedil;in iki veri ak&#305;&#351;&#305;na ihtiyac&#305; vard&#305;r:</p>
+        <ul>
+            <li><strong>EKS&#304; (&#304;htiya&ccedil;)</strong> &mdash; &uuml;retimin her hafta ne kadar malzeme <em>t&uuml;ketece&#287;i</em>. Bu İş Kartlar&#305;ndan (üretim planlarından) gelir &mdash; bakır için KC kartları, kalay için KL kartları, plastik/katalizör/boya/antirodent için EX kartları, makara için Aktarma kartları, palet için Paletleme kartları.</li>
+            <li><strong>ARTI (Gelen)</strong> &mdash; her hafta ne kadar malzemenin <em>gelece&#287;i</em>. <strong>Bu tamamen Malzeme Sipari&#351;lerinden gelir.</strong></li>
+        </ul>
+        <p>Projeksiyon servisi iptal edilmemi&#351; her malzeme sipari&#351;ini okur ve kritik bir karara g&ouml;re do&#287;ru haftaya yerle&#351;tirir: sipari&#351; teslim edilmi&#351;se <code>delivered_date</code> (ger&ccedil;ek var&#305;&#351;) kullan&#305;r. Hâlâ beklemede veya yoldaysa <code>expected_date</code> (planlanm&#305;&#351; var&#305;&#351;) kullan&#305;r. Benzer &#351;ekilde, teslim edilmi&#351; sipari&#351;ler i&ccedil;in <code>delivered_quantity</code> (ger&ccedil;ekte gelen), bekleyen sipari&#351;ler i&ccedil;in <code>quantity</code> (sipari&#351; edilen) kullan&#305;r.</p>
+        <p>Bu, kullan&#305;c&#305;n&#305;n Malzeme Sipari&#351;leri sayfas&#305;nda yapt&#305;&#287;&#305; her de&#287;i&#351;ikli&#287;in projeksiyonu do&#287;rudan etkiledi&#287;i anlam&#305;na gelir:</p>
+        <ul>
+            <li><strong>Yeni sipari&#351; olu&#351;turma</strong> &rarr; beklenen haftaya bir ARTI giri&#351;i ekler</li>
+            <li><strong>Beklenen tarihi de&#287;i&#351;tirme</strong> &rarr; o ARTI&rsquo;y&#305; bir haftadan di&#287;erine ta&#351;&#305;r (tarih de&#287;i&#351;ikli&#287;i takibinin bu kadar &ouml;nemli olmas&#305;n&#305;n nedeni budur &mdash; projeksiyonu kayd&#305;r&#305;r)</li>
+            <li><strong>Miktar&#305; de&#287;i&#351;tirme</strong> &rarr; o haftan&#305;n ARTI de&#287;erini art&#305;r&#305;r veya azalt&#305;r</li>
+            <li><strong>Sipari&#351;i iptal etme</strong> &rarr; ARTI&rsquo;y&#305; tamamen kald&#305;r&#305;r (iptal edilen sipari&#351;ler hari&ccedil; tutulur)</li>
+            <li><strong>Sipari&#351;in teslim edilmesi</strong> &rarr; ARTI, expected_date/quantity&rsquo;den delivered_date/delivered_quantity&rsquo;ye ge&ccedil;er, ger&ccedil;e&#287;i yans&#305;t&#305;r</li>
+        </ul>
+
+        <p>Projeksiyon <strong>kal&#305;c&#305; bir pland&#305;r</strong> &mdash; &uuml;retim tamamland&#305;&#287;&#305;nda veya malzemeler fiziksel olarak geldi&#287;inde de&#287;i&#351;mez. Yaln&#305;zca <em>plan&#305;n kendisi</em> de&#287;i&#351;ti&#287;inde de&#287;i&#351;ir. Bu bilin&ccedil;li bir tasar&#305;m tercibidir: projeksiyon neyin planland&#305;&#287;&#305;n&#305; ve neyin beklendi&#287;ini g&ouml;sterir, bug&uuml;n stokta ne kald&#305;&#287;&#305;n&#305; de&#287;il.</p>
+
+        <p>Servis ayr&#305;ca her sipari&#351;i <code>supplier_material</code> ili&#351;kisi &uuml;zerinden <strong>spesifik malzeme ad&#305;na</strong> kadar &ccedil;&ouml;z&uuml;mler. Dolay&#305;s&#305;yla projeksiyon sadece &ldquo;Hafta 12&rsquo;de +500 kg plastik&rdquo; g&ouml;stermez &mdash; &ldquo;Hafta 12&rsquo;de +500 kg HFX-500P&rdquo; g&ouml;sterir. Bu malzeme ba&#351;&#305;na gran&uuml;larite, projeksiyonun yaln&#305;zca kategori d&uuml;zeyinde de&#287;il, bireysel malzeme d&uuml;zeyinde eksiklikleri tespit etmesini sa&#287;lar.</p>
+
+        <p>Projeksiyon t&uuml;m haftalar boyunca <strong>k&uuml;m&uuml;latif bakiye</strong> hesaplar. E&#287;er Hafta 10&rsquo;da +500 kg bak&#305;r geliyorsa ama Hafta 11&rsquo;de &uuml;retim i&ccedil;in -800 kg gerekiyorsa, k&uuml;m&uuml;latif negatife d&ouml;ner ve eksiklik i&#351;aretlenir. Frontend bu eksiklikleri g&ouml;rsel olarak vurgular. Malzeme Sipari&#351;leri ARTI taraf&#305;n&#305; sa&#287;lamazsa, t&uuml;m projeksiyon yaln&#305;zca t&uuml;ketim g&ouml;sterir ve gelen yoktur &mdash; bu da planlama i&ccedil;in kullan&#305;&#351;s&#305;z hale getirir.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Malzeme Sipari&#351;lerinin ikili rol&uuml;:</strong> Y&uuml;zeysel olarak bu mod&uuml;l basit bir takip tablosudur. Ama alt&#305;nda, fabrikan&#305;n stok projeksiyon sisteminin iki temel veri kayna&#287;&#305;ndan biridir. Her sipari&#351;, her tarih de&#287;i&#351;ikli&#287;i, her miktar g&uuml;ncellemesi haftal&#305;k projeksiyona yay&#305;l&#305;r ve t&uuml;m planlama ufku boyunca eksiklik tespitini etkiler. Bu y&uuml;zden do&#287;ru sipari&#351; giri&#351;i ve &ouml;zenli tarih de&#287;i&#351;ikli&#287;i takibi idari y&uuml;k de&#287;il &mdash; fabrikan&#305;n &uuml;retim planlama do&#287;rulu&#287;u i&ccedil;in kritik girdilerdir.</p>
+        </div>
+
+        <h3>6.2.15 &mdash; Silme Davranışı</h3>
         <p>Siparişler bir onay diyalogu aracılığıyla kalıcı olarak silinebilir. Yumuşak silme / arşivleme mekanizması yoktur. <code>material_order_date_changes</code> üzerindeki CASCADE ilişkisi, bir siparişin silinmesinin tarih değişikliği geçmişini de kaldırmasını sağlar. Ancak, bir <code>raw_material</code> girişi bu siparişe <code>material_order_id</code> aracılığıyla zaten bağlıysa, bu bağlantı asılı bir referans olur (raw_materials üzerindeki foreign key nullable olduğu için kısıtlama ihlali yaratmaz, ancak izlenebilirlik zinciri kırılır).</p>
 
-        <h3>6.2.15 &mdash; Bu Modülün YAPMADIĞI Şeyler</h3>
+        <h3>6.2.16 &mdash; Bu Modülün YAPMADIĞI Şeyler</h3>
         <ul>
             <li>Resmi satın alma siparişleri veya faturalar <strong>üretmez</strong></li>
             <li>Fiyatlandırma veya maliyet <strong>yönetmez</strong> &mdash; fiyat alanları yoktur</li>
             <li>Tedarikçilere bildirim veya e-posta <strong>göndermez</strong></li>
             <li>WebSocket <strong>kullanmaz</strong> &mdash; tablo açık kullanıcı işlemlerinde yenilenir (kaydetme, silme, durum değişikliği)</li>
             <li>İzin sistemini <strong>kullanmaz</strong> &mdash; kimliği doğrulanmış her kullanıcı tüm özelliklere erişebilir</li>
-            <li>Teslim edilen miktara göre durumu otomatik <strong>değiştirmez</strong> &mdash; tamamen teslim edilse bile, kullanıcı durumu manuel olarak &ldquo;Teslim Alındı&rdquo; yapmalıdır</li>
+            <li>Fiyatlandırma, faturalama veya herhangi bir finansal takip <strong>yapmaz</strong></li>
         </ul>
 
     </main>

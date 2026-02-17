@@ -885,7 +885,7 @@ registerPageButtons({
                 <div class="stat-label">Cancelled &mdash; order abandoned</div>
             </div>
         </div>
-        <p>Status transitions happen directly from the table &mdash; the status column is an inline dropdown selector, not a read-only label. The user clicks on the current status tag and picks the new one. When status changes to &ldquo;Delivered&rdquo;, the system automatically stamps today&rsquo;s date as the delivery date.</p>
+        <p>Status transitions can happen two ways. First, the status column in the table is an inline dropdown selector &mdash; the user clicks the current status tag and picks a new one. Second, and more importantly, <strong>status is automatically set to &ldquo;Delivered&rdquo; by the Material Entry module</strong> when incoming materials are linked to an order. When a delivery is saved through Material Entry, the backend automatically updates the order&rsquo;s status to delivered, stamps today&rsquo;s date as the delivery date, and increments the delivered quantity. This means the most common status transition (pending &rarr; delivered) happens automatically as part of the material receiving workflow, not through manual interaction on this page.</p>
 
         <h3>6.2.3 &mdash; Order Group Codes (Shipment Grouping)</h3>
         <p>A single shipment from a supplier often contains multiple distinct materials. For example, one truck from Supplier X might carry 5 tons of HF-500 plastic granules <em>and</em> 2 tons of catalyst. Instead of treating these as completely separate orders, the system groups them under a shared <strong>Order Group Code</strong>.</p>
@@ -1046,17 +1046,44 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>The default sort order tells a story:</strong> orders are sorted by <code>expected_date ASC</code> &mdash; the soonest deliveries appear first. Combined with the red overdue highlighting, the table naturally pushes the most urgent items to the top. A warehouse manager opening this page immediately sees what is late and what is coming next.</p>
         </div>
 
-        <h3>6.2.14 &mdash; Delete Behavior</h3>
+        <h3>6.2.14 &mdash; How Material Orders Feed the Stock Projection System (Projeksiyon)</h3>
+        <p>This is arguably the most important downstream consumer of Material Orders data, and it operates at a completely different abstraction level than the order page itself.</p>
+        <p>The <strong>Projeksiyon</strong> (Stock Projection) system provides a weekly forecast of raw material availability across the entire factory. It answers the question: &ldquo;Week by week, will we have enough of each material, or will we run short?&rdquo; To answer this, it needs two data streams:</p>
+        <ul>
+            <li><strong>MINUS (&#304;htiya&ccedil;)</strong> &mdash; how much material will production <em>consume</em> each week. This comes from Work Cards (production plans) &mdash; KC cards for copper, KL cards for tin, EX cards for plastics/catalyst/dye/antirodent, Aktarma cards for reels, Paletleme cards for palettes.</li>
+            <li><strong>PLUS (Gelen)</strong> &mdash; how much material is <em>arriving</em> each week. <strong>This comes entirely from Material Orders.</strong></li>
+        </ul>
+        <p>The Projeksiyon service reads every non-cancelled material order and places it into the correct week based on a critical decision: if the order has been delivered, it uses the <code>delivered_date</code> (actual arrival). If it is still pending or shipped, it uses the <code>expected_date</code> (planned arrival). Similarly, for delivered orders it uses <code>delivered_quantity</code> (what actually came), and for pending orders it uses <code>quantity</code> (what was ordered).</p>
+        <p>This means that every change a user makes in the Material Orders page directly affects the projection:</p>
+        <ul>
+            <li><strong>Creating a new order</strong> &rarr; adds a PLUS entry to the expected week</li>
+            <li><strong>Changing the expected date</strong> &rarr; moves that PLUS from one week to another (which is why date change tracking matters so much &mdash; it shifts the projection)</li>
+            <li><strong>Changing the quantity</strong> &rarr; increases or decreases the PLUS for that week</li>
+            <li><strong>Cancelling an order</strong> &rarr; removes the PLUS entirely (cancelled orders are excluded)</li>
+            <li><strong>Order becoming delivered</strong> &rarr; the PLUS switches from expected_date/quantity to delivered_date/delivered_quantity, reflecting reality</li>
+        </ul>
+
+        <p>The projection is a <strong>permanent plan</strong> &mdash; it does not change when production completes or materials physically arrive. It only changes when the <em>plan itself</em> changes. This is a deliberate design choice: the projection shows what was planned vs. what was expected, not what remains in stock today.</p>
+
+        <p>The service also resolves each order down to its <strong>specific material name</strong> via the <code>supplier_material</code> relationship. So the projection does not just show &ldquo;+500 kg plastic in Week 12&rdquo; &mdash; it shows &ldquo;+500 kg HFX-500P in Week 12&rdquo;. This per-material granularity allows the projection to detect shortages at the individual material level, not just the category level.</p>
+
+        <p>The projection calculates a <strong>cumulative balance</strong> across all weeks. If Week 10 has +500 kg copper arriving but Week 11 needs -800 kg for production, the cumulative goes negative, flagging a shortage. The frontend highlights these shortages visually. Without Material Orders providing the PLUS side, the entire projection would show only consumption with no incoming &mdash; making it useless for planning.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The dual role of Material Orders:</strong> On the surface, this module is a simple tracking table. But underneath, it is one of the two foundational data sources for the factory&rsquo;s stock projection system. Every order, every date change, every quantity update ripples through the weekly projection and affects shortage detection across the entire planning horizon. This is why accurate order entry and diligent date change tracking are not administrative overhead &mdash; they are critical inputs to the factory&rsquo;s production planning accuracy.</p>
+        </div>
+
+        <h3>6.2.15 &mdash; Delete Behavior</h3>
         <p>Orders can be hard-deleted through a confirmation dialog. There is no soft-delete / archive mechanism. The CASCADE relationship on <code>material_order_date_changes</code> ensures that deleting an order also removes its date change history. However, if a <code>raw_material</code> entry is already linked to this order via <code>material_order_id</code>, that link will become a dangling reference (the foreign key on raw_materials is nullable, so it will not cause a constraint violation, but the traceability chain is broken).</p>
 
-        <h3>6.2.15 &mdash; What This Module Does NOT Do</h3>
+        <h3>6.2.16 &mdash; What This Module Does NOT Do</h3>
         <ul>
             <li>It does <strong>not</strong> generate official purchase orders or invoices</li>
             <li>It does <strong>not</strong> manage pricing or costs &mdash; there are no price fields</li>
             <li>It does <strong>not</strong> send notifications or emails to suppliers</li>
             <li>It does <strong>not</strong> use WebSocket &mdash; the table refreshes on explicit user actions (save, delete, status change)</li>
             <li>It does <strong>not</strong> use the permission system &mdash; any authenticated user can access all features</li>
-            <li>It does <strong>not</strong> auto-change status based on delivered quantity &mdash; even when fully delivered, the user must manually set the status to &ldquo;Delivered&rdquo;</li>
+            <li>It does <strong>not</strong> handle pricing, invoicing, or financial tracking of any kind</li>
         </ul>
 
     </main>
