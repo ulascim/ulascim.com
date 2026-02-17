@@ -939,6 +939,154 @@
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Standartlar bir kez tan&#305;mlan&#305;r, tasar&#305;mlara de&#287;er olarak g&ouml;m&uuml;l&uuml;r (referans olarak de&#287;il) ve &uuml;retim s&#305;ras&#305;nda test edilir. &Uuml;&ccedil; tablolu yap&#305; (standart &rarr; parametreler &rarr; sonu&ccedil;lar) tan&#305;m&#305; y&uuml;r&uuml;tmeden ay&#305;r&#305;r. Standart Y&ouml;netimi asla &uuml;retim verisine dokunmaz &mdash; sadece &ldquo;ne test edilmeli?&rdquo; sorusunu yan&#305;tlar, &ldquo;sonu&ccedil; ne oldu?&rdquo; sorusunu Lab mod&uuml;l&uuml;ne b&#305;rak&#305;r.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.3 OPERAT&Ouml;R Y&Ouml;NET&#304;M&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>&Uuml;retim operat&ouml;rleri fabrika kat&#305;nda makineleri &ccedil;al&#305;&scedil;t&#305;ran ki&scedil;ilerdir. Sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur &mdash; sadece bir kay&#305;t defterindeki isimlerdir ve birisi &uuml;retim &ccedil;al&#305;&scedil;t&#305;rmas&#305; ba&scedil;latt&#305;&#287;&#305;nda &uuml;retim oturumlar&#305;na atan&#305;rlar. Teknik&rsquo;in en basit alt mod&uuml;l&uuml;d&uuml;r (284 sat&#305;r frontend, 4 endpoint), ama verisi her &uuml;retim oturumunda, her i&scedil; kart&#305;nda ve her yar&#305; mamul kayd&#305;nda g&ouml;r&uuml;n&uuml;r.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Sistemde iki t&uuml;r &ldquo;operat&ouml;r&rdquo;:</strong> <code>ProductionOperator</code> (bu alt mod&uuml;l) basit bir isim kayd&#305;d&#305;r &mdash; giri&scedil; yok, &scedil;ifre yok, yetki yok. Kullan&#305;c&#305; sistemindeki ayr&#305; <code>Operator</code> modeli, sisteme giri&scedil; yapan operat&ouml;r tipi kullan&#305;c&#305;lar i&ccedil;in kullan&#305;c&#305; hesaplar&#305;n&#305; geni&scedil;letir. &Uuml;retim m&uuml;d&uuml;r&uuml; oturum ba&scedil;lat&#305;rken bu kay&#305;ttan bir <code>ProductionOperator</code> ad&#305; se&ccedil;er; operat&ouml;r&uuml;n kendisinin sistem hesab&#305; olabilir de olmayabilir de.</p>
+        </div>
+
+        <h3>6.3.1 Veritaban&#305; &Scedil;emas&#305;</h3>
+
+        <h4><code>production_operators</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Nullable</th><th>K&#305;s&#305;tlamalar / Varsay&#305;lan</th><th>Notlar</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>Hay&#305;r</td><td>PK, indeksli</td><td>&mdash;</td></tr>
+            <tr><td><code>name</code></td><td>String(100)</td><td>Hay&#305;r</td><td><strong>UNIQUE</strong></td><td>Operat&ouml;r&uuml;n tam ad&#305;</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Hay&#305;r</td><td>Varsay&#305;lan: True</td><td>Aktif durum bayra&#287;&#305;</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>&mdash;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow, otomatik g&uuml;ncellenir</td><td>&mdash;</td></tr>
+        </table>
+
+        <p>Tablonun tamam&#305; bu. Be&scedil; s&uuml;tun. Foreign key yok, ili&scedil;ki yok, JSON blob yok. <code>name</code> &uuml;zerindeki <code>UNIQUE</code> k&#305;s&#305;tlamas&#305; tek i&scedil; kural&#305;d&#305;r &mdash; ayn&#305; isimde iki operat&ouml;r olamaz.</p>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>&#304;li&scedil;ki tan&#305;mlanmam&#305;&scedil;.</strong> <code>ProductionOperator</code> modelinin s&#305;f&#305;r SQLAlchemy ili&scedil;kisi vard&#305;r. &Uuml;retim oturumlar&#305; operat&ouml;rleri <code>operator_name</code>&rsquo;i denormalize string olarak saklayarak referans al&#305;r &mdash; foreign key de&#287;il. Bu, bir operat&ouml;r&uuml; silmenin oturumlara kademeli silinme yapmamas&#305; ama eski oturum kay&#305;tlar&#305;n&#305;n operat&ouml;r daha sonra kald&#305;r&#305;lsa bile her zaman do&#287;ru operat&ouml;r ad&#305;n&#305; korumas&#305; anlam&#305;na gelir.</p>
+        </div>
+
+        <h3>6.3.2 API Endpoint&rsquo;leri</h3>
+
+        <p><code>/operators</code> alt&#305;nda 4 endpoint. &Ouml;zellikle, kimlik do&#287;rulama d&#305;&scedil;&#305;nda <strong>rol kontrol&uuml; yoktur</strong> &mdash; giri&scedil; yapm&#305;&scedil; herkes operat&ouml;rleri y&ouml;netebilir. Pydantic &scedil;emalar&#305; da yok; route&rsquo;lar ham s&ouml;zl&uuml;k kabul eder ve d&ouml;nd&uuml;r&uuml;r.</p>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/operators/list</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>T&uuml;m operat&ouml;rleri listele. <code>?active_only=true</code> (varsay&#305;lan). Ada g&ouml;re artan s&#305;ral&#305;. Dizi + toplam say&#305; d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/operators/create</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Operat&ouml;r olu&scedil;tur. Ad&#305; k&#305;rpar, bo&scedil; kontrol&#252;, tekrar kontrol&#252;. <code>is_active=true</code> atar.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/operators/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Operat&ouml;r ad&#305;n&#305; g&uuml;ncelle. Varl&#305;k, bo&scedil;luk, tekrar kontrol&#252; (kendisi hari&ccedil;).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/operators/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td><strong>Kesin silme.</strong> Kademeli kontrol yok. &Uuml;retim oturumlar&#305; referans veriyorsa ba&scedil;ar&#305;s&#305;z olabilir.</td></tr>
+        </table>
+
+        <h4>Do&#287;rulama Detaylar&#305;</h4>
+        <table>
+            <tr><th>Kontrol</th><th>Ne Zaman</th><th>Hata Mesaj&#305;</th></tr>
+            <tr><td>Ad bo&scedil;</td><td>Olu&scedil;turma / G&uuml;ncelleme</td><td>&ldquo;Operat&ouml;r ad&#305; gerekli&rdquo;</td></tr>
+            <tr><td>Ad tekrar&#305;</td><td>Olu&scedil;turma</td><td>&ldquo;&lsquo;{name}&rsquo; ad&#305;nda operat&ouml;r zaten mevcut&rdquo;</td></tr>
+            <tr><td>Ad tekrar&#305; (kendisi hari&ccedil;)</td><td>G&uuml;ncelleme</td><td>&ldquo;&lsquo;{name}&rsquo; ad&#305;nda ba&scedil;ka operat&ouml;r zaten mevcut&rdquo;</td></tr>
+            <tr><td>Bulunamad&#305;</td><td>G&uuml;ncelleme / Silme</td><td>&ldquo;Operat&ouml;r bulunamad&#305;&rdquo;</td></tr>
+        </table>
+
+        <h3>6.3.3 Operat&ouml;rler &Uuml;retimde Nas&#305;l Kullan&#305;l&#305;r</h3>
+
+        <p>Basit isim kayd&#305;n&#305;n kritik hale geldi&#287;i yer buras&#305;d&#305;r. Bir &uuml;retim oturumu ba&scedil;lad&#305;&#287;&#305;nda, operat&ouml;r atan&#305;r ve ad&#305; do&#287;rudan oturum kayd&#305;nda saklan&#305;r:</p>
+
+        <pre><span class="comment"># production_routes.py i&ccedil;inde &mdash; &uuml;retim oturumu ba&scedil;latma</span>
+<span class="keyword">if</span> request.operator_id:
+    prod_operator = db.query(ProductionOperator).filter(
+        ProductionOperator.id == request.operator_id
+    ).first()
+    <span class="keyword">if</span> prod_operator:
+        operator_name = prod_operator.name
+
+<span class="comment"># production_sessions tablosunda saklan&#305;r:</span>
+<span class="comment"># operator_id  &rarr; current_user.id (users&rsquo;a FK, DB b&uuml;t&uuml;nl&uuml;&#287;&uuml; i&ccedil;in)</span>
+<span class="comment"># operator_name &rarr; prod_operator.name (denormalize, ge&ccedil;mi&scedil; i&ccedil;in)</span></pre>
+
+        <h4>&Ccedil;ift Depolama D&uuml;zeni</h4>
+
+        <p>&Uuml;retim oturumlar&#305; operat&ouml;r bilgisini iki &scedil;ekilde saklar:</p>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Nereyi G&ouml;sterir</th><th>Amac&#305;</th></tr>
+            <tr><td><code>operator_id</code></td><td>FK &rarr; <code>users.id</code></td><td>Veritaban&#305; b&uuml;t&uuml;nl&uuml;&#287;&uuml; (oturumu ba&scedil;latan <em>kullan&#305;c&#305;</em>)</td></tr>
+            <tr><td><code>operator_name</code></td><td>String (denormalize)</td><td>Makineyi &ccedil;al&#305;&scedil;t&#305;ran <em>&uuml;retim operat&ouml;r&uuml;</em> (bu kay&#305;ttan)</td></tr>
+        </table>
+
+        <p>Bu ayr&#305;m, sistemde &uuml;retim oturumu ba&scedil;latan ki&scedil;inin (giri&scedil; yapan &uuml;retim m&uuml;d&uuml;r&uuml;) &ccedil;o&#287;u zaman makineyi fiziksel olarak &ccedil;al&#305;&scedil;t&#305;ran ki&scedil;i olmamas&#305; nedeniyle vard&#305;r. M&uuml;d&uuml;r, bu kay&#305;ttan doldurulan a&ccedil;&#305;l&#305;r men&uuml;den operat&ouml;r&uuml;n ad&#305;n&#305; se&ccedil;er.</p>
+
+        <h4>&Uuml;retim Ya&scedil;am D&ouml;ng&uuml;s&uuml;nde Operat&ouml;r</h4>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">Kay&#305;t Defteri<br><span style="font-size:9px;color:#666;">&#304;simler burada tan&#305;mlan&#305;r</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">Oturum Ba&scedil;lat<br><span style="font-size:9px;color:#666;">Operat&ouml;r se&ccedil;</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">&Uuml;retim<br><span style="font-size:9px;color:#666;">Ad oturumda saklan&#305;r</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">Ge&ccedil;mi&scedil;<br><span style="font-size:9px;color:#666;">Sonsuza kadar korunur</span></div>
+        </div>
+
+        <ul>
+            <li><strong>Oturum Ba&scedil;latma:</strong> &Uuml;retim sayfas&#305; <code>GET /operators/list?active_only=true</code> ile operat&ouml;rleri getirir. M&uuml;d&uuml;r a&ccedil;&#305;l&#305;r men&uuml;den birini se&ccedil;er. Ba&scedil;lamak i&ccedil;in zorunlu.</li>
+            <li><strong>Oturum &#304;&ccedil;i De&#287;i&scedil;iklik:</strong> Operat&ouml;rler oturum s&#305;ras&#305;nda <code>POST /production/update-operator</code> ile de&#287;i&scedil;tirilebilir &mdash; vardiya de&#287;i&scedil;imleri i&ccedil;in kullan&#305;&scedil;l&#305;.</li>
+            <li><strong>Yar&#305; Mamul Takibi:</strong> Stok sayfalar&#305; yar&#305; mamul kay&#305;tlar&#305;n&#305; onlar&#305; &uuml;reten &uuml;retim oturumunun <code>operator_name</code>&rsquo;iyle zenginle&scedil;tirir.</li>
+            <li><strong>Ge&ccedil;mi&scedil;:</strong> &Uuml;retim ge&ccedil;mi&scedil;i sayfalar&#305; tamamlanan her oturum i&ccedil;in operat&ouml;r ad&#305;n&#305; g&ouml;sterir.</li>
+        </ul>
+
+        <h3>6.3.4 Frontend &mdash; Operat&ouml;r Sayfas&#305;</h3>
+
+        <p>Tek dosya: <code>pages/Teknik/OperatorYonetimi/index.tsx</code> (284 sat&#305;r). Route: <code>/teknik/operator-yonetimi</code>. T&uuml;m Teknik mod&uuml;l&uuml;ndeki en k&uuml;&ccedil;&uuml;k sayfa.</p>
+
+        <h4>Tablo S&uuml;tunlar&#305; (3)</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Geni&scedil;lik</th><th>Notlar</th></tr>
+            <tr><td>ID</td><td>80px</td><td>Sola sabitli</td></tr>
+            <tr><td>Operat&ouml;r Ad&#305;</td><td>otomatik</td><td>Ellipsis etkin</td></tr>
+            <tr><td>&#304;&scedil;lemler</td><td>100px</td><td>Sa&#287;a sabitli; d&uuml;zenle + sil ikonlar&#305;</td></tr>
+        </table>
+
+        <p>Durum s&uuml;tunu yok, zaman damgas&#305; yok. Sadece isim. <code>is_active</code> ve <code>created_at</code>/<code>updated_at</code> alanlar&#305; veri aray&uuml;z&uuml;nde var ama g&ouml;sterilmiyor.</p>
+
+        <h4>Olu&scedil;turma/D&uuml;zenleme Modal&#305; (400px, bulan&#305;k arkaplan)</h4>
+        <p>Tek alan:</p>
+        <table>
+            <tr><th>Alan</th><th>Tip</th><th>Zorunlu</th><th>Notlar</th></tr>
+            <tr><td>Operat&ouml;r Ad&#305;</td><td>Input (large)</td><td>Evet</td><td>Placeholder: &ldquo;Operat&ouml;r ad&#305;n&#305; girin&rdquo;</td></tr>
+        </table>
+
+        <h4>CRUD Ak&#305;&scedil;&#305;</h4>
+        <p><strong>Olu&scedil;turma:</strong> &ldquo;Yeni Operat&ouml;r&rdquo; t&#305;kla &rarr; Modal (400px) &rarr; &#304;sim gir &rarr; &ldquo;Olu&scedil;tur&rdquo; t&#305;kla &rarr; <code>POST /api/operators/create</code> &rarr; &ldquo;Operat&ouml;r olu&scedil;turuldu&rdquo; &rarr; Modal kapan&#305;r, liste yenilenir.</p>
+        <p><strong>D&uuml;zenleme:</strong> D&uuml;zenle ikonuna t&#305;kla &rarr; Modal &ouml;nceden doldurulmu&scedil; &rarr; &#304;smi de&#287;i&scedil;tir &rarr; &ldquo;G&uuml;ncelle&rdquo; t&#305;kla &rarr; <code>PUT /api/operators/{id}</code> &rarr; &ldquo;Operat&ouml;r g&uuml;ncellendi&rdquo; &rarr; Modal kapan&#305;r, liste yenilenir.</p>
+        <p><strong>Silme:</strong> Sil ikonuna t&#305;kla &rarr; Popconfirm &ldquo;Operat&ouml;r&uuml; silmek istedi&#287;inize emin misiniz?&rdquo; &rarr; <code>DELETE /api/operators/{id}</code> &rarr; &ldquo;Operat&ouml;r silindi&rdquo; &rarr; Liste yenilenir.</p>
+
+        <h4>Arama &amp; Sayfalama</h4>
+        <p><strong>Arama</strong> istemci taraf&#305;ndad&#305;r (200px giri&scedil;). Ad ve ID &uuml;zerinden filtreler (b&uuml;y&uuml;k/k&uuml;&ccedil;&uuml;k harf duyars&#305;z). <strong>Sayfalama</strong> varsay&#305;lan 20 sat&#305;r (operat&ouml;r listesi k&#305;sa oldu&#287;undan di&#287;er sayfalardan y&uuml;ksek), [10, 20, 50, 100] se&ccedil;enekleriyle.</p>
+
+        <h4>Operat&ouml;rler &Uuml;retim Sayfalar&#305;nda Nas&#305;l G&ouml;r&uuml;n&uuml;r</h4>
+        <p>&Uuml;retim sayfalar&#305; (Kabatel&Ccedil;ekme, Kalaylama vb.) operat&ouml;r se&ccedil;imini iki durumda g&ouml;sterir:</p>
+        <ul>
+            <li><strong>Oturum &ouml;ncesi:</strong> <code>UserOutlined</code> ikonlu <code>Select</code> a&ccedil;&#305;l&#305;r men&uuml;, placeholder &ldquo;Operat&ouml;r se&ccedil;in&rdquo;, <code>GET /operators/list?active_only=true</code>&rsquo;den doldurulur. &ldquo;&Uuml;retime Ba&scedil;la&rdquo; butonunu etkinle&scedil;tirmek i&ccedil;in zorunlu.</li>
+            <li><strong>Oturum s&#305;ras&#305;nda:</strong> Mevcut operat&ouml;r ad&#305;n&#305; g&ouml;steren kart ve oturum i&ccedil;i de&#287;i&scedil;iklikler i&ccedil;in t&uuml;m operat&ouml;rleri t&#305;klanabilir kartlar olarak listeleyen bir modal a&ccedil;an &ldquo;De&#287;i&scedil;tir&rdquo; butonu.</li>
+        </ul>
+
+        <h3>6.3.5 Di&#287;er Alt Mod&uuml;llerle Ba&#287;lant&#305;lar</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Mod&uuml;l&uuml;</h4>
+                <p>Birincil t&uuml;ketici. Her &uuml;retim oturumu bir operat&ouml;r gerektirir. Ad oturum kayd&#305;nda denormalize saklan&#305;r. Vardiya devir teslimleri i&ccedil;in operat&ouml;rler oturum s&#305;ras&#305;nda de&#287;i&scedil;tirilebilir. &Uuml;retim ge&ccedil;mi&scedil;i oturum ba&scedil;&#305;na operat&ouml;r&uuml; g&ouml;sterir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Stok Mod&uuml;l&uuml;</h4>
+                <p>Yar&#305; mamul kay&#305;tlar&#305; onlar&#305; olu&scedil;turan &uuml;retim oturumuna kadar izlenebilir. Stok sayfalar&#305; hangi operat&ouml;r&uuml;n her &ouml;&#287;eyi &uuml;retti&#287;ini g&ouml;stermek i&ccedil;in <code>session.operator_name</code>&rsquo;i &ccedil;&ouml;zer &mdash; tam &uuml;retim izlenebilirli&#287;i.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Radikal basitlik. Bir tablo, &ouml;nemli olan tek alan (isim), d&ouml;rt endpoint, kimlik do&#287;rulama &ouml;tesinde rol kontrol&uuml; yok. Karma&scedil;&#305;kl&#305;k &uuml;retimin bu veriyi nas&#305;l t&uuml;ketti&#287;inde ya&scedil;ar &mdash; &ccedil;ift depolama d&uuml;zeni (b&uuml;t&uuml;nl&uuml;k i&ccedil;in FK, ge&ccedil;mi&scedil; i&ccedil;in isim) ak&#305;ll&#305; k&#305;s&#305;md&#305;r. Operat&ouml;rlerin sistemin varl&#305;&#287;&#305;ndan haberi olmas&#305; gerekmez; bir m&uuml;d&uuml;r adlar&#305;n&#305; bir kez yazar ve bu ad &uuml;rettikleri her metre kabloyu takip eder.</p>
+        </div>
+
     </main>
 
 </body>

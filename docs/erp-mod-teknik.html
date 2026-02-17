@@ -950,6 +950,154 @@
             <p style="margin-bottom: 0;"><strong>Design principle:</strong> Standards are defined once, embedded into designs by value (not by reference), and tested during production. The three-table structure (standard &rarr; parameters &rarr; results) separates definition from execution. Standards Management never touches production data &mdash; it only answers &ldquo;what should be tested?&rdquo;, leaving &ldquo;what was the result?&rdquo; to the Lab module.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.3 OPERATOR MANAGEMENT</h2>
+        <!-- ============================================ -->
+
+        <p>Production operators are the people running the machines on the factory floor. They don&rsquo;t need system logins &mdash; they are simply names in a registry that get assigned to production sessions when someone starts a manufacturing run. This is the simplest submodule in Teknik (284 lines of frontend, 4 endpoints), but its data appears in every production session, every work card, and every half-product record.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Two kinds of &ldquo;operator&rdquo; in the system:</strong> <code>ProductionOperator</code> (this submodule) is a simple name registry &mdash; no login, no password, no permissions. The separate <code>Operator</code> model in the User system extends user accounts for operator-type users who log into the system. A production manager picks a <code>ProductionOperator</code> name when starting a session; the operator themselves may or may not have a system account.</p>
+        </div>
+
+        <h3>6.3.1 Database Schema</h3>
+
+        <h4><code>production_operators</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>Constraints / Default</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>No</td><td>PK, indexed</td><td>&mdash;</td></tr>
+            <tr><td><code>name</code></td><td>String(100)</td><td>No</td><td><strong>UNIQUE</strong></td><td>Operator&rsquo;s full name</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>No</td><td>Default: True</td><td>Active status flag</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>&mdash;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>No</td><td>utcnow, auto-updates</td><td>&mdash;</td></tr>
+        </table>
+
+        <p>That&rsquo;s the entire table. Five columns. No foreign keys, no relationships, no JSON blobs. The <code>UNIQUE</code> constraint on <code>name</code> is the only business rule &mdash; you can&rsquo;t have two operators with the same name.</p>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>No relationships defined.</strong> The <code>ProductionOperator</code> model has zero SQLAlchemy relationships. Production sessions reference operators by storing the <code>operator_name</code> as a denormalized string &mdash; not a foreign key. This means deleting an operator doesn&rsquo;t cascade to sessions, but it also means old session records always retain the correct operator name even if the operator is later removed.</p>
+        </div>
+
+        <h3>6.3.2 API Endpoints</h3>
+
+        <p>4 endpoints under <code>/operators</code>. Notably, there are <strong>no role checks</strong> beyond authentication &mdash; any logged-in user can manage operators. No Pydantic schemas either; the routes accept and return raw dictionaries.</p>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/operators/list</code></td><td>Authenticated</td><td>List all operators. <code>?active_only=true</code> (default). Ordered by name ascending. Returns array + total count.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/operators/create</code></td><td>Authenticated</td><td>Create operator. Trims name, checks empty, checks duplicate. Sets <code>is_active=true</code>.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/operators/{id}</code></td><td>Authenticated</td><td>Update operator name. Checks exists, checks empty, checks duplicate (excluding self).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/operators/{id}</code></td><td>Authenticated</td><td><strong>Hard delete.</strong> No cascade check. May fail if referenced by production sessions.</td></tr>
+        </table>
+
+        <h4>Validation Details</h4>
+        <table>
+            <tr><th>Check</th><th>When</th><th>Error Message (Turkish)</th></tr>
+            <tr><td>Name empty</td><td>Create / Update</td><td>&ldquo;Operat&ouml;r ad&#305; gerekli&rdquo;</td></tr>
+            <tr><td>Name duplicate</td><td>Create</td><td>&ldquo;&lsquo;{name}&rsquo; ad&#305;nda operat&ouml;r zaten mevcut&rdquo;</td></tr>
+            <tr><td>Name duplicate (excl. self)</td><td>Update</td><td>&ldquo;&lsquo;{name}&rsquo; ad&#305;nda ba&scedil;ka operat&ouml;r zaten mevcut&rdquo;</td></tr>
+            <tr><td>Not found</td><td>Update / Delete</td><td>&ldquo;Operat&ouml;r bulunamad&#305;&rdquo;</td></tr>
+        </table>
+
+        <h3>6.3.3 How Operators Are Used in Production</h3>
+
+        <p>This is where the simple name registry becomes critical. When a production session starts, the operator is assigned and their name is stored directly in the session record:</p>
+
+        <pre><span class="comment"># In production_routes.py — starting a production session</span>
+<span class="keyword">if</span> request.operator_id:
+    prod_operator = db.query(ProductionOperator).filter(
+        ProductionOperator.id == request.operator_id
+    ).first()
+    <span class="keyword">if</span> prod_operator:
+        operator_name = prod_operator.name
+
+<span class="comment"># Stored in production_sessions table:</span>
+<span class="comment"># operator_id  → current_user.id (FK to users, for DB integrity)</span>
+<span class="comment"># operator_name → prod_operator.name (denormalized, for history)</span></pre>
+
+        <h4>The Dual Storage Pattern</h4>
+
+        <p>Production sessions store operator information in two ways:</p>
+        <table>
+            <tr><th>Column</th><th>Points To</th><th>Purpose</th></tr>
+            <tr><td><code>operator_id</code></td><td>FK &rarr; <code>users.id</code></td><td>Database integrity (the <em>user</em> who started the session)</td></tr>
+            <tr><td><code>operator_name</code></td><td>String (denormalized)</td><td>The <em>production operator</em> running the machine (from this registry)</td></tr>
+        </table>
+
+        <p>This separation exists because the person starting a production session in the system (a production manager with a login) is often not the person physically operating the machine. The manager selects the operator&rsquo;s name from a dropdown populated by this registry.</p>
+
+        <h4>Operator in the Production Lifecycle</h4>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">Registry<br><span style="font-size:9px;color:#666;">Names defined here</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">Session Start<br><span style="font-size:9px;color:#666;">Select operator</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">Production<br><span style="font-size:9px;color:#666;">Name stored in session</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">History<br><span style="font-size:9px;color:#666;">Preserved forever</span></div>
+        </div>
+
+        <ul>
+            <li><strong>Session Start:</strong> Production page fetches operators with <code>GET /operators/list?active_only=true</code>. Manager selects one from a dropdown. Required to start.</li>
+            <li><strong>Mid-Session Change:</strong> Operators can be swapped during a session via <code>POST /production/update-operator</code> &mdash; useful for shift changes.</li>
+            <li><strong>Half-Product Tracking:</strong> Stock pages enrich half-product records with <code>operator_name</code> from the production session that created them.</li>
+            <li><strong>History:</strong> Production history pages show operator name for every completed session.</li>
+        </ul>
+
+        <h3>6.3.4 Frontend &mdash; Operator Page</h3>
+
+        <p>Single file: <code>pages/Teknik/OperatorYonetimi/index.tsx</code> (284 lines). Route: <code>/teknik/operator-yonetimi</code>. The smallest page in the entire Teknik module.</p>
+
+        <h4>Table Columns (3)</h4>
+        <table>
+            <tr><th>Column</th><th>Width</th><th>Notes</th></tr>
+            <tr><td>ID</td><td>80px</td><td>Fixed left</td></tr>
+            <tr><td>Operat&ouml;r Ad&#305;</td><td>auto</td><td>Ellipsis enabled</td></tr>
+            <tr><td>&#304;&scedil;lemler</td><td>100px</td><td>Fixed right; edit + delete icons</td></tr>
+        </table>
+
+        <p>No status column, no timestamps. Just the name. The <code>is_active</code> and <code>created_at</code>/<code>updated_at</code> fields exist in the data interface but are not displayed.</p>
+
+        <h4>Create/Edit Modal (400px, blurred backdrop)</h4>
+        <p>One field:</p>
+        <table>
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+            <tr><td>Operat&ouml;r Ad&#305;</td><td>Input (large)</td><td>Yes</td><td>Placeholder: &ldquo;Operat&ouml;r ad&#305;n&#305; girin&rdquo;</td></tr>
+        </table>
+
+        <h4>CRUD Flow</h4>
+        <p><strong>Create:</strong> Click &ldquo;Yeni Operat&ouml;r&rdquo; &rarr; Modal (400px) &rarr; Enter name &rarr; Click &ldquo;Olu&scedil;tur&rdquo; &rarr; <code>POST /api/operators/create</code> &rarr; Toast &ldquo;Operat&ouml;r olu&scedil;turuldu&rdquo; &rarr; Modal closes, list refreshes.</p>
+        <p><strong>Edit:</strong> Click edit icon &rarr; Modal pre-filled &rarr; Change name &rarr; Click &ldquo;G&uuml;ncelle&rdquo; &rarr; <code>PUT /api/operators/{id}</code> &rarr; Toast &ldquo;Operat&ouml;r g&uuml;ncellendi&rdquo; &rarr; Modal closes, list refreshes.</p>
+        <p><strong>Delete:</strong> Click delete icon &rarr; Popconfirm &ldquo;Operat&ouml;r&uuml; silmek istedi&#287;inize emin misiniz?&rdquo; &rarr; <code>DELETE /api/operators/{id}</code> &rarr; Toast &ldquo;Operat&ouml;r silindi&rdquo; &rarr; List refreshes.</p>
+
+        <h4>Search &amp; Pagination</h4>
+        <p><strong>Search</strong> is client-side (200px input). Filters by name and ID (case-insensitive). <strong>Pagination</strong> defaults to 20 rows (higher than other pages, since the operator list is short), with [10, 20, 50, 100] options.</p>
+
+        <h4>How Operators Appear in Production Pages</h4>
+        <p>Production pages (Kabatel&Ccedil;ekme, Kalaylama, etc.) show operator selection in two states:</p>
+        <ul>
+            <li><strong>Before session:</strong> A <code>Select</code> dropdown with <code>UserOutlined</code> icon, placeholder &ldquo;Operat&ouml;r se&ccedil;in&rdquo;, populated from <code>GET /operators/list?active_only=true</code>. Required to enable the &ldquo;&Uuml;retime Ba&scedil;la&rdquo; button.</li>
+            <li><strong>During session:</strong> A card showing the current operator name with a &ldquo;De&#287;i&scedil;tir&rdquo; button that opens a modal listing all operators as clickable cards for mid-session changes.</li>
+        </ul>
+
+        <h3>6.3.5 How It Connects to Other Submodules</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim (Production Module)</h4>
+                <p>Primary consumer. Every production session requires an operator. The name is stored denormalized in the session record. Operators can be changed mid-session for shift handoffs. Production history displays operator per session.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Stok (Stock Module)</h4>
+                <p>Half-product records trace back to the production session that created them. Stock pages resolve <code>session.operator_name</code> to show which operator produced each item &mdash; full production traceability.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Radical simplicity. One table, one field that matters (name), four endpoints, no role checks beyond authentication. The complexity lives in how production consumes this data &mdash; the dual storage pattern (FK for integrity, name for history) is the clever part. Operators don&rsquo;t need to know the system exists; a manager types their name once and it follows every meter of cable they produce.</p>
+        </div>
+
     </main>
 
 </body>
