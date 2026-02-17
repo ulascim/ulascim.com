@@ -1541,7 +1541,7 @@ MACHINE_FLOW = {
             <span class="flow-arrow">&rarr;</span>
             <span class="flow-step">BN_73X030 (qty: 1)</span>
             <span class="flow-arrow">&rarr; EX</span>
-            <span class="flow-step">EX_73X030+INS+SHT (qty: 1)</span>
+            <span class="flow-step">EX_4X10X03_3X11X03+INS+SHT (qty: 1)</span>
         </div>
 
         <div class="finding">
@@ -1665,7 +1665,7 @@ MACHINE_FLOW = {
             <tr><th>Product Type</th><th>Code Format</th><th>Example</th></tr>
             <tr><td>Raw material</td><td><code>RAW_XX_spec</code></td><td><code>RAW_COPPER_8MM</code></td></tr>
             <tr><td>Half product</td><td><code>MC_spec</code></td><td><code>KC_18</code> (1.8mm wire from Kabatel), <code>BN_73X030</code> (73-wire bunch)</td></tr>
-            <tr><td>Final cable</td><td><code>STD-XSEC-structure-Ixx-Sxx</code></td><td><code>EN-6MM2-4X10X030-3X11X030-I07-S08</code></td></tr>
+            <tr><td>Final cable</td><td><code>{standard}_{item_code}_{id}</code></td><td><code>StandardEnum.EN_EX_4X10X03_3X11X03+INS_07_CAT_DYE+SHT_08_CAT_DYE_6</code></td></tr>
         </table>
 
         <p>A SHA256 <code>spec_hash</code> is computed from the full specifications (product_type + machine_type + inputs + outputs + parameters) with <code>sort_keys=True</code> for determinism. If a product with the same hash already exists in <code>product_codes</code>, its existing system_code is returned. Otherwise, a new code is generated with collision-handling (sequence suffix <code>_001</code>, <code>_002</code>, etc.).</p>
