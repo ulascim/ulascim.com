@@ -232,8 +232,7 @@ solen_backend/
         <table>
             <tr><th>Component</th><th>Technology</th><th>Notes</th></tr>
             <tr><td>Dev Server</td><td>Mac Mini</td><td>Factory floor, local network only</td></tr>
-            <tr><td>Containerization</td><td>Docker + Compose</td><td>PostgreSQL 15 + FastAPI service on custom bridge network</td></tr>
-            <tr><td>Deployment</td><td>Single-command</td><td><code>docker-compose up -d</code> &mdash; no CI/CD pipeline needed</td></tr>
+            <tr><td>Deployment</td><td>Direct</td><td>No containers &mdash; Python + Node running natively on the server</td></tr>
             <tr><td>HTTPS</td><td>Self-signed / Let&rsquo;s Encrypt</td><td>Factory network HTTPS for mobile devices</td></tr>
             <tr><td>AI Service</td><td>Separate Python service</td><td>Multi-provider (Gemini, OpenAI, Claude), read-only access, audit-logged</td></tr>
         </table>
@@ -369,7 +368,7 @@ src/pages/
         <div class="arch-grid">
             <div class="arch-box">
                 <h4>Multi-Provider</h4>
-                <p>Gemini (implemented), OpenAI and Claude (planned). Provider-agnostic architecture with a base class for each provider.</p>
+                <p>Dozens of API providers supported. Provider-agnostic architecture with a base class and model registry system.</p>
             </div>
             <div class="arch-box">
                 <h4>Tool-Based Access</h4>
@@ -382,7 +381,7 @@ src/pages/
         </div>
 
         <div class="insight">
-            <p style="margin-bottom: 0;"><strong>Why read-only?</strong> An AI assistant that can modify production data in a factory is a liability. One hallucinated material deletion could halt production. The AI can search, summarize, and answer questions &mdash; but cannot create, update, or delete anything.</p>
+            <p style="margin-bottom: 0;"><strong>Why read-only?</strong> An AI assistant that can modify production data in a factory is a liability. One hallucinated material deletion could halt production. The AI can search, summarize, and answer questions &mdash; but cannot create, update, or delete anything, for now.</p>
         </div>
 
         <!-- ============================================ -->
@@ -425,10 +424,6 @@ src/pages/
         </div>
 
         <p>Each stage is a fallback, not a goal. The modular monolith should remain the architecture unless specific, measured problems demand the next stage. <strong>Don&rsquo;t fix what isn&rsquo;t broken.</strong></p>
-
-        <div class="quote">
-            <p>The best architecture is the one that lets a single developer ship a working factory ERP in their first year while learning the domain. Everything else is premature.</p>
-        </div>
 
     </main>
 
