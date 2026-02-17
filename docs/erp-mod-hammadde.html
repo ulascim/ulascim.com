@@ -808,6 +808,52 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Why this matters:</strong> Without cleaning, a copper material would be sent as <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code>. Pydantic would accept these as <code>None</code>, but JSON.stringify drops <code>undefined</code> values entirely. The explicit check ensures only meaningful data is sent, keeping the API payload clean and predictable.</p>
         </div>
 
+        <h3>6.1.14 How Supplier Data Is Used Across the System</h3>
+        <p>Tedarik&ccedil;i Y&ouml;netimi is not a standalone page. The data it creates is consumed by <strong>every other submodule</strong> in Hammadde and beyond. Here is the complete map of where supplier data flows:</p>
+
+        <h4>Material Entry (Hammadde Giri&#351;i) &mdash; Supplier Selection</h4>
+        <p>When a user clicks any material card (copper, tin, plastic, etc.), the entry page calls <code>GET /suppliers/list?active_only=true</code> and filters locally by checking each supplier&rsquo;s <code>materials_provided</code> array. Only suppliers who have that material type active in their <code>supplier_materials</code> are shown in the dropdown. This means: if you register a supplier with only &ldquo;copper&rdquo; and &ldquo;tin&rdquo;, they will <strong>never appear</strong> in the plastic entry form.</p>
+
+        <pre><span class="comment">// Material Entry: filter suppliers by material type</span>
+<span class="keyword">const</span> filterSuppliers = (materialType: string) =&gt; {
+    <span class="keyword">const</span> filtered = suppliers.filter(supplier =&gt; {
+        <span class="keyword">const</span> materials = supplier.materials_provided || [];
+        <span class="keyword">return</span> materials.some(
+            (mat: any) =&gt; mat.material_type === materialType &amp;&amp; mat.is_active
+        );
+    });
+    setFilteredSuppliers(filtered);
+};</pre>
+
+        <h4>Material Entry &mdash; Material Name Resolution</h4>
+        <p>For lot-based entries (plastic, catalyst, dye, antirodent), when a lot is created, the backend looks up the <code>supplier_material_id</code> to resolve the specific <code>material_name</code>. This name (e.g., &ldquo;HF-500&rdquo;, &ldquo;CAT-203&rdquo;) is stored directly in the <code>raw_materials.material_name</code> column. For palettes and reels, it also appends the <code>boyut</code> dimension (e.g., &ldquo;Euro Palet - 120x80x15 cm&rdquo;).</p>
+
+        <pre><span class="comment"># Lot entry: resolve material name from SupplierMaterial</span>
+<span class="keyword">if</span> material_type_id:
+    supplier_material = db.query(SupplierMaterial).filter(
+        SupplierMaterial.id == material_type_id
+    ).first()
+    <span class="keyword">if</span> supplier_material:
+        material_name = supplier_material.material_name
+        <span class="keyword">if</span> supplier_material.boyut:
+            material_name = f<span class="string">"{material_name} - {supplier_material.boyut}"</span></pre>
+
+        <h4>Material Orders (Hammadde Sipari&#351;) &mdash; Supplier + Material Selection</h4>
+        <p>When creating a purchase order, the user first selects a supplier, then sees only the materials that supplier provides. The order stores both <code>supplier_id</code> (who) and <code>supplier_material_id</code> (what exactly). This link is critical: when a delivery arrives and is entered through Material Entry, the system uses <code>supplier_material_id</code> to match incoming materials to their pending orders.</p>
+
+        <h4>Material Orders &mdash; Pending Order Groups for Entry Linking</h4>
+        <p>The <code>GET /material-orders/pending-by-type/{material_type}</code> endpoint returns pending orders grouped by <code>supplier_id + expected_date</code>. Material Entry uses this to show a &ldquo;Link to Order&rdquo; option. When the user selects an order group, the system builds an <code>order_map</code> keyed by <code>supplier_material_id</code>, so each lot in the entry can be automatically linked to its corresponding order line.</p>
+
+        <h4>Material Calculator &mdash; Density from Supplier Materials</h4>
+        <p>The <code>density</code> field stored in <code>supplier_materials</code> for plastics, catalysts, dyes, and antirodent compounds is used by the Material Calculator service. When the Sipari&#351; module calculates plastic weight for an order (<code>volume &times; density = kg</code>), the density comes from the supplier&rsquo;s material specification registered here.</p>
+
+        <h4>Unique Specs for Dropdowns</h4>
+        <p>The <code>GET /suppliers/materials-list</code> endpoint deduplicates material specs across all suppliers and returns unique entries. This feeds dropdown menus in Material Orders and Material Entry where users select <em>what</em> to order or enter &mdash; without seeing the same &ldquo;HF-500&rdquo; three times from three different suppliers.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The dependency chain:</strong> Supplier &rarr; supplier_materials (what they sell) &rarr; material_orders (what we ordered, referencing supplier_material_id) &rarr; raw_materials (what arrived, linked to order via material_order_id, with material_name resolved from supplier_materials). Remove a supplier, and this entire chain breaks. That is why FK protection exists on hard delete, and why soft delete (active/inactive) is the preferred approach.</p>
+        </div>
+
     </main>
 </body>
 </html>

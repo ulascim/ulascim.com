@@ -808,6 +808,52 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Bu neden önemli:</strong> Temizleme olmadan, bir bakır malzemesi <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code> olarak gönderilirdi. Pydantic bunları <code>None</code> olarak kabul ederdi, ancak JSON.stringify <code>undefined</code> değerlerini tamamen düşürür. Açık kontrol yalnızca anlamlı verilerin gönderilmesini sağlayarak API yükünü temiz ve öngörülebilir tutar.</p>
         </div>
 
+        <h3>6.1.14 Tedarikçi Verisi Sistemde Nasıl Kullanılır</h3>
+        <p>Tedarikçi Yönetimi bağımsız bir sayfa değildir. Oluşturduğu veri, Hammadde&rsquo;deki <strong>diğer tüm alt modüller</strong> ve ötesi tarafından tüketilir. Tedarikçi verisinin aktığı yerlerin tam haritası:</p>
+
+        <h4>Malzeme Girişi (Hammadde Girişi) &mdash; Tedarikçi Seçimi</h4>
+        <p>Kullanıcı herhangi bir malzeme kartına (bakır, kalay, plastik vb.) tıkladığında, giriş sayfası <code>GET /suppliers/list?active_only=true</code> çağırır ve her tedarikçinin <code>materials_provided</code> dizisini kontrol ederek yerel olarak filtreler. Yalnızca <code>supplier_materials</code> tablosunda o malzeme türü aktif olan tedarikçiler açılır menüde gösterilir. Bu şu anlama gelir: bir tedarikçiyi sadece &ldquo;bakır&rdquo; ve &ldquo;kalay&rdquo; ile kaydederseniz, plastik giriş formunda <strong>asla görünmezler</strong>.</p>
+
+        <pre><span class="comment">// Malzeme Girişi: tedarikçileri malzeme türüne göre filtrele</span>
+<span class="keyword">const</span> filterSuppliers = (materialType: string) =&gt; {
+    <span class="keyword">const</span> filtered = suppliers.filter(supplier =&gt; {
+        <span class="keyword">const</span> materials = supplier.materials_provided || [];
+        <span class="keyword">return</span> materials.some(
+            (mat: any) =&gt; mat.material_type === materialType &amp;&amp; mat.is_active
+        );
+    });
+    setFilteredSuppliers(filtered);
+};</pre>
+
+        <h4>Malzeme Girişi &mdash; Malzeme Adı Çözümleme</h4>
+        <p>Lot bazlı girişlerde (plastik, katalizör, boya, antirodent), bir lot oluşturulduğunda backend spesifik <code>material_name</code> değerini çözümlemek için <code>supplier_material_id</code> arar. Bu ad (ör. &ldquo;HF-500&rdquo;, &ldquo;CAT-203&rdquo;) doğrudan <code>raw_materials.material_name</code> kolonunda saklanır. Palet ve makaralar için ayrıca <code>boyut</code> ölçüsünü de ekler (ör. &ldquo;Euro Palet - 120x80x15 cm&rdquo;).</p>
+
+        <pre><span class="comment"># Lot girişi: SupplierMaterial'dan malzeme adını çözümle</span>
+<span class="keyword">if</span> material_type_id:
+    supplier_material = db.query(SupplierMaterial).filter(
+        SupplierMaterial.id == material_type_id
+    ).first()
+    <span class="keyword">if</span> supplier_material:
+        material_name = supplier_material.material_name
+        <span class="keyword">if</span> supplier_material.boyut:
+            material_name = f<span class="string">"{material_name} - {supplier_material.boyut}"</span></pre>
+
+        <h4>Malzeme Sipariş (Hammadde Sipariş) &mdash; Tedarikçi + Malzeme Seçimi</h4>
+        <p>Satın alma siparişi oluştururken, kullanıcı önce bir tedarikçi seçer, sonra yalnızca o tedarikçinin sağladığı malzemeleri görür. Sipariş hem <code>supplier_id</code> (kim) hem de <code>supplier_material_id</code> (tam olarak ne) saklar. Bu bağlantı kritiktir: bir teslimat geldiğinde ve Malzeme Girişi üzerinden girildiğinde, sistem gelen malzemeleri bekleyen siparişleriyle eşleştirmek için <code>supplier_material_id</code> kullanır.</p>
+
+        <h4>Malzeme Sipariş &mdash; Giriş Bağlama İçin Bekleyen Sipariş Grupları</h4>
+        <p><code>GET /material-orders/pending-by-type/{material_type}</code> endpoint&rsquo;i bekleyen siparişleri <code>supplier_id + expected_date</code> bazında gruplanmış döner. Malzeme Girişi bunu &ldquo;Siparişe Bağla&rdquo; seçeneği göstermek için kullanır. Kullanıcı bir sipariş grubu seçtiğinde, sistem <code>supplier_material_id</code> ile anahtarlanmış bir <code>order_map</code> oluşturur, böylece girişteki her lot otomatik olarak ilgili sipariş satırına bağlanabilir.</p>
+
+        <h4>Malzeme Hesaplayıcı &mdash; Tedarikçi Malzemelerinden Yoğunluk</h4>
+        <p>Plastik, katalizör, boya ve antirodent bileşikleri için <code>supplier_materials</code> tablosunda saklanan <code>density</code> alanı, Malzeme Hesaplayıcı servisi tarafından kullanılır. Sipariş modülü bir sipariş için plastik ağırlığı hesapladığında (<code>hacim &times; yoğunluk = kg</code>), yoğunluk burada kayıtlı tedarikçi malzeme özelliklerinden gelir.</p>
+
+        <h4>Açılır Menüler İçin Benzersiz Özellikler</h4>
+        <p><code>GET /suppliers/materials-list</code> endpoint&rsquo;i tüm tedarikçiler arasında malzeme özelliklerini tekilleştirir ve benzersiz girişleri döner. Bu, Malzeme Siparişleri ve Malzeme Girişi&rsquo;ndeki açılır menüleri besler &mdash; kullanıcılar <em>ne</em> sipariş edeceklerini veya gireceklerini seçerken aynı &ldquo;HF-500&rdquo;&rsquo;ü üç farklı tedarikçiden üç kez görmezler.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Bağımlılık zinciri:</strong> Tedarikçi &rarr; supplier_materials (ne satıyorlar) &rarr; material_orders (ne sipariş ettik, supplier_material_id referansıyla) &rarr; raw_materials (ne geldi, material_order_id ile siparişe bağlı, material_name supplier_materials&rsquo;dan çözümlenmiş). Bir tedarikçiyi kaldırın, tüm bu zincir kırılır. FK korumasının kalıcı silmede var olmasının ve yumuşak silmenin (aktif/pasif) tercih edilen yaklaşım olmasının nedeni budur.</p>
+        </div>
+
     </main>
 </body>
 </html>
