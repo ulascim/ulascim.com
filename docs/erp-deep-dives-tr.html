@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="../favicon.png">
     <link rel="apple-touch-icon" href="../apple-touch-icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Sistemi | UG</title>
+    <title>Mod&uuml;l Detaylar&inodot; | Kablo Fabrikas&inodot; ERP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -61,6 +61,10 @@
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
         .report .page-subtitle { font-size: 12px; color: #666; margin-bottom: 0; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
 
         /* RESEARCH CARDS */
         .research-grid {
@@ -148,27 +152,6 @@
         .coming-soon .card-tag {
             background: #888;
         }
-        .research-card.in-progress {
-            border: 3px solid #f59e0b;
-            background: #fffbeb;
-        }
-        .research-card.in-progress .card-tag {
-            background: #f59e0b;
-        }
-        .research-card.in-progress:hover {
-            background: #f59e0b;
-            color: #fff;
-        }
-        .research-card.in-progress:hover .card-subtitle {
-            color: rgba(255,255,255,0.7);
-        }
-        .research-card.in-progress:hover .card-tag {
-            background: #fff;
-            color: #f59e0b;
-        }
-        .research-card.in-progress:hover .card-meta {
-            border-top-color: rgba(255,255,255,0.3);
-        }
 
         @media (max-width: 768px) {
             .report { padding: 16px; }
@@ -181,82 +164,108 @@
     <nav class="nav">
         <div class="nav-container">
             <div class="nav-left">
-                <a href="index-tr.html" style="font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9;">UG</a>
-                <a href="erp-system-tr.html" class="nav-logo">ARA&#350;TIRMA</a>
+                <a href="erp-system-tr.html" class="nav-logo">ERP S&Idot;STEM&Idot;</a>
             </div>
             <div class="nav-right">
-                <a href="erp-system-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <a href="erp-deep-dives-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
                 <span class="nav-divider">|</span>
-                <a href="erp-system.html" class="nav-link-small">EN</a>
+                <a href="erp-deep-dives.html" class="nav-link-small">EN</a>
             </div>
         </div>
     </nav>
 
     <main class="report">
-        <h1>KABLO FABR&#304;KASI ERP S&#304;STEM&#304;</h1>
-        <p class="page-subtitle">Bir geli&#351;tirici, bir fabrika, bir y&#305;l. Solar kablo &uuml;reticisinin t&uuml;m &uuml;retim ak&#305;&#351;&#305;n&#305;n dijitalle&#351;tirilmesi &mdash; ham bak&#305;rdan sevkiyata.</p>
+        <a href="erp-system-tr.html" class="back-link">Ara&scedil;t&inodot;rmaya D&ouml;n</a>
+        <h1>MOD&Uuml;L DETAYLARI</h1>
+        <p class="page-subtitle">Her mod&uuml;l u&ccedil;tan uca belgelendi &mdash; veritaban&inodot; &scedil;emalar&inodot;, API s&ouml;zle&scedil;meleri, frontend desenleri, kod incelemeleri ve in&scedil;a s&inodot;ras&inodot;nda al&inodot;nan kararlar.</p>
 
         <div class="research-grid">
-            <a href="erp-understanding-tr.html" class="research-card">
-                <span class="card-tag">B&Ouml;L&Uuml;M 0 &bull; YAYINDA</span>
-                <h2 class="card-title">PROBLEM&#304; ANLAMAK</h2>
-                <p class="card-subtitle">Bir solar kablo fabrikas&#305; ger&ccedil;ekte ne yapar? 8 &uuml;retim ad&#305;m&#305;, 7 makine, 20+ test t&uuml;r&uuml;, do&#287;rulanm&#305;&#351; &uuml;retim sabitleri ve kablo tasar&#305;m notasyonu. Edinilmesi 7 ay s&uuml;ren alan bilgisi.</p>
+            <div class="research-card coming-soon">
+                <span class="card-tag">TEKN&Idot;K &bull; YAKINDA</span>
+                <h2 class="card-title">M&Uuml;HEND&Idot;SL&Idot;K</h2>
+                <p class="card-subtitle">Kablo Tasar&inodot;m, Kablo Veritaban&inodot;, Makine Y&ouml;netimi, Standartlar, Markalama, Operat&ouml;r Y&ouml;netimi. Temel mod&uuml;l &mdash; a&scedil;a&gbreve;&inodot; ak&inodot;&scedil;taki her &scedil;ey buna ba&gbreve;&inodot;ml&inodot;.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">10 B&Ouml;L&Uuml;M</span>
-                        <span class="card-stat">20+ TEST</span>
+                        <span class="card-stat">6 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~75 ENDPOINT</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
-            </a>
-
-            <a href="erp-architecture-tr.html" class="research-card">
-                <span class="card-tag">B&Ouml;L&Uuml;M 1 &bull; YAYINDA</span>
-                <h2 class="card-title">M&#304;MAR&#304; &amp; TASARIM</h2>
-                <p class="card-subtitle">Neden mod&uuml;ler monolit. FastAPI + React + Ant Design Pro. Tasar&#305;m kurallar&#305;, API desenleri, veritaban&#305; stratejisi, AI entegrasyonu ve evrim yolu.</p>
-                <div class="card-meta">
-                    <div class="card-stats">
-                        <span class="card-stat">9 B&Ouml;L&Uuml;M</span>
-                        <span class="card-stat">MOD&Uuml;LER MONOL&#304;T</span>
-                    </div>
-                    <span class="card-arrow">&rarr;</span>
-                </div>
-            </a>
-
-            <a href="erp-modules-tr.html" class="research-card">
-                <span class="card-tag">B&Ouml;L&Uuml;M 2 &bull; YAYINDA</span>
-                <h2 class="card-title">MOD&Uuml;L HAR&#304;TASI</h2>
-                <p class="card-subtitle">8 ana mod&uuml;l, 200+ API endpoint, 50+ veritaban&#305; tablosu. Her mod&uuml;l, her alt mod&uuml;l, aralar&#305;ndaki her ba&#287;lant&#305; &mdash; derin incelemelerin &ouml;ncesinde tam sistem genel bak&#305;&#351;&#305;.</p>
-                <div class="card-meta">
-                    <div class="card-stats">
-                        <span class="card-stat">8 MOD&Uuml;L</span>
-                        <span class="card-stat">11 B&Ouml;L&Uuml;M</span>
-                    </div>
-                    <span class="card-arrow">&rarr;</span>
-                </div>
-            </a>
-
-            <a href="erp-deep-dives-tr.html" class="research-card">
-                <span class="card-tag">B&Ouml;L&Uuml;M 3+ &bull; 7 MOD&Uuml;L</span>
-                <h2 class="card-title">MOD&Uuml;L DETAYLARI</h2>
-                <p class="card-subtitle">Her mod&uuml;l kendi dok&uuml;man&inodot;n&inodot; al&inodot;r &mdash; Teknik, Hammadde, Sipari&scedil;, &Uuml;retim, Stok, Lab, Admin. Veritaban&inodot; &scedil;emalar&inodot;, API s&ouml;zle&scedil;meleri, kod incelemeleri ve in&scedil;a s&inodot;ras&inodot;nda al&inodot;nan kararlar.</p>
-                <div class="card-meta">
-                    <div class="card-stats">
-                        <span class="card-stat">7 MOD&Uuml;L</span>
-                        <span class="card-stat">~220 ENDPOINT</span>
-                    </div>
-                    <span class="card-arrow">&rarr;</span>
-                </div>
-            </a>
+            </div>
 
             <div class="research-card coming-soon">
-                <span class="card-tag">SON B&Ouml;L&Uuml;M &bull; YAKINDA</span>
-                <h2 class="card-title">ML &amp; AI ENTEGRASYONU</h2>
-                <p class="card-subtitle">Makine &ouml;&#287;renmesinin &uuml;retimle bulu&#351;mas&#305;. Tahminsel kalite, &uuml;retim optimizasyonu ve bu ERP ile Token Sequencer projesi aras&#305;ndaki k&ouml;pr&uuml;.</p>
+                <span class="card-tag">HAMMADDE &bull; YAKINDA</span>
+                <h2 class="card-title">MALZEME Y&Ouml;NET&Idot;M&Idot;</h2>
+                <p class="card-subtitle">QR kodlu malzeme giri&scedil;i, malzeme listesi, tedarik&ccedil;i puanlamas&inodot;yla sat&inodot;n alma sipari&scedil; takibi ve tedarik&ccedil;i y&ouml;netimi. Sipari&scedil;ten t&uuml;ketime tedarik zinciri.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">TAHM&#304;N</span>
-                        <span class="card-stat">OPT&#304;M&#304;ZASYON</span>
+                        <span class="card-stat">4 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~30 ENDPOINT</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">S&Idot;PAR&Idot;&Scedil; &bull; YAKINDA</span>
+                <h2 class="card-title">S&Idot;PAR&Idot;&Scedil; Y&Ouml;NET&Idot;M&Idot;</h2>
+                <p class="card-subtitle">Sipari&scedil; olu&scedil;turma, sipari&scedil; listesi, malzeme hesaplay&inodot;c&inodot;, m&uuml;&scedil;teri y&ouml;netimi ve teslimat planlama. M&uuml;&scedil;teri talebini otomatik i&scedil; kartlar&inodot;yla yap&inodot;land&inodot;r&inodot;lm&inodot;&scedil; &uuml;retim i&scedil;lerine d&ouml;n&uuml;&scedil;t&uuml;r&uuml;r.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">5 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~25 ENDPOINT</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">&Uuml;RET&Idot;M &bull; YAKINDA</span>
+                <h2 class="card-title">&Uuml;RET&Idot;M</h2>
+                <p class="card-subtitle">En b&uuml;y&uuml;k mod&uuml;l. &Uuml;retim planlama, 7 makine operat&ouml;r sayfas&inodot;, &uuml;retim listesi, ge&ccedil;mi&scedil;, paletleme, sevkiyat. Sipari&scedil;lerin fiziksel kabloya d&ouml;n&uuml;&scedil;t&uuml;&gbreve;&uuml; yer.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">12 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~35 ENDPOINT</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">STOK &bull; YAKINDA</span>
+                <h2 class="card-title">STOK &amp; ENVANTER</h2>
+                <p class="card-subtitle">Projeksiyon (tahmin), bitmi&scedil; &uuml;r&uuml;n sto&gbreve;u ve hammadde sto&gbreve;u. Ayn&inodot; sorunun &uuml;&ccedil; g&ouml;r&uuml;n&uuml;m&uuml;: &ldquo;elimizde ne var ve neye ihtiyac&inodot;m&inodot;z olacak?&rdquo;</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">3 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~10 ENDPOINT</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">LAB &bull; YAKINDA</span>
+                <h2 class="card-title">LABORATUVAR</h2>
+                <p class="card-subtitle">&Uuml;retimle i&ccedil; i&ccedil;e ge&ccedil;mi&scedil; kalite kontrol. &Uuml;retim aral&inodot;klar&inodot;nda otomatik tetiklenen, &ccedil;&inodot;kt&inodot;lara ba&gbreve;l&inodot;, ge&ccedil;/kal zorunlulu&gbreve;uyla testler. Kalite kap&inodot;s&inodot;.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">2 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~15 ENDPOINT</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">ADMIN &bull; YAKINDA</span>
+                <h2 class="card-title">S&Idot;STEM Y&Ouml;NET&Idot;M&Idot;</h2>
+                <p class="card-subtitle">Buton seviyesinde yetkilerle kullan&inodot;c&inodot; y&ouml;netimi, a&gbreve; yaz&inodot;c&inodot; y&ouml;netimi, yazd&inodot;rma kuyru&gbreve;u izleme ve denetim loglamal&inodot; &ccedil;oklu sa&gbreve;lay&inodot;c&inodot; AI yap&inodot;land&inodot;rmas&inodot;.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">4 ALT MOD&Uuml;L</span>
+                        <span class="card-stat">~25 ENDPOINT</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
