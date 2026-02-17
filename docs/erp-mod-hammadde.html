@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammadde Module | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-hammadde-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-hammadde.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
+        <h1>HAMMADDE &mdash; RAW MATERIALS</h1>
+        <p class="subtitle">The supply chain from purchase order to QR-coded inventory. Every gram of copper, tin, plastic, catalyst, dye, palette, and reel &mdash; tracked from the moment it enters the factory gate.</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Hammadde is where physical material meets digital tracking.</strong> A cable factory consumes eight categories of raw materials: copper wire rods, tin ingots, plastic granules, catalysts, dyes, anti-rodent compounds, palettes (wooden shipping platforms), and reels (cable drums). Each one arrives from a supplier, gets weighed, photographed, assigned a unique QR code, and entered into the system. From that moment, the material is traceable &mdash; through production consumption, remaining weight tracking, and all the way to the finished cable on the reel. Hammadde also manages the entire purchase order lifecycle: from creating orders to tracking delivery dates, recording date-change reasons, and rating supplier performance after delivery.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">4</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~30</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5100+</div>
+                <div class="label">LINES OF FRONTEND</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. WHAT HAMMADDE DOES</h2>
+        <!-- ============================================ -->
+
+        <p>The Hammadde module answers four questions that the factory&rsquo;s supply chain depends on:</p>
+
+        <ol>
+            <li><strong>What raw materials do we have in stock?</strong> &mdash; Material Entry registers every incoming shipment. Copper arrives on palettes (multiple per delivery), tin as single weighed ingots, and plastics/catalysts/dyes/antirodent as lot-based entries. Each gets a QR code (A=copper, B=tin, C=plastic, D=catalyst, E=dye, F=antirodent, I=palette, H=reel), delivery and test photos, and a link to its purchase order.</li>
+            <li><strong>Where is every gram of material right now?</strong> &mdash; Materials List provides a full inventory view with lazy-loaded photo thumbnails, status tracking (received &rarr; approved &rarr; in_use &rarr; consumed/rejected), remaining weight after production, and real-time WebSocket updates when materials are created, modified, or deleted.</li>
+            <li><strong>What have we ordered and when is it arriving?</strong> &mdash; Material Orders tracks every purchase with order group codes (R1, R2, R3...), expected delivery dates, actual delivery dates, date-change history with reasons (supplier/solen/other), delivered quantity tracking, and supplier ratings (0.5&ndash;5 stars) after delivery.</li>
+            <li><strong>Who are our suppliers and what do they provide?</strong> &mdash; Supplier Management maintains a one-to-many relationship: one supplier company can provide multiple material types (copper, plastic, dye, etc.), each with material-specific properties like density (g/cm&sup3;), dimensions (boyut), and reel type (yaz&#305;l&#305;/yaz&#305;s&#305;z).</li>
+        </ol>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Downstream consumer.</strong> Hammadde is the primary consumer of Teknik&rsquo;s Cable Database. When the Sipari&scedil; module calculates material requirements for an order (copper weight, tin coating, plastic volumes, catalyst/dye percentages), it uses the <code>material_calculator</code> service which reads cable specifications from Teknik and produces procurement quantities that Hammadde must fulfill. The Material Entry page also links incoming deliveries directly to Material Orders, closing the loop between &ldquo;what was ordered&rdquo; and &ldquo;what actually arrived.&rdquo;</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <p>Data flows through Hammadde in a clear procurement-to-consumption cycle:</p>
+
+        <h3>Procurement Flow</h3>
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">SUPPLIER<br><span style="font-size:9px;color:#666;">Registered in system</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">ORDER<br><span style="font-size:9px;color:#666;">R1, R2... created</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">DELIVERY<br><span style="font-size:9px;color:#666;">Date tracking</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">ENTRY<br><span style="font-size:9px;color:#666;">QR + photos</span></div>
+        </div>
+
+        <h3>Consumption Flow</h3>
+        <div class="flow">
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">MATERIAL<br><span style="font-size:9px;color:#666;">Status: received</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dbeafe; border-color: #2563eb;">APPROVED<br><span style="font-size:9px;color:#666;">Lab cleared</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">IN USE<br><span style="font-size:9px;color:#666;">On production line</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #f3f4f6; border-color: #666;">CONSUMED<br><span style="font-size:9px;color:#666;">remaining_weight = 0</span></div>
+        </div>
+
+        <h3>The Order-to-Entry Link</h3>
+        <p>When a material delivery arrives, the Material Entry page can link the incoming material directly to its pending purchase order. This updates the order&rsquo;s <code>delivered_quantity</code>, sets its status to <code>delivered</code>, and records the <code>delivered_date</code>. This tight link means the system always knows: for every kilogram ordered, how much actually arrived and when.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Real-time everywhere.</strong> Every material creation, update, and deletion broadcasts a WebSocket event. The Materials List page auto-refreshes without polling. The Supplier Management page does the same. This means multiple users (lab technicians, procurement staff) see changes instantly across all their screens.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. THE DATABASE LAYER</h2>
+        <!-- ============================================ -->
+
+        <p>6 tables serve the Hammadde module. They fall into three groups:</p>
+
+        <h3>Material Tables (2)</h3>
+
+        <h4>raw_materials</h4>
+        <p>The central table. Every physical material that enters the factory gets one row here &mdash; regardless of type.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Auto-increment primary key</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</td></tr>
+            <tr><td>material_name</td><td>VARCHAR(200)</td><td>Specific material name from supplier catalog (e.g., HFX500, K388)</td></tr>
+            <tr><td>sequence_number</td><td>INTEGER</td><td>Per-type counter &mdash; separate sequence for each material_type</td></tr>
+            <tr><td>qr_code</td><td>VARCHAR(50) UNIQUE</td><td>Generated code: prefix + sequence (A1, B7, C23, I145...)</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Which supplier provided this material</td></tr>
+            <tr><td>material_order_id</td><td>FK &rarr; material_orders</td><td>Links to purchase order (for delivery tracking)</td></tr>
+            <tr><td>lot_number</td><td>VARCHAR(100)</td><td>Supplier&rsquo;s lot number (or auto-generated for tin: TIN-N)</td></tr>
+            <tr><td>weight</td><td>FLOAT</td><td>Measured weight when received (kg)</td></tr>
+            <tr><td>remaining_weight</td><td>FLOAT</td><td>Weight remaining after production consumption (kg)</td></tr>
+            <tr><td>form_weight</td><td>FLOAT</td><td>Official form weight (for copper palettes)</td></tr>
+            <tr><td>quantity</td><td>INTEGER</td><td>Count for lot-based materials (plastic/catalyst/dye/antirodent)</td></tr>
+            <tr><td>status</td><td>VARCHAR(50)</td><td>received &rarr; approved &rarr; in_use &rarr; consumed | rejected</td></tr>
+            <tr><td>entered_by</td><td>FK &rarr; users</td><td>Who entered this material into the system</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Free-form notes</td></tr>
+            <tr><td>received_date</td><td>DATETIME</td><td>When the material was physically received</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>Record creation timestamp</td></tr>
+            <tr><td>updated_at</td><td>DATETIME</td><td>Last update timestamp (auto-set on change)</td></tr>
+        </table>
+
+        <h4>material_photos</h4>
+        <p>Photos stored separately for <strong>lazy loading performance</strong>. With thousands of materials, loading base64 photo data in every list query would be catastrophic. Instead, the list returns only photo IDs, and the frontend fetches actual photo data on demand.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Photo identifier</td></tr>
+            <tr><td>material_id</td><td>FK &rarr; raw_materials (CASCADE)</td><td>Which material this photo belongs to</td></tr>
+            <tr><td>photo_type</td><td>VARCHAR(20)</td><td>&lsquo;delivery&rsquo; or &lsquo;test&rsquo;</td></tr>
+            <tr><td>sequence</td><td>INTEGER</td><td>1, 2, or 3 (up to 3 photos per type)</td></tr>
+            <tr><td>photo_data</td><td>TEXT</td><td>Base64 encoded image data</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>Upload timestamp</td></tr>
+        </table>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Performance pattern:</strong> The old design stored photos directly in the <code>raw_materials</code> table as JSON arrays of base64 strings. This made list queries unbearably slow. The migration to a separate <code>material_photos</code> table with lazy loading via individual photo endpoints (<code>GET /materials/photo/{id}</code>) solved this completely. The old columns (<code>delivery_form_photo</code>, <code>test_report_photo</code>, <code>delivery_form_photos</code>, <code>test_report_photos</code>) are kept for backward compatibility but are no longer used.</p>
+        </div>
+
+        <h3>Order Tables (2)</h3>
+
+        <h4>material_orders</h4>
+        <p>Tracks purchase orders. Not official ERP purchase orders &mdash; these are internal tracking records for when materials are expected to arrive.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Order identifier</td></tr>
+            <tr><td>order_group_code</td><td>VARCHAR(20)</td><td>Grouping code (R1, R2...) &mdash; orders from same shipment share this</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>What is being ordered (copper, plastic, etc.)</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Which supplier is fulfilling this order</td></tr>
+            <tr><td>supplier_material_id</td><td>FK &rarr; supplier_materials</td><td>Specific material being ordered</td></tr>
+            <tr><td>quantity</td><td>FLOAT</td><td>Ordered quantity</td></tr>
+            <tr><td>delivered_quantity</td><td>FLOAT</td><td>Actually delivered quantity (updated when material entry is linked)</td></tr>
+            <tr><td>unit</td><td>VARCHAR(20)</td><td>&lsquo;kg&rsquo; for materials, &lsquo;adet&rsquo; for palettes/reels</td></tr>
+            <tr><td>order_date</td><td>DATE</td><td>When the order was placed</td></tr>
+            <tr><td>expected_date</td><td>DATE</td><td>When delivery is expected (can change &mdash; tracked)</td></tr>
+            <tr><td>delivered_date</td><td>DATE</td><td>Actual delivery date</td></tr>
+            <tr><td>status</td><td>VARCHAR(20)</td><td>pending &rarr; shipped &rarr; delivered | cancelled</td></tr>
+            <tr><td>rating</td><td>FLOAT</td><td>Post-delivery rating (0.5&ndash;5 stars, half increments)</td></tr>
+            <tr><td>rating_note</td><td>TEXT</td><td>Rating comment</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Order notes</td></tr>
+            <tr><td>created_by</td><td>FK &rarr; users</td><td>Who created this order</td></tr>
+        </table>
+
+        <h4>material_order_date_changes</h4>
+        <p>An audit trail for expected delivery date changes. Every time someone changes the expected date, the system records why.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Change record identifier</td></tr>
+            <tr><td>order_id</td><td>FK &rarr; material_orders (CASCADE)</td><td>Which order was changed</td></tr>
+            <tr><td>old_date</td><td>DATE</td><td>Previous expected date</td></tr>
+            <tr><td>new_date</td><td>DATE</td><td>New expected date</td></tr>
+            <tr><td>reason_type</td><td>VARCHAR(20)</td><td>&lsquo;supplier&rsquo; | &lsquo;solen&rsquo; | &lsquo;other&rsquo;</td></tr>
+            <tr><td>reason_detail</td><td>TEXT</td><td>Manual explanation (required for &lsquo;other&rsquo;)</td></tr>
+            <tr><td>changed_by</td><td>FK &rarr; users</td><td>Who changed the date</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>When the change was recorded</td></tr>
+        </table>
+
+        <h3>Supplier Tables (2)</h3>
+
+        <h4>suppliers</h4>
+        <p>Company-level supplier records. Each supplier is a single company with contact details.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Supplier identifier</td></tr>
+            <tr><td>name</td><td>VARCHAR(200) UNIQUE</td><td>Company name (stored UPPERCASE)</td></tr>
+            <tr><td>contact_person</td><td>VARCHAR(100)</td><td>Primary contact name</td></tr>
+            <tr><td>phone</td><td>VARCHAR(50)</td><td>Auto-formatted Turkish phone number</td></tr>
+            <tr><td>email</td><td>VARCHAR(100)</td><td>Email (validated regex)</td></tr>
+            <tr><td>address</td><td>TEXT</td><td>Physical address</td></tr>
+            <tr><td>tax_number</td><td>VARCHAR(50)</td><td>Tax registration number</td></tr>
+            <tr><td>is_active</td><td>BOOLEAN</td><td>Soft delete flag (toggle active/inactive)</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Free-form notes</td></tr>
+        </table>
+
+        <h4>supplier_materials</h4>
+        <p>The one-to-many relationship. One supplier can provide multiple material types, each with type-specific properties.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Supplier-material link identifier</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Which supplier</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>copper, tin, plastic, catalyst, dye, antirodent, palette, reel</td></tr>
+            <tr><td>material_name</td><td>VARCHAR(100)</td><td>Specific product name (HF-500, CAT-203, etc.)</td></tr>
+            <tr><td>density</td><td>FLOAT</td><td>For plastic/catalyst/dye/antirodent (g/cm&sup3;)</td></tr>
+            <tr><td>boyut</td><td>VARCHAR(100)</td><td>Dimensions for palette/reel</td></tr>
+            <tr><td>reel_type</td><td>VARCHAR(20)</td><td>For reels: Yaz&#305;l&#305;/Yaz&#305;s&#305;z (labeled/unlabeled)</td></tr>
+            <tr><td>is_active</td><td>BOOLEAN</td><td>Whether this material is still offered</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Entity relationship summary:</strong> <code>suppliers</code> 1&mdash;N <code>supplier_materials</code> (what they sell), <code>suppliers</code> 1&mdash;N <code>raw_materials</code> (what they delivered), <code>material_orders</code> N&mdash;1 <code>suppliers</code> (who we ordered from), <code>material_orders</code> N&mdash;1 <code>supplier_materials</code> (what exactly), <code>raw_materials</code> N&mdash;1 <code>material_orders</code> (linked delivery), <code>raw_materials</code> 1&mdash;N <code>material_photos</code> (lazy-loaded), <code>material_orders</code> 1&mdash;N <code>material_order_date_changes</code> (audit trail).</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. THE BACKEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <p>The backend is built with FastAPI and organized into 4 route files, 4 models, 2 schema files, and 1 service. Total backend code: ~3,200 lines.</p>
+
+        <h3>4.1 Route Organization</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>material_routes.py (986 lines)</h4>
+                <p>Router prefix: <code>/api/materials</code><br>
+                The main material CRUD. Handles copper entry (multi-palette), tin entry (single), lot-based entry (plastic/catalyst/dye/antirodent), photo retrieval, list, update, print preview, printer management, QR printing, status toggle, and hard delete. Includes the palette_routes sub-router.</p>
+            </div>
+            <div class="arch-box">
+                <h4>material_order_routes.py (478 lines)</h4>
+                <p>Router prefix: <code>/api/material-orders</code><br>
+                Order lifecycle management. List with filters, pending orders grouped by supplier/date (for Material Entry linking), create (single or batch with auto-generated R-codes), update with date-change tracking, date-change history retrieval, delivery rating, and deletion.</p>
+            </div>
+            <div class="arch-box">
+                <h4>palette_routes.py (316 lines)</h4>
+                <p>Included in material_routes (no separate prefix).<br>
+                Palette and reel entry endpoints. Similar to lot-entry but specialized for inventory items: palettes get QR prefix I, reels get H. Both support order linking and photo uploads.</p>
+            </div>
+            <div class="arch-box">
+                <h4>supplier_routes.py (435 lines)</h4>
+                <p>Router prefix: <code>/api/suppliers</code><br>
+                Full supplier lifecycle: create with nested materials, list with eager-loaded materials, filter by material type, get unique materials list (deduplicated specs), get single supplier, update with material replacement, hard delete with dependency check, and status toggle.</p>
+            </div>
+        </div>
+
+        <h3>4.2 The QR Code System</h3>
+        <p>Every material gets a deterministic QR code based on type prefix and sequence number:</p>
+
+        <pre><span class="keyword">def</span> generate_qr_code(material_type: str, sequence_number: int) -&gt; str:
+    prefix_map = {
+        <span class="string">"raw_copper"</span>:     <span class="string">"A"</span>,   <span class="comment"># A1, A2, A3...</span>
+        <span class="string">"raw_tin"</span>:        <span class="string">"B"</span>,   <span class="comment"># B1, B2, B3...</span>
+        <span class="string">"raw_plastic"</span>:    <span class="string">"C"</span>,   <span class="comment"># C1, C2, C3...</span>
+        <span class="string">"raw_catalyst"</span>:   <span class="string">"D"</span>,   <span class="comment"># D1, D2, D3...</span>
+        <span class="string">"raw_dye"</span>:        <span class="string">"E"</span>,   <span class="comment"># E1, E2, E3...</span>
+        <span class="string">"raw_antirodent"</span>: <span class="string">"F"</span>,   <span class="comment"># F1, F2, F3...</span>
+        <span class="string">"raw_palette"</span>:    <span class="string">"I"</span>,   <span class="comment"># I1, I2, I3...</span>
+        <span class="string">"raw_reel"</span>:       <span class="string">"H"</span>,   <span class="comment"># H1, H2, H3...</span>
+    }
+    prefix = prefix_map.get(material_type, <span class="string">"X"</span>)
+    <span class="keyword">return</span> f<span class="string">"{prefix}{sequence_number}"</span></pre>
+
+        <p>The sequence number is per-type: the system queries the maximum <code>sequence_number</code> for that <code>material_type</code> and increments. This means A1 and B1 can coexist &mdash; each type has its own independent counter.</p>
+
+        <h3>4.3 Material Entry Logic</h3>
+        <p>The entry endpoint handles three fundamentally different flows based on material type:</p>
+
+        <table>
+            <tr><th>Material Type</th><th>Entry Method</th><th>Key Behavior</th></tr>
+            <tr><td>Copper (raw_copper)</td><td>POST /materials/entry</td><td>Creates <strong>one row per palette</strong>. A single delivery with 5 palettes creates 5 <code>raw_materials</code> rows, each with its own QR code (A1, A2...), lot number, and measured weight.</td></tr>
+            <tr><td>Tin (raw_tin)</td><td>POST /materials/entry</td><td>Creates <strong>one row</strong>. Single weight entry. Lot number auto-generated as TIN-{sequence}.</td></tr>
+            <tr><td>Plastic, Catalyst, Dye, Antirodent</td><td>POST /materials/lot-entry</td><td>Creates <strong>one row per lot</strong>. Each lot has its own test photos, weight, and quantity. Material name resolved from <code>supplier_materials</code> table.</td></tr>
+            <tr><td>Palette</td><td>POST /materials/palette-entry</td><td>Creates <strong>one row per palette type</strong>. QR prefix I. Lot auto-generated as PALET-{sequence}.</td></tr>
+            <tr><td>Reel</td><td>POST /materials/reel-entry</td><td>Creates <strong>one row per reel type</strong>. QR prefix H. Lot auto-generated as REEL-{sequence}.</td></tr>
+        </table>
+
+        <h3>4.4 Order Group Codes</h3>
+        <p>When creating material orders, the system generates a group code (R1, R2, R3...) by finding the highest existing R-number and incrementing:</p>
+
+        <pre><span class="keyword">def</span> generate_order_group_code(db: Session) -&gt; str:
+    <span class="comment"># Get highest R number from existing codes</span>
+    result = db.query(func.max(MaterialOrder.order_group_code)).filter(
+        MaterialOrder.order_group_code.isnot(None),
+        MaterialOrder.order_group_code.like(<span class="string">'R%'</span>)
+    ).scalar()
+
+    <span class="keyword">if</span> result:
+        match = re.search(r<span class="string">'R(\d+)'</span>, result)
+        <span class="keyword">if</span> match:
+            <span class="keyword">return</span> f<span class="string">"R{int(match.group(1)) + 1}"</span>
+    <span class="keyword">return</span> <span class="string">"R1"</span></pre>
+
+        <p>Orders from the same shipment share a group code. This allows the system to display grouped orders in the UI and link multiple material entries to the same delivery event.</p>
+
+        <h3>4.5 Date Change Tracking</h3>
+        <p>When an order&rsquo;s expected date is modified, the update endpoint automatically records the change:</p>
+
+        <pre><span class="comment"># If date actually changed and reason is provided, record it</span>
+<span class="keyword">if</span> old_expected_date != new_expected_date:
+    <span class="keyword">if</span> <span class="string">'date_change_reason'</span> <span class="keyword">in</span> data:
+        date_change = MaterialOrderDateChange(
+            order_id=order.id,
+            old_date=old_expected_date,
+            new_date=new_expected_date,
+            reason_type=data[<span class="string">'date_change_reason'</span>],         <span class="comment"># supplier | solen | other</span>
+            reason_detail=data.get(<span class="string">'date_change_detail'</span>),  <span class="comment"># free text</span>
+            changed_by=current_user.id
+        )
+        db.add(date_change)</pre>
+
+        <p>Three reason categories: <code>supplier</code> (delay caused by supplier), <code>solen</code> (delay caused by Solen internal), <code>other</code> (requires manual explanation). This creates an accountability trail for procurement performance analysis.</p>
+
+        <h3>4.6 The Material Calculator Service</h3>
+        <p>The <code>material_calculator.py</code> (478 lines) is a pure calculation service with no database dependencies. It provides:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Copper Calculation</h4>
+                <p><code>calculate_copper(wire_groups, length_meters, bunching_stages)</code><br>
+                Takes wire diameter&rarr;count map (e.g., {0.30: 73} for 6mm&sup2;), applies per-wire weight from constants, multiplies by length, and applies compound twist factor for multi-stage bunching. Returns total kg.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tin Calculation</h4>
+                <p><code>calculate_tin(copper_kg)</code><br>
+                Simple percentage: copper_kg &times; TIN_COATING_FACTOR (~0.7%). Tin coating is ~4&mu;m thick on 1.8mm wire.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Plastic Calculation</h4>
+                <p><code>calculate_plastic_weight(inner_dia, thickness, density, length, is_first_layer, num_cables)</code><br>
+                Cylindrical volume: &pi; &times; (R&sup2; &minus; r&sup2;) &times; length. First layer on copper gets 14% overfill for bumpy surface. Twin cables multiply by num_cables. Volume &times; density = weight.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Layer Calculation</h4>
+                <p><code>calculate_layer(...)</code><br>
+                Complete layer with all material alternatives. Calculates plastic + catalyst + dye for each alternative selection. Returns max values across all options for worst-case procurement planning.</p>
+            </div>
+        </div>
+
+        <h3>4.7 Permission System</h3>
+        <p>The module uses a hybrid permission approach:</p>
+        <ul>
+            <li><strong>Role-based:</strong> Material entry requires <code>lab_user</code> or <code>super_admin</code>. Material updates require <code>super_admin</code>. Hard deletes require <code>super_admin</code>.</li>
+            <li><strong>Smart permission check:</strong> Supplier routes use <code>check_permission_smart()</code> which works with both the old role-based system and the new ultra-granular page-button permission system simultaneously.</li>
+            <li><strong>Frontend registration:</strong> Each page registers its buttons with the permission system via <code>registerPageButtons()</code>, declaring exactly which actions exist (e.g., <code>add_copper</code>, <code>add_tin</code>, <code>upload_delivery_photo</code>, <code>print_qr_modal</code>).</li>
+        </ul>
+
+        <h3>4.8 WebSocket Integration</h3>
+        <p>Three entity types broadcast real-time updates:</p>
+        <pre><span class="comment"># After material creation</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"create"</span>, {<span class="string">"id"</span>: material.id, <span class="string">"qr_code"</span>: material.qr_code})
+
+<span class="comment"># After material update</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"update"</span>, {<span class="string">"id"</span>: material.id, <span class="string">"qr_code"</span>: material.qr_code})
+
+<span class="comment"># After material deletion</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"delete"</span>, {<span class="string">"id"</span>: material_id, <span class="string">"qr_code"</span>: qr_code})
+
+<span class="comment"># Suppliers also broadcast</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"suppliers"</span>, <span class="string">"create"</span>, {<span class="string">"id"</span>: new_supplier.id, <span class="string">"name"</span>: new_supplier.name})</pre>
+
+        <h3>4.9 Print Queue Integration</h3>
+        <p>Material QR code printing is <strong>non-blocking</strong>. The <code>POST /materials/print/{material_id}</code> endpoint forwards to the print queue system rather than blocking the HTTP request while waiting for the printer. The system generates a preview image (base64) via <code>GET /materials/print/preview/{material_id}</code> and allows printer IP configuration via <code>POST /materials/print/update-printer-ip</code>.</p>
+
+        <!-- ============================================ -->
+        <h2>5. THE FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <p>4 React pages built with Ant Design Pro, totaling ~5,100 lines of TypeScript. All pages are dark-mode aware with conditional styling.</p>
+
+        <h3>5.1 Page Map</h3>
+
+        <table>
+            <tr><th>Route</th><th>Component</th><th>Lines</th><th>Purpose</th></tr>
+            <tr><td>/hammadde/hammadde-girisi</td><td>Lab/MaterialEntry</td><td>1,930</td><td>Material entry with 8 material type cards, photo uploads, order linking</td></tr>
+            <tr><td>/hammadde/hammaddeler-listesi</td><td>Hammadde/HammaddelerListesi</td><td>1,153</td><td>ProTable with lazy photo thumbnails, CRUD, print, status management</td></tr>
+            <tr><td>/hammadde/hammadde-siparis</td><td>Hammadde/HammaddeSiparis</td><td>1,237</td><td>Order tracking with date-change history, grouping, ratings</td></tr>
+            <tr><td>/hammadde/tedarikci-yonetimi</td><td>Lab/SupplierManagement</td><td>761</td><td>Supplier CRUD with nested material types, search, real-time updates</td></tr>
+        </table>
+
+        <h3>5.2 Key Frontend Patterns</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Card-Based Material Selection</h4>
+                <p>Material Entry uses 8 colored cards (copper=orange, tin=cyan, plastic=purple, etc.) as the primary navigation. Each card type opens a different modal form with type-specific fields. Colors are theme-aware &mdash; muted in dark mode using rgba with 0.12 opacity.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Lazy Photo Loading</h4>
+                <p>The <code>LazyPhotoThumbnail</code> component loads photos one at a time via <code>GET /materials/photo/{id}</code>. On click, it loads ALL photos for that material and opens a gallery viewer with navigation. This pattern keeps the list page fast even with thousands of materials.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Order Linking UX</h4>
+                <p>When entering materials, the user can optionally select a pending purchase order to link to. The system fetches pending orders grouped by supplier and expected date via <code>GET /material-orders/pending-by-type/{type}</code>, and auto-fills supplier info from the selected order.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Real-Time WebSocket Updates</h4>
+                <p>Both Materials List and Supplier Management use the <code>useWebSocket</code> hook subscribing to <code>materials</code> and <code>suppliers</code> rooms respectively. On any create/update/delete event, the ProTable auto-reloads via <code>actionRef.current?.reload()</code>.</p>
+            </div>
+        </div>
+
+        <h3>5.3 Material Types and Colors</h3>
+        <table>
+            <tr><th>Type</th><th>QR Prefix</th><th>Color</th><th>Entry Method</th></tr>
+            <tr><td>Copper (Bak&#305;r)</td><td>A</td><td style="background:#fff7e6;">Orange</td><td>Multi-palette with form + measured weights</td></tr>
+            <tr><td>Tin (Kalay)</td><td>B</td><td style="background:#e6fffb;">Cyan</td><td>Single weight entry</td></tr>
+            <tr><td>Plastic (Plastik)</td><td>C</td><td style="background:#f9f0ff;">Purple</td><td>Lot-based with per-lot test photos</td></tr>
+            <tr><td>Catalyst (Kataliz&ouml;r)</td><td>D</td><td style="background:#f6ffed;">Green</td><td>Lot-based with per-lot test photos</td></tr>
+            <tr><td>Dye (Boya)</td><td>E</td><td style="background:#fff0f6;">Pink</td><td>Lot-based with per-lot test photos</td></tr>
+            <tr><td>Antirodent</td><td>F</td><td style="background:#e6fffb;">Teal</td><td>Lot-based with per-lot test photos</td></tr>
+            <tr><td>Palette (Palet)</td><td>I</td><td style="background:#fcffe6;">Lime</td><td>Quantity per palette type</td></tr>
+            <tr><td>Reel (Makara)</td><td>H</td><td style="background:#fffbe6;">Gold</td><td>Quantity per reel type</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>6. THE SUBMODULES</h2>
+        <!-- ============================================ -->
+
+        <p>The Hammadde module consists of 4 submodules, each handling a different aspect of raw material management. The following sections will dive deep into each one.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Hammadde Giri&#351;i (Material Entry)</h4>
+                <p>The 1,930-line entry page. 8 material type cards, multi-palette copper entry, lot-based chemical entry, photo uploads (delivery form + test reports, up to 3 each), QR code generation and printing, order linking for delivery tracking. The largest and most complex page in the module.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1,930 LINES</span>
+                    <span class="submod-tag">14 ENDPOINTS</span>
+                    <span class="submod-tag">8 MATERIAL TYPES</span>
+                    <span class="submod-tag">QR CODES</span>
+                    <span class="submod-tag">PHOTO UPLOAD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Hammaddeler Listesi (Materials List)</h4>
+                <p>Full inventory view with ProTable. Lazy-loaded photo thumbnails, material status management (received/approved/in_use/consumed/rejected), edit with QR code modification, hard delete with dependency checks, remaining weight tracking, and QR code print queue integration.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1,153 LINES</span>
+                    <span class="submod-tag">PROTABLE</span>
+                    <span class="submod-tag">LAZY PHOTOS</span>
+                    <span class="submod-tag">REAL-TIME</span>
+                    <span class="submod-tag">PRINT QUEUE</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Hammadde Sipari&#351; (Material Orders)</h4>
+                <p>Purchase order tracking with order group codes (R1, R2...), date change history with categorized reasons (supplier/solen/other), delivery quantity tracking, supplier rating after delivery (0.5&ndash;5 stars with half increments), and status lifecycle management.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1,237 LINES</span>
+                    <span class="submod-tag">ORDER GROUPS</span>
+                    <span class="submod-tag">DATE TRACKING</span>
+                    <span class="submod-tag">SUPPLIER RATING</span>
+                    <span class="submod-tag">7 ENDPOINTS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Tedarik&ccedil;i Y&ouml;netimi (Supplier Management)</h4>
+                <p>Supplier company management with one-to-many material relationships. Create suppliers with nested material lists, each material type carrying its own properties (density, dimensions, reel type). Smart permission checking, real-time WebSocket updates, hard delete with FK dependency protection.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">761 LINES</span>
+                    <span class="submod-tag">1:N MATERIALS</span>
+                    <span class="submod-tag">SMART PERMISSIONS</span>
+                    <span class="submod-tag">REAL-TIME</span>
+                    <span class="submod-tag">FK PROTECTION</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>Sections 6.1&ndash;6.4 will be expanded</strong> with full submodule deep dives: complete API contracts, request/response examples, database queries, frontend component breakdowns, and edge case handling. Each submodule will be documented at the same level of detail as the Teknik module&rsquo;s Cable Playground and Cable Database sections.</p>
+        </div>
+
+    </main>
+</body>
+</html>

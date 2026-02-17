@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hammadde Modülü | Kablo Fabrikası ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-hammadde-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-hammadde.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives-tr.html" class="back-link">Modüllere Dön</a>
+        <h1>HAMMADDE &mdash; HAM MALZEME YÖNETİMİ</h1>
+        <p class="subtitle">Satın alma siparişinden QR kodlu envantere uzanan tedarik zinciri. Fabrika kapısından giren her gram bakır, kalay, plastik, katalizör, boya, palet ve makara &mdash; anlık takip altında.</p>
+        <p class="authors">Şubat 2026 &bull; Solen Kablo &bull; Yaşayan Doküman</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Hammadde, fiziksel malzemenin dijital takiple buluştuğu yerdir.</strong> Bir kablo fabrikası sekiz kategori hammadde tüketir: bakır tel çubukları, kalay külçeleri, plastik granüller, katalizörler, boyalar, anti-kemirgen bileşikler, paletler (ahşap nakliye platformları) ve makaralar (kablo tamburları). Her biri bir tedarikçiden gelir, tartılır, fotoğraflanır, benzersiz bir QR kodu atanır ve sisteme girilir. O andan itibaren malzeme izlenebilirdir &mdash; üretim tüketiminden kalan ağırlık takibine ve makaradaki bitmiş kabloya kadar. Hammadde ayrıca tüm satın alma sipariş yaşam döngüsünü yönetir: sipariş oluşturmadan teslimat tarihlerini takibe, tarih değişikliği nedenlerini kaydetmeye ve teslimat sonrası tedarikçi performansını puanlamaya kadar.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">4</div>
+                <div class="label">ALT MODÜL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~30</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">VERİTABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5100+</div>
+                <div class="label">SATIR FRONTEND</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. HAMMADDE NE YAPAR</h2>
+        <!-- ============================================ -->
+
+        <p>Hammadde modülü, fabrikanın tedarik zincirinin bağlı olduğu dört soruyu yanıtlar:</p>
+
+        <ol>
+            <li><strong>Stokta hangi hammaddeler var?</strong> &mdash; Malzeme Girişi gelen her sevkiyatı kaydeder. Bakır paletler halinde gelir (teslimat başına birden fazla), kalay tek tartımlı külçe olarak ve plastik/katalizör/boya/antirodent lot bazlı girişler olarak. Her birine QR kodu atanır (A=bakır, B=kalay, C=plastik, D=katalizör, E=boya, F=antirodent, I=palet, H=makara), teslimat ve test fotoğrafları eklenir ve satın alma siparişine bağlanır.</li>
+            <li><strong>Her gram malzeme şu anda nerede?</strong> &mdash; Hammaddeler Listesi lazy-load fotoğraf önizlemeleri, durum takibi (received &rarr; approved &rarr; in_use &rarr; consumed/rejected), üretim sonrası kalan ağırlık ve malzeme oluşturma/değiştirme/silme sırasında gerçek zamanlı WebSocket güncellemeleriyle tam envanter görünümü sunar.</li>
+            <li><strong>Ne sipariş ettik ve ne zaman gelecek?</strong> &mdash; Hammadde Sipariş, sipariş grup kodları (R1, R2, R3...), beklenen teslimat tarihleri, gerçek teslimat tarihleri, nedenli tarih değişikliği geçmişi (tedarikçi/solen/diğer), teslim edilen miktar takibi ve teslimat sonrası tedarikçi puanlaması (0.5&ndash;5 yıldız) ile her satın almayı izler.</li>
+            <li><strong>Tedarikçilerimiz kim ve ne sağlıyorlar?</strong> &mdash; Tedarikçi Yönetimi bire-çok ilişki yönetir: bir tedarikçi şirket birden fazla malzeme türü sağlayabilir (bakır, plastik, boya vb.), her biri yoğunluk (g/cm&sup3;), boyut ve makara tipi (yazılı/yazısız) gibi malzemeye özgü özellikler taşır.</li>
+        </ol>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Alt akış tüketicisi.</strong> Hammadde, Teknik modülünün Kablo Veritabanı&rsquo;nın birincil tüketicisidir. Sipariş modülü bir sipariş için malzeme gereksinimlerini hesapladığında (bakır ağırlığı, kalay kaplama, plastik hacimler, katalizör/boya yüzdeleri), Teknik&rsquo;ten kablo özelliklerini okuyan ve Hammadde&rsquo;nin karşılaması gereken tedarik miktarlarını üreten <code>material_calculator</code> servisini kullanır. Malzeme Girişi sayfası ayrıca gelen teslimatları doğrudan Malzeme Siparişlerine bağlayarak &ldquo;ne sipariş edildi&rdquo; ile &ldquo;gerçekte ne geldi&rdquo; arasındaki döngüyü kapatır.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. VERİ AKIŞI</h2>
+        <!-- ============================================ -->
+
+        <p>Veri, Hammadde modülünde net bir tedarik-tüketim döngüsünde akar:</p>
+
+        <h3>Tedarik Akışı</h3>
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">TEDARİKÇİ<br><span style="font-size:9px;color:#666;">Sisteme kayıtlı</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">SİPARİŞ<br><span style="font-size:9px;color:#666;">R1, R2... oluşturulur</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">TESLİMAT<br><span style="font-size:9px;color:#666;">Tarih takibi</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">GİRİŞ<br><span style="font-size:9px;color:#666;">QR + fotoğraf</span></div>
+        </div>
+
+        <h3>Tüketim Akışı</h3>
+        <div class="flow">
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">MALZEME<br><span style="font-size:9px;color:#666;">Durum: teslim alındı</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dbeafe; border-color: #2563eb;">ONAYLANDI<br><span style="font-size:9px;color:#666;">Lab onayı</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">KULLANIMDA<br><span style="font-size:9px;color:#666;">Üretim hattında</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #f3f4f6; border-color: #666;">TÜKETİLDİ<br><span style="font-size:9px;color:#666;">remaining_weight = 0</span></div>
+        </div>
+
+        <h3>Sipariş-Giriş Bağlantısı</h3>
+        <p>Malzeme teslimatı geldiğinde, Malzeme Girişi sayfası gelen malzemeyi doğrudan bekleyen satın alma siparişine bağlayabilir. Bu, siparişin <code>delivered_quantity</code> değerini günceller, durumunu <code>delivered</code> olarak ayarlar ve <code>delivered_date</code> kaydeder. Bu sıkı bağlantı sayesinde sistem her zaman bilir: sipariş edilen her kilogram için gerçekte ne kadar geldi ve ne zaman.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Her yerde gerçek zamanlı.</strong> Her malzeme oluşturma, güncelleme ve silme bir WebSocket olayı yayınlar. Hammaddeler Listesi sayfası polling olmadan otomatik yenilenir. Tedarikçi Yönetimi sayfası da aynı şekilde. Bu, birden fazla kullanıcının (lab teknisyenleri, satın alma personeli) tüm ekranlarında değişiklikleri anında görmesi anlamına gelir.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. VERİTABANI KATMANI</h2>
+        <!-- ============================================ -->
+
+        <p>Hammadde modülüne 6 tablo hizmet eder. Üç gruba ayrılırlar:</p>
+
+        <h3>Malzeme Tabloları (2)</h3>
+
+        <h4>raw_materials</h4>
+        <p>Merkezi tablo. Fabrikaya giren her fiziksel malzeme &mdash; türü ne olursa olsun &mdash; burada bir satır alır.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Otomatik artan birincil anahtar</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</td></tr>
+            <tr><td>material_name</td><td>VARCHAR(200)</td><td>Tedarikçi kataloğundan spesifik malzeme adı (ör. HFX500, K388)</td></tr>
+            <tr><td>sequence_number</td><td>INTEGER</td><td>Tür bazlı sayaç &mdash; her material_type için ayrı sıra</td></tr>
+            <tr><td>qr_code</td><td>VARCHAR(50) UNIQUE</td><td>Oluşturulan kod: ön ek + sıra (A1, B7, C23, I145...)</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Bu malzemeyi hangi tedarikçi sağladı</td></tr>
+            <tr><td>material_order_id</td><td>FK &rarr; material_orders</td><td>Satın alma siparişine bağlantı (teslimat takibi için)</td></tr>
+            <tr><td>lot_number</td><td>VARCHAR(100)</td><td>Tedarikçinin lot numarası (veya kalay için otomatik: TIN-N)</td></tr>
+            <tr><td>weight</td><td>FLOAT</td><td>Teslim alındığında ölçülen ağırlık (kg)</td></tr>
+            <tr><td>remaining_weight</td><td>FLOAT</td><td>Üretim tüketimi sonrası kalan ağırlık (kg)</td></tr>
+            <tr><td>form_weight</td><td>FLOAT</td><td>Resmi form ağırlığı (bakır paletler için)</td></tr>
+            <tr><td>quantity</td><td>INTEGER</td><td>Lot bazlı malzemeler için adet (plastik/katalizör/boya/antirodent)</td></tr>
+            <tr><td>status</td><td>VARCHAR(50)</td><td>received &rarr; approved &rarr; in_use &rarr; consumed | rejected</td></tr>
+            <tr><td>entered_by</td><td>FK &rarr; users</td><td>Malzemeyi sisteme kim girdi</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Serbest notlar</td></tr>
+            <tr><td>received_date</td><td>DATETIME</td><td>Malzemenin fiziksel olarak teslim alındığı zaman</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>Kayıt oluşturma zaman damgası</td></tr>
+            <tr><td>updated_at</td><td>DATETIME</td><td>Son güncelleme zaman damgası (değişiklikte otomatik)</td></tr>
+        </table>
+
+        <h4>material_photos</h4>
+        <p><strong>Lazy loading performansı</strong> için fotoğraflar ayrı tabloda tutulur. Binlerce malzeme varken, her liste sorgusunda base64 fotoğraf verisi yüklemek felaket olurdu. Bunun yerine liste sadece fotoğraf ID&rsquo;lerini döner ve frontend gerçek fotoğraf verisini talep üzerine çeker.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Fotoğraf tanımlayıcısı</td></tr>
+            <tr><td>material_id</td><td>FK &rarr; raw_materials (CASCADE)</td><td>Bu fotoğraf hangi malzemeye ait</td></tr>
+            <tr><td>photo_type</td><td>VARCHAR(20)</td><td>&lsquo;delivery&rsquo; veya &lsquo;test&rsquo;</td></tr>
+            <tr><td>sequence</td><td>INTEGER</td><td>1, 2 veya 3 (tür başına en fazla 3 fotoğraf)</td></tr>
+            <tr><td>photo_data</td><td>TEXT</td><td>Base64 kodlanmış görüntü verisi</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>Yükleme zaman damgası</td></tr>
+        </table>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Performans deseni:</strong> Eski tasarım fotoğrafları doğrudan <code>raw_materials</code> tablosunda base64 dizilerinin JSON dizileri olarak saklıyordu. Bu, liste sorgularını dayanılmaz derecede yavaşlatıyordu. Ayrı bir <code>material_photos</code> tablosuna geçiş ve bireysel fotoğraf endpoint&rsquo;leri (<code>GET /materials/photo/{id}</code>) üzerinden lazy loading ile bu sorun tamamen çözüldü. Eski kolonlar (<code>delivery_form_photo</code>, <code>test_report_photo</code>, <code>delivery_form_photos</code>, <code>test_report_photos</code>) geriye uyumluluk için tutulur ancak artık kullanılmaz.</p>
+        </div>
+
+        <h3>Sipariş Tabloları (2)</h3>
+
+        <h4>material_orders</h4>
+        <p>Satın alma siparişlerini takip eder. Resmi ERP satın alma siparişleri değil &mdash; malzemelerin ne zaman gelmesinin beklendiğine dair dahili takip kayıtlarıdır.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Sipariş tanımlayıcısı</td></tr>
+            <tr><td>order_group_code</td><td>VARCHAR(20)</td><td>Gruplama kodu (R1, R2...) &mdash; aynı sevkiyattan siparişler bunu paylaşır</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>Ne sipariş ediliyor (bakır, plastik vb.)</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Siparişi hangi tedarikçi karşılıyor</td></tr>
+            <tr><td>supplier_material_id</td><td>FK &rarr; supplier_materials</td><td>Sipariş edilen spesifik malzeme</td></tr>
+            <tr><td>quantity</td><td>FLOAT</td><td>Sipariş edilen miktar</td></tr>
+            <tr><td>delivered_quantity</td><td>FLOAT</td><td>Gerçekte teslim edilen miktar (malzeme girişi bağlandığında güncellenir)</td></tr>
+            <tr><td>unit</td><td>VARCHAR(20)</td><td>Malzemeler için &lsquo;kg&rsquo;, palet/makara için &lsquo;adet&rsquo;</td></tr>
+            <tr><td>order_date</td><td>DATE</td><td>Siparişin verildiği tarih</td></tr>
+            <tr><td>expected_date</td><td>DATE</td><td>Teslimatın beklendiği tarih (değişebilir &mdash; takip edilir)</td></tr>
+            <tr><td>delivered_date</td><td>DATE</td><td>Gerçek teslimat tarihi</td></tr>
+            <tr><td>status</td><td>VARCHAR(20)</td><td>pending &rarr; shipped &rarr; delivered | cancelled</td></tr>
+            <tr><td>rating</td><td>FLOAT</td><td>Teslimat sonrası puan (0.5&ndash;5 yıldız, yarım artışlarla)</td></tr>
+            <tr><td>rating_note</td><td>TEXT</td><td>Puanlama yorumu</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Sipariş notları</td></tr>
+            <tr><td>created_by</td><td>FK &rarr; users</td><td>Bu siparişi kim oluşturdu</td></tr>
+        </table>
+
+        <h4>material_order_date_changes</h4>
+        <p>Beklenen teslimat tarihi değişiklikleri için denetim izi. Birisi beklenen tarihi her değiştirdiğinde, sistem nedenini kaydeder.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Değişiklik kaydı tanımlayıcısı</td></tr>
+            <tr><td>order_id</td><td>FK &rarr; material_orders (CASCADE)</td><td>Hangi sipariş değiştirildi</td></tr>
+            <tr><td>old_date</td><td>DATE</td><td>Önceki beklenen tarih</td></tr>
+            <tr><td>new_date</td><td>DATE</td><td>Yeni beklenen tarih</td></tr>
+            <tr><td>reason_type</td><td>VARCHAR(20)</td><td>&lsquo;supplier&rsquo; | &lsquo;solen&rsquo; | &lsquo;other&rsquo;</td></tr>
+            <tr><td>reason_detail</td><td>TEXT</td><td>Manuel açıklama (&lsquo;other&rsquo; için zorunlu)</td></tr>
+            <tr><td>changed_by</td><td>FK &rarr; users</td><td>Tarihi kim değiştirdi</td></tr>
+            <tr><td>created_at</td><td>DATETIME</td><td>Değişikliğin kaydedildiği zaman</td></tr>
+        </table>
+
+        <h3>Tedarikçi Tabloları (2)</h3>
+
+        <h4>suppliers</h4>
+        <p>Şirket düzeyinde tedarikçi kayıtları. Her tedarikçi, iletişim bilgileriyle birlikte tek bir şirkettir.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Tedarikçi tanımlayıcısı</td></tr>
+            <tr><td>name</td><td>VARCHAR(200) UNIQUE</td><td>Şirket adı (BÜYÜK HARF olarak saklanır)</td></tr>
+            <tr><td>contact_person</td><td>VARCHAR(100)</td><td>Birincil iletişim kişisi</td></tr>
+            <tr><td>phone</td><td>VARCHAR(50)</td><td>Otomatik biçimlendirilen Türk telefon numarası</td></tr>
+            <tr><td>email</td><td>VARCHAR(100)</td><td>E-posta (regex doğrulamalı)</td></tr>
+            <tr><td>address</td><td>TEXT</td><td>Fiziksel adres</td></tr>
+            <tr><td>tax_number</td><td>VARCHAR(50)</td><td>Vergi sicil numarası</td></tr>
+            <tr><td>is_active</td><td>BOOLEAN</td><td>Yumuşak silme bayrağı (aktif/pasif geçişi)</td></tr>
+            <tr><td>notes</td><td>TEXT</td><td>Serbest notlar</td></tr>
+        </table>
+
+        <h4>supplier_materials</h4>
+        <p>Bire-çok ilişki. Bir tedarikçi birden fazla malzeme türü sağlayabilir, her biri türe özgü özellikler taşır.</p>
+        <table>
+            <tr><th>Kolon</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td>id</td><td>INTEGER PK</td><td>Tedarikçi-malzeme bağlantı tanımlayıcısı</td></tr>
+            <tr><td>supplier_id</td><td>FK &rarr; suppliers</td><td>Hangi tedarikçi</td></tr>
+            <tr><td>material_type</td><td>VARCHAR(50)</td><td>copper, tin, plastic, catalyst, dye, antirodent, palette, reel</td></tr>
+            <tr><td>material_name</td><td>VARCHAR(100)</td><td>Spesifik ürün adı (HF-500, CAT-203 vb.)</td></tr>
+            <tr><td>density</td><td>FLOAT</td><td>Plastik/katalizör/boya/antirodent için (g/cm&sup3;)</td></tr>
+            <tr><td>boyut</td><td>VARCHAR(100)</td><td>Palet/makara için boyutlar</td></tr>
+            <tr><td>reel_type</td><td>VARCHAR(20)</td><td>Makaralar için: Yazılı/Yazısız (etiketli/etiketsiz)</td></tr>
+            <tr><td>is_active</td><td>BOOLEAN</td><td>Bu malzemenin hâlâ sunulup sunulmadığı</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Varlık ilişki özeti:</strong> <code>suppliers</code> 1&mdash;N <code>supplier_materials</code> (ne satıyorlar), <code>suppliers</code> 1&mdash;N <code>raw_materials</code> (ne teslim ettiler), <code>material_orders</code> N&mdash;1 <code>suppliers</code> (kimden sipariş ettik), <code>material_orders</code> N&mdash;1 <code>supplier_materials</code> (tam olarak ne), <code>raw_materials</code> N&mdash;1 <code>material_orders</code> (bağlı teslimat), <code>raw_materials</code> 1&mdash;N <code>material_photos</code> (lazy-loaded), <code>material_orders</code> 1&mdash;N <code>material_order_date_changes</code> (denetim izi).</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. BACKEND MİMARİSİ</h2>
+        <!-- ============================================ -->
+
+        <p>Backend FastAPI ile inşa edilmiş olup 4 route dosyası, 4 model, 2 şema dosyası ve 1 servisten oluşur. Toplam backend kodu: ~3.200 satır.</p>
+
+        <h3>4.1 Route Organizasyonu</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>material_routes.py (986 satır)</h4>
+                <p>Router ön eki: <code>/api/materials</code><br>
+                Ana malzeme CRUD. Bakır girişi (çoklu palet), kalay girişi (tekli), lot bazlı giriş (plastik/katalizör/boya/antirodent), fotoğraf alma, listeleme, güncelleme, baskı önizleme, yazıcı yönetimi, QR yazdırma, durum geçişi ve kalıcı silme. palette_routes alt yönlendiricisini içerir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>material_order_routes.py (478 satır)</h4>
+                <p>Router ön eki: <code>/api/material-orders</code><br>
+                Sipariş yaşam döngüsü yönetimi. Filtreli listeleme, tedarikçi/tarihe göre gruplanmış bekleyen siparişler (Malzeme Girişi bağlantısı için), tekli veya toplu oluşturma (otomatik R kodları), tarih değişikliği takipli güncelleme, tarih değişikliği geçmişi alma, teslimat puanlama ve silme.</p>
+            </div>
+            <div class="arch-box">
+                <h4>palette_routes.py (316 satır)</h4>
+                <p>material_routes içinde yer alır (ayrı ön ek yok).<br>
+                Palet ve makara giriş endpoint&rsquo;leri. lot-entry&rsquo;ye benzer ancak envanter kalemleri için özelleştirilmiş: paletler QR ön eki I, makaralar H alır. Her ikisi de sipariş bağlama ve fotoğraf yüklemeyi destekler.</p>
+            </div>
+            <div class="arch-box">
+                <h4>supplier_routes.py (435 satır)</h4>
+                <p>Router ön eki: <code>/api/suppliers</code><br>
+                Tam tedarikçi yaşam döngüsü: iç içe malzemelerle oluşturma, eager-loaded malzemelerle listeleme, malzeme türüne göre filtreleme, benzersiz malzeme listesi (tekilleştirilmiş özellikler), tekil tedarikçi alma, malzeme değişimiyle güncelleme, bağımlılık kontrolüyle kalıcı silme ve durum geçişi.</p>
+            </div>
+        </div>
+
+        <h3>4.2 QR Kod Sistemi</h3>
+        <p>Her malzeme, tür ön eki ve sıra numarasına dayalı deterministik bir QR kodu alır:</p>
+
+        <pre><span class="keyword">def</span> generate_qr_code(material_type: str, sequence_number: int) -&gt; str:
+    prefix_map = {
+        <span class="string">"raw_copper"</span>:     <span class="string">"A"</span>,   <span class="comment"># A1, A2, A3...</span>
+        <span class="string">"raw_tin"</span>:        <span class="string">"B"</span>,   <span class="comment"># B1, B2, B3...</span>
+        <span class="string">"raw_plastic"</span>:    <span class="string">"C"</span>,   <span class="comment"># C1, C2, C3...</span>
+        <span class="string">"raw_catalyst"</span>:   <span class="string">"D"</span>,   <span class="comment"># D1, D2, D3...</span>
+        <span class="string">"raw_dye"</span>:        <span class="string">"E"</span>,   <span class="comment"># E1, E2, E3...</span>
+        <span class="string">"raw_antirodent"</span>: <span class="string">"F"</span>,   <span class="comment"># F1, F2, F3...</span>
+        <span class="string">"raw_palette"</span>:    <span class="string">"I"</span>,   <span class="comment"># I1, I2, I3...</span>
+        <span class="string">"raw_reel"</span>:       <span class="string">"H"</span>,   <span class="comment"># H1, H2, H3...</span>
+    }
+    prefix = prefix_map.get(material_type, <span class="string">"X"</span>)
+    <span class="keyword">return</span> f<span class="string">"{prefix}{sequence_number}"</span></pre>
+
+        <p>Sıra numarası tür bazlıdır: sistem o <code>material_type</code> için maksimum <code>sequence_number</code> değerini sorgular ve artırır. Bu, A1 ve B1&rsquo;in birlikte var olabileceği anlamına gelir &mdash; her türün kendi bağımsız sayacı vardır.</p>
+
+        <h3>4.3 Malzeme Giriş Mantığı</h3>
+        <p>Giriş endpoint&rsquo;i, malzeme türüne göre temelden farklı üç akışı yönetir:</p>
+
+        <table>
+            <tr><th>Malzeme Türü</th><th>Giriş Yöntemi</th><th>Temel Davranış</th></tr>
+            <tr><td>Bakır (raw_copper)</td><td>POST /materials/entry</td><td><strong>Palet başına bir satır</strong> oluşturur. 5 paletlik tek teslimat 5 <code>raw_materials</code> satırı oluşturur, her birinin kendi QR kodu (A1, A2...), lot numarası ve ölçülen ağırlığı olur.</td></tr>
+            <tr><td>Kalay (raw_tin)</td><td>POST /materials/entry</td><td><strong>Tek satır</strong> oluşturur. Tek ağırlık girişi. Lot numarası otomatik: TIN-{sıra}.</td></tr>
+            <tr><td>Plastik, Katalizör, Boya, Antirodent</td><td>POST /materials/lot-entry</td><td><strong>Lot başına bir satır</strong> oluşturur. Her lotun kendi test fotoğrafları, ağırlığı ve adedi olur. Malzeme adı <code>supplier_materials</code> tablosundan çözümlenir.</td></tr>
+            <tr><td>Palet</td><td>POST /materials/palette-entry</td><td><strong>Palet tipi başına bir satır</strong> oluşturur. QR ön eki I. Lot otomatik: PALET-{sıra}.</td></tr>
+            <tr><td>Makara</td><td>POST /materials/reel-entry</td><td><strong>Makara tipi başına bir satır</strong> oluşturur. QR ön eki H. Lot otomatik: REEL-{sıra}.</td></tr>
+        </table>
+
+        <h3>4.4 Sipariş Grup Kodları</h3>
+        <p>Malzeme siparişleri oluştururken, sistem mevcut en yüksek R numarasını bulup artırarak bir grup kodu (R1, R2, R3...) üretir:</p>
+
+        <pre><span class="keyword">def</span> generate_order_group_code(db: Session) -&gt; str:
+    <span class="comment"># Mevcut kodlardan en yüksek R numarasını al</span>
+    result = db.query(func.max(MaterialOrder.order_group_code)).filter(
+        MaterialOrder.order_group_code.isnot(None),
+        MaterialOrder.order_group_code.like(<span class="string">'R%'</span>)
+    ).scalar()
+
+    <span class="keyword">if</span> result:
+        match = re.search(r<span class="string">'R(\d+)'</span>, result)
+        <span class="keyword">if</span> match:
+            <span class="keyword">return</span> f<span class="string">"R{int(match.group(1)) + 1}"</span>
+    <span class="keyword">return</span> <span class="string">"R1"</span></pre>
+
+        <p>Aynı sevkiyattan gelen siparişler bir grup kodunu paylaşır. Bu, sistemin arayüzde gruplanmış siparişleri göstermesini ve birden fazla malzeme girişini aynı teslimat olayına bağlamasını sağlar.</p>
+
+        <h3>4.5 Tarih Değişikliği Takibi</h3>
+        <p>Bir siparişin beklenen tarihi değiştirildiğinde, güncelleme endpoint&rsquo;i değişikliği otomatik olarak kaydeder:</p>
+
+        <pre><span class="comment"># Tarih gerçekten değiştiyse ve neden sağlandıysa, kaydet</span>
+<span class="keyword">if</span> old_expected_date != new_expected_date:
+    <span class="keyword">if</span> <span class="string">'date_change_reason'</span> <span class="keyword">in</span> data:
+        date_change = MaterialOrderDateChange(
+            order_id=order.id,
+            old_date=old_expected_date,
+            new_date=new_expected_date,
+            reason_type=data[<span class="string">'date_change_reason'</span>],         <span class="comment"># supplier | solen | other</span>
+            reason_detail=data.get(<span class="string">'date_change_detail'</span>),  <span class="comment"># serbest metin</span>
+            changed_by=current_user.id
+        )
+        db.add(date_change)</pre>
+
+        <p>Üç neden kategorisi: <code>supplier</code> (tedarikçi kaynaklı gecikme), <code>solen</code> (Solen dahili kaynaklı gecikme), <code>other</code> (manuel açıklama gerektirir). Bu, tedarik performans analizi için bir hesap verebilirlik izi oluşturur.</p>
+
+        <h3>4.6 Malzeme Hesaplayıcı Servisi</h3>
+        <p><code>material_calculator.py</code> (478 satır) veritabanı bağımlılığı olmayan saf bir hesaplama servisidir. Sağladıkları:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Bakır Hesaplama</h4>
+                <p><code>calculate_copper(wire_groups, length_meters, bunching_stages)</code><br>
+                Tel çapı&rarr;adet haritası alır (ör. 6mm&sup2; için {0.30: 73}), sabitlerden tel başı ağırlık uygular, uzunlukla çarpar ve çok aşamalı büküm için bileşik büküm faktörü uygular. Toplam kg döner.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Kalay Hesaplama</h4>
+                <p><code>calculate_tin(copper_kg)</code><br>
+                Basit yüzde: copper_kg &times; TIN_COATING_FACTOR (~%0.7). Kalay kaplama 1.8mm tel üzerinde ~4&mu;m kalınlığındadır.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Plastik Hesaplama</h4>
+                <p><code>calculate_plastic_weight(inner_dia, thickness, density, length, is_first_layer, num_cables)</code><br>
+                Silindirik hacim: &pi; &times; (R&sup2; &minus; r&sup2;) &times; uzunluk. Bakır üzerindeki ilk katman pürüzlü yüzey için %14 aşırı dolgu alır. İkiz kablolar num_cables ile çarpılır. Hacim &times; yoğunluk = ağırlık.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Katman Hesaplama</h4>
+                <p><code>calculate_layer(...)</code><br>
+                Tüm malzeme alternatifleriyle birlikte tam katman. Her alternatif seçim için plastik + katalizör + boya hesaplar. En kötü durum tedarik planlaması için tüm seçenekler arasında maksimum değerleri döner.</p>
+            </div>
+        </div>
+
+        <h3>4.7 Yetki Sistemi</h3>
+        <p>Modül hibrit bir yetki yaklaşımı kullanır:</p>
+        <ul>
+            <li><strong>Rol bazlı:</strong> Malzeme girişi <code>lab_user</code> veya <code>super_admin</code> gerektirir. Malzeme güncellemeleri <code>super_admin</code> gerektirir. Kalıcı silmeler <code>super_admin</code> gerektirir.</li>
+            <li><strong>Akıllı yetki kontrolü:</strong> Tedarikçi route&rsquo;ları, hem eski rol bazlı sistem hem de yeni ultra-granüler sayfa-buton yetki sistemiyle aynı anda çalışan <code>check_permission_smart()</code> kullanır.</li>
+            <li><strong>Frontend kaydı:</strong> Her sayfa butonlarını <code>registerPageButtons()</code> ile yetki sistemine kaydeder ve hangi eylemlerin var olduğunu tam olarak bildirir (ör. <code>add_copper</code>, <code>add_tin</code>, <code>upload_delivery_photo</code>, <code>print_qr_modal</code>).</li>
+        </ul>
+
+        <h3>4.8 WebSocket Entegrasyonu</h3>
+        <p>Üç varlık türü gerçek zamanlı güncellemeler yayınlar:</p>
+        <pre><span class="comment"># Malzeme oluşturma sonrası</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"create"</span>, {<span class="string">"id"</span>: material.id, <span class="string">"qr_code"</span>: material.qr_code})
+
+<span class="comment"># Malzeme güncelleme sonrası</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"update"</span>, {<span class="string">"id"</span>: material.id, <span class="string">"qr_code"</span>: material.qr_code})
+
+<span class="comment"># Malzeme silme sonrası</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"materials"</span>, <span class="string">"delete"</span>, {<span class="string">"id"</span>: material_id, <span class="string">"qr_code"</span>: qr_code})
+
+<span class="comment"># Tedarikçiler de yayınlar</span>
+<span class="keyword">await</span> broadcast_update(<span class="string">"suppliers"</span>, <span class="string">"create"</span>, {<span class="string">"id"</span>: new_supplier.id, <span class="string">"name"</span>: new_supplier.name})</pre>
+
+        <h3>4.9 Yazdırma Kuyruğu Entegrasyonu</h3>
+        <p>Malzeme QR kodu yazdırma <strong>engelleyici değildir</strong>. <code>POST /materials/print/{material_id}</code> endpoint&rsquo;i, yazıcıyı beklerken HTTP isteğini engellemek yerine yazdırma kuyruğu sistemine yönlendirir. Sistem <code>GET /materials/print/preview/{material_id}</code> ile önizleme görüntüsü (base64) üretir ve <code>POST /materials/print/update-printer-ip</code> ile yazıcı IP yapılandırmasına izin verir.</p>
+
+        <!-- ============================================ -->
+        <h2>5. FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <p>Ant Design Pro ile inşa edilmiş 4 React sayfası, toplamda ~5.100 satır TypeScript. Tüm sayfalar koşullu stillendirme ile karanlık mod desteğine sahiptir.</p>
+
+        <h3>5.1 Sayfa Haritası</h3>
+
+        <table>
+            <tr><th>Route</th><th>Bileşen</th><th>Satır</th><th>Amaç</th></tr>
+            <tr><td>/hammadde/hammadde-girisi</td><td>Lab/MaterialEntry</td><td>1.930</td><td>8 malzeme türü kartıyla malzeme girişi, fotoğraf yükleme, sipariş bağlama</td></tr>
+            <tr><td>/hammadde/hammaddeler-listesi</td><td>Hammadde/HammaddelerListesi</td><td>1.153</td><td>Lazy fotoğraf önizlemeleriyle ProTable, CRUD, yazdırma, durum yönetimi</td></tr>
+            <tr><td>/hammadde/hammadde-siparis</td><td>Hammadde/HammaddeSiparis</td><td>1.237</td><td>Tarih değişikliği geçmişi, gruplama, puanlama ile sipariş takibi</td></tr>
+            <tr><td>/hammadde/tedarikci-yonetimi</td><td>Lab/SupplierManagement</td><td>761</td><td>İç içe malzeme türleriyle tedarikçi CRUD, arama, gerçek zamanlı güncellemeler</td></tr>
+        </table>
+
+        <h3>5.2 Temel Frontend Desenleri</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Kart Bazlı Malzeme Seçimi</h4>
+                <p>Malzeme Girişi, birincil navigasyon olarak 8 renkli kart kullanır (bakır=turuncu, kalay=camgöbeği, plastik=mor vb.). Her kart türü, türe özgü alanlarla farklı bir modal form açar. Renkler tema duyarlıdır &mdash; karanlık modda 0.12 opaklık ile rgba kullanılarak soluklaştırılır.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Lazy Fotoğraf Yükleme</h4>
+                <p><code>LazyPhotoThumbnail</code> bileşeni fotoğrafları <code>GET /materials/photo/{id}</code> ile tek tek yükler. Tıklandığında, o malzemenin TÜM fotoğraflarını yükler ve gezinmeli galeri görünümü açar. Bu desen, binlerce malzeme olsa bile liste sayfasını hızlı tutar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Sipariş Bağlama UX</h4>
+                <p>Malzeme girerken, kullanıcı isteğe bağlı olarak bağlanacak bekleyen bir satın alma siparişi seçebilir. Sistem, <code>GET /material-orders/pending-by-type/{type}</code> ile tedarikçi ve beklenen tarihe göre gruplanmış bekleyen siparişleri çeker ve seçilen siparişten tedarikçi bilgisini otomatik doldurur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Gerçek Zamanlı WebSocket Güncellemeleri</h4>
+                <p>Hem Hammaddeler Listesi hem de Tedarikçi Yönetimi, sırasıyla <code>materials</code> ve <code>suppliers</code> odalarına abone olan <code>useWebSocket</code> hook&rsquo;unu kullanır. Herhangi bir oluşturma/güncelleme/silme olayında ProTable <code>actionRef.current?.reload()</code> ile otomatik yenilenir.</p>
+            </div>
+        </div>
+
+        <h3>5.3 Malzeme Türleri ve Renkleri</h3>
+        <table>
+            <tr><th>Tür</th><th>QR Ön Eki</th><th>Renk</th><th>Giriş Yöntemi</th></tr>
+            <tr><td>Bakır</td><td>A</td><td style="background:#fff7e6;">Turuncu</td><td>Form + ölçülen ağırlıklarla çoklu palet</td></tr>
+            <tr><td>Kalay</td><td>B</td><td style="background:#e6fffb;">Camgöbeği</td><td>Tek ağırlık girişi</td></tr>
+            <tr><td>Plastik</td><td>C</td><td style="background:#f9f0ff;">Mor</td><td>Lot başına test fotoğraflarıyla lot bazlı</td></tr>
+            <tr><td>Katalizör</td><td>D</td><td style="background:#f6ffed;">Yeşil</td><td>Lot başına test fotoğraflarıyla lot bazlı</td></tr>
+            <tr><td>Boya</td><td>E</td><td style="background:#fff0f6;">Pembe</td><td>Lot başına test fotoğraflarıyla lot bazlı</td></tr>
+            <tr><td>Antirodent</td><td>F</td><td style="background:#e6fffb;">Deniz Mavisi</td><td>Lot başına test fotoğraflarıyla lot bazlı</td></tr>
+            <tr><td>Palet</td><td>I</td><td style="background:#fcffe6;">Yeşil Sarı</td><td>Palet tipi başına adet</td></tr>
+            <tr><td>Makara</td><td>H</td><td style="background:#fffbe6;">Altın</td><td>Makara tipi başına adet</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>6. ALT MODÜLLER</h2>
+        <!-- ============================================ -->
+
+        <p>Hammadde modülü, her biri ham malzeme yönetiminin farklı bir yönünü ele alan 4 alt modülden oluşur. Aşağıdaki bölümler her birini derinlemesine inceleyecektir.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Hammadde Girişi (Material Entry)</h4>
+                <p>1.930 satırlık giriş sayfası. 8 malzeme türü kartı, çoklu palet bakır girişi, lot bazlı kimyasal giriş, fotoğraf yüklemeleri (irsaliye + test raporları, her birinden en fazla 3), QR kod oluşturma ve yazdırma, teslimat takibi için sipariş bağlama. Modüldeki en büyük ve en karmaşık sayfa.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1.930 SATIR</span>
+                    <span class="submod-tag">14 ENDPOINT</span>
+                    <span class="submod-tag">8 MALZEME TÜRÜ</span>
+                    <span class="submod-tag">QR KODLAR</span>
+                    <span class="submod-tag">FOTOĞRAF YÜKLEME</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Hammaddeler Listesi (Materials List)</h4>
+                <p>ProTable ile tam envanter görünümü. Lazy-loaded fotoğraf önizlemeleri, malzeme durum yönetimi (received/approved/in_use/consumed/rejected), QR kodu değiştirme ile düzenleme, bağımlılık kontrolüyle kalıcı silme, kalan ağırlık takibi ve QR kod yazdırma kuyruğu entegrasyonu.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1.153 SATIR</span>
+                    <span class="submod-tag">PROTABLE</span>
+                    <span class="submod-tag">LAZY FOTOĞRAFLAR</span>
+                    <span class="submod-tag">GERÇEK ZAMANLI</span>
+                    <span class="submod-tag">YAZICI KUYRUĞU</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Hammadde Sipariş (Material Orders)</h4>
+                <p>Sipariş grup kodları (R1, R2...) ile satın alma sipariş takibi, kategorize edilmiş nedenlerle (tedarikçi/solen/diğer) tarih değişikliği geçmişi, teslimat miktarı takibi, teslimat sonrası tedarikçi puanlaması (yarım artışlarla 0.5&ndash;5 yıldız) ve durum yaşam döngüsü yönetimi.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1.237 SATIR</span>
+                    <span class="submod-tag">SİPARİŞ GRUPLARI</span>
+                    <span class="submod-tag">TARİH TAKİBİ</span>
+                    <span class="submod-tag">TEDARİKÇİ PUANLAMA</span>
+                    <span class="submod-tag">7 ENDPOINT</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Tedarikçi Yönetimi (Supplier Management)</h4>
+                <p>Bire-çok malzeme ilişkileriyle tedarikçi şirket yönetimi. İç içe malzeme listeleriyle tedarikçi oluşturma, her malzeme türü kendi özelliklerini taşır (yoğunluk, boyut, makara tipi). Akıllı yetki kontrolü, gerçek zamanlı WebSocket güncellemeleri, FK bağımlılık korumasıyla kalıcı silme.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">761 SATIR</span>
+                    <span class="submod-tag">1:N MALZEMELER</span>
+                    <span class="submod-tag">AKILLI YETKİLER</span>
+                    <span class="submod-tag">GERÇEK ZAMANLI</span>
+                    <span class="submod-tag">FK KORUMA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>Bölüm 6.1&ndash;6.4 genişletilecektir</strong> &mdash; tam alt modül derin incelemeleri: eksiksiz API kontratları, istek/yanıt örnekleri, veritabanı sorguları, frontend bileşen dökümleri ve uç durum yönetimi. Her alt modül, Teknik modülünün Kablo Tasarım ve Kablo Veritabanı bölümleriyle aynı detay seviyesinde belgelenecektir.</p>
+        </div>
+
+    </main>
+</body>
+</html>
