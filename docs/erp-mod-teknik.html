@@ -396,6 +396,309 @@
             <p style="margin-bottom: 0;"><strong>What follows:</strong> Each submodule above will be expanded into a full section with database schemas, complete API endpoint documentation, frontend form fields, validation rules, code snippets, and the reasoning behind key design decisions.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.1 MACHINE MANAGEMENT</h2>
+        <!-- ============================================ -->
+
+        <p>Before you can design a cable, you need to tell the system what machines the factory has. Machine Management is the registry of every physical machine on the production floor &mdash; its brand, model, and most importantly, its <strong>capability ranges</strong>. These ranges (speed min/max, diameter min/max, etc.) are used throughout the system to generate dropdown options and validate that a cable design is physically producible.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why one table per machine type?</strong> Each machine type has fundamentally different configurable parameters. A Kabatel &Ccedil;ekme has tav (anneal current) and output diameter. A Buncher has hatve (lay length) and input count. An Aktarma has no parameters at all. Rather than a single table with dozens of nullable columns, each type gets its own table with exactly the columns it needs. The database CHECK constraints can then enforce physical sanity per machine type.</p>
+        </div>
+
+        <h3>6.1.1 The Seven Machine Types</h3>
+
+        <p>The factory&rsquo;s production line consists of 7 machine types, each performing a specific step in the cable manufacturing process:</p>
+
+        <table>
+            <tr><th>#</th><th>Machine Type</th><th>Turkish Name</th><th>What It Does</th><th>Configurable Parameters</th></tr>
+            <tr><td>1</td><td>Kabatel &Ccedil;ekme</td><td>Kabatel &Ccedil;ekme</td><td>Draws thick copper rod (8mm filma&scedil;in) into thinner wire</td><td>Speed (m/s), TAV (A), Output Diameter (mm)</td></tr>
+            <tr><td>2</td><td>Kalaylama</td><td>Kalaylama</td><td>Coats drawn wire with tin for conductivity and corrosion resistance</td><td>Speed (m/s), Tin Thickness (&mu;m)</td></tr>
+            <tr><td>3</td><td>&Idot;ncetel &Ccedil;ekme</td><td>&Idot;ncetel &Ccedil;ekme</td><td>Draws wire to even finer diameters, optionally from multiple inputs</td><td>Speed (m/s), Input Count, Output Diameter (mm), TAV (A)</td></tr>
+            <tr><td>4</td><td>Buncher</td><td>Buncher</td><td>Twists multiple wires into a bundle (strand)</td><td>Speed (m/s), Hatve/Lay Length, Input Count, Twist Direction (S/Z)</td></tr>
+            <tr><td>5</td><td>Extruder</td><td>Ekstr&uuml;der</td><td>Applies insulation and/or sheath layers (plastic coating)</td><td>Speed (m/s), Insulation Thickness (mm), Sheath Thickness (mm)</td></tr>
+            <tr><td>6</td><td>E-beam</td><td>E-beam</td><td>Cross-links insulation via electron beam radiation</td><td>Speed (m/s), Radiation Level (kGy)</td></tr>
+            <tr><td>7</td><td>Aktarma</td><td>Aktarma</td><td>Transfers/rewinds cable between spools (no transformation)</td><td>None (brand/model only)</td></tr>
+        </table>
+
+        <h3>6.1.2 Database Schema</h3>
+
+        <p>7 tables, one per machine type. All share a common structure (id, brand, model, is_active, created_by, timestamps) plus type-specific parameter columns stored as min/max/increment triplets.</p>
+
+        <h4>Common Columns (all 7 tables)</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>Default</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>No</td><td>Auto</td><td>Primary key, indexed</td></tr>
+            <tr><td><code>brand</code></td><td>String(100)</td><td>No</td><td>&mdash;</td><td>Machine manufacturer</td></tr>
+            <tr><td><code>model</code></td><td>String(100)</td><td>Yes</td><td>NULL</td><td>Machine model designation</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>No</td><td>True</td><td>Indexed; soft-delete flag</td></tr>
+            <tr><td><code>created_by</code></td><td>Integer</td><td>Yes</td><td>NULL</td><td>FK &rarr; <code>users.id</code></td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>Creation timestamp</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>Auto-updates on change</td></tr>
+        </table>
+
+        <h4>Kabatel &Ccedil;ekme &mdash; <code>kabatel_cekme_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min</code></td><td>Float</td><td>m/s</td><td>&ge; 0</td></tr>
+            <tr><td><code>speed_max</code></td><td>Float</td><td>m/s</td><td>&gt; speed_min</td></tr>
+            <tr><td><code>speed_increment</code></td><td>Float</td><td>m/s</td><td>&gt; 0</td></tr>
+            <tr><td><code>tav_min</code></td><td>Float</td><td>Ampere</td><td>&ge; 0</td></tr>
+            <tr><td><code>tav_max</code></td><td>Float</td><td>Ampere</td><td>&gt; tav_min</td></tr>
+            <tr><td><code>tav_increment</code></td><td>Float</td><td>Ampere</td><td>&gt; 0</td></tr>
+            <tr><td><code>output_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>output_max</code></td><td>Float</td><td>mm</td><td>&gt; output_min</td></tr>
+            <tr><td><code>output_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_type</code></td><td>String(50)</td><td>&mdash;</td><td>Default: <code>'8mm_filma&scedil;in'</code></td></tr>
+            <tr><td><code>input_code</code></td><td>String(10)</td><td>&mdash;</td><td>Default: <code>'A'</code></td></tr>
+        </table>
+
+        <h4>Kalaylama &mdash; <code>kalaylama_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min</code></td><td>Float</td><td>m/s</td><td>&ge; 0</td></tr>
+            <tr><td><code>speed_max</code></td><td>Float</td><td>m/s</td><td>&gt; speed_min</td></tr>
+            <tr><td><code>speed_increment</code></td><td>Float</td><td>m/s</td><td>&gt; 0</td></tr>
+            <tr><td><code>thickness_min</code></td><td>Float</td><td>&mu;m</td><td>&gt; 0</td></tr>
+            <tr><td><code>thickness_max</code></td><td>Float</td><td>&mu;m</td><td>&gt; thickness_min</td></tr>
+            <tr><td><code>thickness_increment</code></td><td>Float</td><td>&mu;m</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_code</code></td><td>String(10)</td><td>&mdash;</td><td>Default: <code>'X'</code></td></tr>
+        </table>
+
+        <h4>&Idot;ncetel &Ccedil;ekme &mdash; <code>incetel_cekme_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Same pattern as above</td></tr>
+            <tr><td><code>input_number_min</code></td><td>Integer</td><td>&mdash;</td><td>&ge; 1</td></tr>
+            <tr><td><code>input_number_max</code></td><td>Integer</td><td>&mdash;</td><td>&ge; input_number_min</td></tr>
+            <tr><td><code>output_min/max/increment</code></td><td>Float</td><td>mm</td><td>Same pattern as above</td></tr>
+            <tr><td><code>tav_min/max/increment</code></td><td>Float</td><td>Ampere</td><td>Same pattern as above</td></tr>
+        </table>
+
+        <h4>Buncher &mdash; <code>buncher_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Same pattern</td></tr>
+            <tr><td><code>hatve_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>hatve_max</code></td><td>Float</td><td>mm</td><td>&gt; hatve_min</td></tr>
+            <tr><td><code>hatve_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_number_min</code></td><td>Integer</td><td>&mdash;</td><td>&ge; 0</td></tr>
+            <tr><td><code>input_number_max</code></td><td>Integer</td><td>&mdash;</td><td>&ge; input_number_min</td></tr>
+            <tr><td><code>accepted_input_codes</code></td><td>Text</td><td>&mdash;</td><td>Default: <code>'Z,T,U'</code></td></tr>
+        </table>
+
+        <h4>Extruder &mdash; <code>extruder_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Same pattern</td></tr>
+            <tr><td><code>insulation_thickness_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>insulation_thickness_max</code></td><td>Float</td><td>mm</td><td>&gt; insulation_thickness_min</td></tr>
+            <tr><td><code>insulation_thickness_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>sheath_thickness_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>sheath_thickness_max</code></td><td>Float</td><td>mm</td><td>&gt; sheath_thickness_min</td></tr>
+            <tr><td><code>sheath_thickness_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>accepted_input_codes</code></td><td>Text</td><td>&mdash;</td><td>Default: <code>'T,Z'</code></td></tr>
+        </table>
+
+        <h4>E-beam &mdash; <code>ebeam_machines</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Unit</th><th>CHECK Constraint</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Same pattern</td></tr>
+            <tr><td><code>radiation_level_min</code></td><td>Float</td><td>kGy</td><td>&gt; 0</td></tr>
+            <tr><td><code>radiation_level_max</code></td><td>Float</td><td>kGy</td><td>&gt; radiation_level_min</td></tr>
+            <tr><td><code>radiation_level_increment</code></td><td>Float</td><td>kGy</td><td>&gt; 0</td></tr>
+        </table>
+
+        <h4>Aktarma &mdash; <code>aktarma_machines</code></h4>
+        <p>No configurable parameters. Only the common columns (brand, model, is_active, timestamps). No CHECK constraints beyond the common ones.</p>
+
+        <h3>6.1.3 Options Generation &mdash; The Core Mechanism</h3>
+
+        <p>This is the mechanism that makes the entire Machine Management &rarr; Playground pipeline work. When the Playground needs to show dropdown options for a machine parameter, it calls the <code>/options</code> endpoint, which steps through the min/max/increment range and returns every valid value.</p>
+
+        <pre><span class="keyword">def</span> generate_dropdown_options(min_val, max_val, increment):
+    options = []
+    current = min_val
+    <span class="keyword">while</span> current <= max_val:
+        options.append(<span class="keyword">round</span>(current, <span class="string">4</span>))  <span class="comment"># Avoid floating point drift</span>
+        current += increment
+    <span class="keyword">return</span> options
+
+<span class="comment"># Example: machine with speed_min=5, speed_max=25, speed_increment=5</span>
+<span class="comment"># → [5.0, 10.0, 15.0, 20.0, 25.0]</span></pre>
+
+        <p><strong>Special cases:</strong></p>
+        <ul>
+            <li><strong>Integer ranges</strong> (&Idot;ncetel &Ccedil;ekme &amp; Buncher input counts): Uses <code>list(range(min, max + 1))</code> instead of float stepping &mdash; because you can&rsquo;t have 3.5 input wires.</li>
+            <li><strong>Hardcoded values</strong> (Buncher twist direction): Returns <code>["S", "Z"]</code> directly &mdash; these are the only two possible twist directions in cable manufacturing.</li>
+            <li><strong>No options</strong> (Aktarma): Has no <code>/options</code> endpoint at all &mdash; nothing to configure.</li>
+        </ul>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Multi-machine intersection:</strong> When the Playground selects multiple machines of the same type, the system calculates the <em>intersection</em> of their capability ranges. If Machine A supports speeds [5, 10, 15, 20] and Machine B supports [10, 15, 20, 25], the dropdown shows [10, 15, 20]. This lives in the Playground&rsquo;s <code>db_integration.py</code>, not here &mdash; but it consumes the options generated by this module.</p>
+        </div>
+
+        <h3>6.1.4 API Endpoints</h3>
+
+        <p>38 total endpoints. Each machine type gets 5&ndash;6 endpoints following a consistent pattern (except Aktarma which has no <code>/options</code>).</p>
+
+        <h4>Pattern per machine type (replace <code>{type}</code> with e.g. <code>kabatel-cekme</code>)</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}</code></td><td>Authenticated</td><td>List all machines. <code>?active_only=true</code> (default). Ordered by brand, model.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>Authenticated</td><td>Single machine detail. Returns 404 if not found.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}/{id}/options</code></td><td>Authenticated</td><td>Generate dropdown values from min/max/increment ranges.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/machines/{type}</code></td><td>super_admin, production_manager</td><td>Create machine. Sets <code>created_by</code>. Broadcasts real-time update.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>super_admin, production_manager</td><td>Partial update. Only provided fields are changed.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>super_admin only</td><td>Hard delete. Returns 204 No Content.</td></tr>
+        </table>
+
+        <h4>Common endpoints</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/types</code></td><td>Returns all 7 type names as string array</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/all</code></td><td>Returns all machines of all types in one response, keyed by type name</td></tr>
+        </table>
+
+        <h4>Options response shapes per type</h4>
+        <table>
+            <tr><th>Machine Type</th><th>Options Fields</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td><code>speeds</code>, <code>tavs</code>, <code>output_diameters</code></td></tr>
+            <tr><td>Kalaylama</td><td><code>speeds</code>, <code>thicknesses</code></td></tr>
+            <tr><td>&Idot;ncetel &Ccedil;ekme</td><td><code>speeds</code>, <code>input_numbers</code> (int), <code>output_diameters</code>, <code>tavs</code></td></tr>
+            <tr><td>Buncher</td><td><code>speeds</code>, <code>hatves</code>, <code>input_numbers</code> (int), <code>twist_directions</code> (hardcoded S/Z)</td></tr>
+            <tr><td>Extruder</td><td><code>speeds</code>, <code>insulation_thicknesses</code>, <code>sheath_thicknesses</code></td></tr>
+            <tr><td>E-beam</td><td><code>speeds</code>, <code>radiation_levels</code></td></tr>
+            <tr><td>Aktarma</td><td>&mdash; (no options endpoint)</td></tr>
+        </table>
+
+        <h3>6.1.5 Permission Model</h3>
+
+        <p>Uses <code>check_permission_smart()</code> which supports both the legacy user_type system and the granular permission system:</p>
+
+        <table>
+            <tr><th>Action</th><th>Legacy Roles</th><th>Granular Permission</th></tr>
+            <tr><td>View / List / Options</td><td>Any authenticated user</td><td>Any authenticated user</td></tr>
+            <tr><td>Create / Update</td><td>super_admin, production_manager</td><td><code>teknik.machines.create</code> / <code>teknik.machines.edit</code></td></tr>
+            <tr><td>Delete</td><td>super_admin only</td><td><code>teknik.machines.delete</code></td></tr>
+        </table>
+
+        <h3>6.1.6 Frontend &mdash; The Machines Page</h3>
+
+        <p>Single file: <code>pages/Teknik/Machines/index.tsx</code> (726 lines). Route: <code>/teknik/machines</code>, protected by <code>canTeknik</code> access flag.</p>
+
+        <h4>Page Structure</h4>
+        <p>A <code>PageContainer</code> wrapping a <code>Card</code> with 7 <code>Tabs</code> &mdash; one per machine type. Switching tabs fetches the machine list for that type and resets the search text. Default tab: Kabatel &Ccedil;ekme.</p>
+
+        <h4>Table Columns</h4>
+        <p>Every tab shows a <code>ProTable</code> with these base columns plus type-specific ones:</p>
+        <table>
+            <tr><th>Column</th><th>Width</th><th>Notes</th></tr>
+            <tr><td>ID</td><td>60px</td><td>Fixed left</td></tr>
+            <tr><td>Marka (Brand)</td><td>auto</td><td>Ellipsis enabled</td></tr>
+            <tr><td>Model</td><td>auto</td><td>Shows &ldquo;-&rdquo; if empty</td></tr>
+            <tr><td><em>Type-specific ranges</em></td><td>auto</td><td>Formatted as &ldquo;min&ndash;max unit&rdquo;</td></tr>
+            <tr><td>Durum (Status)</td><td>80px</td><td>Green &ldquo;Aktif&rdquo; / Red &ldquo;Pasif&rdquo; tag</td></tr>
+            <tr><td>&Idot;&scedil;lemler (Actions)</td><td>100px</td><td>Fixed right; edit + delete icons</td></tr>
+        </table>
+
+        <p><strong>Type-specific columns:</strong></p>
+        <ul>
+            <li><strong>Kabatel &Ccedil;ekme:</strong> H&#305;z Aral&#305;&#287;&#305; (speed_min&ndash;speed_max m/s), Tav Aral&#305;&#287;&#305; (tav_min&ndash;tav_max A), &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305; (output_min&ndash;output_max mm)</li>
+            <li><strong>Kalaylama:</strong> H&#305;z Aral&#305;&#287;&#305;, Kalay Kal&#305;nl&#305;&#287;&#305; (thickness_min&ndash;thickness_max &mu;m)</li>
+            <li><strong>&Idot;ncetel &Ccedil;ekme:</strong> Girdi Say&#305;s&#305; (input_number_min&ndash;max), &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305;, Tav Aral&#305;&#287;&#305;</li>
+            <li><strong>Buncher:</strong> Girdi Say&#305;s&#305;, Hatve Aral&#305;&#287;&#305; (hatve_min&ndash;max)</li>
+            <li><strong>Extruder:</strong> &Idot;zolasyon Kal&#305;nl&#305;&#287;&#305; (insulation min&ndash;max mm), K&#305;l&#305;f Kal&#305;nl&#305;&#287;&#305; (sheath min&ndash;max mm)</li>
+            <li><strong>E-beam:</strong> H&#305;z Aral&#305;&#287;&#305;, Radyasyon Seviyesi (radiation_level_min&ndash;max kGy)</li>
+            <li><strong>Aktarma:</strong> Base columns only</li>
+        </ul>
+
+        <h4>Search &amp; Pagination</h4>
+        <p><strong>Search</strong> is client-side: a text input filters the loaded list by ID, brand, model, or status (&ldquo;aktif&rdquo;/&ldquo;pasif&rdquo;). No server-side search needed because machine counts are small (typically &lt;50 per type).</p>
+        <p><strong>Pagination</strong> defaults to 10 rows, with options [10, 20, 50, 100]. Total shown as &ldquo;X-Y / Z kay&#305;t&rdquo;.</p>
+
+        <h4>CRUD Flow</h4>
+
+        <p><strong>Create:</strong></p>
+        <ol>
+            <li>Click &ldquo;Yeni Makine Ekle&rdquo; button in the toolbar</li>
+            <li>Modal opens with title &ldquo;Yeni Makine Ekle&rdquo; (600px, blurred backdrop)</li>
+            <li>Form shows fields dynamically based on active tab (machine type)</li>
+            <li>On submit: <code>POST /api/teknik/machines/{type}</code> with form values</li>
+            <li>System fields (<code>id</code>, <code>created_at</code>, <code>updated_at</code>, <code>created_by</code>, <code>input_type</code>, <code>input_code</code>, <code>accepted_input_codes</code>) are automatically excluded</li>
+            <li>On success: toast &ldquo;Makine ba&scedil;ar&#305;yla eklendi!&rdquo;, close modal, refresh list</li>
+        </ol>
+
+        <p><strong>Edit:</strong></p>
+        <ol>
+            <li>Click edit icon in the Actions column</li>
+            <li>Modal opens with title &ldquo;Makine D&uuml;zenle&rdquo;, pre-filled with current values</li>
+            <li>On submit: <code>PUT /api/teknik/machines/{type}/{id}</code> with changed fields only</li>
+            <li>On success: toast &ldquo;Makine ba&scedil;ar&#305;yla g&uuml;ncellendi!&rdquo;, close modal, refresh list</li>
+        </ol>
+
+        <p><strong>Delete:</strong></p>
+        <ol>
+            <li>Click delete icon in the Actions column</li>
+            <li><code>Popconfirm</code> asks: &ldquo;Bu makineyi devre d&#305;&scedil;&#305; b&#305;rakmak istedi&#287;inize emin misiniz?&rdquo;</li>
+            <li>Delete button is disabled if machine is already inactive</li>
+            <li>On confirm: <code>DELETE /api/teknik/machines/{type}/{id}</code></li>
+            <li>On success: toast &ldquo;Makine devre d&#305;&scedil;&#305; b&#305;rak&#305;ld&#305;!&rdquo;, refresh list</li>
+        </ol>
+
+        <h4>Form Fields Per Machine Type</h4>
+        <p>The form renders dynamically via <code>renderFormFields()</code> based on the active tab. Common fields (Marka, Model) appear for all types. Type-specific fields use <code>InputNumber</code> with appropriate <code>min</code>, <code>step</code>, and Turkish labels:</p>
+
+        <table>
+            <tr><th>Machine Type</th><th>Form Fields (beyond Marka/Model)</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td>H&#305;z: min (0), max (0.1), increment (0.1) &bull; Tav: min (0), max (1), increment (1) &bull; &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305;: min/max/increment (all step 0.01)</td></tr>
+            <tr><td>Kalaylama</td><td>H&#305;z: min/max/increment &bull; Kalay Kal&#305;nl&#305;&#287;&#305;: min/max/increment (step 0.1)</td></tr>
+            <tr><td>&Idot;ncetel &Ccedil;ekme</td><td>Girdi Say&#305;s&#305;: min (1), max (1) &bull; H&#305;z: min/max/increment &bull; &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305;: min/max/increment (step 0.01) &bull; Tav: min/max/increment</td></tr>
+            <tr><td>Buncher</td><td>Girdi Say&#305;s&#305;: min (0), max (1) &bull; H&#305;z: min/max/increment &bull; Hatve: min/max/increment (step 0.1)</td></tr>
+            <tr><td>Extruder</td><td>H&#305;z: min/max/increment &bull; &Idot;zolasyon Kal&#305;nl&#305;&#287;&#305;: min/max/increment (step 0.01) &bull; K&#305;l&#305;f Kal&#305;nl&#305;&#287;&#305;: min/max/increment (step 0.01)</td></tr>
+            <tr><td>E-beam</td><td>H&#305;z: min/max/increment &bull; Radyasyon Seviyesi: min/max, increment (step 1)</td></tr>
+            <tr><td>Aktarma</td><td>None (Marka/Model only)</td></tr>
+        </table>
+
+        <h3>6.1.7 Service Layer (Frontend)</h3>
+
+        <p>API calls are wrapped in <code>services/teknik/index.ts</code> with a URL transformation: underscores in the machine type name are replaced with hyphens for the URL path.</p>
+
+        <pre><span class="comment">// kabatel_cekme → kabatel-cekme in URL</span>
+<span class="keyword">export async function</span> getMachines(type: MachineType) {
+  <span class="keyword">return</span> request(`/api/teknik/machines/${type.replace(<span class="string">'_'</span>, <span class="string">'-'</span>)}`);
+}
+
+<span class="keyword">export async function</span> createMachine(type: MachineType, data: <span class="keyword">any</span>) {
+  <span class="keyword">return</span> request(`/api/teknik/machines/${type.replace(<span class="string">'_'</span>, <span class="string">'-'</span>)}`, {
+    method: <span class="string">'POST'</span>, data
+  });
+}
+
+<span class="comment">// Same pattern for updateMachine (PUT), deleteMachine (DELETE)</span>
+<span class="comment">// getMachineDropdown calls /{id}/dropdown for Playground use</span></pre>
+
+        <h3>6.1.8 How It Connects to Other Submodules</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Cable Playground (6.5)</h4>
+                <p>The primary consumer. When you add a machine to the canvas and configure it, the Playground calls the <code>/options</code> endpoint to populate dropdowns. When multiple machines are selected, it reads all their ranges and calculates the intersection &mdash; only showing parameter values all selected machines can physically produce.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Cable Database (6.6)</h4>
+                <p>Indirect. Machine IDs are stored in each <code>DesignStep</code>&rsquo;s <code>machine_ids</code> field. The Cable Database stores the finalized design including which specific machines were used, so Production knows which physical machine to assign each step to.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim (Production Module)</h4>
+                <p>When a work card is generated, the production system reads which machines a cable design requires. Machine IDs stored in the design map directly to the registry maintained here.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Machine Management is a pure data provider. It knows nothing about designs, orders, or production. It only answers the question &ldquo;what can this machine do?&rdquo; &mdash; everything else is the consumer&rsquo;s responsibility. This keeps the module simple (~726 lines frontend, ~38 endpoints) and makes it the most stable part of the Teknik subsystem.</p>
+        </div>
+
     </main>
 
 </body>

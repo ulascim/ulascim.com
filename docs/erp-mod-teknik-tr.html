@@ -396,6 +396,298 @@
             <p style="margin-bottom: 0;"><strong>Bundan sonras&#305;:</strong> Yukar&#305;daki her alt mod&uuml;l, veritaban&#305; &scedil;emalar&#305;, eksiksiz API endpoint dok&uuml;mantasyonu, frontend form alanlar&#305;, do&#287;rulama kurallar&#305;, kod par&ccedil;alar&#305; ve temel tasar&#305;m kararlar&#305;n&#305;n arkas&#305;ndaki mant&#305;kla tam bir b&ouml;l&uuml;me geni&scedil;letilecektir.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.1 MAK&#304;NE Y&Ouml;NET&#304;M&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>Bir kablo tasarlamadan &ouml;nce, sisteme fabrikan&#305;n hangi makinelere sahip oldu&#287;unu s&ouml;ylemeniz gerekir. Makine Y&ouml;netimi, &uuml;retim kat&#305;ndaki her fiziksel makinenin kayd&#305;d&#305;r &mdash; markas&#305;, modeli ve en &ouml;nemlisi <strong>kapasite aral&#305;klar&#305;</strong>. Bu aral&#305;klar (h&#305;z min/maks, &ccedil;ap min/maks vb.) sistem genelinde a&ccedil;&#305;l&#305;r men&uuml; se&ccedil;enekleri olu&scedil;turmak ve bir kablo tasar&#305;m&#305;n&#305;n fiziksel olarak &uuml;retilebilir oldu&#287;unu do&#287;rulamak i&ccedil;in kullan&#305;l&#305;r.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Neden her makine tipi i&ccedil;in ayr&#305; tablo?</strong> Her makine tipinin temelden farkl&#305; yap&#305;land&#305;r&#305;labilir parametreleri vard&#305;r. Kabatel &Ccedil;ekme&rsquo;nin tav (tavlama ak&#305;m&#305;) ve &ccedil;&#305;k&#305;&scedil; &ccedil;ap&#305; vard&#305;r. Buncher&rsquo;&#305;n hatve (b&uuml;k&uuml;m uzunlu&#287;u) ve girdi say&#305;s&#305; vard&#305;r. Aktarma&rsquo;n&#305;n hi&ccedil; parametresi yoktur. D&uuml;zinelerce nullable s&uuml;tunlu tek bir tablo yerine, her tip tam olarak ihtiya&ccedil; duydu&#287;u s&uuml;tunlara sahip kendi tablosunu al&#305;r. B&ouml;ylece veritaban&#305; CHECK k&#305;s&#305;tlamalar&#305; her makine tipine &ouml;zg&uuml; fiziksel tutarl&#305;l&#305;&#287;&#305; zorlayabilir.</p>
+        </div>
+
+        <h3>6.1.1 Yedi Makine Tipi</h3>
+
+        <p>Fabrikan&#305;n &uuml;retim hatt&#305;, kablo imalat s&uuml;recinde her biri belirli bir ad&#305;m&#305; ger&ccedil;ekle&scedil;tiren 7 makine tipinden olu&scedil;ur:</p>
+
+        <table>
+            <tr><th>#</th><th>Makine Tipi</th><th>Ne Yapar</th><th>Yap&#305;land&#305;r&#305;labilir Parametreler</th></tr>
+            <tr><td>1</td><td>Kabatel &Ccedil;ekme</td><td>Kal&#305;n bak&#305;r &ccedil;ubu&#287;u (8mm filma&scedil;in) ince tele &ccedil;eker</td><td>H&#305;z (m/s), TAV (A), &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305; (mm)</td></tr>
+            <tr><td>2</td><td>Kalaylama</td><td>&Ccedil;ekilen teli iletkenlik ve korozyon direnci i&ccedil;in kalaylar</td><td>H&#305;z (m/s), Kalay Kal&#305;nl&#305;&#287;&#305; (&mu;m)</td></tr>
+            <tr><td>3</td><td>&#304;ncetel &Ccedil;ekme</td><td>Teli daha ince &ccedil;aplara &ccedil;eker, iste&#287;e ba&#287;l&#305; birden fazla girdiden</td><td>H&#305;z (m/s), Girdi Say&#305;s&#305;, &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305; (mm), TAV (A)</td></tr>
+            <tr><td>4</td><td>Buncher</td><td>Birden fazla teli bir demet (b&uuml;k&uuml;m) haline getirir</td><td>H&#305;z (m/s), Hatve, Girdi Say&#305;s&#305;, B&uuml;k&uuml;m Y&ouml;n&uuml; (S/Z)</td></tr>
+            <tr><td>5</td><td>Ekstr&uuml;der</td><td>&#304;zolasyon ve/veya k&#305;l&#305;f katmanlar&#305; uygular (plastik kaplama)</td><td>H&#305;z (m/s), &#304;zolasyon Kal&#305;nl&#305;&#287;&#305; (mm), K&#305;l&#305;f Kal&#305;nl&#305;&#287;&#305; (mm)</td></tr>
+            <tr><td>6</td><td>E-beam</td><td>Elektron &#305;&scedil;&#305;n&#305; radyasyonuyla izolasyonu &ccedil;apraz ba&#287;lar</td><td>H&#305;z (m/s), Radyasyon Seviyesi (kGy)</td></tr>
+            <tr><td>7</td><td>Aktarma</td><td>Kabloyu makaralar aras&#305;nda aktarır (d&ouml;n&uuml;&scedil;&uuml;m yok)</td><td>Yok (sadece marka/model)</td></tr>
+        </table>
+
+        <h3>6.1.2 Veritaban&#305; &Scedil;emas&#305;</h3>
+
+        <p>7 tablo, her makine tipi i&ccedil;in bir tane. Hepsi ortak bir yap&#305;y&#305; (id, brand, model, is_active, created_by, zaman damgalar&#305;) ve tipe &ouml;zg&uuml; parametre s&uuml;tunlar&#305;n&#305; min/maks/art&#305;&scedil; &uuml;&ccedil;l&uuml;leri olarak payla&scedil;&#305;r.</p>
+
+        <h4>Ortak S&uuml;tunlar (7 tablonun tamam&#305;)</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Nullable</th><th>Varsay&#305;lan</th><th>Notlar</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>Hay&#305;r</td><td>Otomatik</td><td>Birincil anahtar, indeksli</td></tr>
+            <tr><td><code>brand</code></td><td>String(100)</td><td>Hay&#305;r</td><td>&mdash;</td><td>Makine &uuml;reticisi</td></tr>
+            <tr><td><code>model</code></td><td>String(100)</td><td>Evet</td><td>NULL</td><td>Makine model tan&#305;m&#305;</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Hay&#305;r</td><td>True</td><td>&#304;ndeksli; soft-delete bayra&#287;&#305;</td></tr>
+            <tr><td><code>created_by</code></td><td>Integer</td><td>Evet</td><td>NULL</td><td>FK &rarr; <code>users.id</code></td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>Olu&scedil;turma zaman damgas&#305;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>De&#287;i&scedil;iklikte otomatik g&uuml;ncellenir</td></tr>
+        </table>
+
+        <h4>Kabatel &Ccedil;ekme &mdash; <code>kabatel_cekme_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min</code></td><td>Float</td><td>m/s</td><td>&ge; 0</td></tr>
+            <tr><td><code>speed_max</code></td><td>Float</td><td>m/s</td><td>&gt; speed_min</td></tr>
+            <tr><td><code>speed_increment</code></td><td>Float</td><td>m/s</td><td>&gt; 0</td></tr>
+            <tr><td><code>tav_min</code></td><td>Float</td><td>Amper</td><td>&ge; 0</td></tr>
+            <tr><td><code>tav_max</code></td><td>Float</td><td>Amper</td><td>&gt; tav_min</td></tr>
+            <tr><td><code>tav_increment</code></td><td>Float</td><td>Amper</td><td>&gt; 0</td></tr>
+            <tr><td><code>output_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>output_max</code></td><td>Float</td><td>mm</td><td>&gt; output_min</td></tr>
+            <tr><td><code>output_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_type</code></td><td>String(50)</td><td>&mdash;</td><td>Varsay&#305;lan: <code>'8mm_filma&scedil;in'</code></td></tr>
+            <tr><td><code>input_code</code></td><td>String(10)</td><td>&mdash;</td><td>Varsay&#305;lan: <code>'A'</code></td></tr>
+        </table>
+
+        <h4>Kalaylama &mdash; <code>kalaylama_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min</code></td><td>Float</td><td>m/s</td><td>&ge; 0</td></tr>
+            <tr><td><code>speed_max</code></td><td>Float</td><td>m/s</td><td>&gt; speed_min</td></tr>
+            <tr><td><code>speed_increment</code></td><td>Float</td><td>m/s</td><td>&gt; 0</td></tr>
+            <tr><td><code>thickness_min</code></td><td>Float</td><td>&mu;m</td><td>&gt; 0</td></tr>
+            <tr><td><code>thickness_max</code></td><td>Float</td><td>&mu;m</td><td>&gt; thickness_min</td></tr>
+            <tr><td><code>thickness_increment</code></td><td>Float</td><td>&mu;m</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_code</code></td><td>String(10)</td><td>&mdash;</td><td>Varsay&#305;lan: <code>'X'</code></td></tr>
+        </table>
+
+        <h4>&#304;ncetel &Ccedil;ekme &mdash; <code>incetel_cekme_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Yukar&#305;dakiyle ayn&#305; d&uuml;zen</td></tr>
+            <tr><td><code>input_number_min</code></td><td>Integer</td><td>&mdash;</td><td>&ge; 1</td></tr>
+            <tr><td><code>input_number_max</code></td><td>Integer</td><td>&mdash;</td><td>&ge; input_number_min</td></tr>
+            <tr><td><code>output_min/max/increment</code></td><td>Float</td><td>mm</td><td>Yukar&#305;dakiyle ayn&#305; d&uuml;zen</td></tr>
+            <tr><td><code>tav_min/max/increment</code></td><td>Float</td><td>Amper</td><td>Yukar&#305;dakiyle ayn&#305; d&uuml;zen</td></tr>
+        </table>
+
+        <h4>Buncher &mdash; <code>buncher_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Ayn&#305; d&uuml;zen</td></tr>
+            <tr><td><code>hatve_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>hatve_max</code></td><td>Float</td><td>mm</td><td>&gt; hatve_min</td></tr>
+            <tr><td><code>hatve_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>input_number_min</code></td><td>Integer</td><td>&mdash;</td><td>&ge; 0</td></tr>
+            <tr><td><code>input_number_max</code></td><td>Integer</td><td>&mdash;</td><td>&ge; input_number_min</td></tr>
+            <tr><td><code>accepted_input_codes</code></td><td>Text</td><td>&mdash;</td><td>Varsay&#305;lan: <code>'Z,T,U'</code></td></tr>
+        </table>
+
+        <h4>Extruder &mdash; <code>extruder_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Ayn&#305; d&uuml;zen</td></tr>
+            <tr><td><code>insulation_thickness_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>insulation_thickness_max</code></td><td>Float</td><td>mm</td><td>&gt; insulation_thickness_min</td></tr>
+            <tr><td><code>insulation_thickness_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>sheath_thickness_min</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>sheath_thickness_max</code></td><td>Float</td><td>mm</td><td>&gt; sheath_thickness_min</td></tr>
+            <tr><td><code>sheath_thickness_increment</code></td><td>Float</td><td>mm</td><td>&gt; 0</td></tr>
+            <tr><td><code>accepted_input_codes</code></td><td>Text</td><td>&mdash;</td><td>Varsay&#305;lan: <code>'T,Z'</code></td></tr>
+        </table>
+
+        <h4>E-beam &mdash; <code>ebeam_machines</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Birim</th><th>CHECK K&#305;s&#305;tlamas&#305;</th></tr>
+            <tr><td><code>speed_min/max/increment</code></td><td>Float</td><td>m/s</td><td>Ayn&#305; d&uuml;zen</td></tr>
+            <tr><td><code>radiation_level_min</code></td><td>Float</td><td>kGy</td><td>&gt; 0</td></tr>
+            <tr><td><code>radiation_level_max</code></td><td>Float</td><td>kGy</td><td>&gt; radiation_level_min</td></tr>
+            <tr><td><code>radiation_level_increment</code></td><td>Float</td><td>kGy</td><td>&gt; 0</td></tr>
+        </table>
+
+        <h4>Aktarma &mdash; <code>aktarma_machines</code></h4>
+        <p>Yap&#305;land&#305;r&#305;labilir parametre yok. Sadece ortak s&uuml;tunlar (brand, model, is_active, zaman damgalar&#305;). Ortak olanlar d&#305;&scedil;&#305;nda CHECK k&#305;s&#305;tlamas&#305; yok.</p>
+
+        <h3>6.1.3 Se&ccedil;enek &Uuml;retimi &mdash; Temel Mekanizma</h3>
+
+        <p>T&uuml;m Makine Y&ouml;netimi &rarr; Playground hatt&#305;n&#305; &ccedil;al&#305;&scedil;t&#305;ran mekanizma budur. Playground bir makine parametresi i&ccedil;in a&ccedil;&#305;l&#305;r men&uuml; se&ccedil;enekleri g&ouml;stermesi gerekti&#287;inde, <code>/options</code> endpoint&rsquo;ini &ccedil;a&#287;&#305;r&#305;r; bu da min/maks/art&#305;&scedil; aral&#305;&#287;&#305;nda ilerleyerek ge&ccedil;erli her de&#287;eri d&ouml;nd&uuml;r&uuml;r.</p>
+
+        <pre><span class="keyword">def</span> generate_dropdown_options(min_val, max_val, increment):
+    options = []
+    current = min_val
+    <span class="keyword">while</span> current <= max_val:
+        options.append(<span class="keyword">round</span>(current, <span class="string">4</span>))  <span class="comment"># Kayan nokta kaymas&#305;n&#305; &ouml;nle</span>
+        current += increment
+    <span class="keyword">return</span> options
+
+<span class="comment"># &Ouml;rnek: speed_min=5, speed_max=25, speed_increment=5 olan makine</span>
+<span class="comment"># &rarr; [5.0, 10.0, 15.0, 20.0, 25.0]</span></pre>
+
+        <p><strong>&Ouml;zel durumlar:</strong></p>
+        <ul>
+            <li><strong>Tam say&#305; aral&#305;klar&#305;</strong> (&#304;ncetel &Ccedil;ekme &amp; Buncher girdi say&#305;lar&#305;): Float ad&#305;mlama yerine <code>list(range(min, max + 1))</code> kullan&#305;r &mdash; &ccedil;&uuml;nk&uuml; 3.5 girdi tel olamaz.</li>
+            <li><strong>Sabit kodlanm&#305;&scedil; de&#287;erler</strong> (Buncher b&uuml;k&uuml;m y&ouml;n&uuml;): Do&#287;rudan <code>["S", "Z"]</code> d&ouml;nd&uuml;r&uuml;r &mdash; kablo imalat&#305;nda sadece iki olas&#305; b&uuml;k&uuml;m y&ouml;n&uuml; vard&#305;r.</li>
+            <li><strong>Se&ccedil;enek yok</strong> (Aktarma): Hi&ccedil; <code>/options</code> endpoint&rsquo;i yoktur &mdash; yap&#305;land&#305;r&#305;lacak bir &scedil;ey yok.</li>
+        </ul>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>&Ccedil;oklu makine kesi&scedil;imi:</strong> Playground ayn&#305; tipte birden fazla makine se&ccedil;ti&#287;inde, sistem kapasite aral&#305;klar&#305;n&#305;n <em>kesi&scedil;imini</em> hesaplar. Makine A [5, 10, 15, 20] h&#305;zlar&#305;n&#305; destekliyorsa ve Makine B [10, 15, 20, 25] destekliyorsa, a&ccedil;&#305;l&#305;r men&uuml; [10, 15, 20] g&ouml;sterir. Bu Playground&rsquo;un <code>db_integration.py</code> dosyas&#305;nda ya&scedil;ar, burada de&#287;il &mdash; ama bu mod&uuml;l taraf&#305;ndan &uuml;retilen se&ccedil;enekleri t&uuml;ketir.</p>
+        </div>
+
+        <h3>6.1.4 API Endpoint&rsquo;leri</h3>
+
+        <p>Toplam 38 endpoint. Her makine tipi tutarl&#305; bir d&uuml;zen izleyen 5&ndash;6 endpoint al&#305;r (Aktarma&rsquo;n&#305;n <code>/options</code>&rsquo;&#305; yoktur).</p>
+
+        <h4>Makine tipi ba&scedil;&#305;na d&uuml;zen (<code>{type}</code> yerine &ouml;rn. <code>kabatel-cekme</code>)</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>T&uuml;m makineleri listele. <code>?active_only=true</code> (varsay&#305;lan). Marka, modele g&ouml;re s&#305;ral&#305;.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Tekil makine detay&#305;. Bulunamazsa 404.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/{type}/{id}/options</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Min/maks/art&#305;&scedil; aral&#305;klar&#305;ndan a&ccedil;&#305;l&#305;r men&uuml; de&#287;erleri &uuml;ret.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/machines/{type}</code></td><td>super_admin, production_manager</td><td>Makine olu&scedil;tur. <code>created_by</code> atar. Ger&ccedil;ek zamanl&#305; g&uuml;ncelleme yay&#305;nlar.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>super_admin, production_manager</td><td>K&#305;smi g&uuml;ncelleme. Sadece sa&#287;lanan alanlar de&#287;i&scedil;ir.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/machines/{type}/{id}</code></td><td>Sadece super_admin</td><td>Kesin silme. 204 No Content d&ouml;nd&uuml;r&uuml;r.</td></tr>
+        </table>
+
+        <h4>Ortak endpoint&rsquo;ler</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/types</code></td><td>7 tip ad&#305;n&#305; string dizisi olarak d&ouml;nd&uuml;r&uuml;r</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/machines/all</code></td><td>T&uuml;m tiplerdeki t&uuml;m makineleri tek yan&#305;tta, tip ad&#305;na g&ouml;re anahtarlanm&#305;&scedil; d&ouml;nd&uuml;r&uuml;r</td></tr>
+        </table>
+
+        <h4>Tip ba&scedil;&#305;na se&ccedil;enek yan&#305;t &scedil;ekilleri</h4>
+        <table>
+            <tr><th>Makine Tipi</th><th>Se&ccedil;enek Alanlar&#305;</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td><code>speeds</code>, <code>tavs</code>, <code>output_diameters</code></td></tr>
+            <tr><td>Kalaylama</td><td><code>speeds</code>, <code>thicknesses</code></td></tr>
+            <tr><td>&#304;ncetel &Ccedil;ekme</td><td><code>speeds</code>, <code>input_numbers</code> (int), <code>output_diameters</code>, <code>tavs</code></td></tr>
+            <tr><td>Buncher</td><td><code>speeds</code>, <code>hatves</code>, <code>input_numbers</code> (int), <code>twist_directions</code> (sabit S/Z)</td></tr>
+            <tr><td>Extruder</td><td><code>speeds</code>, <code>insulation_thicknesses</code>, <code>sheath_thicknesses</code></td></tr>
+            <tr><td>E-beam</td><td><code>speeds</code>, <code>radiation_levels</code></td></tr>
+            <tr><td>Aktarma</td><td>&mdash; (se&ccedil;enek endpoint&rsquo;i yok)</td></tr>
+        </table>
+
+        <h3>6.1.5 Yetki Modeli</h3>
+
+        <p>Hem eski user_type sistemini hem de gran&uuml;ler yetki sistemini destekleyen <code>check_permission_smart()</code> kullan&#305;r:</p>
+
+        <table>
+            <tr><th>&#304;&scedil;lem</th><th>Eski Roller</th><th>Gran&uuml;ler Yetki</th></tr>
+            <tr><td>G&ouml;r&uuml;nt&uuml;leme / Listeleme / Se&ccedil;enekler</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td></tr>
+            <tr><td>Olu&scedil;turma / G&uuml;ncelleme</td><td>super_admin, production_manager</td><td><code>teknik.machines.create</code> / <code>teknik.machines.edit</code></td></tr>
+            <tr><td>Silme</td><td>Sadece super_admin</td><td><code>teknik.machines.delete</code></td></tr>
+        </table>
+
+        <h3>6.1.6 Frontend &mdash; Makineler Sayfas&#305;</h3>
+
+        <p>Tek dosya: <code>pages/Teknik/Machines/index.tsx</code> (726 sat&#305;r). Route: <code>/teknik/machines</code>, <code>canTeknik</code> eri&scedil;im bayra&#287;&#305;yla korunur.</p>
+
+        <h4>Sayfa Yap&#305;s&#305;</h4>
+        <p>7 <code>Tabs</code> i&ccedil;eren bir <code>Card</code>&rsquo;&#305; saran <code>PageContainer</code> &mdash; her makine tipi i&ccedil;in bir sekme. Sekme de&#287;i&scedil;tirme o tip i&ccedil;in makine listesini getirir ve arama metnini s&#305;f&#305;rlar. Varsay&#305;lan sekme: Kabatel &Ccedil;ekme.</p>
+
+        <h4>Tablo S&uuml;tunlar&#305;</h4>
+        <p>Her sekme, &scedil;u temel s&uuml;tunlara sahip bir <code>ProTable</code> ve tipe &ouml;zg&uuml; s&uuml;tunlar g&ouml;sterir:</p>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Geni&scedil;lik</th><th>Notlar</th></tr>
+            <tr><td>ID</td><td>60px</td><td>Sola sabitli</td></tr>
+            <tr><td>Marka</td><td>otomatik</td><td>Ellipsis etkin</td></tr>
+            <tr><td>Model</td><td>otomatik</td><td>Bo&scedil;sa &ldquo;-&rdquo; g&ouml;sterir</td></tr>
+            <tr><td><em>Tipe &ouml;zg&uuml; aral&#305;klar</em></td><td>otomatik</td><td>&ldquo;min&ndash;maks birim&rdquo; format&#305;nda</td></tr>
+            <tr><td>Durum</td><td>80px</td><td>Ye&scedil;il &ldquo;Aktif&rdquo; / K&#305;rm&#305;z&#305; &ldquo;Pasif&rdquo; etiket</td></tr>
+            <tr><td>&#304;&scedil;lemler</td><td>100px</td><td>Sa&#287;a sabitli; d&uuml;zenle + sil ikonlar&#305;</td></tr>
+        </table>
+
+        <h4>Arama &amp; Sayfalama</h4>
+        <p><strong>Arama</strong> istemci taraf&#305;ndad&#305;r: metin giri&scedil;i y&uuml;kl&uuml; listeyi ID, marka, model veya durum (&ldquo;aktif&rdquo;/&ldquo;pasif&rdquo;) &uuml;zerinden filtreler. Makine say&#305;lar&#305; k&uuml;&ccedil;&uuml;k oldu&#287;undan (genellikle tip ba&scedil;&#305;na &lt;50) sunucu taraf&#305; arama gereksizdir.</p>
+        <p><strong>Sayfalama</strong> varsay&#305;lan 10 sat&#305;r, se&ccedil;enekler [10, 20, 50, 100]. Toplam &ldquo;X-Y / Z kay&#305;t&rdquo; olarak g&ouml;sterilir.</p>
+
+        <h4>CRUD Ak&#305;&scedil;&#305;</h4>
+
+        <p><strong>Olu&scedil;turma:</strong></p>
+        <ol>
+            <li>Ara&ccedil; &ccedil;ubu&#287;unda &ldquo;Yeni Makine Ekle&rdquo; butonuna t&#305;kla</li>
+            <li>&ldquo;Yeni Makine Ekle&rdquo; ba&scedil;l&#305;kl&#305; modal a&ccedil;&#305;l&#305;r (600px, bulan&#305;k arkaplan)</li>
+            <li>Form aktif sekmeye (makine tipine) g&ouml;re dinamik alanlar g&ouml;sterir</li>
+            <li>G&ouml;nderimde: <code>POST /api/teknik/machines/{type}</code> form de&#287;erleriyle</li>
+            <li>Sistem alanlar&#305; (<code>id</code>, <code>created_at</code>, <code>updated_at</code>, <code>created_by</code>, <code>input_type</code>, <code>input_code</code>, <code>accepted_input_codes</code>) otomatik olarak hari&ccedil; tutulur</li>
+            <li>Ba&scedil;ar&#305;da: &ldquo;Makine ba&scedil;ar&#305;yla eklendi!&rdquo; bildirimi, modal kapan&#305;r, liste yenilenir</li>
+        </ol>
+
+        <p><strong>D&uuml;zenleme:</strong></p>
+        <ol>
+            <li>&#304;&scedil;lemler s&uuml;tununda d&uuml;zenle ikonuna t&#305;kla</li>
+            <li>&ldquo;Makine D&uuml;zenle&rdquo; ba&scedil;l&#305;kl&#305; modal a&ccedil;&#305;l&#305;r, mevcut de&#287;erlerle doldurulmu&scedil;</li>
+            <li>G&ouml;nderimde: <code>PUT /api/teknik/machines/{type}/{id}</code> sadece de&#287;i&scedil;en alanlarla</li>
+            <li>Ba&scedil;ar&#305;da: &ldquo;Makine ba&scedil;ar&#305;yla g&uuml;ncellendi!&rdquo; bildirimi, modal kapan&#305;r, liste yenilenir</li>
+        </ol>
+
+        <p><strong>Silme:</strong></p>
+        <ol>
+            <li>&#304;&scedil;lemler s&uuml;tununda sil ikonuna t&#305;kla</li>
+            <li><code>Popconfirm</code> sorar: &ldquo;Bu makineyi devre d&#305;&scedil;&#305; b&#305;rakmak istedi&#287;inize emin misiniz?&rdquo;</li>
+            <li>Makine zaten pasifse sil butonu devre d&#305;&scedil;&#305;d&#305;r</li>
+            <li>Onayda: <code>DELETE /api/teknik/machines/{type}/{id}</code></li>
+            <li>Ba&scedil;ar&#305;da: &ldquo;Makine devre d&#305;&scedil;&#305; b&#305;rak&#305;ld&#305;!&rdquo; bildirimi, liste yenilenir</li>
+        </ol>
+
+        <h4>Makine Tipine G&ouml;re Form Alanlar&#305;</h4>
+        <p>Form, aktif sekmeye g&ouml;re <code>renderFormFields()</code> ile dinamik olarak olu&scedil;turulur. Ortak alanlar (Marka, Model) t&uuml;m tipler i&ccedil;in g&ouml;r&uuml;n&uuml;r. Tipe &ouml;zg&uuml; alanlar uygun <code>min</code>, <code>step</code> ve T&uuml;rk&ccedil;e etiketlerle <code>InputNumber</code> kullan&#305;r:</p>
+
+        <table>
+            <tr><th>Makine Tipi</th><th>Form Alanlar&#305; (Marka/Model d&#305;&scedil;&#305;nda)</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td>H&#305;z: min (0), maks (0.1), art&#305;&scedil; (0.1) &bull; Tav: min (0), maks (1), art&#305;&scedil; (1) &bull; &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305;: min/maks/art&#305;&scedil; (hepsi ad&#305;m 0.01)</td></tr>
+            <tr><td>Kalaylama</td><td>H&#305;z: min/maks/art&#305;&scedil; &bull; Kalay Kal&#305;nl&#305;&#287;&#305;: min/maks/art&#305;&scedil; (ad&#305;m 0.1)</td></tr>
+            <tr><td>&#304;ncetel &Ccedil;ekme</td><td>Girdi Say&#305;s&#305;: min (1), maks (1) &bull; H&#305;z: min/maks/art&#305;&scedil; &bull; &Ccedil;&#305;k&#305;&scedil; &Ccedil;ap&#305;: min/maks/art&#305;&scedil; (ad&#305;m 0.01) &bull; Tav: min/maks/art&#305;&scedil;</td></tr>
+            <tr><td>Buncher</td><td>Girdi Say&#305;s&#305;: min (0), maks (1) &bull; H&#305;z: min/maks/art&#305;&scedil; &bull; Hatve: min/maks/art&#305;&scedil; (ad&#305;m 0.1)</td></tr>
+            <tr><td>Extruder</td><td>H&#305;z: min/maks/art&#305;&scedil; &bull; &#304;zolasyon Kal&#305;nl&#305;&#287;&#305;: min/maks/art&#305;&scedil; (ad&#305;m 0.01) &bull; K&#305;l&#305;f Kal&#305;nl&#305;&#287;&#305;: min/maks/art&#305;&scedil; (ad&#305;m 0.01)</td></tr>
+            <tr><td>E-beam</td><td>H&#305;z: min/maks/art&#305;&scedil; &bull; Radyasyon Seviyesi: min/maks, art&#305;&scedil; (ad&#305;m 1)</td></tr>
+            <tr><td>Aktarma</td><td>Yok (sadece Marka/Model)</td></tr>
+        </table>
+
+        <h3>6.1.7 Servis Katman&#305; (Frontend)</h3>
+
+        <p>API &ccedil;a&#287;r&#305;lar&#305; <code>services/teknik/index.ts</code> i&ccedil;inde sarmalanm&#305;&scedil;t&#305;r ve URL d&ouml;n&uuml;&scedil;&uuml;m&uuml; yap&#305;l&#305;r: makine tipi ad&#305;ndaki alt &ccedil;izgiler URL yolu i&ccedil;in tire ile de&#287;i&scedil;tirilir.</p>
+
+        <pre><span class="comment">// kabatel_cekme &rarr; URL'de kabatel-cekme olur</span>
+<span class="keyword">export async function</span> getMachines(type: MachineType) {
+  <span class="keyword">return</span> request(`/api/teknik/machines/${type.replace(<span class="string">'_'</span>, <span class="string">'-'</span>)}`);
+}
+
+<span class="keyword">export async function</span> createMachine(type: MachineType, data: <span class="keyword">any</span>) {
+  <span class="keyword">return</span> request(`/api/teknik/machines/${type.replace(<span class="string">'_'</span>, <span class="string">'-'</span>)}`, {
+    method: <span class="string">'POST'</span>, data
+  });
+}
+
+<span class="comment">// updateMachine (PUT), deleteMachine (DELETE) i&ccedil;in ayn&#305; d&uuml;zen</span>
+<span class="comment">// getMachineDropdown, Playground kullan&#305;m&#305; i&ccedil;in /{id}/dropdown &ccedil;a&#287;r&#305;r</span></pre>
+
+        <h3>6.1.8 Di&#287;er Alt Mod&uuml;llerle Ba&#287;lant&#305;lar</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Kablo Tasar&#305;m (6.5)</h4>
+                <p>Birincil t&uuml;ketici. Canvas&rsquo;a makine ekleyip yap&#305;land&#305;rd&#305;&#287;&#305;n&#305;zda, Playground a&ccedil;&#305;l&#305;r men&uuml;leri doldurmak i&ccedil;in <code>/options</code> endpoint&rsquo;ini &ccedil;a&#287;&#305;r&#305;r. Birden fazla makine se&ccedil;ildi&#287;inde, t&uuml;m aral&#305;klar&#305; okur ve kesi&scedil;imi hesaplar &mdash; sadece se&ccedil;ilen t&uuml;m makinelerin fiziksel olarak &uuml;retebilece&#287;i parametre de&#287;erlerini g&ouml;sterir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Kablo Veritaban&#305; (6.6)</h4>
+                <p>Dolayl&#305;. Makine ID&rsquo;leri her <code>DesignStep</code>&rsquo;in <code>machine_ids</code> alan&#305;nda saklan&#305;r. Kablo Veritaban&#305; hangi makinelerin kullan&#305;ld&#305;&#287;&#305; dahil tamamlanm&#305;&scedil; tasar&#305;m&#305; saklar, b&ouml;ylece &Uuml;retim her ad&#305;ma hangi fiziksel makineyi atayaca&#287;&#305;n&#305; bilir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Mod&uuml;l&uuml;</h4>
+                <p>&#304;&scedil; kart&#305; olu&scedil;turuldu&#287;unda, &uuml;retim sistemi kablo tasar&#305;m&#305;n&#305;n hangi makineleri gerektirdi&#287;ini okur. Tasar&#305;mda saklanan makine ID&rsquo;leri do&#287;rudan burada tutulan kay&#305;ta e&scedil;lenir.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Makine Y&ouml;netimi saf bir veri sa&#287;lay&#305;c&#305;s&#305;d&#305;r. Tasar&#305;mlar, sipari&scedil;ler veya &uuml;retim hakk&#305;nda hi&ccedil;bir &scedil;ey bilmez. Sadece &ldquo;bu makine ne yapabilir?&rdquo; sorusunu yan&#305;tlar &mdash; geri kalan her &scedil;ey t&uuml;keticinin sorumlulu&#287;udur. Bu, mod&uuml;l&uuml; basit tutar (~726 sat&#305;r frontend, ~38 endpoint) ve onu Teknik alt sisteminin en kararl&#305; par&ccedil;as&#305; yapar.</p>
+        </div>
+
     </main>
 
 </body>
