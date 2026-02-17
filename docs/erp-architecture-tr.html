@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimari &amp; Tasar&#305;m | Kablo Fabrikas&#305; ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #f3f3f3; --fg: #000000; --gray-100: #f3f4f6; --gray-300: #d1d5db; --positive: #16a34a; --negative: #dc2626; --accent: #2563eb; --turquoise: #00b5ad; }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .good { color: #16a34a; font-weight: 700; }
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system-tr.html" class="nav-logo">ERP S&#304;STEM&#304;</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-architecture-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-architecture.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>M&#304;MAR&#304; &amp; TASARIM KARARLARI</h1>
+        <p class="subtitle">B&ouml;l&uuml;m 1 &mdash; Neden mod&uuml;ler monolit ve nas&#305;l in&#351;a edildi</p>
+        <p class="authors">&#350;ubat 2026 &bull; Solen Kablo &bull; Ya&#351;ayan Dok&uuml;man</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Mimari &ouml;nceden tasarlanmad&#305; &mdash; ortaya &ccedil;&#305;kt&#305;.</strong> Veritaban&#305; her mod&uuml;l in&#351;a edildik&ccedil;e geli&#351;ti. Framework se&ccedil;imleri pragmatik nedenlerle yap&#305;ld&#305;: geli&#351;tirme h&#305;z&#305;, GUI i&#351;ini ortadan kald&#305;ran bile&#351;en k&uuml;t&uuml;phaneleri ve tek bir Mac Mini &uuml;zerinden fabrika zemininde &ccedil;al&#305;&#351;abilme yetene&#287;i. Bu dok&uuml;man neyin se&ccedil;ildi&#287;ini, neden se&ccedil;ildi&#287;ini ve &ouml;d&uuml;n vermelerin ne oldu&#287;unu kaydeder.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent); font-size: 16px;">MOD&Uuml;LER<br>MONOL&#304;T</div>
+                <div class="label">M&#304;MAR&#304;</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise); font-size: 16px;">FastAPI<br>+ React</div>
+                <div class="label">STACK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">SQLite<br>&rarr; Postgres</div>
+                <div class="label">VER&#304;TABANI</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive); font-size: 16px;">25+<br>API Yolu</div>
+                <div class="label">ENDPOINT</div>
+            </div>
+        </div>
+
+        <h2>1. M&#304;MAR&#304;: MOD&Uuml;LER MONOL&#304;T</h2>
+
+        <p>Sistem bir <strong>Mod&uuml;ler Monolit</strong>&rsquo;tir &mdash; a&ccedil;&#305;k&ccedil;a ayr&#305;lm&#305;&#351; dahili mod&uuml;llere sahip, tek bir veritaban&#305;n&#305; payla&#351;an tek bir uygulama. Mikroservis de&#287;il. Geleneksel monolit de&#287;il. Aradaki ideal nokta.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box" style="border-color: #dc2626; opacity: 0.5;">
+                <h4>Geleneksel Monolit</h4>
+                <p>Tek kod taban&#305;, mod&uuml;l ayr&#305;m&#305; yok. Her &#351;ey i&ccedil; i&ccedil;e. <strong>Bu de&#287;il.</strong></p>
+            </div>
+            <div class="arch-box" style="border-color: var(--positive); border-width: 3px; background: #f0fff0;">
+                <h4>Mod&uuml;ler Monolit <span class="good">&larr; BU</span></h4>
+                <p>Tek uygulama, net mod&uuml;l s&#305;n&#305;rlar&#305;, payla&#351;&#305;lan veritaban&#305;. 10&ndash;12 makineli ve s&#305;n&#305;rl&#305; e&#351; zamanl&#305; kullan&#305;c&#305;l&#305; bir fabrika i&ccedil;in do&#287;ru &ouml;l&ccedil;ekte.</p>
+            </div>
+            <div class="arch-box" style="border-color: #dc2626; opacity: 0.5;">
+                <h4>Mikroservisler</h4>
+                <p>Ayr&#305; veritabanlar&#305;na sahip ba&#287;&#305;ms&#305;z servisler. Bu &ouml;l&ccedil;ek i&ccedil;in a&#351;&#305;r&#305;. A&#287; gecikmesi, da&#287;&#305;t&#305;k i&#351;lem karma&#351;&#305;kl&#305;&#287;&#305; ve operasyonel y&uuml;k ekler.</p>
+            </div>
+        </div>
+
+        <h3>Neden Mikroservis De&#287;il?</h3>
+        <ul>
+            <li><strong>&Ouml;l&ccedil;ek gerektirmiyor.</strong> 10&ndash;12 makine, d&uuml;zinelerce kullan&#305;c&#305;, g&uuml;nde y&uuml;zlerce (milyonlarca de&#287;il) i&#351;lem. Tek bir proses bunu rahatl&#305;kla kald&#305;r&#305;r.</li>
+            <li><strong>Mod&uuml;ller aras&#305; ACID i&#351;lemler.</strong> Sipari&#351; olu&#351;turuldu&#287;unda malzemeler hesaplan&#305;r, i&#351; kartlar&#305; &uuml;retilir, stok tahsis edilir &mdash; hepsi tek bir veritaban&#305; i&#351;leminde. Mikroservislerle bu, da&#287;&#305;t&#305;k saga kabusu olur.</li>
+            <li><strong>Tek geli&#351;tirici.</strong> Mikroservisler deployment, izleme, service mesh ve servisler aras&#305; ileti&#351;imi y&ouml;netmek i&ccedil;in bir ekip gerektirir. Solo geli&#351;tiricinin basitli&#287;e ihtiyac&#305; vard&#305;r.</li>
+            <li><strong>Fabrika a&#287;&#305;, bulut de&#287;il.</strong> Bu, Kubernetes k&uuml;mesinde de&#287;il, fabrika zeminindeki Mac Mini&rsquo;de &ccedil;al&#305;&#351;&#305;r. Tek proses, tek veritaban&#305;, tek deployment hedefi.</li>
+        </ul>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>&Ouml;d&uuml;n verme bilinmektedir:</strong> Veritaban&#305; &ccedil;&ouml;kt&uuml;&#287;&uuml;nde her &#351;ey &ccedil;&ouml;ker. T&uuml;m mod&uuml;ller tek bir SQLite/PostgreSQL &ouml;rne&#287;ini payla&#351;&#305;r &mdash; tek bir ar&#305;za noktas&#305; vard&#305;r. Yerinde donan&#305;ma sahip bir fabrika ERP&rsquo;si i&ccedil;in bu kabul edilebilir bir &ouml;d&uuml;n vermedir.</p>
+        </div>
+
+        <h2>2. TEKNOLOJ&#304; STACK&rsquo;&#304;</h2>
+
+        <h3>Backend</h3>
+        <table>
+            <tr><th>Katman</th><th>Teknoloji</th><th>Versiyon</th><th>Neden</th></tr>
+            <tr><td>Framework</td><td>FastAPI</td><td>&ge;0.110</td><td>Async Python, otomatik OpenAPI dok&uuml;mantasyonu, dahili dependency injection</td></tr>
+            <tr><td>Sunucu</td><td>Uvicorn</td><td>&ge;0.27</td><td>ASGI sunucu, async + WebSocket deste&#287;i</td></tr>
+            <tr><td>ORM</td><td>SQLAlchemy 2.0</td><td>&ge;2.0.25</td><td>Veritaban&#305; ba&#287;&#305;ms&#305;z &mdash; ayn&#305; kod SQLite ve PostgreSQL&rsquo;de &ccedil;al&#305;&#351;&#305;r</td></tr>
+            <tr><td>Validasyon</td><td>Pydantic 2</td><td>&ge;2.6</td><td>Tip g&uuml;venli istek/yan&#305;t do&#287;rulamas&#305;, otomatik JSON serile&#351;tirme</td></tr>
+            <tr><td>Auth</td><td>python-jose + passlib</td><td>&mdash;</td><td>JWT token (HS256), bcrypt &#351;ifre hashleme, 12s eri&#351;im / 7g yenileme</td></tr>
+            <tr><td>Veritaban&#305; (dev)</td><td>SQLite</td><td>&mdash;</td><td>S&#305;f&#305;r konfigur&uuml;asyon, dosya tabanl&#305;, tek sunucu deployment i&ccedil;in ideal</td></tr>
+            <tr><td>Veritaban&#305; (prod)</td><td>PostgreSQL 15</td><td>15.x</td><td>Ba&#287;lant&#305; havuzu (20 temel + 40 ta&#351;ma), &uuml;retim d&uuml;zeyi</td></tr>
+            <tr><td>QR Kod</td><td>qrcode + Pillow</td><td>&ge;7.4</td><td>Malzeme takibi &mdash; her sepet/makaraya bas&#305;l&#305; QR etiketi</td></tr>
+            <tr><td>Yazd&#305;rma</td><td>reportlab + socket</td><td>&mdash;</td><td>Fabrika a&#287;&#305; &uuml;zerinden do&#287;rudan Epson termal yaz&#305;c&#305; ileti&#351;imi</td></tr>
+        </table>
+
+        <h3>Frontend</h3>
+        <table>
+            <tr><th>Katman</th><th>Teknoloji</th><th>Versiyon</th><th>Neden</th></tr>
+            <tr><td>Framework</td><td>React</td><td>19.1</td><td>Bile&#351;en tabanl&#305; UI, geni&#351; ekosistem</td></tr>
+            <tr><td>Dil</td><td>TypeScript</td><td>5.x</td><td>T&uuml;m frontend&rsquo;te tip g&uuml;venli&#287;i</td></tr>
+            <tr><td>UI K&uuml;t&uuml;phanesi</td><td>Ant Design Pro 6</td><td>6.0</td><td>Kurumsal bile&#351;enler &mdash; tablolar, formlar, layoutlar, grafikler kutudan &#231;&#305;kar</td></tr>
+            <tr><td>Build</td><td>UmiJS Max</td><td>4.0.7</td><td>Ant Design Pro&rsquo;nun build sistemi &mdash; y&ouml;nlendirme, durum y&ouml;netimi, istek i&#351;leme</td></tr>
+            <tr><td>Grafikler</td><td>ECharts</td><td>6.0</td><td>&Uuml;retim panolar&#305;, stok projeksiyonlar&#305;, makine kullan&#305;m&#305;</td></tr>
+            <tr><td>S&uuml;r&uuml;kle B&#305;rak</td><td>react-dnd</td><td>16.x</td><td>Kablo tasar&#305;m playground&rsquo;u, palet d&uuml;zenleme</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Neden Ant Design Pro?</strong> En &ouml;nemli tek framework se&ccedil;imi. Kablo fabrikas&#305; ERP&rsquo;si %80 tablo, form ve CRUD ekran&#305;d&#305;r. Ant Design Pro bunlar&#305;n hepsini dahili T&uuml;rk&ccedil;e yerelleshtirme, responsive layoutlar, rol tabanl&#305; men&uuml;ler ve karanl&#305;k mod ile &uuml;retim haz&#305;r olarak sunar. Bunlar&#305; s&#305;f&#305;rdan yazmak aylarca eklerdi.</p>
+        </div>
+
+        <h2>3. TASARIM KURALLARI</h2>
+
+        <h3>Kural 1: T&uuml;rk&ccedil;e-&Ouml;ncelikli Aray&uuml;z</h3>
+        <p>Her UI etiketi, her hata mesaj&#305;, her bildirim T&uuml;rk&ccedil;e. Fabrika operat&ouml;rleri &#304;ngilizce konu&#351;maz. Ant Design yerel ayar&#305; T&uuml;rk&ccedil;e&rsquo;ye kilitli. AI promptlar&#305; T&uuml;rk&ccedil;e.</p>
+
+        <h3>Kural 2: Her &#350;eye QR Kod</h3>
+        <p>Fabrikada hareket eden her fiziksel nesne giri&#351;te QR kod bas&#305;l&#305;r. Ham bak&#305;r sepetleri, kalayl&#305; bak&#305;r sepetleri, makaralar, bitmi&#351; kablolar &mdash; hepsi taranabilir. QR kod, o nesnenin sistemdeki t&uuml;m ge&ccedil;mi&#351;ine ba&#287;lant&#305; sa&#287;lar.</p>
+
+        <h3>Kural 3: &Uuml;&ccedil; Kullan&#305;c&#305; Rol&uuml;, Fazlas&#305; Yok</h3>
+        <table>
+            <tr><th>Rol</th><th>Eri&#351;im</th><th>Aray&uuml;z</th><th>Cihaz</th></tr>
+            <tr><td><strong>S&uuml;per Admin</strong></td><td>Her &#351;ey &mdash; ham veritaban&#305; sorgular&#305;, zorla silme, AI ayarlar&#305; dahil</td><td>Masa&uuml;st&uuml;</td><td>PC</td></tr>
+            <tr><td><strong>Lab Kullan&#305;c&#305;s&#305;</strong></td><td>Test standartlar&#305;, test sonu&ccedil;lar&#305;, malzeme denetimi, kalite kontrol</td><td>Masa&uuml;st&uuml;</td><td>PC</td></tr>
+            <tr><td><strong>Operat&ouml;r</strong></td><td>&Uuml;retim oturumlar&#305;, malzeme tarama, makineye &ouml;zel g&ouml;r&uuml;n&uuml;mler</td><td>Mobil-&ouml;ncelikli</td><td>Telefon/Tablet</td></tr>
+        </table>
+
+        <h3>Kural 4: Tasar&#305;m &Uuml;retimi Y&ouml;nlendirir</h3>
+        <p>Kablo tasar&#305;m&#305; tek do&#287;ruluk kayna&#287;&#305;d&#305;r. Bir tasar&#305;m Cable Playground&rsquo;da olu&#351;turuldu&#287;unda, t&uuml;m &uuml;retim ak&#305;&#351;&#305;n&#305; kodlar &mdash; her makine ad&#305;m&#305;, her malzeme gereksinimi, her test. Sipari&#351;ler tasar&#305;mlara referans verir. &#304;&#351; kartlar&#305; tasar&#305;mlardan &uuml;retilir. Hi&ccedil;bir &#351;ey sipari&#351; ba&#351;&#305;na manuel konfigure edilmez.</p>
+
+        <h3>Kural 5: Erken Optimizasyon Yok</h3>
+        <p>Geli&#351;tirmede SQLite. Gerekti&#287;inde PostgreSQL. &Ouml;l&ccedil;&uuml;lm&uuml;&#351; bir performans problemi olana kadar Redis cache yok. Senkron i&#351;lemenin yetersiz oldu&#287;u kan&#305;tlanana kadar mesaj kuyru&#287;u yok. &Ccedil;al&#305;&#351;an en basit &#351;eyi in&#351;a et, &ouml;l&ccedil;, sonra optimize et.</p>
+
+        <h2>4. API TASARIMI</h2>
+
+        <p>Backend, port 8000&rsquo;de &ccedil;al&#305;&#351;an tek bir FastAPI uygulamas&#305;na monte edilmi&#351; 25&rsquo;ten fazla router grubu sunar. Her endpoint ayn&#305; deseni izler:</p>
+
+        <pre>
+<span class="comment">@router.get("/endpoint")</span>
+async def get_something(
+    db: Session = Depends(get_database),          <span class="comment"># DB oturumu enjekte edilir</span>
+    current_user: User = Depends(get_current_user) <span class="comment"># Auth enjekte edilir</span>
+):
+    <span class="comment"># İş mantığı burada</span>
+    return result</pre>
+
+        <h3>Temel Desenler</h3>
+        <ul>
+            <li><strong>Her &#351;ey i&ccedil;in dependency injection.</strong> Veritaban&#305; oturumlar&#305; <code>Depends(get_database)</code>, kimlik do&#287;rulama <code>Depends(get_current_user)</code>, rol kontrolleri <code>Depends(require_super_admin)</code>. Global state yok.</li>
+            <li><strong>Validasyon i&ccedil;in Pydantic &#351;emalar&#305;.</strong> Her istek g&ouml;vdesi ve yan&#305;t&#305;n tip g&uuml;venli &#351;emas&#305; var. Model ba&#351;&#305;na Create, Update ve Response varyantlar&#305;.</li>
+            <li><strong>&#304;&#351; mant&#305;&#287;&#305; i&ccedil;in servis katman&#305;.</strong> Karma&#351;&#305;k hesaplamalar (malzeme gereksinimleri, i&#351; kart&#305; &uuml;retimi, stok projeksiyonlar&#305;) route handler&rsquo;larda de&#287;il <code>services/</code>&rsquo;da ya&#351;ar.</li>
+            <li><strong>Fabrika a&#287;&#305; CORS.</strong> CORS konfig&uuml;rasyonu, 192.168.x.x ve 10.0.0.x fabrika a&#287;lar&#305;ndaki herhangi bir cihazdan HTTP ve HTTPS eri&#351;imini desteklemek i&ccedil;in 1000&rsquo;den fazla origin kombinasyonu &uuml;retir.</li>
+        </ul>
+
+        <h2>5. VER&#304;TABANI STRATEJ&#304;S&#304;</h2>
+
+        <p>Veritaban&#305; &ouml;nceden tasarlanmad&#305;. Her mod&uuml;l in&#351;a edildik&ccedil;e organik olarak b&uuml;y&uuml;d&uuml;. Bu kas&#305;tl&#305;d&#305;r &mdash; alan, anla&#351;&#305;lmadan &ouml;nce bir &#351;ema tasarlamak i&ccedil;in &ccedil;ok karma&#351;&#305;kt&#305;.</p>
+
+        <div class="flow">
+            <div class="flow-box done">SQLite<br><span style="font-size:10px;color:#666;">Geli&#351;tirme</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">PostgreSQL 15<br><span style="font-size:10px;color:#666;">&Uuml;retim</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">Read Replikalar<br><span style="font-size:10px;color:#666;">Gerekirse</span></div>
+        </div>
+
+        <p>SQLAlchemy ORM, ayn&#305; Python kodunun her iki veritaban&#305;na kar&#351;&#305; &ccedil;al&#305;&#351;mas&#305;n&#305; sa&#287;lar. Ge&ccedil;i&#351; yaln&#305;zca <code>DATABASE_URL</code> ortam de&#287;i&#351;kenini de&#287;i&#351;tirmeyi gerektirir.</p>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>Neden Alembic de&#287;il?</strong> &#350;eman&#305;n h&#305;zla geli&#351;ti&#287;i tek geli&#351;tiricili bir sistem i&ccedil;in, <code>IF NOT EXISTS</code> korumalar&#305;yla elle yaz&#305;lm&#305;&#351; migration scriptleri, otomatik &uuml;retilen migration&rsquo;lardan daha basit ve &ouml;ng&ouml;r&uuml;lebilirdir.</p>
+        </div>
+
+        <h2>6. FRONTEND M&#304;MAR&#304;S&#304;</h2>
+
+        <p>Frontend, Ant Design Pro ile in&#351;a edilmi&#351;, rol tabanl&#305; men&uuml;ler arac&#305;l&#305;&#287;&#305;yla t&uuml;m mod&uuml;llere hizmet veren tek bir React uygulamas&#305;d&#305;r.</p>
+
+        <pre>
+src/pages/
+&#9500;&#9472;&#9472; Dashboard/              <span class="comment"># Ana Panel &mdash; genel bak&#305;&#351; + AI sohbet</span>
+&#9500;&#9472;&#9472; Lab/                    <span class="comment"># Laboratuvar &mdash; testler, malzeme denetimi</span>
+&#9500;&#9472;&#9472; Teknik/                 <span class="comment"># Teknik &mdash; kablo tasar&#305;m&#305;, makineler, standartlar</span>
+&#9500;&#9472;&#9472; Siparis/                <span class="comment"># Sipari&#351; &mdash; sipari&#351;ler, m&uuml;&#351;teriler</span>
+&#9500;&#9472;&#9472; Production/             <span class="comment"># &Uuml;retim &mdash; planlama, makine aray&uuml;zleri</span>
+&#9500;&#9472;&#9472; Stok/                   <span class="comment"># Stok &mdash; projeksiyonlar, &uuml;r&uuml;n sto&#287;u</span>
+&#9500;&#9472;&#9472; Hammadde/               <span class="comment"># Hammadde &mdash; malzeme giri&#351;i, sipari&#351;ler</span>
+&#9492;&#9472;&#9472; Admin/                  <span class="comment"># Admin &mdash; yaz&#305;c&#305;lar, kullan&#305;c&#305;lar, AI ayarlar&#305;</span></pre>
+
+        <h2>7. AI ENTEGRASYONU</h2>
+
+        <p>Ayr&#305; bir Python servisi, panodan eri&#351;ilebilen AI destekli arama ve sohbet sa&#287;lar. AI, 92 API endpoint arac&#305; &uuml;zerinden t&uuml;m veritaban&#305;na <strong>salt okunur eri&#351;ime</strong> sahiptir.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&Ccedil;ok Sa&#287;lay&#305;c&#305;l&#305;</h4>
+                <p>Gemini (uyguland&#305;), OpenAI ve Claude (planland&#305;). Her sa&#287;lay&#305;c&#305; i&ccedil;in temel s&#305;n&#305;f&#305; olan sa&#287;lay&#305;c&#305;-ba&#287;&#305;ms&#305;z mimari.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Ara&ccedil; Tabanl&#305; Eri&#351;im</h4>
+                <p>AI veritaban&#305;n&#305; do&#287;rudan sorgulamaz. Frontend&rsquo;in kulland&#305;&#287;&#305; ayn&#305; REST API endpointlerini &ccedil;a&#287;&#305;r&#305;r, ancak &ouml;zel salt okunur servis hesab&#305;yla.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Denetim G&uuml;nl&uuml;&#287;&uuml;</h4>
+                <p>Her AI sorgusu, her ara&ccedil; &ccedil;a&#287;r&#305;s&#305;, her yan&#305;t <code>ai_audit_logs</code> tablosuna kaydedilir. AI&rsquo;n&#305;n neye eri&#351;ti&#287;inin tam izlenebilirli&#287;i.</p>
+            </div>
+        </div>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Neden salt okunur?</strong> Bir fabrikada &uuml;retim verilerini de&#287;i&#351;tirebilen bir AI asistan&#305; sorumluluktur. Bir hal&uuml;sinasyon sonucu malzeme silme &uuml;retimi durdurabilir. AI arama yapabilir, &ouml;zetleyebilir ve sorular&#305; yan&#305;tlayabilir &mdash; ancak hi&ccedil;bir &#351;ey olu&#351;turamaz, g&uuml;ncelleyemez veya silemez.</p>
+        </div>
+
+        <h2>8. A&#286; &amp; DEPLOYMENT</h2>
+
+        <p>Sistem, fabrika zeminindeki bir <strong>Mac Mini</strong>&rsquo;de &ccedil;al&#305;&#351;&#305;r ve yerel a&#287;daki t&uuml;m cihazlara eri&#351;ilebilir.</p>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">:8000</div>
+                <div class="label">BACKEND (FastAPI)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">:3000</div>
+                <div class="label">FRONTEND (React)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">LAN</div>
+                <div class="label">192.168.x.x / 10.0.0.x</div>
+            </div>
+        </div>
+
+        <p>Operat&ouml;rler QR kod taramak ve &uuml;retim kaydetmek i&ccedil;in telefon/tabletlerde mobil Chrome kullan&#305;r. Y&ouml;neticiler sipari&#351; y&ouml;netimi, tasar&#305;m ve raporlama i&ccedil;in masa&uuml;st&uuml; taray&#305;c&#305;lar&#305; kullan&#305;r.</p>
+
+        <h2>9. EVR&#304;M YOLU</h2>
+
+        <p>Mimari, &ouml;l&ccedil;ek gerektirdi&#287;inde planl&#305; bir evrim yoluna sahiptir:</p>
+
+        <div class="flow">
+            <div class="flow-box done">A&#351;ama 1<br>MOD&Uuml;LER<br>MONOL&#304;T<br><span style="font-size:10px;color:#666;">Mevcut</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">A&#351;ama 2<br>VER&#304;TABANI<br>AYRIMI<br><span style="font-size:10px;color:#666;">Mod&uuml;l ba&#351;&#305;na DB</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">A&#351;ama 3<br>SERV&#304;S<br>&Ccedil;IKARIMI<br><span style="font-size:10px;color:#666;">Kritik mod&uuml;ller</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">A&#351;ama 4<br>GER&Ccedil;EK<br>M&#304;KROSERV&#304;S<br><span style="font-size:10px;color:#666;">Sadece gerekirse</span></div>
+        </div>
+
+        <p>Her a&#351;ama bir yedek plan&#305;d&#305;r, hedef de&#287;il. Mod&uuml;ler monolit, belirli &ouml;l&ccedil;&uuml;lm&uuml;&#351; problemler bir sonraki a&#351;amay&#305; gerektirmedik&ccedil;e mimari olarak kalmal&#305;d&#305;r. <strong>Bozuk olmayan&#305; d&uuml;zeltme.</strong></p>
+
+        <div class="quote">
+            <p>En iyi mimari, tek bir geli&#351;tiricinin alan&#305; &ouml;&#287;renirken ilk y&#305;l&#305;nda &ccedil;al&#305;&#351;an bir fabrika ERP&rsquo;si g&ouml;nderebilmesini sa&#287;layan mimaridir. Geri kalan her &#351;ey erkendir.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>

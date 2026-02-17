@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture &amp; Design | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-architecture-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-architecture.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>ARCHITECTURE &amp; DESIGN DECISIONS</h1>
+        <p class="subtitle">Phase 1 &mdash; Why a modular monolith, and how it&rsquo;s built</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>The architecture was not designed upfront &mdash; it emerged.</strong> The database evolved as each module was built. The framework choices were made for pragmatic reasons: speed of development, component libraries that eliminate GUI work, and the ability to run on a factory floor from a single Mac Mini. This document records what was chosen, why, and what the trade-offs are.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent); font-size: 16px;">MODULAR<br>MONOLITH</div>
+                <div class="label">ARCHITECTURE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise); font-size: 16px;">FastAPI<br>+ React</div>
+                <div class="label">STACK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">SQLite<br>&rarr; Postgres</div>
+                <div class="label">DATABASE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive); font-size: 16px;">25+<br>API Routes</div>
+                <div class="label">ENDPOINTS</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. THE ARCHITECTURE: MODULAR MONOLITH</h2>
+        <!-- ============================================ -->
+
+        <p>The system is a <strong>Modular Monolith</strong> &mdash; a single application with clearly separated internal modules, sharing a single database. Not microservices. Not a traditional monolith. The sweet spot in between.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box" style="border-color: #dc2626; opacity: 0.5;">
+                <h4>Traditional Monolith</h4>
+                <p>Single codebase, no module separation. Everything tangled. <strong>Not this.</strong></p>
+            </div>
+            <div class="arch-box" style="border-color: var(--positive); border-width: 3px; background: #f0fff0;">
+                <h4>Modular Monolith <span class="good">&larr; THIS</span></h4>
+                <p>Single application, clear module boundaries, shared database. Right-sized for a factory with 10&ndash;12 machines and limited concurrent users.</p>
+            </div>
+            <div class="arch-box" style="border-color: #dc2626; opacity: 0.5;">
+                <h4>Microservices</h4>
+                <p>Independent services with separate databases. Overkill for this scale. Adds network latency, distributed transaction complexity, and operational overhead.</p>
+            </div>
+        </div>
+
+        <h3>Why Not Microservices?</h3>
+        <ul>
+            <li><strong>Scale doesn&rsquo;t demand it.</strong> 10&ndash;12 machines, dozens of users, hundreds (not millions) of daily transactions. A single process handles this trivially.</li>
+            <li><strong>ACID transactions across modules.</strong> When an order is created, materials are calculated, work cards are generated, and stock is allocated &mdash; all in a single database transaction. With microservices, this becomes a distributed saga nightmare.</li>
+            <li><strong>One developer.</strong> Microservices require a team to manage deployment, monitoring, service mesh, and inter-service communication. A solo developer needs simplicity.</li>
+            <li><strong>Factory network, not cloud.</strong> This runs on a Mac Mini on the factory floor, not a Kubernetes cluster. One process, one database, one deploy target.</li>
+        </ul>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>The trade-off is known:</strong> When the database fails, everything fails. All modules share one SQLite/PostgreSQL instance &mdash; there is a single point of failure. For a factory ERP with on-site hardware, this is an acceptable trade-off. The alternative (distributed databases, eventual consistency) adds complexity that would slow development without meaningful benefit at this scale.</p>
+        </div>
+
+        <h3>Module Boundaries</h3>
+
+        <pre>
+solen_backend/
+├── app/
+│   ├── api/                    <span class="comment"># REST API layer</span>
+│   │   ├── auth/               <span class="comment"># Authentication &amp; authorization</span>
+│   │   ├── materials/          <span class="comment"># Raw material management</span>
+│   │   ├── suppliers/          <span class="comment"># Supplier management</span>
+│   │   ├── siparis/            <span class="comment"># Order management</span>
+│   │   ├── production/         <span class="comment"># Production operations</span>
+│   │   ├── teknik/             <span class="comment"># Cable design &amp; machines</span>
+│   │   ├── stock/              <span class="comment"># Stock &amp; projection</span>
+│   │   ├── ai/                 <span class="comment"># AI chat &amp; search</span>
+│   │   └── ...                 <span class="comment"># 15+ more route groups</span>
+│   ├── models/                 <span class="comment"># SQLAlchemy data models</span>
+│   │   ├── teknik/             <span class="comment"># machines.py, cable_design.py, standards.py</span>
+│   │   ├── siparis/            <span class="comment"># order.py, customer.py</span>
+│   │   ├── production/         <span class="comment"># production_session.py, work_card.py</span>
+│   │   └── ...                 <span class="comment"># material.py, supplier.py, user.py</span>
+│   ├── schemas/                <span class="comment"># Pydantic validation schemas</span>
+│   ├── services/               <span class="comment"># Business logic layer</span>
+│   │   ├── production_calculator.py
+│   │   ├── work_card_generator.py
+│   │   └── projeksiyon_service.py
+│   ├── core/                   <span class="comment"># Config, database, shared utilities</span>
+│   └── utils/                  <span class="comment"># Production constants, helpers</span>
+├── migrations/                 <span class="comment"># Database migration scripts</span>
+└── main.py                     <span class="comment"># FastAPI application entry point</span></pre>
+
+        <!-- ============================================ -->
+        <h2>2. TECHNOLOGY STACK</h2>
+        <!-- ============================================ -->
+
+        <h3>Backend</h3>
+        <table>
+            <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Why</th></tr>
+            <tr><td>Framework</td><td>FastAPI</td><td>&ge;0.110</td><td>Async Python, auto-generated OpenAPI docs, dependency injection built-in</td></tr>
+            <tr><td>Server</td><td>Uvicorn</td><td>&ge;0.27</td><td>ASGI server, handles async + WebSocket</td></tr>
+            <tr><td>ORM</td><td>SQLAlchemy 2.0</td><td>&ge;2.0.25</td><td>Database-agnostic &mdash; same code runs on SQLite (dev) and PostgreSQL (prod)</td></tr>
+            <tr><td>Validation</td><td>Pydantic 2</td><td>&ge;2.6</td><td>Type-safe request/response validation, automatic JSON serialization</td></tr>
+            <tr><td>Auth</td><td>python-jose + passlib</td><td>&mdash;</td><td>JWT tokens (HS256), bcrypt password hashing, 12h access / 7d refresh</td></tr>
+            <tr><td>Database (dev)</td><td>SQLite</td><td>&mdash;</td><td>Zero-config, file-based, perfect for single-server deployment</td></tr>
+            <tr><td>Database (prod)</td><td>PostgreSQL 15</td><td>15.x</td><td>Connection pooling (20 base + 40 overflow), production-grade</td></tr>
+            <tr><td>QR Codes</td><td>qrcode + Pillow</td><td>&ge;7.4</td><td>Material tracking &mdash; every basket/reel gets a printed QR label</td></tr>
+            <tr><td>Printing</td><td>reportlab + socket</td><td>&mdash;</td><td>Direct Epson thermal printer communication over factory network</td></tr>
+        </table>
+
+        <h3>Frontend</h3>
+        <table>
+            <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Why</th></tr>
+            <tr><td>Framework</td><td>React</td><td>19.1</td><td>Component-based UI, massive ecosystem</td></tr>
+            <tr><td>Language</td><td>TypeScript</td><td>5.x</td><td>Type safety across the entire frontend</td></tr>
+            <tr><td>UI Library</td><td>Ant Design Pro 6</td><td>6.0</td><td>Enterprise-grade components &mdash; tables, forms, layouts, charts out of the box</td></tr>
+            <tr><td>Build</td><td>UmiJS Max</td><td>4.0.7</td><td>Ant Design Pro&rsquo;s build system &mdash; routing, state management, request handling</td></tr>
+            <tr><td>Charts</td><td>ECharts</td><td>6.0</td><td>Production dashboards, stock projections, machine utilization</td></tr>
+            <tr><td>Animation</td><td>Framer Motion</td><td>12.x</td><td>UI transitions and micro-interactions</td></tr>
+            <tr><td>Drag &amp; Drop</td><td>react-dnd</td><td>16.x</td><td>Cable design playground, palette arrangement</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why Ant Design Pro?</strong> The single most important framework choice. A cable factory ERP is 80% tables, forms, and CRUD screens. Ant Design Pro provides production-ready versions of all of these with built-in Turkish localization, responsive layouts, role-based menus, and a dark mode. Writing these from scratch would have added months. The trade-off: the frontend is tied to the Ant Design ecosystem.</p>
+        </div>
+
+        <h3>Infrastructure</h3>
+        <table>
+            <tr><th>Component</th><th>Technology</th><th>Notes</th></tr>
+            <tr><td>Dev Server</td><td>Mac Mini</td><td>Factory floor, local network only</td></tr>
+            <tr><td>Containerization</td><td>Docker + Compose</td><td>PostgreSQL 15 + FastAPI service on custom bridge network</td></tr>
+            <tr><td>Deployment</td><td>Single-command</td><td><code>docker-compose up -d</code> &mdash; no CI/CD pipeline needed</td></tr>
+            <tr><td>HTTPS</td><td>Self-signed / Let&rsquo;s Encrypt</td><td>Factory network HTTPS for mobile devices</td></tr>
+            <tr><td>AI Service</td><td>Separate Python service</td><td>Multi-provider (Gemini, OpenAI, Claude), read-only access, audit-logged</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>3. DESIGN RULES</h2>
+        <!-- ============================================ -->
+
+        <p>These rules were not written on day one &mdash; they crystallized over months of building, breaking, and rebuilding.</p>
+
+        <h3>Rule 1: Turkish-First Interface</h3>
+        <p>Every UI label, every error message, every notification is in Turkish. Factory operators do not speak English. The Ant Design locale is locked to Turkish. AI prompts are Turkish. The only English in the system is in code comments, variable names, and this documentation.</p>
+
+        <h3>Rule 2: QR Code Everything</h3>
+        <p>Every physical object that moves through the factory gets a QR code printed on entry. Raw copper baskets, tinned copper baskets, reels, finished cables &mdash; all scannable. The QR code links to the full history of that object in the system. This enables traceability from raw material to customer shipment.</p>
+
+        <h3>Rule 3: Three User Roles, No More</h3>
+        <table>
+            <tr><th>Role</th><th>Access</th><th>Interface</th><th>Device</th></tr>
+            <tr><td><strong>Super Admin</strong></td><td>Everything &mdash; including raw database queries, force delete, AI settings</td><td>Desktop</td><td>PC</td></tr>
+            <tr><td><strong>Lab User</strong></td><td>Test standards, test results, material inspection, quality control</td><td>Desktop</td><td>PC</td></tr>
+            <tr><td><strong>Operator</strong></td><td>Production sessions, material scanning, machine-specific views</td><td>Mobile-first</td><td>Phone/Tablet</td></tr>
+        </table>
+
+        <h3>Rule 4: Design Drives Production</h3>
+        <p>The cable design is the single source of truth. When a design is created in the Cable Playground, it encodes the complete production flow &mdash; every machine step, every material requirement, every test. Orders reference designs. Work cards are generated from designs. Material calculations walk through the design&rsquo;s production flow. Nothing is manually configured per-order.</p>
+
+        <h3>Rule 5: No Premature Optimization</h3>
+        <p>SQLite in development. PostgreSQL when needed. No Redis cache until there&rsquo;s a measured performance problem. No message queue until synchronous processing is proven insufficient. Build the simplest thing that works, measure, then optimize.</p>
+
+        <!-- ============================================ -->
+        <h2>4. API DESIGN</h2>
+        <!-- ============================================ -->
+
+        <p>The backend exposes 25+ router groups, all mounted on a single FastAPI application running on port 8000. Every endpoint follows the same pattern:</p>
+
+        <pre>
+<span class="decorator">@router.get</span>(<span class="string">"/endpoint"</span>)
+<span class="keyword">async def</span> get_something(
+    db: Session = Depends(get_database),          <span class="comment"># DB session injected</span>
+    current_user: User = Depends(get_current_user) <span class="comment"># Auth injected</span>
+):
+    <span class="comment"># Business logic here</span>
+    <span class="keyword">return</span> result</pre>
+
+        <h3>Key Patterns</h3>
+        <ul>
+            <li><strong>Dependency injection for everything.</strong> Database sessions via <code>Depends(get_database)</code>, authentication via <code>Depends(get_current_user)</code>, role checks via <code>Depends(require_super_admin)</code>. No global state.</li>
+            <li><strong>Pydantic schemas for validation.</strong> Every request body and response has a typed schema. Create, Update, and Response variants per model. FastAPI auto-generates OpenAPI documentation from these.</li>
+            <li><strong>Service layer for business logic.</strong> Complex calculations (material requirements, work card generation, stock projections) live in <code>services/</code>, not in route handlers. Routes handle HTTP; services handle domain logic.</li>
+            <li><strong>Factory network CORS.</strong> The CORS configuration generates 1000+ origin combinations to support HTTP and HTTPS access from any device on the 192.168.x.x and 10.0.0.x factory networks.</li>
+        </ul>
+
+        <h3>Router Organization</h3>
+        <table>
+            <tr><th>Prefix</th><th>Module</th><th>Routes</th></tr>
+            <tr><td>/api/auth</td><td>Authentication</td><td>Login, register, refresh, user management</td></tr>
+            <tr><td>/api/materials</td><td>Raw Materials</td><td>CRUD, QR generation, photo upload, weight tracking</td></tr>
+            <tr><td>/api/suppliers</td><td>Suppliers</td><td>CRUD, material catalog, quality rating</td></tr>
+            <tr><td>/api/siparis</td><td>Orders</td><td>Order CRUD, cable items, delivery planning, payments</td></tr>
+            <tr><td>/api/production</td><td>Production</td><td>Sessions, work cards, operator assignments</td></tr>
+            <tr><td>/api/teknik</td><td>Technical</td><td>Machine config, cable design, standards, markings</td></tr>
+            <tr><td>/api/stock</td><td>Stock</td><td>Half-product stock, projections, product codes</td></tr>
+            <tr><td>/api/ai</td><td>AI Assistant</td><td>Chat, search (read-only, audit-logged)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2>5. DATABASE STRATEGY</h2>
+        <!-- ============================================ -->
+
+        <p>The database was not designed upfront. It grew organically as each module was built. This is intentional &mdash; the domain was too complex to design a schema before understanding it.</p>
+
+        <h3>SQLite &rarr; PostgreSQL Migration Path</h3>
+        <div class="flow">
+            <div class="flow-box done">SQLite<br><span style="font-size:10px;color:#666;">Development</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">PostgreSQL 15<br><span style="font-size:10px;color:#666;">Production</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">Read Replicas<br><span style="font-size:10px;color:#666;">If needed</span></div>
+        </div>
+
+        <p>SQLAlchemy ORM ensures the same Python code runs against both databases. The switch requires only changing the <code>DATABASE_URL</code> environment variable. Connection pooling is configured for production: 20 base connections, 40 overflow, hourly recycling, pre-ping validation.</p>
+
+        <h3>Migration Strategy</h3>
+        <p>Migrations use direct SQL scripts (not Alembic) &mdash; <code>CREATE TABLE IF NOT EXISTS</code> and <code>ALTER TABLE</code> with transaction rollback on failure. 19 migration files covering orders, users, machines, materials, stock, printing, and AI audit tables. Each migration is idempotent and can be re-run safely.</p>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>Why not Alembic?</strong> For a single-developer system where the schema evolves rapidly, hand-written migration scripts with <code>IF NOT EXISTS</code> guards are simpler and more predictable than auto-generated migrations. The trade-off: no automatic schema diff detection. This is acceptable when the developer writes both the model and the migration.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. FRONTEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <p>The frontend is a single React application built with Ant Design Pro, serving all modules through role-based menus.</p>
+
+        <h3>Page Organization</h3>
+        <pre>
+src/pages/
+├── Dashboard/              <span class="comment"># Ana Panel &mdash; overview + AI chat</span>
+├── Lab/                    <span class="comment"># Laboratuvar &mdash; tests, material inspection</span>
+├── Teknik/                 <span class="comment"># Teknik &mdash; cable design, machines, standards</span>
+│   ├── CablePlayground/    <span class="comment"># Interactive cable design tool</span>
+│   ├── Machines/           <span class="comment"># Machine configuration</span>
+│   └── Standards/          <span class="comment"># Test standard management</span>
+├── Siparis/                <span class="comment"># Sipariş &mdash; orders, customers</span>
+├── Production/             <span class="comment"># Üretim &mdash; planning, machine interfaces</span>
+│   └── Machines/           <span class="comment"># Per-machine production UIs</span>
+│       ├── KabatelCekme/
+│       ├── Kalaylama/
+│       ├── IncetelCekme/
+│       ├── Buncher/
+│       ├── Extruder/
+│       └── ElectronBeam/
+├── Stok/                   <span class="comment"># Stok &mdash; projections, product stock</span>
+├── Hammadde/               <span class="comment"># Hammadde &mdash; material entry, orders</span>
+└── Admin/                  <span class="comment"># Admin &mdash; printers, users, AI settings</span></pre>
+
+        <h3>Key Frontend Patterns</h3>
+        <ul>
+            <li><strong>ProTable everywhere.</strong> Ant Design Pro&rsquo;s <code>ProTable</code> component handles server-side pagination, column filtering, expandable rows, and search. 90% of the list/detail views use this single component.</li>
+            <li><strong>Route-based access control.</strong> Each route has an <code>access</code> flag (<code>canDashboard</code>, <code>canLab</code>, <code>canProduction</code>, etc.). Menus auto-hide based on user role.</li>
+            <li><strong>Dynamic API URL.</strong> The frontend detects whether it&rsquo;s running over HTTPS (proxy mode) or HTTP (direct mode) and adjusts the API base URL. On the factory network, it discovers the backend IP automatically.</li>
+            <li><strong>Dark mode.</strong> Full dark theme support via Ant Design CSS variables, persisted in localStorage.</li>
+        </ul>
+
+        <!-- ============================================ -->
+        <h2>7. AI INTEGRATION</h2>
+        <!-- ============================================ -->
+
+        <p>A separate Python service provides AI-powered search and chat, accessible from the dashboard. The AI has <strong>read-only access</strong> to the entire database through 92 API endpoint tools.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Multi-Provider</h4>
+                <p>Gemini (implemented), OpenAI and Claude (planned). Provider-agnostic architecture with a base class for each provider.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tool-Based Access</h4>
+                <p>AI doesn&rsquo;t query the database directly. It calls the same REST API endpoints that the frontend uses, but with a dedicated read-only service account.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Audit Logged</h4>
+                <p>Every AI query, every tool call, every response is logged to the <code>ai_audit_logs</code> table. Full traceability of what the AI accessed.</p>
+            </div>
+        </div>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why read-only?</strong> An AI assistant that can modify production data in a factory is a liability. One hallucinated material deletion could halt production. The AI can search, summarize, and answer questions &mdash; but cannot create, update, or delete anything.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>8. NETWORK &amp; DEPLOYMENT</h2>
+        <!-- ============================================ -->
+
+        <p>The system runs on a <strong>Mac Mini</strong> on the factory floor, accessible to all devices on the local network.</p>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">:8000</div>
+                <div class="label">BACKEND (FastAPI)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">:3000</div>
+                <div class="label">FRONTEND (React)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">LAN</div>
+                <div class="label">192.168.x.x / 10.0.0.x</div>
+            </div>
+        </div>
+
+        <p>Operators use mobile Chrome on phones/tablets to scan QR codes and log production. Managers use desktop browsers for order management, design, and reporting. Both access the same backend on the same network. HTTPS is enabled for mobile device security (camera access for QR scanning requires secure context).</p>
+
+        <!-- ============================================ -->
+        <h2>9. THE EVOLUTION PATH</h2>
+        <!-- ============================================ -->
+
+        <p>The architecture has a planned evolution path if scale ever demands it:</p>
+
+        <div class="flow">
+            <div class="flow-box done">Stage 1<br>MODULAR<br>MONOLITH<br><span style="font-size:10px;color:#666;">Current</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">Stage 2<br>DATABASE<br>SEPARATION<br><span style="font-size:10px;color:#666;">Per-module DBs</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">Stage 3<br>SERVICE<br>EXTRACTION<br><span style="font-size:10px;color:#666;">Critical modules</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">Stage 4<br>TRUE<br>MICROSERVICES<br><span style="font-size:10px;color:#666;">Only if needed</span></div>
+        </div>
+
+        <p>Each stage is a fallback, not a goal. The modular monolith should remain the architecture unless specific, measured problems demand the next stage. <strong>Don&rsquo;t fix what isn&rsquo;t broken.</strong></p>
+
+        <div class="quote">
+            <p>The best architecture is the one that lets a single developer ship a working factory ERP in their first year while learning the domain. Everything else is premature.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
