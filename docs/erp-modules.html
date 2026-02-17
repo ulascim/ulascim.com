@@ -104,6 +104,9 @@
 
         .good { color: #16a34a; font-weight: 700; }
         .bad { color: #dc2626; font-weight: 700; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
         @media (max-width: 768px) {
             .report { padding: 16px; }
             .nav-container { padding: 0 16px; }
@@ -133,6 +136,7 @@
     </nav>
 
     <main class="report">
+        <a href="erp-system.html" class="back-link">Back to Research</a>
         <h1>THE MODULE MAP</h1>
         <p class="subtitle">Phase 2 &mdash; Every module, every submodule, every connection</p>
         <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
@@ -239,7 +243,7 @@
 
         <div class="module-card">
             <h3>The Supply Chain Module</h3>
-            <p class="module-desc">Tracks everything that enters the factory &mdash; from the moment a purchase order is placed to the moment the material is consumed in production. Copper, tin, PVC compounds, catalysts, dyes, antirodent additives, reels, and palettes. Every physical item gets a QR code, a photo, and a lot number on entry.</p>
+            <p class="module-desc">Tracks everything that enters the factory &mdash; from the moment a purchase order is placed to the moment the material is consumed in production. Copper, tin, plastic compounds, catalysts, dyes, antirodent additives, reels, and palettes. Every physical item gets a QR code, a photo, and a lot number on entry.</p>
 
             <div class="sub-grid">
                 <div class="sub-item">
