@@ -163,7 +163,7 @@
                 <div class="label">PRODUCTION STEPS</div>
             </div>
             <div class="stat-box">
-                <div class="value" style="color: var(--turquoise);">6</div>
+                <div class="value" style="color: var(--turquoise);">7</div>
                 <div class="label">MACHINE TYPES</div>
             </div>
             <div class="stat-box">
@@ -171,8 +171,8 @@
                 <div class="label">mm&sup2; RANGE</div>
             </div>
             <div class="stat-box">
-                <div class="value" style="color: var(--positive);">H1Z2Z2-K</div>
-                <div class="label">PRIMARY STANDARD</div>
+                <div class="value" style="color: var(--positive);">20+</div>
+                <div class="label">TEST TYPES</div>
             </div>
         </div>
 
@@ -489,7 +489,260 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. WHY THIS IS AN ERP PROBLEM</h2>
+        <h2>4. RAW MATERIALS</h2>
+        <!-- ============================================ -->
+
+        <p>Before production can begin, raw materials must be received, inspected, tracked, and allocated. Every material enters the system with a <strong>QR code</strong>, a <strong>lot number</strong>, a <strong>measured weight</strong>, and delivery documentation.</p>
+
+        <div class="machine-grid">
+            <div class="machine-card">
+                <h4>COPPER (Bak&#305;r)</h4>
+                <div class="machine-desc">Raw copper rod &mdash; 8mm diameter filma&#351;in. Arrives on wooden spools in ~1,000 kg units. The foundation of every cable. Tracked by weight (measured vs. form weight), supplier, and lot number.</div>
+                <div class="machine-specs">
+                    <dl>
+                        <dt>Input form:</dt> <dd>8mm filma&#351;in</dd><br>
+                        <dt>Unit:</dt> <dd>kg (weighed at entry)</dd><br>
+                        <dt>QR prefix:</dt> <dd>CU-</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="machine-card">
+                <h4>TIN (Kalay)</h4>
+                <div class="machine-desc">Pure tin for the kalaylama coating. Applied at ~4&mu;m thickness. Consumed at 0.7% of copper weight. Small in volume but critical for corrosion resistance in 25+ year outdoor exposure.</div>
+                <div class="machine-specs">
+                    <dl>
+                        <dt>Coating:</dt> <dd>~4&mu;m standard</dd><br>
+                        <dt>Factor:</dt> <dd>0.7% of copper weight</dd><br>
+                        <dt>QR prefix:</dt> <dd>SN-</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="machine-card">
+                <h4>PLASTIC COMPOUNDS (Plastik)</h4>
+                <div class="machine-desc">Insulation and sheath materials. Different compounds for E-beam vs. standard cables. Density varies by compound &mdash; critical for weight calculations. Some arrive pre-dyed.</div>
+                <div class="machine-specs">
+                    <dl>
+                        <dt>Types:</dt> <dd>PVC, XLPE, PE, HFFR</dd><br>
+                        <dt>Calc:</dt> <dd>volume &times; density</dd><br>
+                        <dt>Overfill:</dt> <dd>+14% on first layer</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="machine-card">
+                <h4>ADDITIVES</h4>
+                <div class="machine-desc">Catalyst (for non-E-beam cross-linking), dye/colorant (black, red, blue, green-yellow, etc.), and antirodent additive (for sheath protection). Each added as a percentage of plastic weight.</div>
+                <div class="machine-specs">
+                    <dl>
+                        <dt>Catalyst:</dt> <dd>% of plastic weight</dd><br>
+                        <dt>Dye:</dt> <dd>% of plastic weight</dd><br>
+                        <dt>Antirodent:</dt> <dd>sheath only, % ratio</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="machine-card">
+                <h4>REELS &amp; PALETTES (Makara &amp; Palet)</h4>
+                <div class="machine-desc">Physical packaging materials. Reels come in multiple sizes for different cable diameters and customer requirements. Palettes for shipping. Kangal = coil with no reel.</div>
+                <div class="machine-specs">
+                    <dl>
+                        <dt>Reel sizes:</dt> <dd>multiple standard sizes</dd><br>
+                        <dt>Kangal:</dt> <dd>reel_id = 0 (no reel)</dd><br>
+                        <dt>Range:</dt> <dd>100m to 5,000m per unit</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Material status lifecycle:</strong> Received &rarr; Approved &rarr; In Use &rarr; Consumed (or Rejected). Every status transition is tracked. <code>remaining_weight</code> decreases as material is consumed in production. When a copper basket enters a machine, its weight deduction is calculated from the cable design's material requirements.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>5. THE HIDDEN MATH</h2>
+        <!-- ============================================ -->
+
+        <p>Behind every production order is a material calculator that walks through the entire production flow and computes exact material requirements. These are not approximations &mdash; they are derived from <strong>laboratory-verified production constants</strong>.</p>
+
+        <h3>Wire Weights (Verified Production Data)</h3>
+        <p>Tinned wire weight in grams per meter, measured for every 0.01mm increment from &Oslash;0.20mm to &Oslash;0.60mm:</p>
+
+        <table>
+            <tr><th>Diameter</th><th>g/m</th><th>Diameter</th><th>g/m</th><th>Diameter</th><th>g/m</th></tr>
+            <tr><td>&Oslash;0.20mm</td><td>0.2818</td><td>&Oslash;0.30mm</td><td>0.634</td><td>&Oslash;0.40mm</td><td>1.1271</td></tr>
+            <tr><td>&Oslash;0.21mm</td><td>0.3107</td><td>&Oslash;0.31mm</td><td>0.677</td><td>&Oslash;0.45mm</td><td>1.4272</td></tr>
+            <tr><td>&Oslash;0.25mm</td><td>0.4403</td><td>&Oslash;0.35mm</td><td>0.8629</td><td>&Oslash;0.50mm</td><td>1.7635</td></tr>
+            <tr><td>&Oslash;0.28mm</td><td>0.5523</td><td>&Oslash;0.38mm</td><td>1.0172</td><td>&Oslash;0.60mm</td><td>2.5452</td></tr>
+        </table>
+
+        <h3>Bundle Diameters (Microscope Measurements)</h3>
+        <p>Actual bundle diameters measured from production cross-sections:</p>
+
+        <table>
+            <tr><th>Cable</th><th>Wire Count</th><th>Wire &Oslash;</th><th>Bundle &Oslash;</th><th>Structure</th></tr>
+            <tr><td>4mm&sup2;</td><td>50</td><td>0.30mm</td><td>2.39mm</td><td>5&times;(10&times;0.30)</td></tr>
+            <tr><td>6mm&sup2;</td><td>73</td><td>0.30mm</td><td>2.89mm</td><td>4&times;(10&times;0.30) + 3&times;(11&times;0.30)</td></tr>
+            <tr><td>10mm&sup2;</td><td>73</td><td>0.40mm</td><td>3.86mm</td><td>4&times;(10&times;0.40) + 3&times;(11&times;0.40)</td></tr>
+            <tr><td>16mm&sup2;</td><td>115</td><td>0.40mm</td><td>4.84mm</td><td>7&times;(13&times;0.40) + 2&times;(12&times;0.40)</td></tr>
+        </table>
+
+        <h3>Production Constants</h3>
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="font-size: 18px;">1.001955</div>
+                <div class="label">BUNCHER TWIST FACTOR</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 18px;">0.7%</div>
+                <div class="label">TIN COATING FACTOR</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 18px;">+14%</div>
+                <div class="label">FIRST LAYER OVERFILL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 18px;">1.128</div>
+                <div class="label">EMPIRICAL EXPANSION</div>
+            </div>
+        </div>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Buncher twist factor</strong> (1.001955): When wires are bunched, they follow a helical path &mdash; the actual wire length is ~0.2% longer than the cable length. This compounds: for two bunching stages (e.g. 95mm&sup2;), factor = 1.001955&sup2; = 1.003914. Ignoring this means ordering too little copper.</p>
+        </div>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>First layer overfill</strong> (+14%): When plastic is extruded directly onto bunched copper, extra material fills the valleys between outer wires (bumpy surface). Subsequent layers on smooth insulation don't need this. Discovered via microscope cross-section analysis.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. STANDARDS, TESTING &amp; QUALITY CONTROL</h2>
+        <!-- ============================================ -->
+
+        <p>Solar cables must comply with international standards. Quality control is not a final inspection &mdash; it is woven into every production step.</p>
+
+        <h3>Standard Categories</h3>
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">IEC-EN</div>
+                <div class="label">EUROPEAN STANDARDS<br>EN 50618, IEC 60228</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">UL</div>
+                <div class="label">AMERICAN STANDARDS<br>UL 4703, UL 854</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="font-size: 16px;">SLN</div>
+                <div class="label">SOLEN CUSTOM<br>Company-specific tests</div>
+            </div>
+        </div>
+
+        <h3>Test Categories</h3>
+
+        <table>
+            <tr><th>Category</th><th>Test (TR)</th><th>Test (EN)</th><th>Standard</th><th>Unit</th></tr>
+            <tr style="background:#f0f7ff;"><td colspan="5" style="font-weight:700; font-size:10px; letter-spacing:1px;">ELECTRICAL</td></tr>
+            <tr><td></td><td>Maksimum &#304;letken Direnci</td><td>Maximum Conductor Resistance</td><td>IEC 60228</td><td>ohm/km</td></tr>
+            <tr><td></td><td>Gerilim Deneyi</td><td>Voltage Test</td><td>EN 50618</td><td>kV</td></tr>
+            <tr><td></td><td>&#304;zolasyon Direnci</td><td>Insulation Resistance</td><td>EN 50618</td><td>&Omega;</td></tr>
+            <tr><td></td><td>K&#305;smi Bo&#351;alma</td><td>Partial Discharge</td><td>EN 50618</td><td>pC</td></tr>
+            <tr style="background:#f0fff0;"><td colspan="5" style="font-weight:700; font-size:10px; letter-spacing:1px;">MECHANICAL</td></tr>
+            <tr><td></td><td>&Ccedil;ekme Dayan&#305;m&#305;</td><td>Tensile Strength</td><td>EN 50618</td><td>N/mm&sup2;</td></tr>
+            <tr><td></td><td>Kopma Uzamas&#305;</td><td>Elongation at Break</td><td>EN 50618</td><td>%</td></tr>
+            <tr><td></td><td>S&#305;cak Set Deneyi</td><td>Hot Set Test</td><td>EN 50618</td><td>%</td></tr>
+            <tr><td></td><td>So&#287;uk B&uuml;k&uuml;m</td><td>Cold Bend</td><td>EN 60811-504</td><td>&mdash;</td></tr>
+            <tr><td></td><td>So&#287;ukta Darbe</td><td>Cold Impact</td><td>EN 60811-506</td><td>&mdash;</td></tr>
+            <tr style="background:#fff8f0;"><td colspan="5" style="font-weight:700; font-size:10px; letter-spacing:1px;">DIMENSIONAL</td></tr>
+            <tr><td></td><td>&#304;zolasyon Kal&#305;nl&#305;&#287;&#305;</td><td>Insulation Thickness</td><td>EN 50618</td><td>mm</td></tr>
+            <tr><td></td><td>K&#305;l&#305;f Kal&#305;nl&#305;&#287;&#305;</td><td>Sheath Thickness</td><td>EN 50618</td><td>mm</td></tr>
+            <tr><td></td><td>&#304;letken &Ccedil;ap&#305;</td><td>Conductor Diameter</td><td>EN 50618</td><td>mm</td></tr>
+            <tr><td></td><td>D&#305;&#351; &Ccedil;ap</td><td>Outer Diameter</td><td>EN 50618</td><td>mm</td></tr>
+            <tr style="background:#fff0f0;"><td colspan="5" style="font-weight:700; font-size:10px; letter-spacing:1px;">CHEMICAL / ENVIRONMENTAL</td></tr>
+            <tr><td></td><td>Yanma Deneyi</td><td>Flame Test</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td></td><td>UV Dayan&#305;m</td><td>UV Resistance</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td></td><td>Termal Ya&#351;land&#305;rma</td><td>Thermal Aging</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td></td><td>Duman Yo&#287;unlu&#287;u</td><td>Smoke Density</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </table>
+
+        <h3>Test Frequency</h3>
+        <p>Tests are not run once &mdash; they are triggered at specific points during production:</p>
+        <ul>
+            <li><strong>&Uuml;retim ba&#351;&#305;</strong> (Production start) &mdash; Lab alerted when machine starts</li>
+            <li><strong>&Uuml;retim sonu</strong> (Production end) &mdash; Lab alerted when production completes</li>
+            <li><strong>Her ikisi</strong> (Both) &mdash; Start and end</li>
+            <li><strong>Her makara sonu</strong> (Each reel end) &mdash; For continuous monitoring</li>
+        </ul>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tests are embedded in the cable design itself.</strong> When a design is created, the engineer selects which tests apply to each production step and at what frequency. When production starts, the system automatically alerts the laboratory. Test results are linked to specific production sessions and batch codes for full traceability.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. CABLE MARKING</h2>
+        <!-- ============================================ -->
+
+        <p>Every meter of cable is printed with identification markings during extrusion. The marking is a legal requirement &mdash; it identifies the manufacturer, standard, cable type, and production batch. A typical marking sequence:</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0; font-family: monospace; font-size: 14px; letter-spacing: 1px;">
+                SOLEN BEAM &bull; TUV RHEINLAND &bull; EN 50618 &bull; H1Z2Z2-K &bull; 1&times;6mm&sup2; &bull; 1,5 kV DC &bull; HALOGEN FREE LOW SMOKE &bull; MADE IN TURKEY &bull; &lt;CE&gt; &bull; Dca &bull; {ORDER_NO} &bull; {METER} MT
+            </p>
+        </div>
+
+        <p>Dynamic fields like <code>{ORDER_NO}</code> and <code>{METER}</code> are populated in real-time during production. The meter counter increments continuously as cable is extruded.</p>
+
+        <!-- ============================================ -->
+        <h2>8. CABLE DESIGN NOTATION</h2>
+        <!-- ============================================ -->
+
+        <p>Every cable design is encoded in a structure formula that describes its complete physical composition. This notation drives the entire production flow calculation.</p>
+
+        <h3>Example: 6mm&sup2; E-beam Solar Cable</h3>
+        <div class="abstract">
+            <p style="margin-bottom: 0; font-family: monospace; font-size: 13px;">
+                (4&times;(10&times;0.3mm) + 3&times;(11&times;0.3mm)) + INS_0.7mm_DYE + SHT_0.8mm_CAT_DYE
+            </p>
+        </div>
+        <ul>
+            <li><strong>4&times;(10&times;0.3mm)</strong> &mdash; 4 groups of 10 wires at &Oslash;0.30mm = 40 wires</li>
+            <li><strong>3&times;(11&times;0.3mm)</strong> &mdash; 3 groups of 11 wires at &Oslash;0.30mm = 33 wires</li>
+            <li><strong>Total:</strong> 73 wires &rarr; 73&times;0.30mm conductor</li>
+            <li><strong>INS_0.7mm_DYE</strong> &mdash; 0.7mm insulation with dye (no catalyst = E-beam cable)</li>
+            <li><strong>SHT_0.8mm_CAT_DYE</strong> &mdash; 0.8mm sheath with catalyst and dye</li>
+        </ul>
+
+        <p>This notation is not just documentation &mdash; it is machine-readable. The ERP system parses it to generate the complete production flow, calculate material requirements, and create work cards for each machine.</p>
+
+        <h3>Cable Types</h3>
+        <table>
+            <tr><th>Type</th><th>Description</th><th>E-beam?</th><th>Frequency</th></tr>
+            <tr><td>Klasik Kablo</td><td>Standard cable with catalyst cross-linking</td><td>No</td><td>Common</td></tr>
+            <tr><td>E-beam Kablo</td><td>Electron beam cross-linked, no catalyst needed</td><td>Yes</td><td>Primary</td></tr>
+            <tr><td>Twin Cable</td><td>Dual conductor, special extruder head</td><td>Varies</td><td>~1% of production</td></tr>
+        </table>
+
+        <h3>Cable Colors</h3>
+        <p>Siyah (Black) &bull; K&#305;rm&#305;z&#305; (Red) &bull; Beyaz (White) &bull; Ye&#351;il-Sar&#305; (Green-Yellow) &bull; Pembe (Pink) &bull; Mavi (Blue)</p>
+
+        <!-- ============================================ -->
+        <h2>9. HALF-PRODUCT TRACKING</h2>
+        <!-- ============================================ -->
+
+        <p>Between raw material and finished cable, the factory floor is covered with <strong>half products</strong> (yar&#305; mamul) &mdash; intermediate goods at various stages of completion. Each half product has a system-generated code that encodes its exact state.</p>
+
+        <h3>Half Product Code System</h3>
+        <table>
+            <tr><th>Code</th><th>Machine</th><th>Product</th><th>Example</th></tr>
+            <tr><td>A</td><td>Kabatel &Ccedil;ekme</td><td>&Ccedil;&#305;plak bak&#305;r (bare copper)</td><td>A-001</td></tr>
+            <tr><td>X</td><td>Kabatel output &rarr; Kalaylama input</td><td>Drawn wire ready for tinning</td><td>X-001</td></tr>
+            <tr><td>Y</td><td>Kalaylama</td><td>Kalayl&#305; bak&#305;r (tinned copper)</td><td>Y-001</td></tr>
+            <tr><td>Z, T, U</td><td>&#304;ncetel &Ccedil;ekme</td><td>Fine-drawn wire reels</td><td>Z-001</td></tr>
+            <tr><td>T, Z</td><td>Buncher</td><td>B&uuml;k&uuml;l&uuml; bak&#305;r (stranded conductor)</td><td>T-002</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Same code, different designs:</strong> A half product with the same physical properties (e.g. 10&times;0.30mm fine-drawn reel) gets the same system code regardless of which cable design it was originally produced for. This enables <strong>stock sharing</strong> &mdash; if a half product from one order matches the spec of another order, it can be reused. The system uses a SHA256 hash of the specifications to ensure deterministic code assignment.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>10. WHY THIS IS AN ERP PROBLEM</h2>
         <!-- ============================================ -->
 
         <p>A cable factory looks simple from the outside: copper goes in, cable comes out. But the production flow has several properties that make manual tracking impossible at scale:</p>
