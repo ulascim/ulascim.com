@@ -1390,6 +1390,492 @@ if cable.marking_id:
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> &Scedil;ablon tabanl&#305; markalama. Sipari&scedil; ba&scedil;&#305;na serbest metin markalama talimatlar&#305; saklamak yerine, sistem yeniden kullan&#305;labilir &scedil;ablonlar kayd&#305; tutar. Bu tutarl&#305;l&#305;k sa&#287;lar &mdash; ayn&#305; kablo tipi i&ccedil;in her sipari&scedil; tamamen ayn&#305; markalama metnini kullan&#305;r. S&#305;ral&#305; kelime dizisi yap&#305;s&#305;, ekstr&uuml;der bask&#305; kafas&#305;n&#305;n &ccedil;al&#305;&scedil;ma &scedil;ekliyle do&#287;rudan e&scedil;le&scedil;ir: kelimeleri s&#305;rayla d&ouml;ng&uuml;yle gezer, aralar&#305;nda bo&scedil;luk b&#305;rakarak kablo uzunlu&#287;u boyunca basar. Dinamik de&#287;i&scedil;kenler (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code> vb.) yeni &scedil;ablon olu&scedil;turmadan sipari&scedil;e &ouml;zel ba&#287;lam ekler.</p>
         </div>
 
+        <h2 id="playground">6.5 &amp; 6.6 Kablo Tasar&#305;m (Cable Playground) &amp; Kablo Veritaban&#305; (Cable Database)</h2>
+
+        <p>Bu iki alt mod&uuml;l birlikte belgelenir &ccedil;&uuml;nk&uuml; ayr&#305;lmazd&#305;r: <strong>Playground</strong>, ger&ccedil;ek fabrika makineleri kullan&#305;larak kablolar&#305;n ad&#305;m ad&#305;m tasarland&#305;&#287;&#305; yerdir ve <strong>Kablo Veritaban&#305;</strong>, tamamlanm&#305;&scedil; tasar&#305;mlar&#305;n kal&#305;c&#305; olarak sakland&#305;&#287;&#305; depodur. Sistemdeki di&#287;er t&uuml;m mod&uuml;ller &mdash; Sipari&scedil;ler, &Uuml;retim Planlama, &#304;&scedil; Kartlar&#305;, Malzeme Hesaplamalar&#305;, Stok &mdash; nihayetinde Playground&rsquo;un olu&scedil;turup Kablo Veritaban&#305;&rsquo;na kaydetti&#287;i kay&#305;tlara ba&#287;l&#305;d&#305;r.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Birle&scedil;im noktas&#305;:</strong> T&uuml;m Teknik alt mod&uuml;llerinin birle&scedil;ti&#287;i yer buras&#305;d&#305;r. Makine Y&ouml;netimi makineleri ve kapasite aral&#305;klar&#305;n&#305; sa&#287;lar. Standart Y&ouml;netimi her ad&#305;ma atanacak testleri sa&#287;lar. Operat&ouml;r Y&ouml;netimi tasar&#305;m&#305; y&uuml;r&uuml;tecek operat&ouml;rleri sa&#287;lar. Markalama, ekstr&uuml;zyon s&#305;ras&#305;nda bas&#305;lacak metni sa&#287;lar. Playground t&uuml;m bu verileri t&uuml;keterek eksiksiz bir &uuml;retim plan&#305; olu&scedil;turur ve bunu t&uuml;m imalat hatt&#305; i&ccedil;in tek do&#287;ru kaynak olarak Kablo Veritaban&#305;&rsquo;na kaydeder.</p>
+        </div>
+
+        <h3>6.5.1 Temel Kavram &mdash; Kablo Tasar&#305;m&#305; Nas&#305;l &Ccedil;al&#305;&scedil;&#305;r</h3>
+
+        <p>Kablo imalat&#305; kat&#305; bir s&#305;ral&#305; hat izler. Ham bak&#305;r (8mm filma&scedil;in) ilk makineye girer ve 6 makine t&uuml;r&uuml; &uuml;zerinden ilerleyerek bitmi&scedil; kabloya d&ouml;n&uuml;&scedil;&uuml;r. Playground bu s&uuml;recin tamam&#305;n&#305; dijital olarak sim&uuml;le eder.</p>
+
+        <h4>Alt&#305; Makine T&uuml;r&uuml; (s&#305;ras&#305;yla)</h4>
+        <table>
+            <tr><th>#</th><th>Makine</th><th>Giri&scedil;</th><th>&Ccedil;&#305;k&#305;&scedil;</th><th>Temel Parametreler</th></tr>
+            <tr><td>1</td><td><strong>Kabatel &Ccedil;ekme</strong></td><td>8mm filma&scedil;in (ham bak&#305;r)</td><td>&Ccedil;ekilmi&scedil; tel (ör. 1.8mm)</td><td>output_diameter, speed, tav, adet</td></tr>
+            <tr><td>2</td><td><strong>Kalaylama</strong></td><td>KC&rsquo;den &ccedil;ekilmi&scedil; tel</td><td>Kalaylanm&#305;&scedil; tel (ör. 21 adet)</td><td>tin_thickness, speed, <strong>adet</strong> (kritik!)</td></tr>
+            <tr><td>3</td><td><strong>&#304;ncetel &Ccedil;ekme</strong></td><td>KL&rsquo;den kalaylanm&#305;&scedil; tel</td><td>&#304;nce tel demetleri (ör. 10&times;0.30mm)</td><td>input_number, output_diameter, output_number, tav</td></tr>
+            <tr><td>4</td><td><strong>Buncher</strong></td><td>IC / di&#287;er BN / EX&rsquo;den ince teller</td><td>B&uuml;k&uuml;lm&uuml;&scedil; tel</td><td>dinamik giri&scedil;ler (+ekle), hatve, b&uuml;k&uuml;m y&ouml;n&uuml; (S/Z)</td></tr>
+            <tr><td>5</td><td><strong>Extruder</strong></td><td>BN / di&#287;er EX&rsquo;den b&uuml;k&uuml;lm&uuml;&scedil; tel</td><td>&#304;zoleli/k&#305;l&#305;fl&#305; kablo</td><td>insulation_thickness, sheath_thickness, kataliz&ouml;r, boya</td></tr>
+            <tr><td>6</td><td><strong>E-beam</strong></td><td>Ekstr&uuml;de kablo (kataliz&ouml;rs&uuml;z!)</td><td>&Ccedil;apraz ba&#287;l&#305; kablo</td><td>radiation_level, speed (&uuml;retim zaman&#305;nda belirlenir)</td></tr>
+        </table>
+
+        <h4>Makine Ak&#305;&scedil; K&#305;s&#305;tlamalar&#305;</h4>
+        <p>Her makine her makineden sonra gelemez. Sistem y&ouml;nl&uuml; bir graf uygular:</p>
+
+        <div class="flow">
+            <span class="flow-step">Kabatel &Ccedil;ekme</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Kalaylama</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&#304;ncetel &Ccedil;ekme</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Buncher</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Extruder</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">E-beam</span>
+        </div>
+
+        <p>Kritik d&ouml;ng&uuml; yetenekleri:</p>
+        <ul>
+            <li><strong>Buncher &rarr; Buncher:</strong> &Ccedil;ok a&scedil;amal&#305; b&uuml;kme (b&uuml;k&uuml;lm&uuml;&scedil; tel tekrar b&uuml;k&uuml;lebilir)</li>
+            <li><strong>Extruder &rarr; Extruder:</strong> &Ccedil;ok katmanl&#305; ekstr&uuml;zyon (&ouml;nce izole, sonra k&#305;l&#305;f)</li>
+            <li><strong>Extruder &rarr; Buncher:</strong> &Ccedil;ok damarl&#305; kablolar (tek damarlar&#305; izole et, birlikte b&uuml;k, sonra k&#305;l&#305;fla)</li>
+        </ul>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># Makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305; (playground_session.py)</span>
+MACHINE_FLOW = {
+    'kabatel_cekme': ['kalaylama'],
+    'kalaylama':     ['incetel_cekme', 'buncher'],
+    'incetel_cekme': ['buncher', 'extruder'],
+    'buncher':       ['extruder', 'buncher'],    <span style="color: #666;"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
+    'extruder':      ['ebeam', 'extruder'],      <span style="color: #666;"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
+    'ebeam':         []                          <span style="color: #666;"># Son</span>
+}</pre>
+
+        <h3>6.5.2 Backend Mimarisi &mdash; Motor</h3>
+
+        <p>Playground backend&rsquo;i toplam ~4.700 sat&#305;r olan 8 Python dosyas&#305;ndan olu&scedil;ur:</p>
+
+        <table>
+            <tr><th>Dosya</th><th>Sat&#305;r</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>design_routes.py</code></td><td>1.155</td><td>API endpoint&rsquo;ler &mdash; oturum, ad&#305;mlar, konfig&uuml;rasyon, geri al/yinele, otomatik kaydetme, sonland&#305;rma</td></tr>
+            <tr><td><code>playground_session.py</code></td><td>986</td><td>Oturum y&ouml;neticisi &mdash; ad&#305;m ya&scedil;am d&ouml;ng&uuml;s&uuml;, geri al/yinele y&#305;&#287;&#305;nlar&#305;, checkpoint/geri y&uuml;kleme</td></tr>
+            <tr><td><code>progression_manager_v2.py</code></td><td>995</td><td>Miktar takibi &mdash; giri&scedil;leri t&uuml;ket, &ccedil;&#305;k&#305;&scedil;lar&#305; &uuml;ret, makine bazl&#305; i&scedil;leme</td></tr>
+            <tr><td><code>db_integration.py</code></td><td>446</td><td>Ger&ccedil;ek makine verileri &mdash; makine tablolar&#305;n&#305; okur, kapasite kesi&scedil;imi hesaplar</td></tr>
+            <tr><td><code>form_integration.py</code></td><td>339</td><td>Form doldurma &mdash; makine t&uuml;r&uuml;ne g&ouml;re a&ccedil;&#305;l&#305;r men&uuml; verileri olu&scedil;turur</td></tr>
+            <tr><td><code>validation_engine.py</code></td><td>465</td><td>Konfig&uuml;rasyon do&#287;rulama &mdash; de&#287;erleri makine kapasitelerine kar&scedil;&#305; kontrol eder</td></tr>
+            <tr><td><code>code_generator.py</code></td><td>291</td><td>Deterministik &uuml;r&uuml;n kodlar&#305; &mdash; SHA256 hash + okunabilir kodlar</td></tr>
+            <tr><td><code>playground_configs.py</code></td><td>446</td><td>Pydantic &scedil;emalar&#305; &mdash; her makine t&uuml;r&uuml; i&ccedil;in tipli konfig&uuml;rasyon</td></tr>
+        </table>
+
+        <h4>Oturum Y&ouml;netimi (Bellekte)</h4>
+
+        <p>Oturumlar bir Python s&ouml;zl&uuml;&#287;&uuml;nde saklan&#305;r (<code>_active_sessions: Dict[str, PlaygroundSession]</code>). Her oturum i&ccedil;erir:</p>
+
+        <ul>
+            <li><strong>session_id:</strong> UUID v4</li>
+            <li><strong>standard:</strong> EN / UL / SLN (oturum ba&scedil;lang&#305;c&#305;nda se&ccedil;ilir)</li>
+            <li><strong>cross_section:</strong> &ouml;r. &ldquo;6mm&sup2;&rdquo; (oturum ba&scedil;lang&#305;c&#305;nda se&ccedil;ilir)</li>
+            <li><strong>steps:</strong> <code>DesignStep</code> dataclass &ouml;rneklerinin listesi</li>
+            <li><strong>progression:</strong> T&uuml;m &ouml;&#287;eleri takip eden <code>ProgressionManager</code> &ouml;rne&#287;i</li>
+            <li><strong>history_stack / redo_stack:</strong> Geri al/yinele i&ccedil;in <code>StateSnapshot</code> listeleri (maks 50)</li>
+            <li><strong>autosave:</strong> varsay&#305;lan olarak a&ccedil;&#305;k, 30 saniyelik aral&#305;k, kaydedilmemi&scedil; de&#287;i&scedil;iklikleri izler</li>
+        </ul>
+
+        <h4>&#304;lerleme Paneli &mdash; Tasar&#305;m&#305;n Kalbi</h4>
+
+        <p><code>ProgressionManager</code>, <code>ProgressionItem</code> nesnelerinin bir listesini tutar. Her &ouml;&#287;e, imalat&#305;n herhangi bir a&scedil;amas&#305;ndaki fiziksel bir &uuml;r&uuml;n&uuml; (tel, b&uuml;k&uuml;lm&uuml;&scedil; tel, kablo) temsil eder:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># ProgressionItem alanlar&#305;</span>
+{
+    'id': 'uuid',                    <span style="color: #666;"># Benzersiz tan&#305;mlay&#305;c&#305;</span>
+    'code': 'KC_18',                 <span style="color: #666;"># Deterministik &uuml;r&uuml;n kodu</span>
+    'quantity': 21,                  <span style="color: #666;"># Mevcut kullan&#305;labilir miktar</span>
+    'original_quantity': 21,         <span style="color: #666;"># &#304;lk &uuml;retildi&#287;indeki miktar</span>
+    'structure': '1.8mm',            <span style="color: #666;"># Yap&#305; form&uuml;l&uuml;</span>
+    'specification': '1.8mm Tel',    <span style="color: #666;"># Okunabilir ad</span>
+    'status': 'active' | 'inactive', <span style="color: #666;"># Inactive = tamamen t&uuml;ketildi</span>
+    'produced_by_step': 1,           <span style="color: #666;"># Hangi ad&#305;m olu&scedil;turdu</span>
+    'consumed_by_steps': [2],        <span style="color: #666;"># Bundan t&uuml;keten ad&#305;mlar</span>
+    'machine_type': 'kabatel_cekme', <span style="color: #666;"># Kaynak makine</span>
+    'properties': { ... }            <span style="color: #666;"># Makineye &ouml;zel veri</span>
+}</pre>
+
+        <p><strong>Temel kurallar:</strong></p>
+        <ul>
+            <li>Oturum her zaman bir &ouml;&#287;eyle ba&scedil;lar: <code>RAW_COPPER_8MM</code> (8mm filma&scedil;in, miktar 1)</li>
+            <li>Bir ad&#305;m &ouml;&#287;e t&uuml;ketti&#287;inde miktarlar&#305; azal&#305;r. 0&rsquo;a d&uuml;&scedil;t&uuml;&#287;&uuml;nde durum <code>inactive</code> olur.</li>
+            <li>Bir ad&#305;m &ouml;&#287;e &uuml;retti&#287;inde yeni <code>ProgressionItem</code>&rsquo;lar olu&scedil;turulup eklenir.</li>
+            <li>Her makine t&uuml;r&uuml;n&uuml;n t&uuml;ketim/&uuml;retim mant&#305;&#287;&#305;n&#305; y&ouml;neten kendi <code>process_*</code> metodu vard&#305;r.</li>
+            <li>Ayn&#305; kodlu &ouml;&#287;eler birle&scedil;tirilir (miktar toplan&#305;r) &mdash; paralel s&uuml;re&ccedil; &ccedil;&#305;k&#305;&scedil;lar&#305; hari&ccedil;.</li>
+        </ul>
+
+        <h4>Miktar Takibi &Ouml;rne&#287;i &mdash; 6mm&sup2; Kablo</h4>
+
+        <div class="flow">
+            <span class="flow-step">8mm Filma&scedil;in (mkt: 1)</span>
+            <span class="flow-arrow">&rarr; KC</span>
+            <span class="flow-step">1.8mm Tel (mkt: 1)</span>
+            <span class="flow-arrow">&rarr; KL (adet=21)</span>
+            <span class="flow-step">1.8mm Kalayl&#305; (mkt: 21)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">&darr; IC (10 t&uuml;ketildi)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">10&times;0.30 (mkt: 4)</span>
+            <span class="flow-arrow">&nbsp;&nbsp;&nbsp;</span>
+            <span class="flow-step">&darr; IC (11 t&uuml;ketildi)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">11&times;0.30 (mkt: 3)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">&darr; Buncher (4+3)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">BN_17X030 (mkt: 1)</span>
+            <span class="flow-arrow">&rarr; EX</span>
+            <span class="flow-step">U_17X030+INS+SHT (mkt: 1)</span>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Kritik adet parametresi:</strong> Kalaylama ad&#305;m&#305;nda <code>adet=21</code>, t&uuml;m 6mm&sup2; kablo tasar&#305;m&#305;n&#305;n &ccedil;al&#305;&scedil;mas&#305;n&#305; sa&#287;layan &scedil;eydir. Kalaylama 1 giri&scedil; t&uuml;ketir ama 21 par&ccedil;a &uuml;retir, bunlar daha sonra iki paralel &#304;ncetel &Ccedil;ekme s&uuml;reci aras&#305;nda b&ouml;l&uuml;n&uuml;r (10+11=21). Bu miktar takibi, ilerleme sisteminin temel yenilik&ccedil;ili&#287;idir.</p>
+        </div>
+
+        <h4>Checkpoint/Geri Y&uuml;kleme ile Atomik &#304;&scedil;lemler</h4>
+
+        <p>Her konfig&uuml;rasyon denemesi atomik bir i&scedil;lemle sar&#305;l&#305;r:</p>
+
+        <div class="flow">
+            <span class="flow-step">Checkpoint olu&scedil;tur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Konfig uygula</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ad&#305;m&#305; sim&uuml;le et</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ba&scedil;ar&#305;l&#305;? Koru. Ba&scedil;ar&#305;s&#305;z? Checkpoint&rsquo;e d&ouml;n.</span>
+        </div>
+
+        <p><code>StateSnapshot</code>, oturumun tam durumunu yakalar (ad&#305;mlar + ilerleme &ouml;&#287;eleri + t&uuml;ketim g&uuml;nl&uuml;&#287;&uuml; + ad&#305;m saya&ccedil;). Ba&scedil;ar&#305;s&#305;zl&#305;kta oturum tam olarak &ouml;nceki durumuna geri y&uuml;klenir.</p>
+
+        <h3>6.5.3 API Endpoint&rsquo;ler &mdash; 30+ Endpoint</h3>
+
+        <h4>Oturum Y&ouml;netimi</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/start</code></td><td>Standart + kesit ile oturum ba&scedil;lat. session_id + ba&scedil;lang&#305;&ccedil; durumu d&ouml;ner.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/state</code></td><td>Tam oturum durumunu al (ad&#305;mlar + ilerleme + &ouml;zet).</td></tr>
+        </table>
+
+        <h4>Ad&#305;m Y&ouml;netimi</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/steps/add</code></td><td>Makine ad&#305;m&#305; ekle (s&#305;ral&#305; veya paralel). Ak&#305;&scedil; k&#305;s&#305;tlamalar&#305;n&#305; do&#287;rular.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/playground/{id}/steps/{step_id}</code></td><td>T&uuml;ketilen &ouml;&#287;elerin tam geri al&#305;m&#305;yla ad&#305;m&#305; kald&#305;r. Etkilenen ba&#287;&#305;ml&#305; ad&#305;mlar&#305; bildirir.</td></tr>
+        </table>
+
+        <h4>Form Verileri (makine t&uuml;r&uuml;ne g&ouml;re)</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/kabatel-cekme</code></td><td>Makineler, sabit giri&scedil; (8mm), standarda uygun testler</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/kalaylama</code></td><td>Makineler, ilerlemeden giri&scedil;ler (KC &ccedil;&#305;k&#305;&scedil;lar&#305;), testler</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/incetel-cekme</code></td><td>Makineler, max_quantity ile kalayl&#305; giri&scedil;ler, makine giri&scedil; limitleri</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/buncher</code></td><td>Makineler, miktarl&#305; Z/T/U kodlu giri&scedil;ler, b&uuml;k&uuml;m y&ouml;nleri</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/extruder</code></td><td>Makineler, T/U kodlu giri&scedil;ler, katman se&ccedil;enekleri (izolasyon/k&#305;l&#305;f + kataliz&ouml;r/boya)</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/ebeam</code></td><td>Makineler, <strong>sadece kataliz&ouml;rs&uuml;z</strong> ekstr&uuml;der &ccedil;&#305;k&#305;&scedil;lar&#305;</td></tr>
+        </table>
+
+        <h4>Makine Konfig&uuml;rasyonu (t&uuml;re g&ouml;re)</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/kabatel-cekme/{step}</code></td><td>KC konfig&uuml;re: output_diameter, speed, tav, adet</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/kalaylama/{step}</code></td><td>KL konfig&uuml;re: giri&scedil; se&ccedil;imi, tin_thickness, speed, <strong>adet</strong></td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/incetel-cekme/{step}</code></td><td>IC konfig&uuml;re: giri&scedil;, input_number, output_diameter, output_number</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/buncher/{step}</code></td><td>BN konfig&uuml;re: dinamik giri&scedil;ler, hatve, b&uuml;k&uuml;m y&ouml;n&uuml;</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/extruder/{step}</code></td><td>EX konfig&uuml;re: giri&scedil;ler (ikiz i&ccedil;in 1+), izolasyon/k&#305;l&#305;f katmanlar&#305;</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/ebeam/{step}</code></td><td>EB konfig&uuml;re: giri&scedil; se&ccedil;imi (kataliz&ouml;rs&uuml;z)</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/playground/{id}/configure/{step}/edit</code></td><td>Zaten konfig&uuml;re edilmi&scedil; ad&#305;m&#305; d&uuml;zenle (geri al + yeniden uygula)</td></tr>
+        </table>
+
+        <h4>Kapasite Kesi&scedil;imi</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/calculate-intersection/{type}</code></td><td>Se&ccedil;ilen makine ID&rsquo;leri verildi&#287;inde, sadece T&Uuml;M&Uuml;N&Uuml;N &uuml;retebilece&#287;i de&#287;erleri d&ouml;ner. Kullan&#305;c&#305; makine onay kutusunu i&scedil;aretleyip kald&#305;rd&#305;&#287;&#305;nda dinamik olarak &ccedil;a&#287;r&#305;l&#305;r.</td></tr>
+        </table>
+
+        <h4>Geri Al/Yinele &amp; Otomatik Kaydetme</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/undo</code></td><td>Ge&ccedil;mi&scedil; y&#305;&#287;&#305;n&#305;ndan &ccedil;&#305;kar, mevcut durumu yinele y&#305;&#287;&#305;n&#305;na it</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/redo</code></td><td>Yinele y&#305;&#287;&#305;n&#305;ndan &ccedil;&#305;kar, mevcut durumu ge&ccedil;mi&scedil; y&#305;&#287;&#305;n&#305;na it</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/history</code></td><td>Geri al&#305;nabilir mi? Yinelenebilir mi? Y&#305;&#287;&#305;n boyutlar&#305;.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/autosave</code></td><td>Oturum durumunu kaydet, kaydedildi olarak i&scedil;aretle</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/autosave-status</code></td><td>A&ccedil;&#305;k m&#305;, aral&#305;k, son kaydetmeden bu yana ge&ccedil;en saniye</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/playground/{id}/autosave-settings</code></td><td>A&ccedil;/kapat, aral&#305;&#287;&#305; de&#287;i&scedil;tir</td></tr>
+        </table>
+
+        <h4>Do&#287;rulama &amp; Sonland&#305;rma</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/validate/{step}</code></td><td>Kuru &ccedil;al&#305;&scedil;t&#305;rma do&#287;rulamas&#305;: giri&scedil;lerin varl&#305;&#287;&#305;n&#305;, miktarlar&#305;n yeterlili&#287;ini kontrol eder</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/finalize</code></td><td>Tasar&#305;m&#305; sonland&#305;r &rarr; tek i&scedil;lemde <code>cable_designs</code> + <code>design_steps</code> + <code>cable_database</code>&rsquo;e kaydeder</td></tr>
+        </table>
+
+        <h3>6.5.4 Makine Konfig&uuml;rasyon &Scedil;emalar&#305;</h3>
+
+        <p>Her makine t&uuml;r&uuml;n&uuml;n form alanlar&#305;n&#305; s&#305;ras&#305;yla tan&#305;mlayan bir Pydantic &scedil;emas&#305; vard&#305;r:</p>
+
+        <table>
+            <tr><th>Makine</th><th>&Scedil;ema</th><th>Alanlar (s&#305;ras&#305;yla)</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td><code>KabatelCekmeConfig</code></td><td>alternative_machines, input_type (sabit), output_diameter, speed, tav, adet, tests</td></tr>
+            <tr><td>Kalaylama</td><td><code>KalaylamaConfig</code></td><td>alternative_machines, input_item_id, tin_thickness, speed, adet, tests</td></tr>
+            <tr><td>&#304;ncetel &Ccedil;ekme</td><td><code>IncetelCekmeConfig</code></td><td>alternative_machines, input_item_id, input_number, output_diameter, speed, tav, output_number, tests</td></tr>
+            <tr><td>Buncher</td><td><code>BuncherConfig</code></td><td>alternative_machines, inputs (List[BuncherInputBlock]), adet, speed, hatve, twist_direction, tests</td></tr>
+            <tr><td>Extruder</td><td><code>ExtruderConfig</code></td><td>alternative_machines, inputs (ikiz i&ccedil;in 1+), insulation_*, sheath_*, speed, tests. <strong>Adet yok</strong> (her zaman 1).</td></tr>
+            <tr><td>E-beam</td><td><code>EbeamConfig</code></td><td>alternative_machines, input_item_id, tests. H&#305;z/radyasyon &uuml;retim zaman&#305;nda belirlenir.</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>E-beam yaln&#305;zca tasar&#305;m i&ccedil;indir:</strong> Di&#287;er makinelerden farkl&#305; olarak, E-beam&rsquo;in h&#305;z&#305; ve radyasyon seviyesi tasar&#305;m s&#305;ras&#305;nda <em>belirlenmez</em>. Bunlar kablonun malzeme &ouml;zelliklerine g&ouml;re belirlenen &uuml;retim zaman&#305; parametreleridir. Playground yaln&#305;zca <em>hangi</em> kablonun E-beam&rsquo;den ge&ccedil;ece&#287;ini kaydeder ve testler atar.</p>
+        </div>
+
+        <h3>6.5.5 Kapasite Kesi&scedil;imi &mdash; &Ccedil;oklu Makine Esnekli&#287;i</h3>
+
+        <p>Kullan&#305;c&#305; bir ad&#305;m i&ccedil;in birden fazla alternatif makine se&ccedil;ti&#287;inde, sistem kapasite aral&#305;klar&#305;n&#305;n <strong>kesi&scedil;imini</strong> hesaplar. A&ccedil;&#305;l&#305;r men&uuml;lerde yaln&#305;zca se&ccedil;ilen <em>t&uuml;m</em> makinelerin &uuml;retebilece&#287;i de&#287;erler g&ouml;r&uuml;n&uuml;r.</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># Makine A h&#305;z se&ccedil;enekleri: [5, 10, 15, 20, 25]</span>
+<span style="color: #666;"># Makine B h&#305;z se&ccedil;enekleri: [10, 15, 20, 25, 30]</span>
+<span style="color: #666;"># Kesi&scedil;im: [10, 15, 20, 25]</span>
+<span style="color: #666;"># Bu, kesi&scedil;imdeki herhangi bir de&#287;erin se&ccedil;ilen</span>
+<span style="color: #666;"># HERHANGI B&#304;R makinede &uuml;retilebilece&#287;i anlam&#305;na gelir &rarr; &uuml;retim esnekli&#287;i</span></pre>
+
+        <p>Bu, kullan&#305;c&#305; konfig&uuml;rasyon &ccedil;ekmecesinde bir makine onay kutusunu her i&scedil;aretledi&#287;inde veya kald&#305;rd&#305;&#287;&#305;nda <code>POST /calculate-intersection/{machine_type}</code> &uuml;zerinden dinamik olarak &ccedil;a&#287;r&#305;l&#305;r.</p>
+
+        <h3>6.5.6 Deterministik Kod &Uuml;retimi</h3>
+
+        <p><code>CableCodeGenerator</code>, <strong>ayn&#305; &uuml;r&uuml;nlerin her zaman ayn&#305; kodu almas&#305;n&#305;</strong> sa&#287;lar; bu stok y&ouml;netimi i&ccedil;in kritiktir:</p>
+
+        <table>
+            <tr><th>&Uuml;r&uuml;n T&uuml;r&uuml;</th><th>Kod Format&#305;</th><th>&Ouml;rnek</th></tr>
+            <tr><td>Ham malzeme</td><td><code>RAW_XX_spec</code></td><td><code>RAW_COPPER_8MM</code></td></tr>
+            <tr><td>Yar&#305; mamul</td><td><code>HALF_MC_spec</code></td><td><code>HALF_KC_180</code> (Kabatel&rsquo;den 1.8mm tel)</td></tr>
+            <tr><td>Nihai kablo</td><td><code>EN-6MM2-yap&#305;-I07-S08</code></td><td><code>EN-6MM2-17X030-I07-S08</code></td></tr>
+        </table>
+
+        <p>Tam spesifikasyonlardan (product_type + machine_type + giri&scedil;ler + &ccedil;&#305;k&#305;&scedil;lar + parametreler) deterministlik i&ccedil;in <code>sort_keys=True</code> ile SHA256 <code>spec_hash</code> hesaplan&#305;r. Ayn&#305; hash&rsquo;e sahip bir &uuml;r&uuml;n <code>product_codes</code>&rsquo;da zaten varsa, mevcut system_code d&ouml;ner. Yoksa &ccedil;ak&#305;&scedil;ma y&ouml;netimiyle (s&#305;ra eki <code>_001</code>, <code>_002</code> vb.) yeni bir kod &uuml;retilir.</p>
+
+        <h3>6.5.7 &Ouml;zel Kablo T&uuml;rleri</h3>
+
+        <h4>&#304;kiz Kablolar (Extruder)</h4>
+        <p>Extruder, ikiz/&uuml;&ccedil;&uuml;z kablolar i&ccedil;in <strong>&ccedil;oklu giri&scedil;</strong> destekler. Yap&#305;da <code>||</code> ay&#305;r&#305;c&#305;s&#305; kullan&#305;l&#305;r: <code>(kablo1 || kablo2)+SHT_0.8mm</code>. Frontend <code>||</code>&rsquo;dan ikiz say&#305;s&#305;n&#305; tespit eder ve T&uuml;rk&ccedil;e adlar &uuml;retir: &#304;kiz, &Uuml;&ccedil;&uuml;z, D&ouml;rd&uuml;z, Be&scedil;iz.</p>
+
+        <h4>&Ccedil;ok Damarl&#305; Kablolar (Extruder &rarr; Buncher &rarr; Extruder)</h4>
+        <p>&Ccedil;ok damarl&#305; kablolar i&ccedil;in ak&#305;&scedil; d&ouml;ng&uuml; yapar: Extruder tek damarlar&#305; izole eder, Buncher izoleli damarlar&#305; gruplar, sonra Extruder d&#305;&scedil; k&#305;l&#305;f&#305; uygular. Sistem bunu yap&#305; form&uuml;l&uuml;ndeki <code>INS_</code> desenlerinden tespit eder.</p>
+
+        <h4>E-beam Kablolar (Kataliz&ouml;rs&uuml;z)</h4>
+        <p>E-beam &ccedil;apraz ba&#287;lama, kimyasal kataliz&ouml;r&uuml;n yerini al&#305;r. Form entegrasyonu, kataliz&ouml;rl&uuml; kablolar&#305; E-beam giri&scedil; a&ccedil;&#305;l&#305;r men&uuml;s&uuml;nden <strong>tamamen gizler</strong> &mdash; ge&ccedil;ersiz kombinasyonlar&#305; &ouml;nlemek i&ccedil;in hi&ccedil; g&ouml;sterilmezler.</p>
+
+        <h3>6.5.8 Frontend &mdash; Playground Sayfas&#305;</h3>
+
+        <p>Ana dosya: <code>src/pages/Teknik/CablePlayground/index.tsx</code> (947 sat&#305;r), 7 bile&scedil;en dosyas&#305; ve 1 &ouml;zel hook ile.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>CablePlayground (index.tsx)</h4>
+                <p>Ana orkestrat&ouml;r. Oturum ba&scedil;latma modal&#305; (standart + kesit se&ccedil;imi), g&ouml;r&uuml;n&uuml;m modu de&#287;i&scedil;tirme (ak&#305;&scedil;/zaman &ccedil;izelgesi/kod), geri al/yinele/otomatik kaydetme kontrolleri.</p>
+            </div>
+            <div class="arch-box">
+                <h4>FlowCanvas</h4>
+                <p>S&uuml;r&uuml;kle-b&#305;rak makine yerle&scedil;tirme ile g&ouml;rsel ak&#305;&scedil; diyagram&#305;. &Uuml;retim ad&#305;mlar&#305;n&#305; ba&#287;l&#305; d&uuml;&#287;&uuml;mler olarak g&ouml;sterir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ConfigurationDrawer</h4>
+                <p>~1.215 sat&#305;r. En b&uuml;y&uuml;k bile&scedil;en. Makine konfig&uuml;re edilirken yan &ccedil;ekmece olarak a&ccedil;&#305;l&#305;r. Makine t&uuml;r&uuml;ne g&ouml;re dinamik formlar. Makine onay kutusu de&#287;i&scedil;ikli&#287;inde kesi&scedil;im hesaplamas&#305;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProgressionPanel</h4>
+                <p>Sa&#287; taraf paneli. T&uuml;m &ouml;&#287;eleri (aktif/inaktif) miktarlar, kodlar, yap&#305;larla g&ouml;sterir. Sonraki ad&#305;mlar i&ccedil;in giri&scedil; se&ccedil;imini y&ouml;nlendirir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>MachineLibrary</h4>
+                <p>S&uuml;r&uuml;klenebilir makine paleti. 6 makine t&uuml;r&uuml; ikon ve etiketlerle.</p>
+            </div>
+            <div class="arch-box">
+                <h4>usePlayground Hook</h4>
+                <p>591 sat&#305;r. T&uuml;m API entegrasyonu. Oturum durumunu, y&uuml;kleme durumlar&#305;n&#305;, hata y&ouml;netimini y&ouml;netir. localStorage &uuml;zerinden Bearer token kimlik do&#287;rulama.</p>
+            </div>
+        </div>
+
+        <h4>Oturum Ba&scedil;latma Ak&#305;&scedil;&#305;</h4>
+        <div class="flow">
+            <span class="flow-step">&ldquo;Oturum Ba&scedil;lat&rdquo; t&#305;kla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal: EN/UL/SLN + kesit se&ccedil;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /playground/start</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Canvas, ilerlemede 8mm filma&scedil;in ile g&ouml;r&uuml;n&uuml;r</span>
+        </div>
+
+        <h4>Makine Konfig&uuml;rasyon Ak&#305;&scedil;&#305;</h4>
+        <div class="flow">
+            <span class="flow-step">K&uuml;t&uuml;phaneden makine ekle</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /steps/add</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Canvas&rsquo;ta makine d&uuml;&#287;&uuml;m&uuml;ne t&#305;kla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">GET /form-data/{t&uuml;r}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">ConfigurationDrawer a&ccedil;&#305;l&#305;r</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Makine se&ccedil; &rarr; POST /calculate-intersection</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">A&ccedil;&#305;l&#305;r men&uuml;ler dinamik g&uuml;ncellenir</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Formu doldur &rarr; POST /configure/{t&uuml;r}/{ad&#305;m}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&#304;lerleme g&uuml;ncellenir</span>
+        </div>
+
+        <h2 id="cable-database" style="margin-top: 48px;">6.6 Kablo Veritaban&#305; (Cable Database)</h2>
+
+        <h3>6.6.1 Ne Kaydedilir &mdash; Sonland&#305;rma S&uuml;reci</h3>
+
+        <p>Kullan&#305;c&#305; Playground&rsquo;da &ldquo;Sonland&#305;r&rdquo; d&uuml;&#287;mesine bast&#305;&#287;&#305;nda, sistem tek bir veritaban&#305; i&scedil;leminde &uuml;&ccedil; &scedil;ey kaydeder:</p>
+
+        <table>
+            <tr><th>Tablo</th><th>Ne Kaydedilir</th></tr>
+            <tr><td><code>cable_designs</code></td><td>Tasar&#305;m meta verileri: kod, ad, standart, kesit, tam JSON design_data, onay durumu, olu&scedil;turan</td></tr>
+            <tr><td><code>design_steps</code></td><td>Her &uuml;retim ad&#305;m&#305;: step_number, machine_type, parallel_group, machine_ids, giri&scedil;ler/&ccedil;&#305;k&#305;&scedil;lar/konfig&uuml;rasyon/testler JSON olarak</td></tr>
+            <tr><td><code>cable_database</code></td><td>Sonland&#305;r&#305;lm&#305;&scedil; kablo kayd&#305;: cable_code, cable_type, cross_section, structure_formula, production_flow, half_products, raw_materials, test_requirements (t&uuml;m&uuml; JSON)</td></tr>
+        </table>
+
+        <h3>6.6.2 Veritaban&#305; &Scedil;emas&#305; &mdash; 4 Tablo</h3>
+
+        <h4>cable_designs</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>T&uuml;r</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Benzersiz ID</td></tr>
+            <tr><td><code>design_code</code></td><td>String(50) UNIQUE</td><td>&Uuml;retilen kod</td></tr>
+            <tr><td><code>design_name</code></td><td>String(200)</td><td>&#304;ste&#287;e ba&#287;l&#305; ad</td></tr>
+            <tr><td><code>standard</code></td><td>String(50), CHECK IN (EN, UL, SLN)</td><td>Kablo standard&#305;</td></tr>
+            <tr><td><code>cross_section</code></td><td>String(50)</td><td>&ouml;r. &ldquo;6mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>design_data</code></td><td>Text (JSON)</td><td>Tam oturum durumu</td></tr>
+            <tr><td><code>is_approved</code></td><td>Boolean</td><td>Basitle&scedil;tirilmi&scedil; i&scedil; ak&#305;&scedil;&#305;nda otomatik onayl&#305;</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Ge&ccedil;ici silme</td></tr>
+            <tr><td><code>created_by / approved_by</code></td><td>Integer FK &rarr; users</td><td>Kullan&#305;c&#305; takibi</td></tr>
+        </table>
+
+        <h4>design_steps</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>T&uuml;r</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Benzersiz ID</td></tr>
+            <tr><td><code>design_id</code></td><td>Integer FK &rarr; cable_designs (CASCADE)</td><td>&Uuml;st tasar&#305;m</td></tr>
+            <tr><td><code>step_number</code></td><td>Integer</td><td>S&#305;ral&#305; konum</td></tr>
+            <tr><td><code>is_parallel / parallel_group</code></td><td>Boolean / Integer</td><td>Paralel i&scedil;leme deste&#287;i</td></tr>
+            <tr><td><code>machine_type</code></td><td>String(50)</td><td>kabatel_cekme, kalaylama vb.</td></tr>
+            <tr><td><code>machine_ids</code></td><td>Text</td><td>Virg&uuml;lle ayr&#305;lm&#305;&scedil; alternatif makine ID&rsquo;leri</td></tr>
+            <tr><td><code>configuration</code></td><td>Text (JSON)</td><td>Tam makine konfig&uuml;rasyonu</td></tr>
+            <tr><td><code>inputs / outputs / tests</code></td><td>Text (her biri JSON)</td><td>Ad&#305;m G/&Ccedil; ve test atamalar&#305;</td></tr>
+        </table>
+
+        <p>Benzersiz k&#305;s&#305;t: <code>(design_id, step_number, parallel_group)</code></p>
+
+        <h4>cable_database &mdash; Ana Kay&#305;t</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>T&uuml;r</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Benzersiz ID</td></tr>
+            <tr><td><code>design_id</code></td><td>Integer FK &rarr; cable_designs</td><td>Kaynak tasar&#305;m</td></tr>
+            <tr><td><code>cable_code</code></td><td>String(100) UNIQUE, indeksli</td><td>Her yerde kullan&#305;lan benzersiz kablo tan&#305;mlay&#305;c&#305;s&#305;</td></tr>
+            <tr><td><code>standard</code></td><td>String(50)</td><td>EN, UL, SLN</td></tr>
+            <tr><td><code>cable_type</code></td><td>String(200)</td><td>&ouml;r. &ldquo;EN 6mm&sup2; Klasik Kablo&rdquo;</td></tr>
+            <tr><td><code>cross_section</code></td><td>String(50)</td><td>&ouml;r. &ldquo;6mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>structure_formula</code></td><td>Text</td><td>Tam yap&#305; notasyonu</td></tr>
+            <tr><td><code>production_flow</code></td><td>Text (JSON)</td><td>Konfig&uuml;rasyonlarla ad&#305;m ad&#305;m &uuml;retim dizisi</td></tr>
+            <tr><td><code>half_products</code></td><td>Text (JSON)</td><td>&Ouml;zelliklerle t&uuml;m ara &uuml;r&uuml;nler</td></tr>
+            <tr><td><code>raw_materials</code></td><td>Text (JSON)</td><td>Gerekli hammaddeler (A=Bak&#305;r, B=Kalay, C=Plastik, D=Kataliz&ouml;r, E=Boya)</td></tr>
+            <tr><td><code>test_requirements</code></td><td>Text (JSON)</td><td>Frekanslarla her ad&#305;mda atanm&#305;&scedil; testler</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Ge&ccedil;ici silme</td></tr>
+        </table>
+
+        <h4>product_codes &mdash; Stok Y&ouml;netimi K&ouml;pr&uuml;s&uuml;</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>T&uuml;r</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>system_code</code></td><td>String(100) UNIQUE</td><td>Okunabilir kod (HALF_KC_180)</td></tr>
+            <tr><td><code>spec_hash</code></td><td>String(256) UNIQUE</td><td>Spesifikasyonlar&#305;n SHA256&rsquo;s&#305; (deterministik)</td></tr>
+            <tr><td><code>product_type</code></td><td>String(50)</td><td>raw / half / final</td></tr>
+            <tr><td><code>machine_type</code></td><td>String(50)</td><td>Hangi makine &uuml;retir</td></tr>
+            <tr><td><code>display_name_tr / en</code></td><td>String(200)</td><td>T&uuml;rk&ccedil;e/&#304;ngilizce g&ouml;r&uuml;nt&uuml;leme adlar&#305;</td></tr>
+            <tr><td><code>used_in_designs</code></td><td>Text (JSON)</td><td>Bu &uuml;r&uuml;n&uuml; kullanan kablo kodlar&#305; dizisi</td></tr>
+            <tr><td><code>stock_level</code></td><td>Float</td><td>Mevcut stok miktar&#305;</td></tr>
+        </table>
+
+        <h3>6.6.3 Kablo Veritaban&#305; API &mdash; 15+ Endpoint</h3>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Kablolar&#305; listele. Filtreler: arama, kesit, sadece_aktif. &#304;kiz/damar/katman tespitli display_name &uuml;retir.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Koda g&ouml;re tek kablo.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}/full</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Malzeme hesaplay&#305;c&#305; i&ccedil;in <strong>eksiksiz ham veri</strong>. T&Uuml;M &ouml;zelliklerle half_products d&ouml;ner.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}/production-flow</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Ad&#305;m ad&#305;m &uuml;retim dizisi.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}/half-products</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>T&uuml;m ara &uuml;r&uuml;nler.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}/requirements</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Hammaddeler + test gereksinimleri.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{kod}/parsed-structure</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Sipari&scedil; formlar&#305; i&ccedil;in ekstr&uuml;zyon ad&#305;mlar&#305;na ayr&#305;&scedil;t&#305;r&#305;lm&#305;&scedil; yap&#305;.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/cable-database/{kod}/deactivate</code></td><td>super_admin, &uuml;retim_m&uuml;d&uuml;r&uuml;</td><td>Ge&ccedil;ici silme (is_active=false).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/cable-database/{kod}/permanent</code></td><td>super_admin</td><td>Kablo + ili&scedil;kili tasar&#305;m&#305; kal&#305;c&#305; sil. Ger&ccedil;ek zamanl&#305; g&uuml;ncelleme yay&#305;nlar.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/products/codes</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Filtrelerle t&uuml;m &uuml;r&uuml;n kodlar&#305;n&#305; listele.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/products/{kod}/usage</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Hangi kablolar bu &uuml;r&uuml;n&uuml; kullan&#305;yor + stok seviyesi.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/products/{kod}/stock</code></td><td>super_admin, &uuml;retim_m&uuml;d&uuml;r&uuml;, operat&ouml;r</td><td>Stok seviyesini g&uuml;ncelle.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/analytics/common-products</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>2+ kabloda kullan&#305;lan &uuml;r&uuml;nler (stok optimizasyonu).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/analytics/production-efficiency</code></td><td>Do&#287;rulanm&#305;&scedil;</td><td>Yeniden kullan&#305;m %, verimlilik puan&#305;, &ouml;neriler.</td></tr>
+        </table>
+
+        <h3>6.6.4 Frontend &mdash; Kablo Veritaban&#305; Sayfas&#305;</h3>
+
+        <p>Tek dosya: <code>src/pages/Teknik/CableDatabase/index.tsx</code> (691 sat&#305;r). Rota: <code>/teknik/kablo-veritabani</code>.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>ProTable</h4>
+                <p>T&uuml;m kablolar&#305; display_name, cable_code, standard, cross_section, durum ile listeleyen ana veri tablosu. &#304;stemci taraf&#305; arama.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Detay &Ccedil;ekmecesi</h4>
+                <p>Kabloya t&#305;kland&#305;&#287;&#305;nda a&ccedil;&#305;l&#305;r. Sekmeler: &Uuml;retim Ak&#305;&scedil;&#305; (Zaman &ccedil;izelgesi g&ouml;rselle&scedil;tirme), Yar&#305; Mamuller (Liste), Gereksinimler (hammaddeler + testler).</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProductionFlowViewer</h4>
+                <p>Makine ikonlar&#305;, parametreler ve paralel g&ouml;stergelerle her &uuml;retim ad&#305;m&#305;n&#305; g&ouml;steren Ant Design Timeline bile&scedil;eni.</p>
+            </div>
+        </div>
+
+        <h3>6.6.5 Kablo Veritaban&#305; Sistemin Geri Kalan&#305;n&#305; Nas&#305;l Besler</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; Mod&uuml;l&uuml;</h4>
+                <p>Sipari&scedil; olu&scedil;turma, kablo veritaban&#305;ndan kablo tasar&#305;mlar&#305;n&#305; &ccedil;eker. Her sipari&scedil; kablosu <code>cable_code</code> saklar. <code>/parsed-structure</code> endpoint&rsquo;i, dinamik malzeme se&ccedil;imi i&ccedil;in (katman ba&scedil;&#305;na plastik, kataliz&ouml;r, boya) ekstr&uuml;zyon ad&#305;m verilerini sa&#287;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Planlama</h4>
+                <p>&#304;&scedil; kart&#305; &uuml;reteci, her makine ad&#305;m&#305; i&ccedil;in i&scedil; kartlar&#305; olu&scedil;turmak &uuml;zere <code>production_flow</code> ve <code>half_products</code>&rsquo;&#305; okur. <code>/full</code> endpoint&rsquo;i malzeme hesaplamalar&#305; i&ccedil;in eksiksiz veri sa&#287;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Malzeme Hesaplay&#305;c&#305;</h4>
+                <p>half_products &ouml;zelliklerine (wire_count, wire_groups, bundle_diameter) dayanarak hammadde miktarlar&#305;n&#305; (bak&#305;r kg, plastik kg, kalay kg, kataliz&ouml;r kg, boya kg) hesaplamak i&ccedil;in kablo veritaban&#305;n&#305; okur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Stok Mod&uuml;l&uuml;</h4>
+                <p>Kablo veritaban&#305;ndaki &uuml;r&uuml;n kodlar&#305; stok takibine ba&#287;lan&#305;r. Birden fazla kabloda kullan&#305;lan ayn&#305; yar&#305; mamul = payla&scedil;&#305;lan stok. <code>used_in_designs</code> dizisi kablolar aras&#305; stok optimizasyonunu m&uuml;mk&uuml;n k&#305;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Genel Arama</h4>
+                <p>Arama mod&uuml;l&uuml;, sistem geneli arama i&ccedil;in cable_database alanlar&#305;n&#305; (cable_code, cable_type, cross_section, structure_formula) indeksler.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Playground bir <em>&uuml;retim sim&uuml;lasyon motorudur</em>, bir &ccedil;izim arac&#305; de&#287;il. Sadece spesifikasyonlar&#305; kaydetmez &mdash; t&uuml;m imalat mant&#305;&#287;&#305;n&#305; ad&#305;m ad&#305;m y&uuml;r&uuml;t&uuml;r, kesin miktarlar&#305; takip eder, makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305;n&#305; uygular, ger&ccedil;ek makine kapasitelerine kar&scedil;&#305; do&#287;rular ve kapasite kesi&scedil;imlerini hesaplar. Sonu&ccedil;, her alt mod&uuml;l&uuml;n tek do&#287;ru kaynak olarak g&uuml;vendi&#287;i Kablo Veritaban&#305;&rsquo;nda saklanm&#305;&scedil; eksiksiz bir &uuml;retim plan&#305;d&#305;r. Deterministik kod &uuml;retimi, ayn&#305; &uuml;r&uuml;nlerin her zaman ayn&#305; kodu almas&#305;n&#305; sa&#287;layarak farkl&#305; kablo tasar&#305;mlar&#305; aras&#305;nda stok yeniden kullan&#305;m&#305;n&#305; m&uuml;mk&uuml;n k&#305;lar. Atomik checkpoint/geri y&uuml;kleme ile bellek i&ccedil;i oturum mimarisi, hi&ccedil;bir k&#305;smi veya ge&ccedil;ersiz durumun veritaban&#305;na ula&scedil;mamas&#305;n&#305; garanti eder.</p>
+        </div>
+
     </main>
 
 </body>

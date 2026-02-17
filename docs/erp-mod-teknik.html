@@ -1401,6 +1401,502 @@ if cable.marking_id:
             <p style="margin-bottom: 0;"><strong>Design principle:</strong> Template-based marking. Rather than storing free-text marking instructions per order, the system maintains a registry of reusable templates. This ensures consistency &mdash; every order for the same cable type uses the exact same marking text. The ordered word array structure maps directly to how the extruder printing head works: it cycles through the words sequentially, printing each segment with spacing between them along the cable&rsquo;s length. Dynamic variables (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code>, etc.) add order-specific context without creating new templates.</p>
         </div>
 
+
+        <!-- ============================================ -->
+        <!-- 6.5  KABLO TASARIM (CABLE PLAYGROUND)        -->
+        <!--   +  6.6  KABLO VER&Idot;TABANI (CABLE DATABASE)    -->
+        <!-- ============================================ -->
+
+        <h2 id="playground">6.5 &amp; 6.6 Kablo Tasar&inodot;m (Cable Playground) &amp; Kablo Veritaban&inodot; (Cable Database)</h2>
+
+        <p>These two submodules are documented together because they are inseparable: <strong>Playground</strong> is where cables are designed step-by-step using real factory machines, and <strong>Cable Database</strong> is the permanent repository where finalized designs are stored. Every other module in the system &mdash; Orders, Production Planning, Work Cards, Material Calculations, Stock &mdash; ultimately depends on the records that Playground creates and saves into Cable Database.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The convergence point:</strong> This is where every other Teknik submodule merges. Machine Management provides the machines and their capability ranges. Standards Management provides the tests to assign at each step. Operator Management provides the operators who will execute the design. Markalama provides the text printed during extrusion. Playground consumes all of this data to create a complete production blueprint, which gets saved to Cable Database as the single source of truth for the entire manufacturing pipeline.</p>
+        </div>
+
+        <h3>6.5.1 Core Concept &mdash; How Cable Design Works</h3>
+
+        <p>Cable manufacturing follows a strict sequential pipeline. Raw copper (8mm filma&scedil;in) enters the first machine and is progressively transformed through 6 machine types until a finished cable emerges. The Playground simulates this entire process digitally.</p>
+
+        <h4>The Six Machine Types (in order)</h4>
+        <table>
+            <tr><th>#</th><th>Machine</th><th>Input</th><th>Output</th><th>Key Parameters</th></tr>
+            <tr><td>1</td><td><strong>Kabatel &Ccedil;ekme</strong></td><td>8mm filma&scedil;in (raw copper)</td><td>Drawn wire (e.g. 1.8mm)</td><td>output_diameter, speed, tav, adet</td></tr>
+            <tr><td>2</td><td><strong>Kalaylama</strong></td><td>Drawn wire from KC</td><td>Tinned wire (e.g. 21 pieces)</td><td>tin_thickness, speed, <strong>adet</strong> (critical!)</td></tr>
+            <tr><td>3</td><td><strong>&Idot;ncetel &Ccedil;ekme</strong></td><td>Tinned wire from KL</td><td>Fine wire bundles (e.g. 10&times;0.30mm)</td><td>input_number, output_diameter, output_number, tav</td></tr>
+            <tr><td>4</td><td><strong>Buncher</strong></td><td>Fine wires from IC / other BN / EX</td><td>Bunched/twisted wire</td><td>dynamic inputs (+ekle), hatve, twist_direction (S/Z)</td></tr>
+            <tr><td>5</td><td><strong>Extruder</strong></td><td>Bunched wire from BN / other EX</td><td>Insulated/sheathed cable</td><td>insulation_thickness, sheath_thickness, catalyst, dye</td></tr>
+            <tr><td>6</td><td><strong>E-beam</strong></td><td>Extruded cable (no catalyst!)</td><td>Cross-linked cable</td><td>radiation_level, speed (set at production time)</td></tr>
+        </table>
+
+        <h4>Machine Flow Constraints</h4>
+        <p>Not every machine can follow every other machine. The system enforces a directed graph:</p>
+
+        <div class="flow">
+            <span class="flow-step">Kabatel &Ccedil;ekme</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Kalaylama</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Idot;ncetel &Ccedil;ekme</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Buncher</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Extruder</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">E-beam</span>
+        </div>
+
+        <p>Critical loop capabilities:</p>
+        <ul>
+            <li><strong>Buncher &rarr; Buncher:</strong> Multi-stage bunching (bunched wire can be re-bunched)</li>
+            <li><strong>Extruder &rarr; Extruder:</strong> Multi-layer extrusion (insulate first, then sheath)</li>
+            <li><strong>Extruder &rarr; Buncher:</strong> Multi-core cables (insulate individual cores, then bunch them together, then sheath)</li>
+        </ul>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># Machine flow constraints (playground_session.py)</span>
+MACHINE_FLOW = {
+    'kabatel_cekme': ['kalaylama'],
+    'kalaylama':     ['incetel_cekme', 'buncher'],
+    'incetel_cekme': ['buncher', 'extruder'],
+    'buncher':       ['extruder', 'buncher'],    <span style="color: #666;"># Self-loop!</span>
+    'extruder':      ['ebeam', 'extruder'],      <span style="color: #666;"># Self-loop!</span>
+    'ebeam':         []                          <span style="color: #666;"># Terminal</span>
+}</pre>
+
+        <h3>6.5.2 Backend Architecture &mdash; The Engine</h3>
+
+        <p>The Playground backend is built from 8 Python files totaling ~4,700 lines:</p>
+
+        <table>
+            <tr><th>File</th><th>Lines</th><th>Purpose</th></tr>
+            <tr><td><code>design_routes.py</code></td><td>1,155</td><td>API endpoints &mdash; session, steps, config, undo/redo, autosave, finalize</td></tr>
+            <tr><td><code>playground_session.py</code></td><td>986</td><td>Session manager &mdash; step lifecycle, undo/redo stacks, checkpoint/restore</td></tr>
+            <tr><td><code>progression_manager_v2.py</code></td><td>995</td><td>Quantity tracking &mdash; consume inputs, produce outputs, per-machine processing</td></tr>
+            <tr><td><code>db_integration.py</code></td><td>446</td><td>Real machine data &mdash; reads machine tables, capability intersection</td></tr>
+            <tr><td><code>form_integration.py</code></td><td>339</td><td>Form population &mdash; builds dropdown data per machine type</td></tr>
+            <tr><td><code>validation_engine.py</code></td><td>465</td><td>Configuration validation &mdash; checks ranges against machine capabilities</td></tr>
+            <tr><td><code>code_generator.py</code></td><td>291</td><td>Deterministic product codes &mdash; SHA256 hash + human-readable codes</td></tr>
+            <tr><td><code>playground_configs.py</code></td><td>446</td><td>Pydantic schemas &mdash; typed config for each machine type</td></tr>
+        </table>
+
+        <h4>Session Management (In-Memory)</h4>
+
+        <p>Sessions are stored in a Python dictionary (<code>_active_sessions: Dict[str, PlaygroundSession]</code>). Each session contains:</p>
+
+        <ul>
+            <li><strong>session_id:</strong> UUID v4</li>
+            <li><strong>standard:</strong> EN / UL / SLN (selected at session start)</li>
+            <li><strong>cross_section:</strong> e.g. &ldquo;6mm&sup2;&rdquo; (selected at session start)</li>
+            <li><strong>steps:</strong> List of <code>DesignStep</code> dataclass instances</li>
+            <li><strong>progression:</strong> <code>ProgressionManager</code> instance tracking all items</li>
+            <li><strong>history_stack / redo_stack:</strong> <code>StateSnapshot</code> lists (max 50) for undo/redo</li>
+            <li><strong>autosave:</strong> enabled by default, 30-second interval, tracks unsaved changes</li>
+        </ul>
+
+        <h4>The Progression Panel &mdash; Heart of the Design</h4>
+
+        <p>The <code>ProgressionManager</code> maintains a list of <code>ProgressionItem</code> objects. Each item represents a physical product (wire, bunched wire, cable) at some stage of manufacturing:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># ProgressionItem fields</span>
+{
+    'id': 'uuid',                    <span style="color: #666;"># Unique identifier</span>
+    'code': 'KC_18',                 <span style="color: #666;"># Deterministic product code</span>
+    'quantity': 21,                  <span style="color: #666;"># Current available amount</span>
+    'original_quantity': 21,         <span style="color: #666;"># Amount when first produced</span>
+    'structure': '1.8mm',            <span style="color: #666;"># Structure formula</span>
+    'specification': '1.8mm Tel',    <span style="color: #666;"># Human-readable name</span>
+    'status': 'active' | 'inactive', <span style="color: #666;"># Inactive = fully consumed</span>
+    'produced_by_step': 1,           <span style="color: #666;"># Which step created this</span>
+    'consumed_by_steps': [2],        <span style="color: #666;"># Steps that consumed from this</span>
+    'machine_type': 'kabatel_cekme', <span style="color: #666;"># Source machine</span>
+    'properties': { ... }            <span style="color: #666;"># Machine-specific data</span>
+}</pre>
+
+        <p><strong>Key rules:</strong></p>
+        <ul>
+            <li>Session always starts with one item: <code>RAW_COPPER_8MM</code> (8mm filma&scedil;in, qty 1)</li>
+            <li>When a step consumes items, their quantity decreases. At 0, status becomes <code>inactive</code>.</li>
+            <li>When a step produces items, new <code>ProgressionItem</code>s are created and added.</li>
+            <li>Each machine type has its own <code>process_*</code> method that handles consumption/production logic.</li>
+            <li>Same-code items are combined (quantity added) unless they&rsquo;re parallel process outputs.</li>
+        </ul>
+
+        <h4>Quantity Tracking Example &mdash; 6mm&sup2; Cable</h4>
+
+        <div class="flow">
+            <span class="flow-step">8mm Filma&scedil;in (qty: 1)</span>
+            <span class="flow-arrow">&rarr; KC</span>
+            <span class="flow-step">1.8mm Tel (qty: 1)</span>
+            <span class="flow-arrow">&rarr; KL (adet=21)</span>
+            <span class="flow-step">1.8mm Kalay&inodot; (qty: 21)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">&darr; IC (10 consumed)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">10&times;0.30 (qty: 4)</span>
+            <span class="flow-arrow">&nbsp;&nbsp;&nbsp;</span>
+            <span class="flow-step">&darr; IC (11 consumed)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">11&times;0.30 (qty: 3)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">&darr; Buncher (4+3)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">BN_17X030 (qty: 1)</span>
+            <span class="flow-arrow">&rarr; EX</span>
+            <span class="flow-step">U_17X030+INS+SHT (qty: 1)</span>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>The critical adet parameter:</strong> At the Kalaylama step, <code>adet=21</code> is what makes the entire 6mm&sup2; cable work. Kalaylama consumes 1 input but produces 21 pieces, which are then split between two parallel &Idot;ncetel &Ccedil;ekme processes (10+11=21). This quantity tracking is the core innovation of the progression system.</p>
+        </div>
+
+        <h4>Atomic Transactions with Checkpoint/Restore</h4>
+
+        <p>Every configuration attempt is wrapped in an atomic transaction:</p>
+
+        <div class="flow">
+            <span class="flow-step">Create checkpoint</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Apply config</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Simulate step</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Success? Keep. Fail? Restore checkpoint.</span>
+        </div>
+
+        <p>The <code>StateSnapshot</code> captures the complete session state (steps + progression items + consumption log + step counter). On failure, the session is restored to exactly its previous state.</p>
+
+        <h3>6.5.3 API Endpoints &mdash; 30+ Endpoints</h3>
+
+        <h4>Session Management</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/start</code></td><td>Start session with standard + cross_section. Returns session_id + initial state.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/state</code></td><td>Get full session state (steps + progression + summary).</td></tr>
+        </table>
+
+        <h4>Step Management</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/steps/add</code></td><td>Add machine step (sequential or parallel). Validates flow constraints.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/playground/{id}/steps/{step_id}</code></td><td>Remove step with full rollback of consumed items. Reports affected dependent steps.</td></tr>
+        </table>
+
+        <h4>Form Data (per machine type)</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/kabatel-cekme</code></td><td>Machines, fixed input (8mm), tests for standard</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/kalaylama</code></td><td>Machines, inputs from progression (KC outputs), tests</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/incetel-cekme</code></td><td>Machines, tinned inputs with max_quantity, machine input limits</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/buncher</code></td><td>Machines, Z/T/U-coded inputs with quantities, twist directions</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/extruder</code></td><td>Machines, T/U-coded inputs, layer options (ins/sheath + catalyst/dye)</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/form-data/ebeam</code></td><td>Machines, extruder outputs <strong>without catalyst only</strong></td></tr>
+        </table>
+
+        <h4>Machine Configuration (per type)</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/kabatel-cekme/{step}</code></td><td>Configure KC: output_diameter, speed, tav, adet</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/kalaylama/{step}</code></td><td>Configure KL: input selection, tin_thickness, speed, <strong>adet</strong></td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/incetel-cekme/{step}</code></td><td>Configure IC: input, input_number, output_diameter, output_number</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/buncher/{step}</code></td><td>Configure BN: dynamic inputs, hatve, twist_direction</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/extruder/{step}</code></td><td>Configure EX: inputs (1+ for twin), ins/sheath layers</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/configure/ebeam/{step}</code></td><td>Configure EB: input selection (no catalyst)</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/playground/{id}/configure/{step}/edit</code></td><td>Edit already-configured step (rollback + re-apply)</td></tr>
+        </table>
+
+        <h4>Capability Intersection</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/calculate-intersection/{type}</code></td><td>Given selected machine IDs, return only values ALL can produce. Called dynamically when user checks/unchecks machines.</td></tr>
+        </table>
+
+        <h4>Undo/Redo &amp; Autosave</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/undo</code></td><td>Pop from history stack, push current to redo stack</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/redo</code></td><td>Pop from redo stack, push current to history stack</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/history</code></td><td>Can undo? Can redo? Stack sizes.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/autosave</code></td><td>Save session state, mark as saved</td></tr>
+            <tr><td><code>GET</code></td><td><code>/playground/{id}/autosave-status</code></td><td>Enabled, interval, seconds since save</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/playground/{id}/autosave-settings</code></td><td>Toggle enabled, change interval</td></tr>
+        </table>
+
+        <h4>Validation &amp; Finalization</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/validate/{step}</code></td><td>Dry-run validation: checks inputs exist, quantities sufficient</td></tr>
+            <tr><td><code>POST</code></td><td><code>/playground/{id}/finalize</code></td><td>Finalize design &rarr; saves to <code>cable_designs</code> + <code>design_steps</code> + <code>cable_database</code> in one transaction</td></tr>
+        </table>
+
+        <h3>6.5.4 Machine Configuration Schemas</h3>
+
+        <p>Each machine type has a Pydantic schema defining its exact form fields in order:</p>
+
+        <table>
+            <tr><th>Machine</th><th>Schema</th><th>Fields (in order)</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td><code>KabatelCekmeConfig</code></td><td>alternative_machines, input_type (fixed), output_diameter, speed, tav, adet, tests</td></tr>
+            <tr><td>Kalaylama</td><td><code>KalaylamaConfig</code></td><td>alternative_machines, input_item_id, tin_thickness, speed, adet, tests</td></tr>
+            <tr><td>&Idot;ncetel &Ccedil;ekme</td><td><code>IncetelCekmeConfig</code></td><td>alternative_machines, input_item_id, input_number, output_diameter, speed, tav, output_number, tests</td></tr>
+            <tr><td>Buncher</td><td><code>BuncherConfig</code></td><td>alternative_machines, inputs (List[BuncherInputBlock]), adet, speed, hatve, twist_direction, tests</td></tr>
+            <tr><td>Extruder</td><td><code>ExtruderConfig</code></td><td>alternative_machines, inputs (1+ for twin), insulation_*, sheath_*, speed, tests. <strong>No adet</strong> (always 1).</td></tr>
+            <tr><td>E-beam</td><td><code>EbeamConfig</code></td><td>alternative_machines, input_item_id, tests. Speed/radiation set at production time.</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>E-beam is design-only:</strong> Unlike other machines, E-beam&rsquo;s speed and radiation_level are <em>not</em> set during design. They are production-time parameters determined by the cable&rsquo;s material properties. The Playground only records <em>which</em> cable goes through E-beam and assigns tests.</p>
+        </div>
+
+        <h3>6.5.5 Capability Intersection &mdash; Multi-Machine Flexibility</h3>
+
+        <p>When a user selects multiple alternative machines for a step, the system computes the <strong>intersection</strong> of their capability ranges. Only values that <em>all</em> selected machines can produce appear in the dropdowns.</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># Machine A speed options: [5, 10, 15, 20, 25]</span>
+<span style="color: #666;"># Machine B speed options: [10, 15, 20, 25, 30]</span>
+<span style="color: #666;"># Intersection: [10, 15, 20, 25]</span>
+<span style="color: #666;"># This means any value from the intersection can be</span>
+<span style="color: #666;"># produced on ANY selected machine → production flexibility</span></pre>
+
+        <p>This is called dynamically via <code>POST /calculate-intersection/{machine_type}</code> every time the user checks or unchecks a machine checkbox in the configuration drawer.</p>
+
+        <h3>6.5.6 Deterministic Code Generation</h3>
+
+        <p>The <code>CableCodeGenerator</code> ensures that <strong>identical products always get the same code</strong>, critical for stock management:</p>
+
+        <table>
+            <tr><th>Product Type</th><th>Code Format</th><th>Example</th></tr>
+            <tr><td>Raw material</td><td><code>RAW_XX_spec</code></td><td><code>RAW_COPPER_8MM</code></td></tr>
+            <tr><td>Half product</td><td><code>HALF_MC_spec</code></td><td><code>HALF_KC_180</code> (1.8mm wire from Kabatel)</td></tr>
+            <tr><td>Final cable</td><td><code>EN-6MM2-structure-I07-S08</code></td><td><code>EN-6MM2-17X030-I07-S08</code></td></tr>
+        </table>
+
+        <p>A SHA256 <code>spec_hash</code> is computed from the full specifications (product_type + machine_type + inputs + outputs + parameters) with <code>sort_keys=True</code> for determinism. If a product with the same hash already exists in <code>product_codes</code>, its existing system_code is returned. Otherwise, a new code is generated with collision-handling (sequence suffix <code>_001</code>, <code>_002</code>, etc.).</p>
+
+        <h3>6.5.7 Special Cable Types</h3>
+
+        <h4>Twin Cables (Extruder)</h4>
+        <p>Extruder supports <strong>multiple inputs</strong> for twin/triple cables. Structure uses <code>||</code> separator: <code>(cable1 || cable2)+SHT_0.8mm</code>. Frontend detects twin count from <code>||</code> and generates Turkish names: &Idot;kiz, &Uuml;&ccedil;&uuml;z, D&ouml;rd&uuml;z, Be&scedil;iz.</p>
+
+        <h4>Multi-Core Cables (Extruder &rarr; Buncher &rarr; Extruder)</h4>
+        <p>For multi-damar (multi-core) cables, the flow loops: Extruder applies insulation to individual cores, Buncher groups the insulated cores together, then Extruder applies the outer sheath. The system detects this via <code>INS_</code> patterns in the structure formula.</p>
+
+        <h4>E-beam Cables (No Catalyst)</h4>
+        <p>E-beam cross-linking replaces chemical catalyst. The form integration <strong>completely hides</strong> cables with catalyst from the E-beam input dropdown &mdash; they are not shown at all, preventing invalid combinations.</p>
+
+        <h3>6.5.8 Frontend &mdash; Playground Page</h3>
+
+        <p>Main file: <code>src/pages/Teknik/CablePlayground/index.tsx</code> (947 lines) with 7 component files and 1 custom hook.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>CablePlayground (index.tsx)</h4>
+                <p>Main orchestrator. Session start modal (standard + cross-section selection), view mode toggle (flow/timeline/code), undo/redo/autosave controls.</p>
+            </div>
+            <div class="arch-box">
+                <h4>FlowCanvas</h4>
+                <p>Visual flow diagram with drag-drop machine placement. Shows production steps as connected nodes.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ConfigurationDrawer</h4>
+                <p>~1,215 lines. The largest component. Opens as a side drawer when configuring a machine. Dynamic forms per machine type. Intersection calculation on machine checkbox change.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProgressionPanel</h4>
+                <p>Right-side panel showing all items (active/inactive) with quantities, codes, structures. Drives input selection for subsequent steps.</p>
+            </div>
+            <div class="arch-box">
+                <h4>MachineLibrary</h4>
+                <p>Draggable machine palette. 6 machine types with icons and labels.</p>
+            </div>
+            <div class="arch-box">
+                <h4>usePlayground Hook</h4>
+                <p>591 lines. All API integration. Manages session state, loading states, error handling. Bearer token auth via localStorage.</p>
+            </div>
+        </div>
+
+        <h4>Session Start Flow</h4>
+        <div class="flow">
+            <span class="flow-step">Click &ldquo;Oturum Ba&scedil;lat&rdquo;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal: select EN/UL/SLN + cross-section</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /playground/start</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Canvas appears with 8mm filma&scedil;in in progression</span>
+        </div>
+
+        <h4>Machine Configuration Flow</h4>
+        <div class="flow">
+            <span class="flow-step">Add machine from library</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /steps/add</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Click machine node on canvas</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">GET /form-data/{type}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">ConfigurationDrawer opens</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Select machines &rarr; POST /calculate-intersection</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Dropdowns update dynamically</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Fill form &rarr; POST /configure/{type}/{step}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Progression updates</span>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 6.6  CABLE DATABASE                          -->
+        <!-- ============================================ -->
+
+        <h2 id="cable-database" style="margin-top: 48px;">6.6 Kablo Veritaban&inodot; (Cable Database)</h2>
+
+        <h3>6.6.1 What Gets Saved &mdash; The Finalization Process</h3>
+
+        <p>When the user clicks &ldquo;Finalize&rdquo; in the Playground, the system saves three things in one database transaction:</p>
+
+        <table>
+            <tr><th>Table</th><th>What Gets Saved</th></tr>
+            <tr><td><code>cable_designs</code></td><td>Design metadata: code, name, standard, cross_section, full JSON design_data, approval status, created_by</td></tr>
+            <tr><td><code>design_steps</code></td><td>Each production step: step_number, machine_type, parallel_group, machine_ids, inputs/outputs/configuration/tests as JSON</td></tr>
+            <tr><td><code>cable_database</code></td><td>The finalized cable record: cable_code, cable_type, cross_section, structure_formula, production_flow, half_products, raw_materials, test_requirements (all as JSON)</td></tr>
+        </table>
+
+        <h3>6.6.2 Database Schema &mdash; 4 Tables</h3>
+
+        <h4>cable_designs (375 lines model)</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Unique ID</td></tr>
+            <tr><td><code>design_code</code></td><td>String(50) UNIQUE</td><td>Generated code</td></tr>
+            <tr><td><code>design_name</code></td><td>String(200)</td><td>Optional name</td></tr>
+            <tr><td><code>standard</code></td><td>String(50), CHECK IN (EN, UL, SLN)</td><td>Cable standard</td></tr>
+            <tr><td><code>cross_section</code></td><td>String(50)</td><td>e.g. &ldquo;6mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>design_data</code></td><td>Text (JSON)</td><td>Complete session state</td></tr>
+            <tr><td><code>is_approved</code></td><td>Boolean</td><td>Auto-approved in simplified workflow</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Soft delete</td></tr>
+            <tr><td><code>created_by / approved_by</code></td><td>Integer FK &rarr; users</td><td>User tracking</td></tr>
+        </table>
+
+        <h4>design_steps</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Unique ID</td></tr>
+            <tr><td><code>design_id</code></td><td>Integer FK &rarr; cable_designs (CASCADE)</td><td>Parent design</td></tr>
+            <tr><td><code>step_number</code></td><td>Integer</td><td>Sequential position</td></tr>
+            <tr><td><code>is_parallel / parallel_group</code></td><td>Boolean / Integer</td><td>Parallel processing support</td></tr>
+            <tr><td><code>machine_type</code></td><td>String(50)</td><td>kabatel_cekme, kalaylama, etc.</td></tr>
+            <tr><td><code>machine_ids</code></td><td>Text</td><td>Comma-separated alternative machine IDs</td></tr>
+            <tr><td><code>configuration</code></td><td>Text (JSON)</td><td>Full machine config</td></tr>
+            <tr><td><code>inputs / outputs / tests</code></td><td>Text (JSON each)</td><td>Step I/O and test assignments</td></tr>
+        </table>
+
+        <p>Unique constraint: <code>(design_id, step_number, parallel_group)</code></p>
+
+        <h4>cable_database &mdash; The Core Record</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Unique ID</td></tr>
+            <tr><td><code>design_id</code></td><td>Integer FK &rarr; cable_designs</td><td>Source design</td></tr>
+            <tr><td><code>cable_code</code></td><td>String(100) UNIQUE, indexed</td><td>Unique cable identifier used everywhere</td></tr>
+            <tr><td><code>standard</code></td><td>String(50)</td><td>EN, UL, SLN</td></tr>
+            <tr><td><code>cable_type</code></td><td>String(200)</td><td>e.g. &ldquo;EN 6mm&sup2; Klasik Kablo&rdquo;</td></tr>
+            <tr><td><code>cross_section</code></td><td>String(50)</td><td>e.g. &ldquo;6mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>structure_formula</code></td><td>Text</td><td>Full structure notation</td></tr>
+            <tr><td><code>production_flow</code></td><td>Text (JSON)</td><td>Step-by-step production sequence with configs</td></tr>
+            <tr><td><code>half_products</code></td><td>Text (JSON)</td><td>All intermediate products with properties</td></tr>
+            <tr><td><code>raw_materials</code></td><td>Text (JSON)</td><td>Required raw materials (A=Copper, B=Tin, C=Plastic, D=Catalyst, E=Dye)</td></tr>
+            <tr><td><code>test_requirements</code></td><td>Text (JSON)</td><td>Tests assigned at each step with frequencies</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Soft delete</td></tr>
+        </table>
+
+        <h4>product_codes &mdash; Stock Management Bridge</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td><code>system_code</code></td><td>String(100) UNIQUE</td><td>Human-readable code (HALF_KC_180)</td></tr>
+            <tr><td><code>spec_hash</code></td><td>String(256) UNIQUE</td><td>SHA256 of specifications (deterministic)</td></tr>
+            <tr><td><code>product_type</code></td><td>String(50)</td><td>raw / half / final</td></tr>
+            <tr><td><code>machine_type</code></td><td>String(50)</td><td>Which machine produces it</td></tr>
+            <tr><td><code>display_name_tr / en</code></td><td>String(200)</td><td>Turkish/English display names</td></tr>
+            <tr><td><code>used_in_designs</code></td><td>Text (JSON)</td><td>Array of cable codes using this product</td></tr>
+            <tr><td><code>stock_level</code></td><td>Float</td><td>Current stock quantity</td></tr>
+        </table>
+
+        <h3>6.6.3 Cable Database API &mdash; 15+ Endpoints</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database</code></td><td>Authenticated</td><td>List cables. Filters: search, cross_section, active_only. Generates display_name with twin/core/layer detection.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}</code></td><td>Authenticated</td><td>Single cable by code.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}/full</code></td><td>Authenticated</td><td><strong>Complete raw data</strong> for material calculator. Returns half_products with ALL properties.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}/production-flow</code></td><td>Authenticated</td><td>Step-by-step production sequence.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}/half-products</code></td><td>Authenticated</td><td>All intermediate products.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}/requirements</code></td><td>Authenticated</td><td>Raw materials + test requirements.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/cable-database/{code}/parsed-structure</code></td><td>Authenticated</td><td>Structure parsed into extrusion steps for order forms.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/cable-database/{code}/deactivate</code></td><td>super_admin, production_manager</td><td>Soft delete (is_active=false).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/cable-database/{code}/permanent</code></td><td>super_admin</td><td>Hard delete cable + related design. Broadcasts real-time update.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/products/codes</code></td><td>Authenticated</td><td>List all product codes with filters.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/products/{code}/usage</code></td><td>Authenticated</td><td>Which cables use this product + stock level.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/products/{code}/stock</code></td><td>super_admin, production_manager, operator</td><td>Update stock level.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/analytics/common-products</code></td><td>Authenticated</td><td>Products used in 2+ cables (stock optimization).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/analytics/production-efficiency</code></td><td>Authenticated</td><td>Reuse %, efficiency score, recommendations.</td></tr>
+        </table>
+
+        <h3>6.6.4 Frontend &mdash; Cable Database Page</h3>
+
+        <p>Single file: <code>src/pages/Teknik/CableDatabase/index.tsx</code> (691 lines). Route: <code>/teknik/kablo-veritabani</code>.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>ProTable</h4>
+                <p>Main data table listing all cables with display_name, cable_code, standard, cross_section, status. Client-side search.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Detail Drawer</h4>
+                <p>Opens when clicking a cable. Tabs: Production Flow (Timeline visualization), Half Products (List), Requirements (raw materials + tests).</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProductionFlowViewer</h4>
+                <p>Ant Design Timeline component showing each production step with machine icons, parameters, and parallel indicators.</p>
+            </div>
+        </div>
+
+        <h3>6.6.5 How Cable Database Feeds the Rest of the System</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; (Order Module)</h4>
+                <p>Order creation fetches cable designs from cable_database. Each order cable stores <code>cable_code</code>. The <code>/parsed-structure</code> endpoint provides extrusion step data for dynamic material selection (plastic, catalyst, dye per layer).</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Planlama (Production Planning)</h4>
+                <p>Work card generator reads <code>production_flow</code> and <code>half_products</code> to create work cards for each machine step. The <code>/full</code> endpoint provides complete data for material calculations.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Material Calculator</h4>
+                <p>Reads cable_database to calculate raw material quantities (copper kg, plastic kg, tin kg, catalyst kg, dye kg) based on half_products properties (wire_count, wire_groups, bundle_diameter).</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Stok (Stock Module)</h4>
+                <p>Product codes from cable_database link to stock tracking. Same half product used in multiple cables = shared stock. The <code>used_in_designs</code> array enables cross-cable stock optimization.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Global Search</h4>
+                <p>Search module indexes cable_database fields (cable_code, cable_type, cross_section, structure_formula) for system-wide search.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> The Playground is a <em>production simulation engine</em>, not a drawing tool. It doesn&rsquo;t just record specifications &mdash; it executes the entire manufacturing logic step by step, tracking exact quantities, enforcing machine flow constraints, validating against real machine capabilities, and computing capability intersections. The result is a complete production blueprint stored in Cable Database that every downstream module trusts as the single source of truth. The deterministic code generation ensures identical products always get the same code, enabling stock reuse across different cable designs. The in-memory session architecture with atomic checkpoint/restore guarantees that no partial or invalid state ever reaches the database.</p>
+        </div>
+
     </main>
 
 </body>
