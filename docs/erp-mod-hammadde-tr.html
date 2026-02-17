@@ -582,8 +582,230 @@
             </div>
         </div>
 
-        <div class="philosophy">
-            <p style="margin-bottom: 0;"><strong>Bölüm 6.1&ndash;6.4 genişletilecektir</strong> &mdash; tam alt modül derin incelemeleri: eksiksiz API kontratları, istek/yanıt örnekleri, veritabanı sorguları, frontend bileşen dökümleri ve uç durum yönetimi. Her alt modül, Teknik modülünün Kablo Tasarım ve Kablo Veritabanı bölümleriyle aynı detay seviyesinde belgelenecektir.</p>
+        <!-- ============================================ -->
+        <h2>6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
+        <!-- ============================================ -->
+
+        <p>Tüm Hammadde modülünün başlangıç noktası. Herhangi bir malzeme sipariş edilmeden veya sisteme girilmeden önce bir tedarikçi mevcut olmalıdır. Bu sayfa tedarikçi şirketlerini ve her birinin sağladığı spesifik malzemeleri yönetir.</p>
+
+        <h3>6.1.1 Ne Yapar</h3>
+        <p>Tedarikçi Yönetimi <strong>bire-çok ilişkiyi</strong> yönetir: bir tedarikçi şirket birden fazla malzeme türü sağlayabilir. &ldquo;ORMETSAN&rdquo; gibi tek bir tedarikçi hem bakır tel çubuğu hem de kalay külçesi sağlayabilirken, &ldquo;BETEK&rdquo; 3 farklı plastik bileşeni, 2 katalizör ve bir boya sağlayabilir &mdash; hepsi aynı şirket altında ayrı malzeme girişleri olarak kayıtlıdır.</p>
+
+        <p>Sayfa şunları sunar:</p>
+        <ul>
+            <li>Tüm alanlarda istemci taraflı arama ile ProTable (Türkçe malzeme türü adları dahil)</li>
+            <li>Malzeme türüne göre dinamik koşullu alanlarla Oluştur/Düzenle modalı</li>
+            <li>Tabloda sayı rozetleri ve detay ipuçlarıyla malzeme türü gruplandırması</li>
+            <li>Yumuşak silme (aktif/pasif geçişi) ve FK bağımlılık korumasıyla kalıcı silme</li>
+            <li>Tüm bağlı istemciler arasında gerçek zamanlı WebSocket güncellemeleri</li>
+        </ul>
+
+        <h3>6.1.2 API Kontratı</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Fonksiyon</th><th>Yetki</th></tr>
+            <tr><td>POST</td><td>/api/suppliers/create</td><td>create_supplier</td><td>Akıllı: lab_user VEYA hammadde.tedarikci-yonetimi.create_supplier</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/list</td><td>get_suppliers</td><td>Herhangi kimliği doğrulanmış kullanıcı</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/by-material/{type}</td><td>get_suppliers_by_material</td><td>Herhangi kimliği doğrulanmış kullanıcı</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/materials-list</td><td>get_supplier_materials_list</td><td>Herhangi kimliği doğrulanmış kullanıcı</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/{id}</td><td>get_supplier</td><td>Herhangi kimliği doğrulanmış kullanıcı</td></tr>
+            <tr><td>PUT</td><td>/api/suppliers/{id}</td><td>update_supplier</td><td>Herhangi kimliği doğrulanmış kullanıcı</td></tr>
+            <tr><td>PUT</td><td>/api/suppliers/{id}/toggle-status</td><td>toggle_supplier_status</td><td>Akıllı: super_admin VEYA deactivate_supplier</td></tr>
+            <tr><td>DELETE</td><td>/api/suppliers/{id}/hard-delete</td><td>hard_delete_supplier</td><td>Akıllı: super_admin VEYA hard_delete_supplier</td></tr>
+        </table>
+
+        <h3>6.1.3 Koşullu Form Mantığı</h3>
+        <p>Oluştur/düzenle modalı dinamik bir malzemeler bölümü içerir. Her malzeme kartı <strong>seçilen malzeme türüne göre farklı alanlar</strong> gösterir:</p>
+
+        <table>
+            <tr><th>Malzeme Türü</th><th>Gösterilen Alanlar</th><th>Örnek</th></tr>
+            <tr><td>Bakır, Kalay</td><td><em>Ek alan yok</em> &mdash; &ldquo;Bu malzeme için ek bilgi gerekmez&rdquo;</td><td>&mdash;</td></tr>
+            <tr><td>Plastik, Katalizör, Boya, Antirodent</td><td>material_name + density (g/cm&sup3;)</td><td>HF-500, 1.42 g/cm&sup3;</td></tr>
+            <tr><td>Palet</td><td>material_name + boyut (ölçüler)</td><td>Euro Palet, 120x80x15 cm</td></tr>
+            <tr><td>Makara</td><td>material_name + boyut + reel_type</td><td>300mm Makara, 300x150 mm, Yazılı</td></tr>
+        </table>
+
+        <p>Malzeme türü açılır menüsü değiştiğinde tüm koşullu alanlar <strong>temizlenir</strong>:</p>
+
+        <pre><span class="keyword">const</span> updateMaterial = (index: number, field: keyof MaterialItem, value: any) =&gt; {
+    <span class="keyword">const</span> newMaterials = [...materials];
+    newMaterials[index] = { ...newMaterials[index], [field]: value };
+
+    <span class="comment">// Tür değiştiğinde koşullu alanları temizle</span>
+    <span class="keyword">if</span> (field === <span class="string">'material_type'</span>) {
+        newMaterials[index].material_name = <span class="keyword">undefined</span>;
+        newMaterials[index].density = <span class="keyword">undefined</span>;
+        newMaterials[index].boyut = <span class="keyword">undefined</span>;
+        newMaterials[index].reel_type = <span class="keyword">undefined</span>;
+    }
+
+    setMaterials(newMaterials);
+};</pre>
+
+        <p>Kullanıcılar sınırsız malzeme ekleyebilir (&ldquo;Malzeme Ekle&rdquo; kesikli butonu ile) ve sonuncusu hariç herhangi birini kaldırabilir (minimum 1 malzeme gereklidir). Yeni malzemeler ilki için <code>copper</code>, sonrakiler için <code>plastic</code> varsayılanıyla eklenir.</p>
+
+        <h3>6.1.4 Backend Doğrulama Zinciri</h3>
+        <p>Veri veritabanına ulaşmadan önce üç Pydantic doğrulayıcısı tetiklenir:</p>
+
+        <h4>İsim Doğrulayıcı</h4>
+        <pre><span class="decorator">@validator</span>(<span class="string">'name'</span>)
+<span class="keyword">def</span> validate_name(cls, v):
+    <span class="keyword">if</span> <span class="keyword">not</span> v <span class="keyword">or</span> <span class="keyword">not</span> v.strip():
+        <span class="keyword">raise</span> ValueError(<span class="string">'Tedarikçi adı boş olamaz'</span>)
+    <span class="keyword">if</span> any(char <span class="keyword">in</span> v <span class="keyword">for</span> char <span class="keyword">in</span> [<span class="string">'@'</span>, <span class="string">'#'</span>, <span class="string">'$'</span>, <span class="string">'%'</span>, <span class="string">'^'</span>, <span class="string">'&amp;'</span>, <span class="string">'*'</span>]):
+        <span class="keyword">raise</span> ValueError(<span class="string">'Tedarikçi adı özel karakterler içeremez'</span>)
+    <span class="keyword">return</span> v.strip().upper()  <span class="comment"># Her zaman BÜYÜK HARF olarak saklanır</span></pre>
+
+        <h4>Telefon Doğrulayıcı</h4>
+        <pre><span class="decorator">@validator</span>(<span class="string">'phone'</span>)
+<span class="keyword">def</span> validate_phone(cls, v):
+    <span class="comment"># TÜM rakam olmayanları sıyır: boşluk, tire, parantez, artı, nokta</span>
+    clean = v.replace(<span class="string">' '</span>,<span class="string">''</span>).replace(<span class="string">'-'</span>,<span class="string">''</span>).replace(<span class="string">'('</span>,<span class="string">''</span>).replace(<span class="string">')'</span>,<span class="string">''</span>).replace(<span class="string">'+'</span>,<span class="string">''</span>).replace(<span class="string">'.'</span>,<span class="string">''</span>)
+
+    <span class="comment"># +90 ülke kodunu kaldır → 0xxx</span>
+    <span class="keyword">if</span> clean.startswith(<span class="string">'90'</span>) <span class="keyword">and</span> len(clean) &gt; 10:
+        clean = <span class="string">'0'</span> + clean[2:]    <span class="comment"># +90 212 → 0212</span>
+
+    <span class="comment"># Otomatik biçimlendir: "0212 555 1234"</span>
+    <span class="keyword">if</span> len(clean) == 10:
+        <span class="keyword">return</span> f<span class="string">"{clean[:4]} {clean[4:7]} {clean[7:]}"</span>
+    <span class="keyword">elif</span> len(clean) == 11:       <span class="comment"># Mobil: 05xx xxx xxxx</span>
+        <span class="keyword">return</span> f<span class="string">"{clean[:4]} {clean[4:7]} {clean[7:]}"</span></pre>
+
+        <h4>E-posta Doğrulayıcı</h4>
+        <p>Standart regex kontrolü: <code>^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$</code></p>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Duplikasyon koruması:</strong> Oluşturmadan önce backend <code>Supplier.name == supplier_data.name.upper()</code> kontrolü yapar. İsimler her zaman büyük harf olarak saklandığından, &ldquo;ormetsan&rdquo;, &ldquo;ORMETSAN&rdquo; ve &ldquo;Ormetsan&rdquo; hepsi aynı tedarikçi olarak değerlendirilir. 400 döner: &ldquo;Bu tedarikçi zaten kayıtlı&rdquo;.</p>
+        </div>
+
+        <h3>6.1.5 Güncelleme Stratejisi: Sil-ve-Yeniden Oluştur</h3>
+        <p>Bir tedarikçinin malzemeleri güncellenirken, backend bireysel kayıtları <strong>yamamamaz</strong>. Bunun yerine TÜM mevcut <code>supplier_materials</code> satırlarını siler ve yenilerini oluşturur:</p>
+
+        <pre><span class="comment"># Malzemeler sağlandıysa güncelle</span>
+<span class="keyword">if</span> supplier_data.materials <span class="keyword">is not</span> None:
+    <span class="comment"># TÜM eski malzemeleri sil</span>
+    db.query(SupplierMaterial).filter(
+        SupplierMaterial.supplier_id == supplier_id
+    ).delete()
+
+    <span class="comment"># Sıfırdan yeni malzemeler oluştur</span>
+    <span class="keyword">for</span> material_data <span class="keyword">in</span> supplier_data.materials:
+        supplier_material = SupplierMaterial(
+            supplier_id=supplier.id,
+            material_type=material_data.material_type.value,
+            material_name=material_data.material_name,
+            density=material_data.density,
+            boyut=material_data.boyut,
+            reel_type=material_data.reel_type,
+            is_active=True
+        )
+        db.add(supplier_material)</pre>
+
+        <div class="warning">
+            <p style="margin-bottom: 0;"><strong>Neden sil-ve-yeniden oluştur?</strong> Bu, mantığı muazzam ölçüde basitleştirir. Alternatif &mdash; mevcut kayıtları karşılaştırmak, değişenleri güncellemek, kaldırılanları silmek, yenilerini eklemek &mdash; frontend&rsquo;de malzeme ID&rsquo;lerini takip etmeyi ve karmaşık birleştirme mantığını yönetmeyi gerektirir. supplier_materials&rsquo;ın diğer tablolardan gelen yabancı anahtarı olmadığından (material_orders supplier_material_id&rsquo;ye bağlanır ama siparişler belirli bir malzeme girişine referans verir), bu yaklaşım güvenli ve deterministiktir.</p>
+        </div>
+
+        <h3>6.1.6 FK Korumasıyla Kalıcı Silme</h3>
+        <p>Bir tedarikçiyi kalıcı olarak silmeden önce, backend bağımlı hammaddeleri kontrol eder:</p>
+
+        <pre><span class="comment"># Tedarikçinin hammaddeleri var mı kontrol et (FK nedeniyle engellenir)</span>
+has_materials = db.query(RawMaterial).filter(
+    RawMaterial.supplier_id == supplier_id
+).count()
+
+<span class="keyword">if</span> has_materials &gt; 0:
+    <span class="keyword">raise</span> HTTPException(
+        status_code=400,
+        detail=f<span class="string">"Bu tedarikçiye ait {has_materials} hammadde kaydı var. Önce hammaddeleri silin."</span>
+    )</pre>
+
+        <p>Kontrol geçerse, silme sırası: önce <code>supplier_materials</code> (cascade), sonra <code>supplier</code> kendisi. Hemen ardından bir WebSocket yayını gelir.</p>
+
+        <h3>6.1.7 Türkçe Eşleştirmeli İstemci Taraflı Arama</h3>
+        <p>Arama çubuğu, iç içe malzemeler dahil <strong>tüm alanlarda</strong> Türkçe çevirilerle filtreleme yapar:</p>
+
+        <pre><span class="keyword">const</span> materialTurkish: Record&lt;string, string&gt; = {
+    copper: <span class="string">'bakır'</span>,    tin: <span class="string">'kalay'</span>,
+    plastic: <span class="string">'plastik'</span>,  catalyst: <span class="string">'katalizör'</span>,
+    dye: <span class="string">'boya'</span>,        antirodent: <span class="string">'antirodent'</span>,
+    palette: <span class="string">'palet'</span>,    reel: <span class="string">'makara'</span>,
+};
+
+<span class="comment">// Arama kontrol eder: name, contact_person, phone, email,</span>
+<span class="comment">// tax_number, address, durum (aktif/pasif), id,</span>
+<span class="comment">// material_type (EN + TR), material_name</span></pre>
+
+        <p>&ldquo;bakır&rdquo; yazmak bakır sağlayan tüm tedarikçileri bulur. &ldquo;HF-500&rdquo; yazmak o spesifik plastiği sağlayan tedarikçiyi bulur. &ldquo;pasif&rdquo; yazmak sadece devre dışı bırakılmış tedarikçileri gösterir.</p>
+
+        <h3>6.1.8 Malzemeler Kolonu: Gruplama ve İpuçları</h3>
+        <p>Tablonun &ldquo;Malzemeler&rdquo; kolonu malzemeleri türe göre gruplar ve sayıları gösterir:</p>
+        <ul>
+            <li>Bir tedarikçi 1 plastik sağlıyorsa &rarr; <code>Plastik</code> etiketi gösterir</li>
+            <li>Bir tedarikçi 3 plastik sağlıyorsa &rarr; <code>Plastik (3)</code> etiketi gösterir</li>
+            <li>Herhangi bir etiketin üzerine gelindiğinde tüm malzeme detaylarını gösteren ipucu görünür: ad, yoğunluk, boyutlar</li>
+            <li>Her malzeme türü tutarlı bir renk alır: bakır=turuncu, kalay=mavi, plastik=mor, katalizör=yeşil, boya=magenta, antirodent=camgöbeği, palet=yeşil sarı, makara=altın</li>
+        </ul>
+
+        <h3>6.1.9 Benzersiz Özellikler Endpoint&rsquo;i</h3>
+        <p><code>GET /suppliers/materials-list</code> endpoint&rsquo;i özel bir amaca hizmet eder: tüm tedarikçiler arasında <strong>tekilleştirilmiş malzeme özelliklerini</strong> döner. 3 farklı tedarikçi hepsi 1.42 g/cm&sup3; yoğunlukta &ldquo;HF-500&rdquo; plastik sağlıyorsa, endpoint bunu bir kez döner. Tekilleştirme anahtarı: <code>material_name|boyut|reel_type</code>. Bu, diğer sayfalar (Malzeme Girişi, Malzeme Siparişleri) tarafından duplikasız açılır menü seçenekleri göstermek için kullanılır.</p>
+
+        <h3>6.1.10 Yetki Mimarisi</h3>
+        <p>Sayfa 8 kayıtlı butonla hibrit bir yetki modeli kullanır:</p>
+
+        <pre><span class="comment">// Frontend mevcut TÜM eylemleri kaydeder</span>
+registerPageButtons({
+    pageId: <span class="string">'hammadde.tedarikci-yonetimi'</span>,
+    buttons: [
+        { id: <span class="string">'access_page'</span>,          label: <span class="string">'Sayfaya Erişim'</span> },
+        { id: <span class="string">'view_table'</span>,           label: <span class="string">'Tablo Görüntüle'</span> },
+        { id: <span class="string">'create_supplier'</span>,      label: <span class="string">'Yeni Tedarikçi'</span> },
+        { id: <span class="string">'edit_supplier'</span>,        label: <span class="string">'Düzenle'</span> },
+        { id: <span class="string">'add_material'</span>,         label: <span class="string">'Malzeme Ekle'</span> },
+        { id: <span class="string">'remove_material'</span>,      label: <span class="string">'Malzeme Kaldır'</span> },
+        { id: <span class="string">'deactivate_supplier'</span>,  label: <span class="string">'Pasifleştir'</span> },
+        { id: <span class="string">'hard_delete_supplier'</span>, label: <span class="string">'Kalıcı Sil'</span>, critical: true }
+    ]
+});</pre>
+
+        <p>Backend, sırasıyla üç katmanı kontrol eden <code>check_permission_smart()</code> kullanır: (1) super_admin her zaman geçer, (2) eski rol bazlı kontrol (user_type gerekli listede), (3) yeni ultra-granüler sayfa.buton yetkisi. Herhangi bir katman geçerse eylem izin verilir. Bu, rol bazlıdan buton düzeyine geçiş sırasında geriye uyumluluğu sağlar.</p>
+
+        <h3>6.1.11 Gerçek Zamanlı Güncellemeler</h3>
+        <p>Üç tedarikçi işlemi WebSocket olayları yayınlar:</p>
+        <ul>
+            <li><code>broadcast_update("suppliers", "create", {id, name})</code> &mdash; başarılı oluşturma sonrası</li>
+            <li><code>broadcast_update("suppliers", "update", {id, name})</code> &mdash; güncelleme veya durum geçişi sonrası</li>
+            <li><code>broadcast_update("suppliers", "delete", {id, name})</code> &mdash; kalıcı silme sonrası</li>
+        </ul>
+        <p>Frontend <code>['suppliers', 'all']</code> odalarına abone olur ve herhangi bir olayda tam tablo yenilemesini tetikleyen <code>actionRef.current?.reload()</code> çağırır.</p>
+
+        <h3>6.1.12 Performans İçin Eager Loading</h3>
+        <p>Liste endpoint&rsquo;i, tedarikçileri malzemeleriyle birlikte tek bir sorguda çekmek için SQLAlchemy&rsquo;nin <code>joinedload</code> kullanır:</p>
+
+        <pre>query = db.query(Supplier).options(
+    joinedload(Supplier.materials_provided)
+)</pre>
+
+        <p>Bu olmadan, 50 tedarikçi listelemek her birinin malzemelerini çekmek için 50 ek sorgu tetiklerdi (N+1 problemi). Eager loading ile tek bir JOIN sorgusudur.</p>
+
+        <h3>6.1.13 Gönderim Öncesi Veri Temizleme</h3>
+        <p>Frontend, Pydantic&rsquo;in reddedeceği <code>undefined</code> değerleri sıyırarak malzeme dizisini backend&rsquo;e göndermeden önce temizler:</p>
+
+        <pre><span class="keyword">const</span> cleanedMaterials = materials.map(mat =&gt; {
+    <span class="keyword">const</span> cleaned: any = { material_type: mat.material_type };
+    <span class="keyword">if</span> (mat.material_name !== <span class="keyword">undefined</span> &amp;&amp; mat.material_name !== <span class="string">''</span>)
+        cleaned.material_name = mat.material_name;
+    <span class="keyword">if</span> (mat.density !== <span class="keyword">undefined</span> &amp;&amp; mat.density !== <span class="keyword">null</span>)
+        cleaned.density = mat.density;
+    <span class="keyword">if</span> (mat.boyut !== <span class="keyword">undefined</span> &amp;&amp; mat.boyut !== <span class="string">''</span>)
+        cleaned.boyut = mat.boyut;
+    <span class="keyword">if</span> (mat.reel_type !== <span class="keyword">undefined</span> &amp;&amp; mat.reel_type !== <span class="string">''</span>)
+        cleaned.reel_type = mat.reel_type;
+    <span class="keyword">return</span> cleaned;
+});</pre>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Bu neden önemli:</strong> Temizleme olmadan, bir bakır malzemesi <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code> olarak gönderilirdi. Pydantic bunları <code>None</code> olarak kabul ederdi, ancak JSON.stringify <code>undefined</code> değerlerini tamamen düşürür. Açık kontrol yalnızca anlamlı verilerin gönderilmesini sağlayarak API yükünü temiz ve öngörülebilir tutar.</p>
         </div>
 
     </main>

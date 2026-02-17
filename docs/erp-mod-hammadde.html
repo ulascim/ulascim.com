@@ -582,8 +582,230 @@
             </div>
         </div>
 
-        <div class="philosophy">
-            <p style="margin-bottom: 0;"><strong>Sections 6.1&ndash;6.4 will be expanded</strong> with full submodule deep dives: complete API contracts, request/response examples, database queries, frontend component breakdowns, and edge case handling. Each submodule will be documented at the same level of detail as the Teknik module&rsquo;s Cable Playground and Cable Database sections.</p>
+        <!-- ============================================ -->
+        <h2>6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
+        <!-- ============================================ -->
+
+        <p>The starting point of the entire Hammadde module. Before any material can be ordered or entered into the system, a supplier must exist. This page manages supplier companies and the specific materials each one provides.</p>
+
+        <h3>6.1.1 What It Does</h3>
+        <p>Tedarik&ccedil;i Y&ouml;netimi manages a <strong>one-to-many relationship</strong>: one supplier company can provide multiple material types. A single supplier like &ldquo;ORMETSAN&rdquo; might provide both copper wire rod and tin ingots, while &ldquo;BETEK&rdquo; might provide 3 different plastic compounds, 2 catalysts, and a dye &mdash; all registered as separate material entries under the same company.</p>
+
+        <p>The page provides:</p>
+        <ul>
+            <li>ProTable with client-side search across all fields (including Turkish material type names)</li>
+            <li>Create/Edit modal with dynamic conditional fields based on material type</li>
+            <li>Material type grouping in the table with count badges and detail tooltips</li>
+            <li>Soft delete (active/inactive toggle) and hard delete with FK dependency protection</li>
+            <li>Real-time WebSocket updates across all connected clients</li>
+        </ul>
+
+        <h3>6.1.2 API Contract</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Function</th><th>Permission</th></tr>
+            <tr><td>POST</td><td>/api/suppliers/create</td><td>create_supplier</td><td>Smart: lab_user OR hammadde.tedarikci-yonetimi.create_supplier</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/list</td><td>get_suppliers</td><td>Any authenticated user</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/by-material/{type}</td><td>get_suppliers_by_material</td><td>Any authenticated user</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/materials-list</td><td>get_supplier_materials_list</td><td>Any authenticated user</td></tr>
+            <tr><td>GET</td><td>/api/suppliers/{id}</td><td>get_supplier</td><td>Any authenticated user</td></tr>
+            <tr><td>PUT</td><td>/api/suppliers/{id}</td><td>update_supplier</td><td>Any authenticated user</td></tr>
+            <tr><td>PUT</td><td>/api/suppliers/{id}/toggle-status</td><td>toggle_supplier_status</td><td>Smart: super_admin OR deactivate_supplier</td></tr>
+            <tr><td>DELETE</td><td>/api/suppliers/{id}/hard-delete</td><td>hard_delete_supplier</td><td>Smart: super_admin OR hard_delete_supplier</td></tr>
+        </table>
+
+        <h3>6.1.3 The Conditional Form Logic</h3>
+        <p>The create/edit modal contains a dynamic materials section. Each material card shows <strong>different fields based on the selected material type</strong>:</p>
+
+        <table>
+            <tr><th>Material Type</th><th>Fields Shown</th><th>Example</th></tr>
+            <tr><td>Copper, Tin</td><td><em>No extra fields</em> &mdash; &ldquo;Bu malzeme i&ccedil;in ek bilgi gerekmez&rdquo;</td><td>&mdash;</td></tr>
+            <tr><td>Plastic, Catalyst, Dye, Antirodent</td><td>material_name + density (g/cm&sup3;)</td><td>HF-500, 1.42 g/cm&sup3;</td></tr>
+            <tr><td>Palette</td><td>material_name + boyut (dimensions)</td><td>Euro Palet, 120x80x15 cm</td></tr>
+            <tr><td>Reel</td><td>material_name + boyut + reel_type</td><td>300mm Makara, 300x150 mm, Yaz&#305;l&#305;</td></tr>
+        </table>
+
+        <p>When the material type dropdown changes, all conditional fields are <strong>cleared</strong>:</p>
+
+        <pre><span class="keyword">const</span> updateMaterial = (index: number, field: keyof MaterialItem, value: any) =&gt; {
+    <span class="keyword">const</span> newMaterials = [...materials];
+    newMaterials[index] = { ...newMaterials[index], [field]: value };
+
+    <span class="comment">// Clear conditional fields when type changes</span>
+    <span class="keyword">if</span> (field === <span class="string">'material_type'</span>) {
+        newMaterials[index].material_name = <span class="keyword">undefined</span>;
+        newMaterials[index].density = <span class="keyword">undefined</span>;
+        newMaterials[index].boyut = <span class="keyword">undefined</span>;
+        newMaterials[index].reel_type = <span class="keyword">undefined</span>;
+    }
+
+    setMaterials(newMaterials);
+};</pre>
+
+        <p>Users can add unlimited materials (via &ldquo;Malzeme Ekle&rdquo; dashed button) and remove any except the last one (minimum 1 material required). New materials default to <code>copper</code> for the first, <code>plastic</code> for subsequent additions.</p>
+
+        <h3>6.1.4 Backend Validation Chain</h3>
+        <p>Three Pydantic validators fire before data reaches the database:</p>
+
+        <h4>Name Validator</h4>
+        <pre><span class="decorator">@validator</span>(<span class="string">'name'</span>)
+<span class="keyword">def</span> validate_name(cls, v):
+    <span class="keyword">if</span> <span class="keyword">not</span> v <span class="keyword">or</span> <span class="keyword">not</span> v.strip():
+        <span class="keyword">raise</span> ValueError(<span class="string">'Tedarik&ccedil;i ad&#305; bo&scedil; olamaz'</span>)
+    <span class="keyword">if</span> any(char <span class="keyword">in</span> v <span class="keyword">for</span> char <span class="keyword">in</span> [<span class="string">'@'</span>, <span class="string">'#'</span>, <span class="string">'$'</span>, <span class="string">'%'</span>, <span class="string">'^'</span>, <span class="string">'&amp;'</span>, <span class="string">'*'</span>]):
+        <span class="keyword">raise</span> ValueError(<span class="string">'Tedarik&ccedil;i ad&#305; &ouml;zel karakterler i&ccedil;eremez'</span>)
+    <span class="keyword">return</span> v.strip().upper()  <span class="comment"># Always stored UPPERCASE</span></pre>
+
+        <h4>Phone Validator</h4>
+        <pre><span class="decorator">@validator</span>(<span class="string">'phone'</span>)
+<span class="keyword">def</span> validate_phone(cls, v):
+    <span class="comment"># Strip ALL non-digits: spaces, dashes, parens, plus sign, dots</span>
+    clean = v.replace(<span class="string">' '</span>,<span class="string">''</span>).replace(<span class="string">'-'</span>,<span class="string">''</span>).replace(<span class="string">'('</span>,<span class="string">''</span>).replace(<span class="string">')'</span>,<span class="string">''</span>).replace(<span class="string">'+'</span>,<span class="string">''</span>).replace(<span class="string">'.'</span>,<span class="string">''</span>)
+
+    <span class="comment"># Remove +90 country code → 0xxx</span>
+    <span class="keyword">if</span> clean.startswith(<span class="string">'90'</span>) <span class="keyword">and</span> len(clean) &gt; 10:
+        clean = <span class="string">'0'</span> + clean[2:]    <span class="comment"># +90 212 → 0212</span>
+
+    <span class="comment"># Auto-format: "0212 555 1234"</span>
+    <span class="keyword">if</span> len(clean) == 10:
+        <span class="keyword">return</span> f<span class="string">"{clean[:4]} {clean[4:7]} {clean[7:]}"</span>
+    <span class="keyword">elif</span> len(clean) == 11:       <span class="comment"># Mobile: 05xx xxx xxxx</span>
+        <span class="keyword">return</span> f<span class="string">"{clean[:4]} {clean[4:7]} {clean[7:]}"</span></pre>
+
+        <h4>Email Validator</h4>
+        <p>Standard regex check: <code>^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$</code></p>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Duplicate protection:</strong> Before creating, the backend checks <code>Supplier.name == supplier_data.name.upper()</code>. Since names are always stored uppercase, &ldquo;ormetsan&rdquo;, &ldquo;ORMETSAN&rdquo;, and &ldquo;Ormetsan&rdquo; are all treated as the same supplier. Returns 400: &ldquo;Bu tedarik&ccedil;i zaten kay&#305;tl&#305;&rdquo;.</p>
+        </div>
+
+        <h3>6.1.5 The Update Strategy: Delete-and-Recreate</h3>
+        <p>When updating a supplier&rsquo;s materials, the backend does <strong>not</strong> patch individual records. Instead, it deletes ALL existing <code>supplier_materials</code> rows and creates fresh ones:</p>
+
+        <pre><span class="comment"># Update materials if provided</span>
+<span class="keyword">if</span> supplier_data.materials <span class="keyword">is not</span> None:
+    <span class="comment"># Delete ALL old materials</span>
+    db.query(SupplierMaterial).filter(
+        SupplierMaterial.supplier_id == supplier_id
+    ).delete()
+
+    <span class="comment"># Create new materials from scratch</span>
+    <span class="keyword">for</span> material_data <span class="keyword">in</span> supplier_data.materials:
+        supplier_material = SupplierMaterial(
+            supplier_id=supplier.id,
+            material_type=material_data.material_type.value,
+            material_name=material_data.material_name,
+            density=material_data.density,
+            boyut=material_data.boyut,
+            reel_type=material_data.reel_type,
+            is_active=True
+        )
+        db.add(supplier_material)</pre>
+
+        <div class="warning">
+            <p style="margin-bottom: 0;"><strong>Why delete-and-recreate?</strong> This simplifies the logic enormously. The alternative &mdash; diffing existing records, updating changed ones, deleting removed ones, inserting new ones &mdash; would require tracking material IDs on the frontend and handling complex merge logic. Since supplier_materials has no inbound foreign keys from other tables (material_orders links to supplier_material_id, but orders reference a specific material entry), this approach is safe and deterministic.</p>
+        </div>
+
+        <h3>6.1.6 Hard Delete with FK Protection</h3>
+        <p>Before permanently deleting a supplier, the backend checks for dependent raw materials:</p>
+
+        <pre><span class="comment"># Check if supplier has raw materials (would block due to FK)</span>
+has_materials = db.query(RawMaterial).filter(
+    RawMaterial.supplier_id == supplier_id
+).count()
+
+<span class="keyword">if</span> has_materials &gt; 0:
+    <span class="keyword">raise</span> HTTPException(
+        status_code=400,
+        detail=f<span class="string">"Bu tedarik&ccedil;iye ait {has_materials} hammadde kayd&#305; var. &Ouml;nce hammaddeleri silin."</span>
+    )</pre>
+
+        <p>If the check passes, deletion order is: <code>supplier_materials</code> first (cascade), then the <code>supplier</code> itself. A WebSocket broadcast follows immediately.</p>
+
+        <h3>6.1.7 Client-Side Search with Turkish Mappings</h3>
+        <p>The search bar filters across <strong>all fields</strong> including nested materials, with Turkish translations:</p>
+
+        <pre><span class="keyword">const</span> materialTurkish: Record&lt;string, string&gt; = {
+    copper: <span class="string">'bak&#305;r'</span>,    tin: <span class="string">'kalay'</span>,
+    plastic: <span class="string">'plastik'</span>,  catalyst: <span class="string">'kataliz&ouml;r'</span>,
+    dye: <span class="string">'boya'</span>,        antirodent: <span class="string">'antirodent'</span>,
+    palette: <span class="string">'palet'</span>,    reel: <span class="string">'makara'</span>,
+};
+
+<span class="comment">// Search checks: name, contact_person, phone, email,</span>
+<span class="comment">// tax_number, address, status (aktif/pasif), id,</span>
+<span class="comment">// material_type (EN + TR), material_name</span></pre>
+
+        <p>Typing &ldquo;bak&#305;r&rdquo; finds all suppliers providing copper. Typing &ldquo;HF-500&rdquo; finds the supplier who provides that specific plastic. Typing &ldquo;pasif&rdquo; shows only deactivated suppliers.</p>
+
+        <h3>6.1.8 Materials Column: Grouping and Tooltips</h3>
+        <p>The table&rsquo;s &ldquo;Malzemeler&rdquo; column groups materials by type and shows counts:</p>
+        <ul>
+            <li>If a supplier provides 1 plastic &rarr; shows <code>Plastik</code> tag</li>
+            <li>If a supplier provides 3 plastics &rarr; shows <code>Plastik (3)</code> tag</li>
+            <li>Hovering any tag shows a tooltip with all material details: name, density, dimensions</li>
+            <li>Each material type gets a consistent color: copper=orange, tin=blue, plastic=purple, catalyst=green, dye=magenta, antirodent=cyan, palette=lime, reel=gold</li>
+        </ul>
+
+        <h3>6.1.9 The Unique Specs Endpoint</h3>
+        <p>The <code>GET /suppliers/materials-list</code> endpoint serves a special purpose: it returns <strong>deduplicated material specifications</strong> across all suppliers. If 3 different suppliers all provide &ldquo;HF-500&rdquo; plastic at 1.42 g/cm&sup3;, the endpoint returns it once. Deduplication key: <code>material_name|boyut|reel_type</code>. This is used by other pages (Material Entry, Material Orders) to show dropdown options without duplicates.</p>
+
+        <h3>6.1.10 Permission Architecture</h3>
+        <p>The page uses a hybrid permission model with 8 registered buttons:</p>
+
+        <pre><span class="comment">// Frontend registers ALL available actions</span>
+registerPageButtons({
+    pageId: <span class="string">'hammadde.tedarikci-yonetimi'</span>,
+    buttons: [
+        { id: <span class="string">'access_page'</span>,          label: <span class="string">'Sayfaya Eri&scedil;im'</span> },
+        { id: <span class="string">'view_table'</span>,           label: <span class="string">'Tablo G&ouml;r&uuml;nt&uuml;le'</span> },
+        { id: <span class="string">'create_supplier'</span>,      label: <span class="string">'Yeni Tedarik&ccedil;i'</span> },
+        { id: <span class="string">'edit_supplier'</span>,        label: <span class="string">'D&uuml;zenle'</span> },
+        { id: <span class="string">'add_material'</span>,         label: <span class="string">'Malzeme Ekle'</span> },
+        { id: <span class="string">'remove_material'</span>,      label: <span class="string">'Malzeme Kald&#305;r'</span> },
+        { id: <span class="string">'deactivate_supplier'</span>,  label: <span class="string">'Pasifle&scedil;tir'</span> },
+        { id: <span class="string">'hard_delete_supplier'</span>, label: <span class="string">'Kal&#305;c&#305; Sil'</span>, critical: true }
+    ]
+});</pre>
+
+        <p>The backend uses <code>check_permission_smart()</code> which checks three layers in order: (1) super_admin always passes, (2) old role-based check (user_type in required list), (3) new ultra-granular page.button permission. If any layer passes, the action is allowed. This ensures backward compatibility during the transition from role-based to button-level permissions.</p>
+
+        <h3>6.1.11 Real-Time Updates</h3>
+        <p>Three supplier operations broadcast WebSocket events:</p>
+        <ul>
+            <li><code>broadcast_update("suppliers", "create", {id, name})</code> &mdash; after successful creation</li>
+            <li><code>broadcast_update("suppliers", "update", {id, name})</code> &mdash; after update or status toggle</li>
+            <li><code>broadcast_update("suppliers", "delete", {id, name})</code> &mdash; after hard delete</li>
+        </ul>
+        <p>The frontend subscribes to rooms <code>['suppliers', 'all']</code> and calls <code>actionRef.current?.reload()</code> on any event, triggering a full table refresh.</p>
+
+        <h3>6.1.12 Eager Loading for Performance</h3>
+        <p>The list endpoint uses SQLAlchemy&rsquo;s <code>joinedload</code> to fetch suppliers with their materials in a single query:</p>
+
+        <pre>query = db.query(Supplier).options(
+    joinedload(Supplier.materials_provided)
+)</pre>
+
+        <p>Without this, listing 50 suppliers would trigger 50 additional queries to fetch each supplier&rsquo;s materials (the N+1 problem). With eager loading, it&rsquo;s a single JOIN query.</p>
+
+        <h3>6.1.13 Data Cleaning Before Submit</h3>
+        <p>The frontend cleans the materials array before sending to the backend, stripping <code>undefined</code> values that Pydantic would reject:</p>
+
+        <pre><span class="keyword">const</span> cleanedMaterials = materials.map(mat =&gt; {
+    <span class="keyword">const</span> cleaned: any = { material_type: mat.material_type };
+    <span class="keyword">if</span> (mat.material_name !== <span class="keyword">undefined</span> &amp;&amp; mat.material_name !== <span class="string">''</span>)
+        cleaned.material_name = mat.material_name;
+    <span class="keyword">if</span> (mat.density !== <span class="keyword">undefined</span> &amp;&amp; mat.density !== <span class="keyword">null</span>)
+        cleaned.density = mat.density;
+    <span class="keyword">if</span> (mat.boyut !== <span class="keyword">undefined</span> &amp;&amp; mat.boyut !== <span class="string">''</span>)
+        cleaned.boyut = mat.boyut;
+    <span class="keyword">if</span> (mat.reel_type !== <span class="keyword">undefined</span> &amp;&amp; mat.reel_type !== <span class="string">''</span>)
+        cleaned.reel_type = mat.reel_type;
+    <span class="keyword">return</span> cleaned;
+});</pre>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Why this matters:</strong> Without cleaning, a copper material would be sent as <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code>. Pydantic would accept these as <code>None</code>, but JSON.stringify drops <code>undefined</code> values entirely. The explicit check ensures only meaningful data is sent, keeping the API payload clean and predictable.</p>
         </div>
 
     </main>
