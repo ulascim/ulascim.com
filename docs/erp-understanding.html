@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding the Problem | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* NAVIGATION */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+
+        /* REPORT */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Flow diagram */
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+
+        /* Machine card */
+        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+        .machine-card { background: #fff; border: 2px solid #000; padding: 16px; }
+        .machine-card h4 { font-size: 14px; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .machine-card .machine-name-tr { font-size: 11px; color: #888; margin-bottom: 8px; }
+        .machine-card .machine-desc { font-size: 12px; line-height: 1.5; color: #333; margin-bottom: 8px; }
+        .machine-card .machine-specs { font-size: 11px; color: #666; }
+        .machine-card .machine-specs dt { font-weight: 700; display: inline; }
+        .machine-card .machine-specs dd { display: inline; margin-left: 0; margin-right: 12px; }
+
+        /* Step detail */
+        .step-section { margin: 24px 0; padding: 20px; background: #fff; border: 2px solid #000; }
+        .step-section .step-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+        .step-section .step-number { font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1; }
+        .step-section .step-title { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
+        .step-section .step-title-tr { font-size: 12px; color: #888; font-weight: 400; }
+        .step-section p { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
+        .step-section .io-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; margin: 12px 0; align-items: center; }
+        .step-section .io-box { background: var(--gray-100); padding: 10px; border: 1px solid var(--gray-300); font-size: 12px; }
+        .step-section .io-box strong { display: block; font-size: 10px; letter-spacing: 1px; margin-bottom: 4px; color: #888; }
+        .step-section .io-arrow { font-size: 24px; text-align: center; font-weight: 700; }
+        .step-section .note { font-size: 11px; color: #666; font-style: italic; margin-top: 8px; }
+
+        /* Quote */
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .quote .attr { font-style: normal; font-size: 11px; color: #666; margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .machine-grid { grid-template-columns: 1fr; }
+            .step-section .io-grid { grid-template-columns: 1fr; }
+            .step-section .io-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-understanding-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-understanding.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>UNDERSTANDING THE PROBLEM</h1>
+        <p class="subtitle">Phase 0 &mdash; What does a solar cable factory actually do?</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Before writing a single line of code, 7 months were spent understanding the domain.</strong>
+            This document describes what a solar cable factory does &mdash; the machines, the materials, the flow, and the hundreds of design variations that make cable manufacturing far more complex than it appears. Every decision in the ERP system traces back to something in this document.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">8</div>
+                <div class="label">PRODUCTION STEPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">6</div>
+                <div class="label">MACHINE TYPES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">1.5&ndash;240</div>
+                <div class="label">mm&sup2; RANGE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">H1Z2Z2-K</div>
+                <div class="label">PRIMARY STANDARD</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. THE COMPANY</h2>
+        <!-- ============================================ -->
+
+        <p><strong>Solen Kablo</strong> manufactures solar cables &mdash; primarily the <strong>H1Z2Z2-K</strong> standard used in photovoltaic installations worldwide. The cables are TUV Rheinland certified, use electron beam (E-beam) cross-linked insulation, and range from 1.5mm&sup2; to 240mm&sup2; cross-section.</p>
+
+        <p>What makes cable manufacturing deceptively complex is that every cable design has a unique production recipe. A 6mm&sup2; solar cable and a 35mm&sup2; solar cable may look similar, but they require completely different machine configurations, material quantities, intermediate products, and process parameters at every step.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Key insight:</strong> An ERP system for a cable factory cannot be generic. Each production step transforms materials in ways that depend on the specific cable design being produced. The number of input baskets, wire diameter, strand count, insulation thickness, radiation dose &mdash; everything varies by design.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. THE PRODUCTION FLOW &mdash; OVERVIEW</h2>
+        <!-- ============================================ -->
+
+        <p>From raw copper to shipped cable, the production passes through 8 distinct steps. Each step has its own machine, its own operators, its own constraints, and its own quality requirements.</p>
+
+        <div class="flow">
+            <div class="flow-box done">1. WIRE DRAWING<br><span style="font-size:10px;color:#666;">Kabatel &Ccedil;ekme</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">2. TINNING<br><span style="font-size:10px;color:#666;">Kalaylama</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">3. FINE DRAWING<br><span style="font-size:10px;color:#666;">&#304;ncetel &Ccedil;ekme</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">4. BUNCHING<br><span style="font-size:10px;color:#666;">Buncher</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">5. EXTRUSION<br><span style="font-size:10px;color:#666;">Ekstr&uuml;der</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">6. E-BEAM<br><span style="font-size:10px;color:#666;">optional</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">7. TRANSFER<br><span style="font-size:10px;color:#666;">Aktarma</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">8. PACKING &amp;<br>SHIPMENT</div>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Critical transition at Step 3:</strong> Steps 1&ndash;2 are simple &mdash; 1 basket in, 1 basket out. Starting from Step 3 (Fine Drawing), the input/output relationship becomes many-to-one and highly design-dependent. This is where the complexity explodes and where a manual tracking system breaks down.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. THE PRODUCTION STEPS &mdash; IN DETAIL</h2>
+        <!-- ============================================ -->
+
+        <p>The following uses a <strong>6mm&sup2; solar cable</strong> as a running example to show concrete numbers. Every number changes for different cable designs.</p>
+
+        <!-- STEP 1 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">01</span>
+                <div>
+                    <span class="step-title">WIRE DRAWING</span><br>
+                    <span class="step-title-tr">Kabatel &Ccedil;ekme</span>
+                </div>
+            </div>
+            <p>Raw copper arrives as <strong>filma&#351;in</strong> &mdash; 8mm diameter copper rod, the universal starting material for wire manufacturing. The wire drawing machine pulls this rod through a series of progressively smaller dies, reducing the diameter.</p>
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    Filma&#351;in (raw copper)<br>
+                    &Oslash; 8mm rod
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    &Ccedil;&#305;plak bak&#305;r (bare copper)<br>
+                    &Oslash; ~2.0mm or 1.8mm<br>
+                    Baskets: 800&ndash;1,100 kg each
+                </div>
+            </div>
+            <p class="note">The output diameter does not vary significantly between cable designs. The machine reduces 8mm down to roughly 2mm regardless of what the copper will eventually become.</p>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">02</span>
+                <div>
+                    <span class="step-title">TINNING</span><br>
+                    <span class="step-title-tr">Kalaylama</span>
+                </div>
+            </div>
+            <p>Bare copper wire is passed through a molten tin bath, depositing approximately <strong>4&mu;m</strong> of tin coating. Tinning provides corrosion resistance &mdash; critical for solar cables that are exposed to outdoor conditions for 25+ years.</p>
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    &Ccedil;&#305;plak bak&#305;r (bare copper)<br>
+                    Baskets: 800&ndash;1,100 kg
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    Kalay&#305; bak&#305;r (tinned copper)<br>
+                    ~4&mu;m tin coating<br>
+                    Baskets: 800&ndash;1,100 kg
+                </div>
+            </div>
+            <p class="note">Like wire drawing, this is a relatively straightforward 1-basket-in &rarr; 1-basket-out process. The tin thickness is generally constant (~4&mu;m) regardless of cable design.</p>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">03</span>
+                <div>
+                    <span class="step-title">FINE WIRE DRAWING</span><br>
+                    <span class="step-title-tr">&#304;ncetel &Ccedil;ekme</span>
+                </div>
+            </div>
+            <p><strong>This is where everything changes.</strong> The tinned copper must be drawn down to the exact wire diameter specified by the cable design. And the output is no longer a single wire &mdash; the machine takes multiple input baskets and produces a single reel of multiple parallel wires.</p>
+
+            <div class="warning">
+                <p style="margin-bottom: 0;"><strong>Complexity explosion:</strong> Before this step, every process was 1-in &rarr; 1-out. From here on, the input/output relationship is many-to-one and entirely dependent on the cable design being produced.</p>
+            </div>
+
+            <h3>Example: 6mm&sup2; Cable</h3>
+            <p>A 6mm&sup2; cable requires a conductor made of 73 individual wires, each &Oslash; 0.30mm. This cannot be produced in a single step. Two parallel fine drawing operations are needed:</p>
+
+            <div class="machine-grid">
+                <div class="machine-card">
+                    <h4>MACHINE A &mdash; First Run</h4>
+                    <div class="machine-specs">
+                        <dl>
+                            <dt>Input:</dt> <dd>10 baskets of tinned copper</dd><br>
+                            <dt>Output:</dt> <dd>1 reel &mdash; 10 &times; &Oslash;0.30mm</dd><br>
+                            <dt>Wire count:</dt> <dd>10 parallel wires</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="machine-card">
+                    <h4>MACHINE B &mdash; Second Run (parallel)</h4>
+                    <div class="machine-specs">
+                        <dl>
+                            <dt>Input:</dt> <dd>11 baskets of tinned copper</dd><br>
+                            <dt>Output:</dt> <dd>1 reel &mdash; 11 &times; &Oslash;0.30mm</dd><br>
+                            <dt>Wire count:</dt> <dd>11 parallel wires</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <p>The factory has <strong>2 fine drawing machines</strong>, so these operations can run in parallel. The machine can accept 1&ndash;16 baskets as input and produce 1 reel with wire diameter ranging from 0.15mm to 0.65mm.</p>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    1&ndash;16 baskets of tinned copper<br>
+                    (design-dependent)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    1 reel<br>
+                    (N) &times; &Oslash;(0.15&ndash;0.65mm)<br>
+                    N = number of input baskets
+                </div>
+            </div>
+
+            <p class="note">For 6mm&sup2;: after this step we have 2 reels &mdash; one with 10&times;0.30mm and one with 11&times;0.30mm. Together they hold all 21 baskets worth of tinned copper needed for the final conductor.</p>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">04</span>
+                <div>
+                    <span class="step-title">BUNCHING</span><br>
+                    <span class="step-title-tr">Buncher</span>
+                </div>
+            </div>
+            <p>The reels from fine drawing are combined. The buncher takes multiple reels, twists the wires together, and produces a single reel of <strong>stranded conductor</strong> (b&uuml;k&uuml;l&uuml; bak&#305;r).</p>
+
+            <h3>Example: 6mm&sup2; Cable</h3>
+            <p>The buncher needs all the fine-drawn wires to create the 73-wire conductor:</p>
+            <ul>
+                <li><strong>3 reels</strong> of 11 &times; &Oslash;0.30mm = 33 wires</li>
+                <li><strong>4 reels</strong> of 10 &times; &Oslash;0.30mm = 40 wires</li>
+                <li><strong>Total:</strong> 7 input reels &rarr; 73 &times; &Oslash;0.30mm = <strong>b&uuml;k&uuml;l&uuml; bak&#305;r</strong></li>
+            </ul>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    1&ndash;7 reels from fine drawing<br>
+                    (design-dependent)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    1 reel &mdash; stranded conductor<br>
+                    B&uuml;k&uuml;l&uuml; bak&#305;r<br>
+                    (e.g. 73 &times; &Oslash;0.30mm for 6mm&sup2;)
+                </div>
+            </div>
+
+            <div class="insight">
+                <p style="margin-bottom: 0;"><strong>Multiple passes for large cables:</strong> The buncher can handle a maximum of 7 input reels. For larger cables (e.g. 120mm&sup2;, 240mm&sup2;), the output of the first buncher pass becomes the input for a second pass. The machine limit is a hard physical constraint that shapes the entire production planning logic.</p>
+            </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">05</span>
+                <div>
+                    <span class="step-title">EXTRUSION</span><br>
+                    <span class="step-title-tr">Ekstr&uuml;der</span>
+                </div>
+            </div>
+            <p><strong>This is where wire becomes cable.</strong> The extruder applies plastic insulation (and optionally sheath) around the stranded conductor. The conductor passes through a crosshead die while molten plastic compound is pressed around it.</p>
+
+            <p>The extrusion step has the highest number of variables of any step in the factory:</p>
+            <ul>
+                <li><strong>Insulation material:</strong> different compounds for E-beam vs. standard cables</li>
+                <li><strong>Sheath material:</strong> may be applied simultaneously or in a separate pass</li>
+                <li><strong>Dye/colorant:</strong> some E-beam plastics arrive pre-dyed, others need coloring</li>
+                <li><strong>Catalyst:</strong> E-beam cables do not require catalyst in the plastic compound</li>
+                <li><strong>Thickness:</strong> varies by cable design and standard requirements</li>
+                <li><strong>Dual extrusion:</strong> insulation and sheath can be applied in a single pass or separately</li>
+            </ul>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    1 reel of stranded conductor<br>
+                    + plastic compound(s)<br>
+                    + optional dye, catalyst
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    1 production reel of cable<br>
+                    (insulated wire / finished cable)
+                </div>
+            </div>
+
+            <p class="note">From this point forward, the product is on production reels (large, heavy reels used on the factory floor) rather than baskets.</p>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">06</span>
+                <div>
+                    <span class="step-title">E-BEAM CROSS-LINKING</span>
+                    <span style="font-size: 11px; color: #888; margin-left: 8px;">(optional)</span><br>
+                    <span class="step-title-tr">E-Beam I&#351;&#305;nlama</span>
+                </div>
+            </div>
+            <p>For E-beam cable designs, the extruded cable is passed under an electron beam accelerator. The radiation cross-links the polymer chains in the insulation, dramatically improving heat resistance, mechanical strength, and chemical resistance.</p>
+
+            <p>The radiation dosage is determined by the insulation material and thickness:</p>
+
+            <div class="stat-grid-3">
+                <div class="stat-box">
+                    <div class="value">5</div>
+                    <div class="label">MIN Mrad</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">~15</div>
+                    <div class="label">TYPICAL Mrad</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">25</div>
+                    <div class="label">MAX Mrad</div>
+                </div>
+            </div>
+
+            <p class="note">Not all cables go through E-beam. Standard PVC cables skip this step entirely. The ERP system must handle both flows.</p>
+        </div>
+
+        <!-- STEP 7 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">07</span>
+                <div>
+                    <span class="step-title">TRANSFER / REWINDING</span><br>
+                    <span class="step-title-tr">Aktarma</span>
+                </div>
+            </div>
+            <p>The large production reels from extrusion (or E-beam) contain far more cable than any single customer order. The transfer step rewinds cable from the production reel into customer-specified lengths on smaller reels or coils (<strong>kangal</strong>).</p>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>INPUT</strong>
+                    1 production reel<br>
+                    (thousands of meters)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>OUTPUT</strong>
+                    Multiple customer reels or kangal<br>
+                    100m to 5,000m each<br>
+                    (per customer specification)
+                </div>
+            </div>
+
+            <p class="note">This is the first step where one input produces multiple outputs. A single production reel might be split across several customer orders with different length requirements.</p>
+        </div>
+
+        <!-- STEP 8 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">08</span>
+                <div>
+                    <span class="step-title">PACKING &amp; SHIPMENT</span><br>
+                    <span class="step-title-tr">Paketleme &amp; Sevkiyat</span>
+                </div>
+            </div>
+            <p>Customer reels and coils are labeled, wrapped, palletized, and prepared for shipping. Documentation is generated &mdash; test certificates, conformity declarations, packing lists.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. WHY THIS IS AN ERP PROBLEM</h2>
+        <!-- ============================================ -->
+
+        <p>A cable factory looks simple from the outside: copper goes in, cable comes out. But the production flow has several properties that make manual tracking impossible at scale:</p>
+
+        <ul>
+            <li><strong>Fan-in / fan-out:</strong> Steps 3&ndash;4 take many inputs to produce one output. Step 7 takes one input and produces many outputs. Tracking material flow requires understanding these relationships per design.</li>
+            <li><strong>Design-dependent everything:</strong> The number of input baskets, wire diameter, strand count, number of buncher passes, insulation material, radiation dose &mdash; all vary by cable design. There is no single "recipe."</li>
+            <li><strong>Intermediate products:</strong> The factory floor simultaneously contains raw copper, bare copper, tinned copper, fine-drawn reels, stranded conductors, insulated cables, and finished products. Each has its own identity and location.</li>
+            <li><strong>Parallel processing:</strong> Multiple machines can run simultaneously on different parts of the same order. Two fine drawing machines can work in parallel; different designs can share machine time.</li>
+            <li><strong>Quality at every step:</strong> Each intermediate product can be tested. Lab results must be linked to specific production batches for traceability and certification.</li>
+        </ul>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>The real problem is not software &mdash; it's domain knowledge.</strong> Any developer can build CRUD screens. But knowing that a 6mm&sup2; cable needs exactly 73 wires at 0.30mm, distributed as 3&times;11 + 4&times;10 across two fine drawing machines, feeding into a single buncher &mdash; that knowledge took 7 months of being on the factory floor, watching machines, talking to operators, and making mistakes.</p>
+        </div>
+
+        <div class="quote">
+            <p>This document is an extremely condensed summary. Every step, every decision, every action has unseen, tiny, extremely important details that cannot be captured in a single page. This is the map &mdash; not the territory.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>

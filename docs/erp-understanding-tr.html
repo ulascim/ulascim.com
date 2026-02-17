@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problemi Anlamak | Kablo Fabrikas&#305; ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* NAVIGATION */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+
+        /* REPORT */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        /* Callout boxes */
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+
+        /* Stat grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+
+        /* Flow diagram */
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+
+        /* Machine card */
+        .machine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+        .machine-card { background: #fff; border: 2px solid #000; padding: 16px; }
+        .machine-card h4 { font-size: 14px; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .machine-card .machine-name-tr { font-size: 11px; color: #888; margin-bottom: 8px; }
+        .machine-card .machine-desc { font-size: 12px; line-height: 1.5; color: #333; margin-bottom: 8px; }
+        .machine-card .machine-specs { font-size: 11px; color: #666; }
+        .machine-card .machine-specs dt { font-weight: 700; display: inline; }
+        .machine-card .machine-specs dd { display: inline; margin-left: 0; margin-right: 12px; }
+
+        /* Step detail */
+        .step-section { margin: 24px 0; padding: 20px; background: #fff; border: 2px solid #000; }
+        .step-section .step-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+        .step-section .step-number { font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1; }
+        .step-section .step-title { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
+        .step-section .step-title-tr { font-size: 12px; color: #888; font-weight: 400; }
+        .step-section p { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
+        .step-section .io-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; margin: 12px 0; align-items: center; }
+        .step-section .io-box { background: var(--gray-100); padding: 10px; border: 1px solid var(--gray-300); font-size: 12px; }
+        .step-section .io-box strong { display: block; font-size: 10px; letter-spacing: 1px; margin-bottom: 4px; color: #888; }
+        .step-section .io-arrow { font-size: 24px; text-align: center; font-weight: 700; }
+        .step-section .note { font-size: 11px; color: #666; font-style: italic; margin-top: 8px; }
+
+        /* Quote */
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+        .quote .attr { font-style: normal; font-size: 11px; color: #666; margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .machine-grid { grid-template-columns: 1fr; }
+            .step-section .io-grid { grid-template-columns: 1fr; }
+            .step-section .io-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system-tr.html" class="nav-logo">ERP S&#304;STEM&#304;</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-understanding-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-understanding.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>PROBLEM&#304; ANLAMAK</h1>
+        <p class="subtitle">B&ouml;l&uuml;m 0 &mdash; Bir solar kablo fabrikas&#305; ger&ccedil;ekte ne yapar?</p>
+        <p class="authors">&#350;ubat 2026 &bull; Solen Kablo &bull; Ya&#351;ayan Dok&uuml;man</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Tek bir sat&#305;r kod yazmadan &ouml;nce, alan&#305; anlamak i&ccedil;in 7 ay harcanm&#305;&#351;t&#305;r.</strong>
+            Bu dok&uuml;man bir solar kablo fabrikas&#305;n&#305;n ne yapt&#305;&#287;&#305;n&#305; a&ccedil;&#305;klar &mdash; makineler, malzemeler, ak&#305;&#351; ve kablo &uuml;retimini g&ouml;r&uuml;nd&uuml;&#287;&uuml;nden &ccedil;ok daha karma&#351;&#305;k k&#305;lan y&uuml;zlerce tasar&#305;m varyasyonu. ERP sistemindeki her karar bu dok&uuml;mandaki bir &#351;eye dayan&#305;r.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">8</div>
+                <div class="label">&Uuml;RET&#304;M ADIMI</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">6</div>
+                <div class="label">MAK&#304;NE T&#304;P&#304;</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">1.5&ndash;240</div>
+                <div class="label">mm&sup2; ARALIK</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">H1Z2Z2-K</div>
+                <div class="label">TEMEL STANDART</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. &#350;&#304;RKET</h2>
+        <!-- ============================================ -->
+
+        <p><strong>Solen Kablo</strong>, d&uuml;nya genelinde fotovoltaik tesislerde kullan&#305;lan <strong>H1Z2Z2-K</strong> standard&#305;nda solar kablo &uuml;retir. Kablolar TUV Rheinland sertifikal&#305;d&#305;r, elektron &#305;&#351;&#305;n&#305; (E-beam) ile &ccedil;apraz ba&#287;lanm&#305;&#351; yal&#305;t&#305;m kullan&#305;r ve kesit alanlar&#305; 1.5mm&sup2; ile 240mm&sup2; aras&#305;nda de&#287;i&#351;ir.</p>
+
+        <p>Kablo &uuml;retimini aldatma derecede karma&#351;&#305;k yapan &#351;ey, her kablo tasar&#305;m&#305;n&#305;n benzersiz bir &uuml;retim re&ccedil;etesine sahip olmas&#305;d&#305;r. 6mm&sup2; ve 35mm&sup2; solar kablo d&#305;&#351;ar&#305;dan benzer g&ouml;r&uuml;nebilir, ancak her ad&#305;mda tamamen farkl&#305; makine konfigurasyonlar&#305;, malzeme miktarlar&#305;, ara &uuml;r&uuml;nler ve proses parametreleri gerektirirler.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Temel i&ccedil;g&ouml;r&uuml;:</strong> Bir kablo fabrikas&#305; i&ccedil;in ERP sistemi genel ge&ccedil;er olamaz. Her &uuml;retim ad&#305;m&#305;, &uuml;retilen kablo tasar&#305;m&#305;na ba&#287;l&#305; &#351;ekillerde malzemeyi d&ouml;n&uuml;&#351;t&uuml;r&uuml;r. Girdi sepet say&#305;s&#305;, tel &ccedil;ap&#305;, damar say&#305;s&#305;, yal&#305;t&#305;m kal&#305;nl&#305;&#287;&#305;, radyasyon dozu &mdash; her &#351;ey tasar&#305;ma g&ouml;re de&#287;i&#351;ir.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>2. &Uuml;RET&#304;M AKI&#350;I &mdash; GENEL BAK&#305;&#350;</h2>
+        <!-- ============================================ -->
+
+        <p>Ham bak&#305;rdan sevkiyata kadar &uuml;retim 8 ayr&#305; ad&#305;mdan ge&ccedil;er. Her ad&#305;m&#305;n kendi makinesi, kendi operat&ouml;rleri, kendi k&#305;s&#305;tlamalar&#305; ve kendi kalite gereksinimleri vard&#305;r.</p>
+
+        <div class="flow">
+            <div class="flow-box done">1. KABATEL<br>&Ccedil;EKME</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">2. KALAYLAMA</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">3. &#304;NCETEL<br>&Ccedil;EKME</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">4. BUNCHER<br>B&Uuml;K&Uuml;M</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">5. EKSTR&Uuml;DER</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">6. E-BEAM<br><span style="font-size:10px;">opsiyonel</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">7. AKTARMA</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box pending">8. PAKETLEME<br>&amp; SEVK&#304;YAT</div>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Ad&#305;m 3'teki kritik ge&ccedil;i&#351;:</strong> Ad&#305;m 1&ndash;2 basittir &mdash; 1 sepet girer, 1 sepet &ccedil;&#305;kar. Ad&#305;m 3'ten (&#304;ncetel &Ccedil;ekme) itibaren girdi/&ccedil;&#305;kt&#305; ili&#351;kisi &ccedil;oktan-bire d&ouml;n&uuml;&#351;&uuml;r ve tamamen tasar&#305;ma ba&#287;l&#305; hale gelir. Karma&#351;&#305;kl&#305;&#287;&#305;n patlad&#305;&#287;&#305; ve manuel takip sisteminin &ccedil;&ouml;kt&uuml;&#287;&uuml; yer buras&#305;d&#305;r.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. &Uuml;RET&#304;M ADIMLARI &mdash; DETAY</h2>
+        <!-- ============================================ -->
+
+        <p>A&#351;a&#287;&#305;daki a&ccedil;&#305;klamada somut rakamlar g&ouml;stermek i&ccedil;in <strong>6mm&sup2; solar kablo</strong> &ouml;rne&#287;i kullan&#305;lm&#305;&#351;t&#305;r. Her rakam farkl&#305; kablo tasar&#305;mlar&#305; i&ccedil;in de&#287;i&#351;ir.</p>
+
+        <!-- STEP 1 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">01</span>
+                <div>
+                    <span class="step-title">KABATEL &Ccedil;EKME</span><br>
+                    <span class="step-title-tr">Wire Drawing</span>
+                </div>
+            </div>
+            <p>Ham bak&#305;r <strong>filma&#351;in</strong> olarak gelir &mdash; 8mm &ccedil;apl&#305; bak&#305;r &ccedil;ubuk, tel &uuml;retiminin evrensel ba&#351;lang&#305;&ccedil; malzemesi. Kabatel &ccedil;ekme makinesi bu &ccedil;ubu&#287;u giderek k&uuml;&ccedil;&uuml;len kaliplerden ge&ccedil;irerek &ccedil;ap&#305;n&#305; d&uuml;&#351;&uuml;r&uuml;r.</p>
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    Filma&#351;in (ham bak&#305;r)<br>
+                    &Oslash; 8mm &ccedil;ubuk
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    &Ccedil;&#305;plak bak&#305;r<br>
+                    &Oslash; ~2.0mm veya 1.8mm<br>
+                    Sepetler: 800&ndash;1.100 kg
+                </div>
+            </div>
+            <p class="note">&Ccedil;&#305;kt&#305; &ccedil;ap&#305; kablo tasar&#305;mlar&#305; aras&#305;nda &ouml;nemli &ouml;l&ccedil;&uuml;de de&#287;i&#351;mez. Makine, bak&#305;r&#305;n sonu&ccedil;ta ne olaca&#287;&#305;ndan ba&#287;&#305;ms&#305;z olarak 8mm'yi yakla&#351;&#305;k 2mm'ye d&uuml;&#351;&uuml;r&uuml;r.</p>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">02</span>
+                <div>
+                    <span class="step-title">KALAYLAMA</span><br>
+                    <span class="step-title-tr">Tinning</span>
+                </div>
+            </div>
+            <p>&Ccedil;&#305;plak bak&#305;r tel, erimi&#351; kalay banyosundan ge&ccedil;irilerek yakla&#351;&#305;k <strong>4&mu;m</strong> kalay kaplanir. Kalaylama korozyon direnci sa&#287;lar &mdash; 25+ y&#305;l d&#305;&#351; ortama maruz kalan solar kablolar i&ccedil;in kritik &ouml;nemdedir.</p>
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    &Ccedil;&#305;plak bak&#305;r<br>
+                    Sepetler: 800&ndash;1.100 kg
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    Kalayl&#305; bak&#305;r<br>
+                    ~4&mu;m kalay kaplama<br>
+                    Sepetler: 800&ndash;1.100 kg
+                </div>
+            </div>
+            <p class="note">Kabatel &ccedil;ekme gibi, bu da nispeten basit bir 1-sepet-giri&#351; &rarr; 1-sepet-&ccedil;&#305;k&#305;&#351; prosesidir. Kalay kal&#305;nl&#305;&#287;&#305; kablo tasar&#305;m&#305;ndan ba&#287;&#305;ms&#305;z olarak genellikle sabittir (~4&mu;m).</p>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">03</span>
+                <div>
+                    <span class="step-title">&#304;NCETEL &Ccedil;EKME</span><br>
+                    <span class="step-title-tr">Fine Wire Drawing</span>
+                </div>
+            </div>
+            <p><strong>Her &#351;eyin de&#287;i&#351;ti&#287;i yer buras&#305;d&#305;r.</strong> Kalayl&#305; bak&#305;r, kablo tasar&#305;m&#305;n&#305;n belirtti&#287;i tam tel &ccedil;ap&#305;na &ccedil;ekilmelidir. Ve &ccedil;&#305;kt&#305; art&#305;k tek bir tel de&#287;ildir &mdash; makine birden fazla girdi sepetini al&#305;r ve birden fazla paralel telden olu&#351;an tek bir makara &uuml;retir.</p>
+
+            <div class="warning">
+                <p style="margin-bottom: 0;"><strong>Karma&#351;&#305;kl&#305;k patlamas&#305;:</strong> Bu ad&#305;mdan &ouml;nce her proses 1-giri&#351; &rarr; 1-&ccedil;&#305;k&#305;&#351;'t&#305;. Bundan sonra girdi/&ccedil;&#305;kt&#305; ili&#351;kisi &ccedil;oktan-bire d&ouml;n&uuml;&#351;&uuml;r ve tamamen &uuml;retilen kablo tasar&#305;m&#305;na ba&#287;l&#305;d&#305;r.</p>
+            </div>
+
+            <h3>&Ouml;rnek: 6mm&sup2; Kablo</h3>
+            <p>6mm&sup2; kablo, her biri &Oslash; 0.30mm olan 73 ayr&#305; telden olu&#351;an bir iletken gerektirir. Bu tek ad&#305;mda &uuml;retilemez. &#304;ki paralel incetel &ccedil;ekme operasyonu gerekir:</p>
+
+            <div class="machine-grid">
+                <div class="machine-card">
+                    <h4>MAK&#304;NE A &mdash; Birinci &Ccedil;al&#305;&#351;ma</h4>
+                    <div class="machine-specs">
+                        <dl>
+                            <dt>Girdi:</dt> <dd>10 sepet kalayl&#305; bak&#305;r</dd><br>
+                            <dt>&Ccedil;&#305;kt&#305;:</dt> <dd>1 makara &mdash; 10 &times; &Oslash;0.30mm</dd><br>
+                            <dt>Tel say&#305;s&#305;:</dt> <dd>10 paralel tel</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="machine-card">
+                    <h4>MAK&#304;NE B &mdash; &#304;kinci &Ccedil;al&#305;&#351;ma (paralel)</h4>
+                    <div class="machine-specs">
+                        <dl>
+                            <dt>Girdi:</dt> <dd>11 sepet kalayl&#305; bak&#305;r</dd><br>
+                            <dt>&Ccedil;&#305;kt&#305;:</dt> <dd>1 makara &mdash; 11 &times; &Oslash;0.30mm</dd><br>
+                            <dt>Tel say&#305;s&#305;:</dt> <dd>11 paralel tel</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <p>Fabrikada <strong>2 incetel &ccedil;ekme makinesi</strong> bulunur, bu y&uuml;zden operasyonlar paralel y&uuml;r&uuml;t&uuml;lebilir. Makine 1&ndash;16 sepet girdi kabul edebilir ve 0.15mm ile 0.65mm aras&#305;nda tel &ccedil;ap&#305;nda 1 makara &uuml;retir.</p>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    1&ndash;16 sepet kalayl&#305; bak&#305;r<br>
+                    (tasar&#305;ma ba&#287;l&#305;)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    1 makara<br>
+                    (N) &times; &Oslash;(0.15&ndash;0.65mm)<br>
+                    N = girdi sepet say&#305;s&#305;
+                </div>
+            </div>
+
+            <p class="note">6mm&sup2; i&ccedil;in: bu ad&#305;mdan sonra elimizde 2 makara vard&#305;r &mdash; biri 10&times;0.30mm, di&#287;eri 11&times;0.30mm. Birlikte, nihai iletken i&ccedil;in gereken 21 sepetin t&uuml;m kalayl&#305; bak&#305;r&#305;n&#305; i&ccedil;erirler.</p>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">04</span>
+                <div>
+                    <span class="step-title">BUNCHER / B&Uuml;K&Uuml;M</span><br>
+                    <span class="step-title-tr">Bunching</span>
+                </div>
+            </div>
+            <p>&#304;ncetel &ccedil;ekmeden gelen makaralar birle&#351;tirilir. Buncher birden fazla makara al&#305;r, telleri birbirine b&uuml;ker ve tek bir <strong>b&uuml;k&uuml;l&uuml; bak&#305;r</strong> makaras&#305; &uuml;retir.</p>
+
+            <h3>&Ouml;rnek: 6mm&sup2; Kablo</h3>
+            <p>Buncher, 73 telli iletkeni olu&#351;turmak i&ccedil;in t&uuml;m ince &ccedil;ekilmi&#351; tellere ihtiya&ccedil; duyar:</p>
+            <ul>
+                <li><strong>3 makara</strong> 11 &times; &Oslash;0.30mm = 33 tel</li>
+                <li><strong>4 makara</strong> 10 &times; &Oslash;0.30mm = 40 tel</li>
+                <li><strong>Toplam:</strong> 7 girdi makaras&#305; &rarr; 73 &times; &Oslash;0.30mm = <strong>b&uuml;k&uuml;l&uuml; bak&#305;r</strong></li>
+            </ul>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    1&ndash;7 makara (incetel &ccedil;ekmeden)<br>
+                    (tasar&#305;ma ba&#287;l&#305;)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    1 makara &mdash; b&uuml;k&uuml;l&uuml; iletken<br>
+                    B&uuml;k&uuml;l&uuml; bak&#305;r<br>
+                    (&ouml;rn. 6mm&sup2; i&ccedil;in 73 &times; &Oslash;0.30mm)
+                </div>
+            </div>
+
+            <div class="insight">
+                <p style="margin-bottom: 0;"><strong>B&uuml;y&uuml;k kablolar i&ccedil;in &ccedil;oklu ge&ccedil;i&#351;:</strong> Buncher maksimum 7 girdi makaras&#305; alabilir. Daha b&uuml;y&uuml;k kablolar i&ccedil;in (120mm&sup2;, 240mm&sup2; gibi), ilk buncher ge&ccedil;i&#351;inin &ccedil;&#305;kt&#305;s&#305; ikinci ge&ccedil;i&#351;in girdisi olur. Makine limiti, t&uuml;m &uuml;retim planlama mant&#305;&#287;&#305;n&#305; &#351;ekillendiren fiziksel bir k&#305;s&#305;tt&#305;r.</p>
+            </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">05</span>
+                <div>
+                    <span class="step-title">EKSTR&Uuml;ZER</span><br>
+                    <span class="step-title-tr">Extrusion</span>
+                </div>
+            </div>
+            <p><strong>Telin kablo haline geldi&#287;i yer buras&#305;d&#305;r.</strong> Ekstr&uuml;der, b&uuml;k&uuml;l&uuml; iletkenin &uuml;zerine plastik yal&#305;t&#305;m (ve opsiyonel olarak k&#305;l&#305;f) uygular. &#304;letken, erimi&#351; plastik bile&#351;i&#287;in etraf&#305;na bast&#305;r&#305;ld&#305;&#287;&#305; bir kal&#305;ptan ge&ccedil;er.</p>
+
+            <p>Ekstr&uuml;zyon ad&#305;m&#305;, fabrikadaki en fazla de&#287;i&#351;kene sahip ad&#305;md&#305;r:</p>
+            <ul>
+                <li><strong>Yal&#305;t&#305;m malzemesi:</strong> E-beam ve standart kablolar i&ccedil;in farkl&#305; bile&#351;ikler</li>
+                <li><strong>K&#305;l&#305;f malzemesi:</strong> ayn&#305; anda veya ayr&#305; bir ge&ccedil;i&#351;te uygulanabilir</li>
+                <li><strong>Boya/renklendirici:</strong> baz&#305; E-beam plastikler boyalh gelir, di&#287;erleri renklendirme gerektirir</li>
+                <li><strong>Kataliz&ouml;r:</strong> E-beam kablolar plastik bile&#351;imde kataliz&ouml;r gerektirmez</li>
+                <li><strong>Kal&#305;nl&#305;k:</strong> kablo tasar&#305;m&#305;na ve standart gereksinimlerine g&ouml;re de&#287;i&#351;ir</li>
+                <li><strong>&Ccedil;ift ekstr&uuml;zyon:</strong> yal&#305;t&#305;m ve k&#305;l&#305;f tek ge&ccedil;i&#351;te veya ayr&#305; ayr&#305; uygulanabilir</li>
+            </ul>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    1 makara b&uuml;k&uuml;l&uuml; iletken<br>
+                    + plastik bile&#351;ik(ler)<br>
+                    + opsiyonel boya, kataliz&ouml;r
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    1 &uuml;retim makaras&#305; kablo<br>
+                    (yal&#305;t&#305;ml&#305; tel / bitmi&#351; kablo)
+                </div>
+            </div>
+
+            <p class="note">Bu noktadan itibaren &uuml;r&uuml;n, sepetler yerine &uuml;retim makaralar&#305;nda (fabrika zemininde kullan&#305;lan b&uuml;y&uuml;k, a&#287;&#305;r makaralar) ta&#351;&#305;n&#305;r.</p>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">06</span>
+                <div>
+                    <span class="step-title">E-BEAM &Ccedil;APRAZ BA&#286;LAMA</span>
+                    <span style="font-size: 11px; color: #888; margin-left: 8px;">(opsiyonel)</span><br>
+                    <span class="step-title-tr">E-Beam Cross-Linking</span>
+                </div>
+            </div>
+            <p>E-beam kablo tasar&#305;mlar&#305; i&ccedil;in, ekstr&uuml;de edilmi&#351; kablo bir elektron &#305;&#351;&#305;n&#305; h&#305;zland&#305;r&#305;c&#305;s&#305;n&#305;n alt&#305;ndan ge&ccedil;irilir. Radyasyon, yal&#305;t&#305;mdaki polimer zincirlerini &ccedil;apraz ba&#287;lar ve &#305;s&#305; direncini, mekanik dayan&#305;m&#305; ve kimyasal direnci dramatik &#351;ekilde art&#305;r&#305;r.</p>
+
+            <p>Radyasyon dozu, yal&#305;t&#305;m malzemesine ve kal&#305;nl&#305;&#287;&#305;na g&ouml;re belirlenir:</p>
+
+            <div class="stat-grid-3">
+                <div class="stat-box">
+                    <div class="value">5</div>
+                    <div class="label">M&#304;N Mrad</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">~15</div>
+                    <div class="label">T&#304;P&#304;K Mrad</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">25</div>
+                    <div class="label">MAKS Mrad</div>
+                </div>
+            </div>
+
+            <p class="note">T&uuml;m kablolar E-beam'den ge&ccedil;mez. Standart PVC kablolar bu ad&#305;m&#305; tamamen atlar. ERP sistemi her iki ak&#305;&#351;&#305; da desteklemelidir.</p>
+        </div>
+
+        <!-- STEP 7 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">07</span>
+                <div>
+                    <span class="step-title">AKTARMA</span><br>
+                    <span class="step-title-tr">Transfer / Rewinding</span>
+                </div>
+            </div>
+            <p>Ekstr&uuml;zyondan (veya E-beam'den) gelen b&uuml;y&uuml;k &uuml;retim makaralar&#305;, tek bir m&uuml;&#351;teri sipari&#351;inden &ccedil;ok daha fazla kablo i&ccedil;erir. Aktarma ad&#305;m&#305;nda, kablo &uuml;retim makaras&#305;ndan m&uuml;&#351;terinin belirtti&#287;i uzunluklarda daha k&uuml;&ccedil;&uuml;k makaralara veya kangallara sar&#305;l&#305;r.</p>
+
+            <div class="io-grid">
+                <div class="io-box">
+                    <strong>G&#304;RD&#304;</strong>
+                    1 &uuml;retim makaras&#305;<br>
+                    (binlerce metre)
+                </div>
+                <div class="io-arrow">&rarr;</div>
+                <div class="io-box">
+                    <strong>&Ccedil;IKTI</strong>
+                    Birden fazla m&uuml;&#351;teri makaras&#305; veya kangal<br>
+                    100m ile 5.000m aras&#305;<br>
+                    (m&uuml;&#351;teri talebine g&ouml;re)
+                </div>
+            </div>
+
+            <p class="note">Bu, bir girdinin birden fazla &ccedil;&#305;kt&#305; &uuml;retti&#287;i ilk ad&#305;md&#305;r. Tek bir &uuml;retim makaras&#305;, farkl&#305; uzunluk gereksinimlerine sahip birden fazla m&uuml;&#351;teri sipari&#351;ine b&ouml;l&uuml;nebilir.</p>
+        </div>
+
+        <!-- STEP 8 -->
+        <div class="step-section">
+            <div class="step-header">
+                <span class="step-number">08</span>
+                <div>
+                    <span class="step-title">PAKETLEME &amp; SEVK&#304;YAT</span><br>
+                    <span class="step-title-tr">Packing &amp; Shipment</span>
+                </div>
+            </div>
+            <p>M&uuml;&#351;teri makaralar&#305; ve kangallar etiketlenir, sar&#305;l&#305;r, paletlenir ve sevkiyata haz&#305;rlan&#305;r. Dok&uuml;mantasyon olu&#351;turulur &mdash; test sertifikalar&#305;, uygunluk beyanlar&#305;, paketleme listeleri.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. BU N&#304;&Ccedil;&#304;N B&#304;R ERP PROBLEM&#304;D&#304;R</h2>
+        <!-- ============================================ -->
+
+        <p>Bir kablo fabrikas&#305; d&#305;&#351;ar&#305;dan basit g&ouml;r&uuml;n&uuml;r: bak&#305;r girer, kablo &ccedil;&#305;kar. Ancak &uuml;retim ak&#305;&#351;&#305;, &ouml;l&ccedil;eklendi&#287;inde manuel takibi imkans&#305;z k&#305;lan birka&ccedil; &ouml;zelli&#287;e sahiptir:</p>
+
+        <ul>
+            <li><strong>Fan-in / fan-out:</strong> Ad&#305;m 3&ndash;4 birden fazla girdi al&#305;r, tek &ccedil;&#305;kt&#305; &uuml;retir. Ad&#305;m 7 tek girdi al&#305;r, birden fazla &ccedil;&#305;kt&#305; &uuml;retir. Malzeme ak&#305;&#351;&#305;n&#305; takip etmek, her tasar&#305;m i&ccedil;in bu ili&#351;kileri anlamay&#305; gerektirir.</li>
+            <li><strong>Tasar&#305;ma ba&#287;l&#305; her &#351;ey:</strong> Girdi sepet say&#305;s&#305;, tel &ccedil;ap&#305;, damar say&#305;s&#305;, buncher ge&ccedil;i&#351; say&#305;s&#305;, yal&#305;t&#305;m malzemesi, radyasyon dozu &mdash; hepsi kablo tasar&#305;m&#305;na g&ouml;re de&#287;i&#351;ir. Tek bir "re&ccedil;ete" yoktur.</li>
+            <li><strong>Ara &uuml;r&uuml;nler:</strong> Fabrika zemininde ayn&#305; anda ham bak&#305;r, &ccedil;&#305;plak bak&#305;r, kalayl&#305; bak&#305;r, ince &ccedil;ekilmi&#351; makaralar, b&uuml;k&uuml;l&uuml; iletkenler, yal&#305;t&#305;ml&#305; kablolar ve bitmi&#351; &uuml;r&uuml;nler bulunur. Her birinin kendi kimli&#287;i ve konumu vard&#305;r.</li>
+            <li><strong>Paralel i&#351;leme:</strong> Birden fazla makine ayn&#305; sipari&#351;in farkl&#305; par&ccedil;alar&#305; &uuml;zerinde ayn&#305; anda &ccedil;al&#305;&#351;abilir. &#304;ki incetel &ccedil;ekme makinesi paralel &ccedil;al&#305;&#351;abilir; farkl&#305; tasar&#305;mlar makine zaman&#305;n&#305; payla&#351;abilir.</li>
+            <li><strong>Her ad&#305;mda kalite:</strong> Her ara &uuml;r&uuml;n test edilebilir. Laboratuvar sonu&ccedil;lar&#305;, izlenebilirlik ve sertifikasyon i&ccedil;in belirli &uuml;retim partilerine ba&#287;lanmal&#305;d&#305;r.</li>
+        </ul>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>As&#305;l problem yaz&#305;l&#305;m de&#287;il &mdash; alan bilgisidir.</strong> Herhangi bir geli&#351;tirici CRUD ekranlar&#305; yapabilir. Ama 6mm&sup2; kablonun tam olarak 0.30mm'de 73 tel gerektirdi&#287;ini, bunlar&#305;n 3&times;11 + 4&times;10 olarak iki incetel &ccedil;ekme makinesine da&#287;&#305;ld&#305;&#287;&#305;n&#305; ve tek bir buncher'a beslenece&#287;ini bilmek &mdash; bu bilgi fabrika zemininde 7 ay ge&ccedil;irmeyi, makineleri izlemeyi, operat&ouml;rlerle konu&#351;may&#305; ve hatalar yapmay&#305; gerektirdi.</p>
+        </div>
+
+        <div class="quote">
+            <p>Bu dok&uuml;man son derece yo&#287;unla&#351;t&#305;r&#305;lm&#305;&#351; bir &ouml;zettir. Her ad&#305;m, her karar, her eylem, tek bir sayfada yakalanamayacak g&ouml;r&uuml;nmeyen, k&uuml;&ccedil;&uuml;k ama son derece &ouml;nemli detaylara sahiptir. Bu haritad&#305;r &mdash; arazinin kendisi de&#287;il.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
