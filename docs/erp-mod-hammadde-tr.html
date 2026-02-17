@@ -525,35 +525,20 @@
         <div class="submod-card">
             <div class="submod-num">6.1</div>
             <div class="submod-body">
-                <h4>Hammadde Girişi (Material Entry)</h4>
-                <p>1.930 satırlık giriş sayfası. 8 malzeme türü kartı, çoklu palet bakır girişi, lot bazlı kimyasal giriş, fotoğraf yüklemeleri (irsaliye + test raporları, her birinden en fazla 3), QR kod oluşturma ve yazdırma, teslimat takibi için sipariş bağlama. Modüldeki en büyük ve en karmaşık sayfa.</p>
+                <h4>Tedarikçi Yönetimi (Supplier Management)</h4>
+                <p>Bire-çok malzeme ilişkileriyle tedarikçi şirket yönetimi. İç içe malzeme listeleriyle tedarikçi oluşturma, her malzeme türü kendi özelliklerini taşır (yoğunluk, boyut, makara tipi). Akıllı yetki kontrolü, gerçek zamanlı WebSocket güncellemeleri, FK bağımlılık korumasıyla kalıcı silme. Başlangıç noktası &mdash; kayıtlı tedarikçi olmadan hiçbir şey sipariş edilemez veya girilemez.</p>
                 <div class="submod-tags">
-                    <span class="submod-tag">1.930 SATIR</span>
-                    <span class="submod-tag">14 ENDPOINT</span>
-                    <span class="submod-tag">8 MALZEME TÜRÜ</span>
-                    <span class="submod-tag">QR KODLAR</span>
-                    <span class="submod-tag">FOTOĞRAF YÜKLEME</span>
+                    <span class="submod-tag">761 SATIR</span>
+                    <span class="submod-tag">1:N MALZEMELER</span>
+                    <span class="submod-tag">AKILLI YETKİLER</span>
+                    <span class="submod-tag">GERÇEK ZAMANLI</span>
+                    <span class="submod-tag">FK KORUMA</span>
                 </div>
             </div>
         </div>
 
         <div class="submod-card">
             <div class="submod-num">6.2</div>
-            <div class="submod-body">
-                <h4>Hammaddeler Listesi (Materials List)</h4>
-                <p>ProTable ile tam envanter görünümü. Lazy-loaded fotoğraf önizlemeleri, malzeme durum yönetimi (received/approved/in_use/consumed/rejected), QR kodu değiştirme ile düzenleme, bağımlılık kontrolüyle kalıcı silme, kalan ağırlık takibi ve QR kod yazdırma kuyruğu entegrasyonu.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">1.153 SATIR</span>
-                    <span class="submod-tag">PROTABLE</span>
-                    <span class="submod-tag">LAZY FOTOĞRAFLAR</span>
-                    <span class="submod-tag">GERÇEK ZAMANLI</span>
-                    <span class="submod-tag">YAZICI KUYRUĞU</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">6.3</div>
             <div class="submod-body">
                 <h4>Hammadde Sipariş (Material Orders)</h4>
                 <p>Sipariş grup kodları (R1, R2...) ile satın alma sipariş takibi, kategorize edilmiş nedenlerle (tedarikçi/solen/diğer) tarih değişikliği geçmişi, teslimat miktarı takibi, teslimat sonrası tedarikçi puanlaması (yarım artışlarla 0.5&ndash;5 yıldız) ve durum yaşam döngüsü yönetimi.</p>
@@ -568,16 +553,31 @@
         </div>
 
         <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Hammadde Girişi (Material Entry)</h4>
+                <p>1.930 satırlık giriş sayfası. 8 malzeme türü kartı, çoklu palet bakır girişi, lot bazlı kimyasal giriş, fotoğraf yüklemeleri (irsaliye + test raporları, her birinden en fazla 3), QR kod oluşturma ve yazdırma, teslimat takibi için sipariş bağlama. Modüldeki en büyük ve en karmaşık sayfa.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">1.930 SATIR</span>
+                    <span class="submod-tag">14 ENDPOINT</span>
+                    <span class="submod-tag">8 MALZEME TÜRÜ</span>
+                    <span class="submod-tag">QR KODLAR</span>
+                    <span class="submod-tag">FOTOĞRAF YÜKLEME</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
             <div class="submod-num">6.4</div>
             <div class="submod-body">
-                <h4>Tedarikçi Yönetimi (Supplier Management)</h4>
-                <p>Bire-çok malzeme ilişkileriyle tedarikçi şirket yönetimi. İç içe malzeme listeleriyle tedarikçi oluşturma, her malzeme türü kendi özelliklerini taşır (yoğunluk, boyut, makara tipi). Akıllı yetki kontrolü, gerçek zamanlı WebSocket güncellemeleri, FK bağımlılık korumasıyla kalıcı silme.</p>
+                <h4>Hammaddeler Listesi (Materials List)</h4>
+                <p>ProTable ile tam envanter görünümü. Lazy-loaded fotoğraf önizlemeleri, malzeme durum yönetimi (received/approved/in_use/consumed/rejected), QR kodu değiştirme ile düzenleme, bağımlılık kontrolüyle kalıcı silme, kalan ağırlık takibi ve QR kod yazdırma kuyruğu entegrasyonu.</p>
                 <div class="submod-tags">
-                    <span class="submod-tag">761 SATIR</span>
-                    <span class="submod-tag">1:N MALZEMELER</span>
-                    <span class="submod-tag">AKILLI YETKİLER</span>
+                    <span class="submod-tag">1.153 SATIR</span>
+                    <span class="submod-tag">PROTABLE</span>
+                    <span class="submod-tag">LAZY FOTOĞRAFLAR</span>
                     <span class="submod-tag">GERÇEK ZAMANLI</span>
-                    <span class="submod-tag">FK KORUMA</span>
+                    <span class="submod-tag">YAZICI KUYRUĞU</span>
                 </div>
             </div>
         </div>
