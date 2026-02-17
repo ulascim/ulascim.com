@@ -688,6 +688,257 @@
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Makine Y&ouml;netimi saf bir veri sa&#287;lay&#305;c&#305;s&#305;d&#305;r. Tasar&#305;mlar, sipari&scedil;ler veya &uuml;retim hakk&#305;nda hi&ccedil;bir &scedil;ey bilmez. Sadece &ldquo;bu makine ne yapabilir?&rdquo; sorusunu yan&#305;tlar &mdash; geri kalan her &scedil;ey t&uuml;keticinin sorumlulu&#287;udur. Bu, mod&uuml;l&uuml; basit tutar (~726 sat&#305;r frontend, ~38 endpoint) ve onu Teknik alt sisteminin en kararl&#305; par&ccedil;as&#305; yapar.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.2 STANDART Y&Ouml;NET&#304;M&#304;</h2>
+        <!-- ============================================ -->
+
+        <p>Sat&#305;lan her kablo, uluslararas&#305; standart kurulu&scedil;lar&#305; (IEC, CENELEC) veya m&uuml;&scedil;teri taraf&#305;ndan tan&#305;mlanan kalite testlerini ge&ccedil;melidir. Standart Y&ouml;netimi, bu testlerin tan&#305;mland&#305;&#287;&#305; yerdir &mdash; neyin &ouml;l&ccedil;&uuml;lece&#287;i, ka&ccedil; numune al&#305;naca&#287;&#305;, hangi parametrelerle ve referans standart numaras&#305;n&#305;n ne oldu&#287;u. Bu tan&#305;mlar daha sonra kablo tasar&#305;mlar&#305;na g&ouml;m&uuml;l&uuml;r, b&ouml;ylece Lab mod&uuml;l&uuml; &uuml;retim s&#305;ras&#305;nda tam olarak neyi ne zaman test edece&#287;ini bilir.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>&Uuml;&ccedil; kalite katman&#305;:</strong> <code>IEC-EN</code> Avrupa uyumla&scedil;t&#305;r&#305;lm&#305;&scedil; standartlar&#305;n&#305; kapsar (EN 50618, IEC 60228). <code>UL</code> Amerikan standartlar&#305;n&#305; kapsar (UL 4703, UL 854). <code>SLN</code> Solen&rsquo;in kendi i&ccedil; testlerini kapsar &mdash; standartlar&#305;n gerektirdi&#287;inin &ouml;tesine ge&ccedil;en &scedil;irkete &ouml;zg&uuml; kontroller. Playground&rsquo;da kablo tasar&#305;m&#305; olu&scedil;turulurken, sadece tasar&#305;m&#305;n standart kategorisiyle e&scedil;le&scedil;en testler g&ouml;sterilir.</p>
+        </div>
+
+        <h3>6.2.1 Veri Modeli</h3>
+
+        <p>&Uuml;&ccedil; tablo birlikte &ccedil;al&#305;&scedil;&#305;r: standartlar neyin test edilece&#287;ini, parametreler her test i&ccedil;inde neyin &ouml;l&ccedil;&uuml;lece&#287;ini, sonu&ccedil;lar ise &uuml;retimden ger&ccedil;ek &ouml;l&ccedil;&uuml;mleri saklar.</p>
+
+        <h4><code>test_standards</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Nullable</th><th>K&#305;s&#305;tlamalar / Varsay&#305;lan</th><th>Notlar</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>Hay&#305;r</td><td>PK, indeksli</td><td>&mdash;</td></tr>
+            <tr><td><code>standard_category</code></td><td>String(50)</td><td>Hay&#305;r</td><td>CHECK: IN (&lsquo;IEC-EN&rsquo;, &lsquo;UL&rsquo;, &lsquo;SLN&rsquo;)</td><td>Hangi standart kurulu&scedil;u</td></tr>
+            <tr><td><code>test_name</code></td><td>String(200)</td><td>Hay&#305;r</td><td>&mdash;</td><td>T&uuml;rk&ccedil;e test ad&#305;</td></tr>
+            <tr><td><code>test_name_en</code></td><td>String(200)</td><td>Evet</td><td>&mdash;</td><td>&#304;ngilizce test ad&#305;</td></tr>
+            <tr><td><code>standard_number</code></td><td>String(100)</td><td>Evet</td><td>&mdash;</td><td>&ouml;rn. &ldquo;EN 50618&rdquo;, &ldquo;IEC 60228&rdquo;</td></tr>
+            <tr><td><code>test_type</code></td><td>String(100)</td><td>Evet</td><td>&mdash;</td><td>Serbest metin: Mekanik, Elektriksel, G&ouml;rsel, Boyutsal</td></tr>
+            <tr><td><code>unit</code></td><td>String(50)</td><td>Evet</td><td>&mdash;</td><td>&ouml;rn. &ldquo;ohm/km&rdquo;, &ldquo;kV&rdquo;, &ldquo;N/mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>number_of_values</code></td><td>Integer</td><td>Hay&#305;r</td><td>Varsay&#305;lan: 1, CHECK: &ge; 1</td><td>&Ouml;l&ccedil;&uuml;m ba&scedil;&#305;na ka&ccedil; de&#287;er</td></tr>
+            <tr><td><code>test_samples</code></td><td>Integer</td><td>Hay&#305;r</td><td>Varsay&#305;lan: 1, CHECK: &ge; 1</td><td>Ka&ccedil; numune test edilecek</td></tr>
+            <tr><td><code>test_method</code></td><td>Text</td><td>Evet</td><td>&mdash;</td><td>Serbest metin test prosed&uuml;r&uuml; a&ccedil;&#305;klamas&#305;</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Hay&#305;r</td><td>Varsay&#305;lan: True, indeksli</td><td>Soft-delete bayra&#287;&#305;</td></tr>
+            <tr><td><code>created_by</code></td><td>Integer</td><td>Evet</td><td>FK &rarr; <code>users.id</code></td><td>&mdash;</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>&mdash;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow, otomatik g&uuml;ncellenir</td><td>&mdash;</td></tr>
+        </table>
+        <p><strong>Benzersizlik k&#305;s&#305;tlamas&#305;:</strong> <code>(standard_category, test_name, standard_number)</code> &mdash; ayn&#305; standart kurulu&scedil;u i&ccedil;inde tekrarlanan test tan&#305;mlar&#305;n&#305; &ouml;nler.</p>
+
+        <h4><code>test_parameters</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Nullable</th><th>K&#305;s&#305;tlamalar / Varsay&#305;lan</th><th>Notlar</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>Hay&#305;r</td><td>PK, indeksli</td><td>&mdash;</td></tr>
+            <tr><td><code>test_standard_id</code></td><td>Integer</td><td>Hay&#305;r</td><td>FK &rarr; <code>test_standards.id</code>, ON DELETE CASCADE</td><td>&mdash;</td></tr>
+            <tr><td><code>parameter_name</code></td><td>String(100)</td><td>Hay&#305;r</td><td>&mdash;</td><td>&ouml;rn. &ldquo;&Ccedil;ekme Dayan&#305;m&#305;&rdquo;, &ldquo;Uzama&rdquo;, &ldquo;Diren&ccedil;&rdquo;</td></tr>
+            <tr><td><code>parameter_unit</code></td><td>String(50)</td><td>Evet</td><td>&mdash;</td><td>&ouml;rn. &ldquo;N/mm&sup2;&rdquo;, &ldquo;%&rdquo;, &ldquo;ohm/km&rdquo;</td></tr>
+            <tr><td><code>parameter_order</code></td><td>Integer</td><td>Hay&#305;r</td><td>Varsay&#305;lan: 1</td><td>Formlardaki g&ouml;r&uuml;nt&uuml;lenme s&#305;ras&#305;</td></tr>
+            <tr><td><code>is_required</code></td><td>Boolean</td><td>Hay&#305;r</td><td>Varsay&#305;lan: True</td><td>Test s&#305;ras&#305;nda doldurulmal&#305;</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>&mdash;</td></tr>
+        </table>
+        <p><strong>Benzersizlik k&#305;s&#305;tlamas&#305;:</strong> <code>(test_standard_id, parameter_name)</code> &mdash; tek bir test i&ccedil;inde tekrarlanan parametre adlar&#305; olmaz.</p>
+
+        <h4><code>test_results</code></h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Nullable</th><th>K&#305;s&#305;tlamalar / Varsay&#305;lan</th><th>Notlar</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>Hay&#305;r</td><td>PK, indeksli</td><td>&mdash;</td></tr>
+            <tr><td><code>test_standard_id</code></td><td>Integer</td><td>Hay&#305;r</td><td>FK &rarr; <code>test_standards.id</code></td><td>Hangi test yap&#305;ld&#305;</td></tr>
+            <tr><td><code>design_step_id</code></td><td>Integer</td><td>Evet</td><td>FK &rarr; <code>design_steps.id</code></td><td>Sonucu belirli &uuml;retim ad&#305;m&#305;na ba&#287;lar</td></tr>
+            <tr><td><code>production_session_id</code></td><td>Integer</td><td>Evet</td><td>&mdash;</td><td>&Uuml;retim oturumuna ba&#287;lar</td></tr>
+            <tr><td><code>cable_batch_code</code></td><td>String(50)</td><td>Evet</td><td>&#304;ndeksli</td><td>&#304;zlenebilirlik i&ccedil;in parti tan&#305;mlay&#305;c&#305;</td></tr>
+            <tr><td><code>test_date</code></td><td>DateTime</td><td>Hay&#305;r</td><td>&mdash;</td><td>Testin yap&#305;ld&#305;&#287;&#305; tarih</td></tr>
+            <tr><td><code>tested_by</code></td><td>Integer</td><td>Hay&#305;r</td><td>FK &rarr; <code>users.id</code></td><td>Testi yapan ki&scedil;i</td></tr>
+            <tr><td><code>measurements</code></td><td>Text</td><td>Hay&#305;r</td><td>&mdash;</td><td>&Ouml;l&ccedil;&uuml;m verilerinin JSON dizesi</td></tr>
+            <tr><td><code>pass_fail</code></td><td>String(10)</td><td>Evet</td><td>CHECK: IN (&lsquo;PASS&rsquo;, &lsquo;FAIL&rsquo;, &lsquo;PENDING&rsquo;) VEYA NULL</td><td>Test sonucu</td></tr>
+            <tr><td><code>notes</code></td><td>Text</td><td>Evet</td><td>&mdash;</td><td>Durum g&uuml;ncellemelerinde zaman damgal&#305; eklenir</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Hay&#305;r</td><td>utcnow</td><td>&mdash;</td></tr>
+        </table>
+
+        <p><strong>&Ouml;l&ccedil;&uuml;m depolama:</strong> <code>measurements</code> s&uuml;tunu bir JSON dizisi saklar. Her giri&scedil; <code>parameter</code> (ad), <code>values</code> (float dizisi), iste&#287;e ba&#287;l&#305; <code>unit</code> ve iste&#287;e ba&#287;l&#305; parametre ba&scedil;&#305;na <code>result</code> i&ccedil;eren bir <code>MeasurementData</code> nesnesidir. Modelin yard&#305;mc&#305; metodlar&#305; vard&#305;r: <code>get_measurements()</code> JSON&rsquo;&#305; ayr&#305;&scedil;t&#305;r&#305;r, <code>set_measurements()</code> serile&scedil;tirir ve <code>evaluate_result()</code> t&uuml;m zorunlu parametrelerin de&#287;erleri olup olmad&#305;&#287;&#305;na g&ouml;re PASS/FAIL/PENDING d&ouml;nd&uuml;r&uuml;r.</p>
+
+        <h3>6.2.2 &#304;li&scedil;kiler</h3>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">TestStandard</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">N &times; TestParameter<br><span style="font-size:9px;color:#666;">kademeli silme</span></div>
+        </div>
+        <div class="flow">
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">TestStandard</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">N &times; TestResult<br><span style="font-size:9px;color:#666;">kademeli silme yok</span></div>
+        </div>
+
+        <p>Silme davran&#305;&scedil;&#305; ak&#305;ll&#305;d&#305;r: bir standard&#305;n test sonu&ccedil;lar&#305; varsa, sonu&ccedil; izlenebilirli&#287;ini korumak i&ccedil;in <strong>soft delete</strong> yap&#305;l&#305;r (<code>is_active = false</code>). Sonu&ccedil;lar&#305; yoksa <strong>hard delete</strong> yap&#305;l&#305;r. Parametreler her zaman kademeli silinir &mdash; bir standard&#305; silmek t&uuml;m parametrelerini kald&#305;r&#305;r.</p>
+
+        <h3>6.2.3 API Endpoint&rsquo;leri</h3>
+
+        <p>&Uuml;&ccedil; gruba ayr&#305;lm&#305;&scedil; 12 endpoint: standart CRUD, parametre y&ouml;netimi ve test sonu&ccedil;lar&#305;.</p>
+
+        <h4>Test Standartlar&#305;</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/tests</code></td><td>super_admin, lab_user, production_manager</td><td>Standart + parametreleri tek i&scedil;lemde olu&scedil;tur. Tekrar kontrol&#252; yapar (kategori + ad + numara). Parametre eklemeden &ouml;nce ID almak i&ccedil;in DB flush.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>T&uuml;m&uuml;n&uuml; listele. <code>?category=IEC-EN</code>, <code>?active_only=true</code> (varsay&#305;lan), <code>?search=tensile</code>. Parametreleri eager-load eder. Kategori sonra ada g&ouml;re s&#305;ralar.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Tekil standart detay&#305;.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests/{id}/full</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>S&#305;ral&#305; parametreler + <code>has_parameters</code> bayra&#287;&#305;yla tam standart. Playground dinamik form &uuml;retimi i&ccedil;in kullan&#305;r.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/tests/{id}</code></td><td>super_admin, lab_user, production_manager</td><td>Standart g&uuml;ncelle. <code>parameters</code> sa&#287;lan&#305;rsa: <strong>mevcut t&uuml;m&uuml;n&uuml; sil</strong>, yenilerini olu&scedil;tur (tam de&#287;i&scedil;tirme).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/tests/{id}</code></td><td>super_admin, lab_user</td><td>Ak&#305;ll&#305; silme: sonu&ccedil;lar&#305; varsa soft, yoksa hard.</td></tr>
+        </table>
+
+        <h4>Test Parametreleri</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/tests/{id}/parameters</code></td><td>super_admin, lab_user, production_manager</td><td>Mevcut standarda tek parametre ekle. Tekrar ad kontrol&#252;.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/parameters/{id}</code></td><td>super_admin, lab_user</td><td>Tek parametreyi hard delete.</td></tr>
+        </table>
+
+        <h4>Test Sonu&ccedil;lar&#305;</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/results</code></td><td>lab_user, super_admin</td><td>&Ouml;l&ccedil;&uuml;m JSON&rsquo;&#305;yla sonu&ccedil; olu&scedil;tur. <code>tested_by</code>&rsquo;&#305; otomatik atar. &#304;lk ge&ccedil;/kal i&ccedil;in <code>evaluate_result()</code> &ccedil;a&#287;&#305;r&#305;r.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/results</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Sonu&ccedil;lar&#305; listele. <code>?batch_code</code>, <code>?test_standard_id</code>, <code>?pass_fail</code> filtresi. Limit: 1&ndash;200, varsay&#305;lan 50. test_date DESC s&#305;ral&#305;.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/results/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>Test eden ad&#305; ve standart bilgisiyle tekil sonu&ccedil;.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/results/{id}/status</code></td><td>lab_user, super_admin</td><td>Ge&ccedil;/kal durumunu g&uuml;ncelle. Denetim izi i&ccedil;in zaman damgas&#305; ve kullan&#305;c&#305; ad&#305;yla notlar ekler.</td></tr>
+        </table>
+
+        <h4>Referans Verileri</h4>
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>D&ouml;nd&uuml;r&uuml;r</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/categories</code></td><td><code>["IEC-EN", "UL", "SLN"]</code></td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/frequencies</code></td><td><code>["&uuml;retim_ba&scedil;&#305;", "&uuml;retim_sonu", "her_ikisi", "her_makara_sonu"]</code></td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/result-statuses</code></td><td><code>["PASS", "FAIL", "PENDING"]</code></td></tr>
+        </table>
+
+        <h3>6.2.4 Test Frekanslar&#305; &mdash; Testler Ne Zaman &Ccedil;al&#305;&scedil;&#305;r</h3>
+
+        <p>Playground&rsquo;da bir kablo tasar&#305;m ad&#305;m&#305;na test atan&#305;rken, kullan&#305;c&#305; Lab&rsquo;a &uuml;retim s&#305;ras&#305;nda testi <em>ne zaman</em> yapaca&#287;&#305;n&#305; s&ouml;yleyen bir <strong>frekans</strong> se&ccedil;er:</p>
+
+        <table>
+            <tr><th>Frekans</th><th>T&uuml;rk&ccedil;e</th><th>Anlam&#305;</th></tr>
+            <tr><td><code>&uuml;retim_ba&scedil;&#305;</code></td><td>&Uuml;retim Ba&scedil;&#305;</td><td>&Uuml;retim ba&scedil;lang&#305;c&#305;nda test et</td></tr>
+            <tr><td><code>&uuml;retim_sonu</code></td><td>&Uuml;retim Sonu</td><td>&Uuml;retim sonunda test et</td></tr>
+            <tr><td><code>her_ikisi</code></td><td>Her &#304;kisi</td><td>Hem ba&scedil;&#305;nda hem sonunda test et</td></tr>
+            <tr><td><code>her_makara_sonu</code></td><td>Her Makara Sonu</td><td>Her makaran&#305;n sonunda test et (en s&#305;k)</td></tr>
+        </table>
+
+        <h3>6.2.5 Standartlar Kablo Tasar&#305;mlar&#305;na Nas&#305;l Ba&#287;lan&#305;r</h3>
+
+        <p>Bu kritik entegrasyon noktas&#305;d&#305;r. Playground bir makine ad&#305;m&#305;n&#305; yap&#305;land&#305;r&#305;rken, testler tasar&#305;m&#305;n standart kategorisine g&ouml;re getirilir ve filtrelenir:</p>
+
+        <pre><span class="comment"># db_integration.py i&ccedil;inde &mdash; tasar&#305;m&#305;n standard&#305;yla e&scedil;le&scedil;en testleri getirir</span>
+<span class="keyword">def</span> get_tests_by_standard(db, standard):
+    <span class="comment"># Frontend kodunu veritaban&#305; kategorisine e&scedil;ler</span>
+    category_map = {<span class="string">'EN'</span>: <span class="string">'IEC-EN'</span>, <span class="string">'UL'</span>: <span class="string">'UL'</span>, <span class="string">'SLN'</span>: <span class="string">'SLN'</span>}
+    category = category_map.get(standard, standard)
+
+    standards = db.query(TestStandard).filter(
+        TestStandard.standard_category == category,
+        TestStandard.is_active == <span class="keyword">True</span>
+    ).all()
+    <span class="keyword">return</span> [{<span class="string">'id'</span>: s.id, <span class="string">'test_name'</span>: s.test_name, ...} <span class="keyword">for</span> s <span class="keyword">in</span> standards]</pre>
+
+        <p>Tasar&#305;m tamamland&#305;&#287;&#305;nda, atanan testler <code>cable_database.test_requirements</code> i&ccedil;inde JSON dizisi olarak saklan&#305;r:</p>
+
+        <pre><span class="comment"># cable_database.test_requirements i&ccedil;indeki depolama format&#305;</span>
+[
+  {
+    <span class="string">"step"</span>: 3,
+    <span class="string">"machine_type"</span>: <span class="string">"extruder"</span>,
+    <span class="string">"test_id"</span>: 12,
+    <span class="string">"test_name"</span>: <span class="string">"&Ccedil;ekme Dayan&#305;m&#305;"</span>,
+    <span class="string">"standard_number"</span>: <span class="string">"EN 50618"</span>,
+    <span class="string">"frequency"</span>: <span class="string">"her_ikisi"</span>
+  }
+]</pre>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m gere&#287;i denormalize:</strong> Test adlar&#305; ve standart numaralar&#305; Kablo Veritaban&#305; JSON&rsquo;&#305;na kopyalan&#305;r, sadece ID ile referans verilmez. Bu, bir test standard&#305; daha sonra yeniden adland&#305;r&#305;l&#305;r veya devre d&#305;&scedil;&#305; b&#305;rak&#305;l&#305;rsa, mevcut kablo tasar&#305;mlar&#305;n&#305;n orijinal test gereksinimlerini korumas&#305; anlam&#305;na gelir. Lab &uuml;retim s&#305;ras&#305;nda Kablo Veritaban&#305;&rsquo;ndan okur &mdash; neyi test edece&#287;ini bilmek i&ccedil;in asla Standartlar tablosunu sorgulamaz.</p>
+        </div>
+
+        <h3>6.2.6 Yetki Modeli</h3>
+
+        <table>
+            <tr><th>&#304;&scedil;lem</th><th>Eski Roller</th><th>Gran&uuml;ler Yetki</th></tr>
+            <tr><td>G&ouml;r&uuml;nt&uuml;leme / Listeleme / Arama</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td></tr>
+            <tr><td>Olu&scedil;turma / G&uuml;ncelleme</td><td>super_admin, lab_user, production_manager</td><td><code>teknik.standards.create</code> / <code>teknik.standards.edit</code></td></tr>
+            <tr><td>Silme</td><td>super_admin, lab_user</td><td><code>teknik.standards.delete</code></td></tr>
+            <tr><td>Sonu&ccedil; Olu&scedil;turma / G&uuml;ncelleme</td><td>lab_user, super_admin</td><td><code>teknik.standards.create</code></td></tr>
+        </table>
+
+        <p>Not: <code>lab_user</code> burada Makine Y&ouml;netimi&rsquo;nden daha geni&scedil; eri&scedil;ime sahiptir &mdash; bu bilerek yap&#305;lm&#305;&scedil;t&#305;r &ccedil;&uuml;nk&uuml; laboratuvar personeli standartlar sisteminin birincil kullan&#305;c&#305;lar&#305;d&#305;r.</p>
+
+        <h3>6.2.7 Frontend &mdash; Standartlar Sayfas&#305;</h3>
+
+        <p>Tek dosya: <code>pages/Teknik/Standards/index.tsx</code> (553 sat&#305;r). Route: <code>/teknik/standards</code>.</p>
+
+        <h4>Sayfa Yap&#305;s&#305;</h4>
+        <p>Olu&scedil;turma/d&uuml;zenleme i&ccedil;in bir <code>ProTable</code> ve modal i&ccedil;eren <code>PageContainer</code>. Sekme yok &mdash; t&uuml;m standartlar tek tabloda g&ouml;sterilir, kategori renk kodlu etiketlerle ay&#305;rt edilir.</p>
+
+        <h4>Tablo S&uuml;tunlar&#305; (9)</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Geni&scedil;lik</th><th>Notlar</th></tr>
+            <tr><td>ID</td><td>60px</td><td>Sola sabitli</td></tr>
+            <tr><td>Kategori</td><td>100px</td><td>Renk kodlu etiket: <span class="good">IEC-EN</span> mavi, <span class="good">UL</span> ye&scedil;il, <span style="color:#f59e0b;font-weight:700;">SLN</span> turuncu</td></tr>
+            <tr><td>Test Ad&#305;</td><td>otomatik</td><td>T&uuml;rk&ccedil;e test ad&#305;, ellipsis</td></tr>
+            <tr><td>Standart No</td><td>150px</td><td>&ouml;rn. &ldquo;EN 50618&rdquo;</td></tr>
+            <tr><td>Test Tipi</td><td>120px</td><td>Bo&scedil;sa &ldquo;-&rdquo; g&ouml;sterir</td></tr>
+            <tr><td>Numune Say&#305;s&#305;</td><td>100px</td><td>Ortalan&#305;r tam say&#305;</td></tr>
+            <tr><td>Parametre</td><td>100px</td><td>Parametre say&#305;s&#305;n&#305; g&ouml;sterir (&ouml;rn. &ldquo;3&rdquo;)</td></tr>
+            <tr><td>Durum</td><td>80px</td><td>Ye&scedil;il &ldquo;Aktif&rdquo; / K&#305;rm&#305;z&#305; &ldquo;Pasif&rdquo;</td></tr>
+            <tr><td>&#304;&scedil;lemler</td><td>100px</td><td>Sa&#287;a sabitli; d&uuml;zenle + sil ikonlar&#305;</td></tr>
+        </table>
+
+        <h4>Olu&scedil;turma/D&uuml;zenleme Modal&#305; (800px, bulan&#305;k arkaplan)</h4>
+        <p>Modal 7 form alan&#305; ve dinamik parametre listesi i&ccedil;erir:</p>
+        <table>
+            <tr><th>Alan</th><th>Tip</th><th>Zorunlu</th><th>Notlar</th></tr>
+            <tr><td>Standart Kategorisi</td><td>Select</td><td>Evet</td><td>Se&ccedil;enekler: IEC-EN, UL, SLN (&Ouml;zel)</td></tr>
+            <tr><td>Test Ad&#305; (TR)</td><td>Input</td><td>Evet</td><td>Placeholder: &ldquo;&Ouml;rn: &Ccedil;ekme Dayan&#305;m&#305;&rdquo;</td></tr>
+            <tr><td>Test Ad&#305; (EN)</td><td>Input</td><td>Hay&#305;r</td><td>Placeholder: &ldquo;&Ouml;rn: Tensile Strength&rdquo;</td></tr>
+            <tr><td>Standart Numaras&#305;</td><td>Input</td><td>Evet</td><td>Placeholder: &ldquo;&Ouml;rn: EN 50618&rdquo;</td></tr>
+            <tr><td>Test Tipi</td><td>Select</td><td>Hay&#305;r</td><td>Se&ccedil;enekler: Mekanik, Elektriksel, G&ouml;rsel, Boyutsal</td></tr>
+            <tr><td>Numune Say&#305;s&#305;</td><td>InputNumber</td><td>Hay&#305;r</td><td>Min: 1</td></tr>
+            <tr><td>Test Metodu</td><td>TextArea</td><td>Hay&#305;r</td><td>3 sat&#305;r, prosed&uuml;r a&ccedil;&#305;klamas&#305;</td></tr>
+        </table>
+
+        <h4>Parametre Y&ouml;netimi (modal i&ccedil;inde)</h4>
+        <p>&ldquo;Test Parametreleri&rdquo; ay&#305;r&#305;c&#305;s&#305;n&#305;n alt&#305;nda her parametre iki alanl&#305; k&uuml;&ccedil;&uuml;k bir Card olarak g&ouml;sterilir:</p>
+        <ul>
+            <li><strong>Parametre Ad&#305;</strong> &mdash; Input, placeholder &ldquo;Parametre Ad&#305; (&ouml;rn: &Ccedil;ekme Dayan&#305;m&#305;, Uzama, Diren&ccedil;)&rdquo;</li>
+            <li><strong>Birim</strong> &mdash; Input, placeholder &ldquo;Birim (&ouml;rn: N/mm&sup2;, %, ohm/km)&rdquo;</li>
+        </ul>
+        <p>&ldquo;Parametre Ekle&rdquo; butonu (kesikli &ccedil;izgi, tam geni&scedil;lik) yeni bo&scedil; parametre kart&#305; ekler. Her kart&#305;n ba&scedil;l&#305;&#287;&#305;nda sil butonu vard&#305;r. S&#305;ra otomatik olarak s&#305;ral&#305; atanır. G&uuml;ncellemede, mevcut t&uuml;m parametreler yeni setle <strong>de&#287;i&scedil;tirilir</strong> (t&uuml;m&uuml;n&uuml; sil + yenilerini olu&scedil;tur).</p>
+
+        <h4>CRUD Ak&#305;&scedil;&#305;</h4>
+
+        <p><strong>Olu&scedil;turma:</strong> &ldquo;Yeni Test Standard&#305;&rdquo; t&#305;kla &rarr; Modal a&ccedil;&#305;l&#305;r &rarr; Kategori, ad, standart numaras&#305; doldur &rarr; &#304;ste&#287;e ba&#287;l&#305; parametre ekle &rarr; &ldquo;Ekle&rdquo; t&#305;kla &rarr; <code>POST /api/teknik/standards/tests</code> &rarr; &ldquo;Test standard&#305; ba&scedil;ar&#305;yla eklendi!&rdquo; &rarr; Modal kapan&#305;r, liste yenilenir.</p>
+
+        <p><strong>D&uuml;zenleme:</strong> D&uuml;zenle ikonuna t&#305;kla &rarr; Modal &ouml;nceden doldurulmu&scedil; a&ccedil;&#305;l&#305;r &rarr; Alanlar&#305;/parametreleri de&#287;i&scedil;tir &rarr; &ldquo;G&uuml;ncelle&rdquo; t&#305;kla &rarr; <code>PUT /api/teknik/standards/tests/{id}</code> &rarr; &ldquo;Test standard&#305; ba&scedil;ar&#305;yla g&uuml;ncellendi!&rdquo; &rarr; Modal kapan&#305;r, liste yenilenir.</p>
+
+        <p><strong>Silme:</strong> Sil ikonuna t&#305;kla &rarr; Popconfirm &ldquo;Bu standard&#305; devre d&#305;&scedil;&#305; b&#305;rakmak istedi&#287;inize emin misiniz?&rdquo; &rarr; <code>DELETE /api/teknik/standards/tests/{id}</code> &rarr; &ldquo;Test standard&#305; devre d&#305;&scedil;&#305; b&#305;rak&#305;ld&#305;!&rdquo; &rarr; Liste yenilenir. Zaten pasif standartlar i&ccedil;in sil butonu devre d&#305;&scedil;&#305;.</p>
+
+        <h4>Arama &amp; Sayfalama</h4>
+        <p><strong>Arama</strong> istemci taraf&#305;ndad&#305;r (200px yuvarlak giri&scedil;). ID, kategori, test ad&#305;, standart numaras&#305;, test tipi, numune say&#305;s&#305; ve durum (aktif/pasif) &uuml;zerinde arar. <strong>Sayfalama</strong> varsay&#305;lan 10 sat&#305;r, [10, 20, 50, 100] se&ccedil;enekleriyle. ID azalan s&#305;rada (en yeni &ouml;nce).</p>
+
+        <h3>6.2.8 Di&#287;er Alt Mod&uuml;llerle Ba&#287;lant&#305;lar</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Kablo Tasar&#305;m (6.5)</h4>
+                <p>Playground&rsquo;daki her makine formu <code>get_tests_by_standard()</code> ile doldurulan bir <code>available_tests</code> b&ouml;l&uuml;m&uuml; i&ccedil;erir. Kullan&#305;c&#305;lar ad&#305;mlara frekansla test atar. Playground form entegrasyonu Standartlardan okur ama asla yazmaz.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Kablo Veritaban&#305; (6.6)</h4>
+                <p>Tamamlanm&#305;&scedil; tasar&#305;mlar <code>test_requirements</code>&rsquo;&#305; denormalize JSON olarak saklar &mdash; test ID&rsquo;leri, adlar&#305;, standart numaralar&#305; ve frekanslar tamamlama an&#305;nda kopyalan&#305;r. Bu anl&#305;k g&ouml;r&uuml;nt&uuml; de&#287;i&scedil;mezli&#287;i sa&#287;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Lab Mod&uuml;l&uuml;</h4>
+                <p>&Uuml;retim s&#305;ras&#305;nda Lab, Kablo Veritaban&#305;&rsquo;ndan test gereksinimlerini okur ve standarda ba&#287;l&#305; <code>TestResult</code> kay&#305;tlar&#305; olu&scedil;turur. Lab kullan&#305;c&#305;lar&#305; &ouml;l&ccedil;&uuml;mleri doldurur ve denetim izi i&ccedil;in zaman damgal&#305; notlarla ge&ccedil;/kal durumu belirler.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Standartlar bir kez tan&#305;mlan&#305;r, tasar&#305;mlara de&#287;er olarak g&ouml;m&uuml;l&uuml;r (referans olarak de&#287;il) ve &uuml;retim s&#305;ras&#305;nda test edilir. &Uuml;&ccedil; tablolu yap&#305; (standart &rarr; parametreler &rarr; sonu&ccedil;lar) tan&#305;m&#305; y&uuml;r&uuml;tmeden ay&#305;r&#305;r. Standart Y&ouml;netimi asla &uuml;retim verisine dokunmaz &mdash; sadece &ldquo;ne test edilmeli?&rdquo; sorusunu yan&#305;tlar, &ldquo;sonu&ccedil; ne oldu?&rdquo; sorusunu Lab mod&uuml;l&uuml;ne b&#305;rak&#305;r.</p>
+        </div>
+
     </main>
 
 </body>

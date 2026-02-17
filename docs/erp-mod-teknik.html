@@ -699,6 +699,257 @@
             <p style="margin-bottom: 0;"><strong>Design principle:</strong> Machine Management is a pure data provider. It knows nothing about designs, orders, or production. It only answers the question &ldquo;what can this machine do?&rdquo; &mdash; everything else is the consumer&rsquo;s responsibility. This keeps the module simple (~726 lines frontend, ~38 endpoints) and makes it the most stable part of the Teknik subsystem.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2>6.2 STANDARDS MANAGEMENT</h2>
+        <!-- ============================================ -->
+
+        <p>Every cable sold must pass a set of quality tests defined by international standards bodies (IEC, CENELEC) or the customer. Standards Management is where those tests are defined &mdash; what to measure, how many samples, with which parameters, and what the reference standard number is. These definitions are then embedded into cable designs so that the Lab module knows exactly what to test and when during production.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Three layers of quality:</strong> <code>IEC-EN</code> covers European harmonized standards (EN 50618, IEC 60228). <code>UL</code> covers American standards (UL 4703, UL 854). <code>SLN</code> covers Solen&rsquo;s own internal tests &mdash; company-specific checks that go beyond what the standards require. When a cable design is created in the Playground, only tests matching the design&rsquo;s standard category are shown.</p>
+        </div>
+
+        <h3>6.2.1 Data Model</h3>
+
+        <p>Three tables work together: standards define what to test, parameters define what to measure within each test, and results store the actual measurements from production.</p>
+
+        <h4><code>test_standards</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>Constraints / Default</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>No</td><td>PK, indexed</td><td>&mdash;</td></tr>
+            <tr><td><code>standard_category</code></td><td>String(50)</td><td>No</td><td>CHECK: IN (&lsquo;IEC-EN&rsquo;, &lsquo;UL&rsquo;, &lsquo;SLN&rsquo;)</td><td>Which standards body</td></tr>
+            <tr><td><code>test_name</code></td><td>String(200)</td><td>No</td><td>&mdash;</td><td>Turkish test name</td></tr>
+            <tr><td><code>test_name_en</code></td><td>String(200)</td><td>Yes</td><td>&mdash;</td><td>English test name</td></tr>
+            <tr><td><code>standard_number</code></td><td>String(100)</td><td>Yes</td><td>&mdash;</td><td>e.g. &ldquo;EN 50618&rdquo;, &ldquo;IEC 60228&rdquo;</td></tr>
+            <tr><td><code>test_type</code></td><td>String(100)</td><td>Yes</td><td>&mdash;</td><td>Free-form: Mekanik, Elektriksel, G&ouml;rsel, Boyutsal</td></tr>
+            <tr><td><code>unit</code></td><td>String(50)</td><td>Yes</td><td>&mdash;</td><td>e.g. &ldquo;ohm/km&rdquo;, &ldquo;kV&rdquo;, &ldquo;N/mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>number_of_values</code></td><td>Integer</td><td>No</td><td>Default: 1, CHECK: &ge; 1</td><td>How many values per measurement</td></tr>
+            <tr><td><code>test_samples</code></td><td>Integer</td><td>No</td><td>Default: 1, CHECK: &ge; 1</td><td>How many samples to test</td></tr>
+            <tr><td><code>test_method</code></td><td>Text</td><td>Yes</td><td>&mdash;</td><td>Free-text test procedure description</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>No</td><td>Default: True, indexed</td><td>Soft-delete flag</td></tr>
+            <tr><td><code>created_by</code></td><td>Integer</td><td>Yes</td><td>FK &rarr; <code>users.id</code></td><td>&mdash;</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>&mdash;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>No</td><td>utcnow, auto-updates</td><td>&mdash;</td></tr>
+        </table>
+        <p><strong>Unique constraint:</strong> <code>(standard_category, test_name, standard_number)</code> &mdash; prevents duplicate test definitions within the same standards body.</p>
+
+        <h4><code>test_parameters</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>Constraints / Default</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>No</td><td>PK, indexed</td><td>&mdash;</td></tr>
+            <tr><td><code>test_standard_id</code></td><td>Integer</td><td>No</td><td>FK &rarr; <code>test_standards.id</code>, ON DELETE CASCADE</td><td>&mdash;</td></tr>
+            <tr><td><code>parameter_name</code></td><td>String(100)</td><td>No</td><td>&mdash;</td><td>e.g. &ldquo;&Ccedil;ekme Dayan&#305;m&#305;&rdquo;, &ldquo;Uzama&rdquo;, &ldquo;Diren&ccedil;&rdquo;</td></tr>
+            <tr><td><code>parameter_unit</code></td><td>String(50)</td><td>Yes</td><td>&mdash;</td><td>e.g. &ldquo;N/mm&sup2;&rdquo;, &ldquo;%&rdquo;, &ldquo;ohm/km&rdquo;</td></tr>
+            <tr><td><code>parameter_order</code></td><td>Integer</td><td>No</td><td>Default: 1</td><td>Display order in forms</td></tr>
+            <tr><td><code>is_required</code></td><td>Boolean</td><td>No</td><td>Default: True</td><td>Must be filled during testing</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>&mdash;</td></tr>
+        </table>
+        <p><strong>Unique constraint:</strong> <code>(test_standard_id, parameter_name)</code> &mdash; no duplicate parameter names within a single test.</p>
+
+        <h4><code>test_results</code></h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Nullable</th><th>Constraints / Default</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Integer</td><td>No</td><td>PK, indexed</td><td>&mdash;</td></tr>
+            <tr><td><code>test_standard_id</code></td><td>Integer</td><td>No</td><td>FK &rarr; <code>test_standards.id</code></td><td>Which test was performed</td></tr>
+            <tr><td><code>design_step_id</code></td><td>Integer</td><td>Yes</td><td>FK &rarr; <code>design_steps.id</code></td><td>Links result to specific production step</td></tr>
+            <tr><td><code>production_session_id</code></td><td>Integer</td><td>Yes</td><td>&mdash;</td><td>Links to production session</td></tr>
+            <tr><td><code>cable_batch_code</code></td><td>String(50)</td><td>Yes</td><td>Indexed</td><td>Batch identifier for traceability</td></tr>
+            <tr><td><code>test_date</code></td><td>DateTime</td><td>No</td><td>&mdash;</td><td>When the test was performed</td></tr>
+            <tr><td><code>tested_by</code></td><td>Integer</td><td>No</td><td>FK &rarr; <code>users.id</code></td><td>Who performed the test</td></tr>
+            <tr><td><code>measurements</code></td><td>Text</td><td>No</td><td>&mdash;</td><td>JSON string of measurement data</td></tr>
+            <tr><td><code>pass_fail</code></td><td>String(10)</td><td>Yes</td><td>CHECK: IN (&lsquo;PASS&rsquo;, &lsquo;FAIL&rsquo;, &lsquo;PENDING&rsquo;) OR NULL</td><td>Test outcome</td></tr>
+            <tr><td><code>notes</code></td><td>Text</td><td>Yes</td><td>&mdash;</td><td>Appended with timestamps by status updates</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>No</td><td>utcnow</td><td>&mdash;</td></tr>
+        </table>
+
+        <p><strong>Measurement storage:</strong> The <code>measurements</code> column stores a JSON array. Each entry is a <code>MeasurementData</code> object with <code>parameter</code> (name), <code>values</code> (float array), optional <code>unit</code>, and optional per-parameter <code>result</code>. The model has helper methods: <code>get_measurements()</code> parses the JSON, <code>set_measurements()</code> serializes it, and <code>evaluate_result()</code> returns PASS/FAIL/PENDING based on whether all required parameters have values.</p>
+
+        <h3>6.2.2 Relationships</h3>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">TestStandard</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">N &times; TestParameter<br><span style="font-size:9px;color:#666;">cascade delete</span></div>
+        </div>
+        <div class="flow">
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">TestStandard</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">N &times; TestResult<br><span style="font-size:9px;color:#666;">no cascade</span></div>
+        </div>
+
+        <p>Delete behavior is smart: if a standard has test results, it is <strong>soft deleted</strong> (<code>is_active = false</code>) to preserve result traceability. If it has no results, it is <strong>hard deleted</strong>. Parameters always cascade &mdash; deleting a standard removes all its parameters.</p>
+
+        <h3>6.2.3 API Endpoints</h3>
+
+        <p>12 endpoints organized into three groups: standards CRUD, parameter management, and test results.</p>
+
+        <h4>Test Standards</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/tests</code></td><td>super_admin, lab_user, production_manager</td><td>Create standard + parameters in one transaction. Checks for duplicate (category + name + number). Flushes DB to get ID before adding parameters.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests</code></td><td>Authenticated</td><td>List all. <code>?category=IEC-EN</code>, <code>?active_only=true</code> (default), <code>?search=tensile</code>. Eager-loads parameters. Orders by category then name.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests/{id}</code></td><td>Authenticated</td><td>Single standard detail.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/tests/{id}/full</code></td><td>Authenticated</td><td>Full standard with sorted parameters + <code>has_parameters</code> flag. Used by Playground for dynamic form generation.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/tests/{id}</code></td><td>super_admin, lab_user, production_manager</td><td>Update standard. If <code>parameters</code> provided: <strong>deletes all existing</strong>, creates new ones (full replacement).</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/tests/{id}</code></td><td>super_admin, lab_user</td><td>Smart delete: soft if has results, hard if no results.</td></tr>
+        </table>
+
+        <h4>Test Parameters</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/tests/{id}/parameters</code></td><td>super_admin, lab_user, production_manager</td><td>Add single parameter to existing standard. Checks duplicate name.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/teknik/parameters/{id}</code></td><td>super_admin, lab_user</td><td>Hard delete single parameter.</td></tr>
+        </table>
+
+        <h4>Test Results</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/teknik/results</code></td><td>lab_user, super_admin</td><td>Create result with measurements JSON. Auto-sets <code>tested_by</code>. Calls <code>evaluate_result()</code> for initial pass/fail.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/results</code></td><td>Authenticated</td><td>List results. Filter by <code>?batch_code</code>, <code>?test_standard_id</code>, <code>?pass_fail</code>. Limit: 1&ndash;200, default 50. Ordered by test_date DESC.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/results/{id}</code></td><td>Authenticated</td><td>Single result with tester name and standard info.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/teknik/results/{id}/status</code></td><td>lab_user, super_admin</td><td>Update pass/fail status. Appends notes with timestamp and username for audit trail.</td></tr>
+        </table>
+
+        <h4>Reference Data</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Returns</th></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/categories</code></td><td><code>["IEC-EN", "UL", "SLN"]</code></td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/frequencies</code></td><td><code>["&uuml;retim_ba&scedil;&#305;", "&uuml;retim_sonu", "her_ikisi", "her_makara_sonu"]</code></td></tr>
+            <tr><td><code>GET</code></td><td><code>/teknik/result-statuses</code></td><td><code>["PASS", "FAIL", "PENDING"]</code></td></tr>
+        </table>
+
+        <h3>6.2.4 Test Frequencies &mdash; When Tests Run</h3>
+
+        <p>When a test is assigned to a cable design step in the Playground, the user selects a <strong>frequency</strong> that tells the Lab <em>when</em> to execute the test during production:</p>
+
+        <table>
+            <tr><th>Frequency</th><th>Turkish</th><th>Meaning</th></tr>
+            <tr><td><code>&uuml;retim_ba&scedil;&#305;</code></td><td>&Uuml;retim Ba&scedil;&#305;</td><td>Test at the start of the production run</td></tr>
+            <tr><td><code>&uuml;retim_sonu</code></td><td>&Uuml;retim Sonu</td><td>Test at the end of the production run</td></tr>
+            <tr><td><code>her_ikisi</code></td><td>Her &#304;kisi</td><td>Test at both start and end</td></tr>
+            <tr><td><code>her_makara_sonu</code></td><td>Her Makara Sonu</td><td>Test at the end of every reel (most frequent)</td></tr>
+        </table>
+
+        <h3>6.2.5 How Standards Connect to Cable Designs</h3>
+
+        <p>This is the critical integration point. When the Playground configures a machine step, tests are fetched and filtered by the design&rsquo;s standard category:</p>
+
+        <pre><span class="comment"># In db_integration.py &mdash; fetches tests matching the design's standard</span>
+<span class="keyword">def</span> get_tests_by_standard(db, standard):
+    <span class="comment"># Maps frontend code to database category</span>
+    category_map = {<span class="string">'EN'</span>: <span class="string">'IEC-EN'</span>, <span class="string">'UL'</span>: <span class="string">'UL'</span>, <span class="string">'SLN'</span>: <span class="string">'SLN'</span>}
+    category = category_map.get(standard, standard)
+
+    standards = db.query(TestStandard).filter(
+        TestStandard.standard_category == category,
+        TestStandard.is_active == <span class="keyword">True</span>
+    ).all()
+    <span class="keyword">return</span> [{<span class="string">'id'</span>: s.id, <span class="string">'test_name'</span>: s.test_name, ...} <span class="keyword">for</span> s <span class="keyword">in</span> standards]</pre>
+
+        <p>When a design is finalized, the assigned tests are stored as a JSON array in <code>cable_database.test_requirements</code>:</p>
+
+        <pre><span class="comment"># Storage format in cable_database.test_requirements</span>
+[
+  {
+    <span class="string">"step"</span>: 3,
+    <span class="string">"machine_type"</span>: <span class="string">"extruder"</span>,
+    <span class="string">"test_id"</span>: 12,
+    <span class="string">"test_name"</span>: <span class="string">"&Ccedil;ekme Dayan&#305;m&#305;"</span>,
+    <span class="string">"standard_number"</span>: <span class="string">"EN 50618"</span>,
+    <span class="string">"frequency"</span>: <span class="string">"her_ikisi"</span>
+  }
+]</pre>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Denormalized by design:</strong> Test names and standard numbers are copied into the Cable Database JSON, not just referenced by ID. This means if a test standard is later renamed or deactivated, existing cable designs retain their original test requirements. The Lab reads from Cable Database at production time &mdash; it never needs to query the Standards table to know what to test.</p>
+        </div>
+
+        <h3>6.2.6 Permission Model</h3>
+
+        <table>
+            <tr><th>Action</th><th>Legacy Roles</th><th>Granular Permission</th></tr>
+            <tr><td>View / List / Search</td><td>Any authenticated user</td><td>Any authenticated user</td></tr>
+            <tr><td>Create / Update</td><td>super_admin, lab_user, production_manager</td><td><code>teknik.standards.create</code> / <code>teknik.standards.edit</code></td></tr>
+            <tr><td>Delete</td><td>super_admin, lab_user</td><td><code>teknik.standards.delete</code></td></tr>
+            <tr><td>Create / Update Results</td><td>lab_user, super_admin</td><td><code>teknik.standards.create</code></td></tr>
+        </table>
+
+        <p>Note: <code>lab_user</code> has wider access here than in Machine Management &mdash; this is intentional because lab personnel are the primary users of the standards system.</p>
+
+        <h3>6.2.7 Frontend &mdash; Standards Page</h3>
+
+        <p>Single file: <code>pages/Teknik/Standards/index.tsx</code> (553 lines). Route: <code>/teknik/standards</code>.</p>
+
+        <h4>Page Structure</h4>
+        <p><code>PageContainer</code> with a <code>ProTable</code> and a modal for create/edit. No tabs &mdash; all standards shown in one table, category distinguished by color-coded tags.</p>
+
+        <h4>Table Columns (9)</h4>
+        <table>
+            <tr><th>Column</th><th>Width</th><th>Notes</th></tr>
+            <tr><td>ID</td><td>60px</td><td>Fixed left</td></tr>
+            <tr><td>Kategori</td><td>100px</td><td>Color-coded tag: <span class="good">IEC-EN</span> blue, <span class="good">UL</span> green, <span style="color:#f59e0b;font-weight:700;">SLN</span> orange</td></tr>
+            <tr><td>Test Ad&#305;</td><td>auto</td><td>Turkish test name, ellipsis</td></tr>
+            <tr><td>Standart No</td><td>150px</td><td>e.g. &ldquo;EN 50618&rdquo;</td></tr>
+            <tr><td>Test Tipi</td><td>120px</td><td>Shows &ldquo;-&rdquo; if empty</td></tr>
+            <tr><td>Numune Say&#305;s&#305;</td><td>100px</td><td>Centered integer</td></tr>
+            <tr><td>Parametre</td><td>100px</td><td>Shows parameter count (e.g. &ldquo;3&rdquo;)</td></tr>
+            <tr><td>Durum</td><td>80px</td><td>Green &ldquo;Aktif&rdquo; / Red &ldquo;Pasif&rdquo;</td></tr>
+            <tr><td>&#304;&scedil;lemler</td><td>100px</td><td>Fixed right; edit + delete icons</td></tr>
+        </table>
+
+        <h4>Create/Edit Modal (800px, blurred backdrop)</h4>
+        <p>The modal contains 7 form fields plus a dynamic parameter list:</p>
+        <table>
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+            <tr><td>Standart Kategorisi</td><td>Select</td><td>Yes</td><td>Options: IEC-EN, UL, SLN (&Ouml;zel)</td></tr>
+            <tr><td>Test Ad&#305; (TR)</td><td>Input</td><td>Yes</td><td>Placeholder: &ldquo;&Ouml;rn: &Ccedil;ekme Dayan&#305;m&#305;&rdquo;</td></tr>
+            <tr><td>Test Ad&#305; (EN)</td><td>Input</td><td>No</td><td>Placeholder: &ldquo;&Ouml;rn: Tensile Strength&rdquo;</td></tr>
+            <tr><td>Standart Numaras&#305;</td><td>Input</td><td>Yes</td><td>Placeholder: &ldquo;&Ouml;rn: EN 50618&rdquo;</td></tr>
+            <tr><td>Test Tipi</td><td>Select</td><td>No</td><td>Options: Mekanik, Elektriksel, G&ouml;rsel, Boyutsal</td></tr>
+            <tr><td>Numune Say&#305;s&#305;</td><td>InputNumber</td><td>No</td><td>Min: 1</td></tr>
+            <tr><td>Test Metodu</td><td>TextArea</td><td>No</td><td>3 rows, procedure description</td></tr>
+        </table>
+
+        <h4>Parameter Management (inside modal)</h4>
+        <p>Below a &ldquo;Test Parametreleri&rdquo; divider, each parameter is rendered as a small Card with two fields:</p>
+        <ul>
+            <li><strong>Parametre Ad&#305;</strong> &mdash; Input, placeholder &ldquo;Parametre Ad&#305; (&ouml;rn: &Ccedil;ekme Dayan&#305;m&#305;, Uzama, Diren&ccedil;)&rdquo;</li>
+            <li><strong>Birim</strong> &mdash; Input, placeholder &ldquo;Birim (&ouml;rn: N/mm&sup2;, %, ohm/km)&rdquo;</li>
+        </ul>
+        <p>&ldquo;Parametre Ekle&rdquo; button (dashed, full-width) adds a new empty parameter card. Each card has a delete button in the header. Order is auto-assigned sequentially. On update, all existing parameters are <strong>replaced</strong> with the new set (delete all + create new).</p>
+
+        <h4>CRUD Flow</h4>
+
+        <p><strong>Create:</strong> Click &ldquo;Yeni Test Standard&#305;&rdquo; &rarr; Modal opens &rarr; Fill category, name, standard number &rarr; Optionally add parameters &rarr; Click &ldquo;Ekle&rdquo; &rarr; <code>POST /api/teknik/standards/tests</code> &rarr; Toast &ldquo;Test standard&#305; ba&scedil;ar&#305;yla eklendi!&rdquo; &rarr; Modal closes, list refreshes.</p>
+
+        <p><strong>Edit:</strong> Click edit icon &rarr; Modal opens pre-filled &rarr; Modify fields/parameters &rarr; Click &ldquo;G&uuml;ncelle&rdquo; &rarr; <code>PUT /api/teknik/standards/tests/{id}</code> &rarr; Toast &ldquo;Test standard&#305; ba&scedil;ar&#305;yla g&uuml;ncellendi!&rdquo; &rarr; Modal closes, list refreshes.</p>
+
+        <p><strong>Delete:</strong> Click delete icon &rarr; Popconfirm &ldquo;Bu standard&#305; devre d&#305;&scedil;&#305; b&#305;rakmak istedi&#287;inize emin misiniz?&rdquo; &rarr; <code>DELETE /api/teknik/standards/tests/{id}</code> &rarr; Toast &ldquo;Test standard&#305; devre d&#305;&scedil;&#305; b&#305;rak&#305;ld&#305;!&rdquo; &rarr; List refreshes. Delete button disabled for already-inactive standards.</p>
+
+        <h4>Search &amp; Pagination</h4>
+        <p><strong>Search</strong> is client-side (200px rounded input). Searches across ID, category, test name, standard number, test type, sample count, and status (aktif/pasif). <strong>Pagination</strong> defaults to 10 rows with [10, 20, 50, 100] options. Sorted by ID descending (newest first).</p>
+
+        <h3>6.2.8 How It Connects to Other Submodules</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Cable Playground (6.5)</h4>
+                <p>Every machine form in the Playground includes an <code>available_tests</code> section populated via <code>get_tests_by_standard()</code>. Users assign tests to steps with a frequency. The Playground&rsquo;s form integration reads from Standards but never writes to it.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Cable Database (6.6)</h4>
+                <p>Finalized designs store <code>test_requirements</code> as denormalized JSON &mdash; test IDs, names, standard numbers, and frequencies copied at finalization time. This snapshot ensures immutability.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Lab Module</h4>
+                <p>During production, the Lab reads test requirements from Cable Database and creates <code>TestResult</code> records linked to the standard. Lab users fill measurements and set pass/fail status with timestamped notes for audit trail.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Standards are defined once, embedded into designs by value (not by reference), and tested during production. The three-table structure (standard &rarr; parameters &rarr; results) separates definition from execution. Standards Management never touches production data &mdash; it only answers &ldquo;what should be tested?&rdquo;, leaving &ldquo;what was the result?&rdquo; to the Lab module.</p>
+        </div>
+
     </main>
 
 </body>
