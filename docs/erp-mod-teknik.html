@@ -237,7 +237,7 @@
 
         <table>
             <tr><th>Table</th><th>Purpose</th></tr>
-            <tr><td><code>product_codes</code></td><td>SHA-256 hashed product identifiers for stock deduplication. <code>system_code</code> (human-readable, e.g. <code>HALF_BN_73X030</code>) + <code>spec_hash</code> (deterministic hash of specifications). Ensures identical products across different designs share the same stock pool.</td></tr>
+            <tr><td><code>product_codes</code></td><td>SHA-256 hashed product identifiers for stock deduplication. <code>system_code</code> (human-readable, e.g. <code>BN_73X030</code>) + <code>spec_hash</code> (deterministic hash of specifications). Ensures identical products across different designs share the same stock pool.</td></tr>
             <tr><td><code>markings</code></td><td>Cable printing templates. <code>name</code> (unique) + <code>words</code> (JSON array of strings). Each order-cable references a marking.</td></tr>
             <tr><td><code>production_operators</code></td><td>Operator registry. <code>name</code> (unique). Referenced by production sessions.</td></tr>
         </table>
@@ -285,7 +285,7 @@
             </div>
             <div class="arch-box">
                 <h4>Code Generator</h4>
-                <p>Deterministic product code generation. SHA-256 spec hashing for stock deduplication. Human-readable system codes (e.g., <code>HALF_KC_180</code>). Final cable codes encode standard, cross-section, structure, and layer thicknesses.</p>
+                <p>Deterministic product code generation. SHA-256 spec hashing for stock deduplication. Human-readable system codes (e.g., <code>KC_18</code> for 1.8mm Kabatel wire). Final cable codes encode standard, cross-section, structure, and layer thicknesses.</p>
             </div>
         </div>
 
@@ -1537,11 +1537,11 @@ MACHINE_FLOW = {
             <span class="flow-step">11&times;0.30 (qty: 3)</span>
         </div>
         <div class="flow" style="margin-top: 8px;">
-            <span class="flow-step">&darr; Buncher (4+3)</span>
+            <span class="flow-step">&darr; Buncher (4&times;10 + 3&times;11 = 73 wires)</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-step">BN_17X030 (qty: 1)</span>
+            <span class="flow-step">BN_73X030 (qty: 1)</span>
             <span class="flow-arrow">&rarr; EX</span>
-            <span class="flow-step">U_17X030+INS+SHT (qty: 1)</span>
+            <span class="flow-step">EX_73X030+INS+SHT (qty: 1)</span>
         </div>
 
         <div class="finding">
@@ -1664,8 +1664,8 @@ MACHINE_FLOW = {
         <table>
             <tr><th>Product Type</th><th>Code Format</th><th>Example</th></tr>
             <tr><td>Raw material</td><td><code>RAW_XX_spec</code></td><td><code>RAW_COPPER_8MM</code></td></tr>
-            <tr><td>Half product</td><td><code>HALF_MC_spec</code></td><td><code>HALF_KC_180</code> (1.8mm wire from Kabatel)</td></tr>
-            <tr><td>Final cable</td><td><code>EN-6MM2-structure-I07-S08</code></td><td><code>EN-6MM2-17X030-I07-S08</code></td></tr>
+            <tr><td>Half product</td><td><code>MC_spec</code></td><td><code>KC_18</code> (1.8mm wire from Kabatel), <code>BN_73X030</code> (73-wire bunch)</td></tr>
+            <tr><td>Final cable</td><td><code>STD-XSEC-structure-Ixx-Sxx</code></td><td><code>EN-6MM2-4X10X030-3X11X030-I07-S08</code></td></tr>
         </table>
 
         <p>A SHA256 <code>spec_hash</code> is computed from the full specifications (product_type + machine_type + inputs + outputs + parameters) with <code>sort_keys=True</code> for determinism. If a product with the same hash already exists in <code>product_codes</code>, its existing system_code is returned. Otherwise, a new code is generated with collision-handling (sequence suffix <code>_001</code>, <code>_002</code>, etc.).</p>
@@ -1813,7 +1813,7 @@ MACHINE_FLOW = {
         <h4>product_codes &mdash; Stock Management Bridge</h4>
         <table>
             <tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
-            <tr><td><code>system_code</code></td><td>String(100) UNIQUE</td><td>Human-readable code (HALF_KC_180)</td></tr>
+            <tr><td><code>system_code</code></td><td>String(100) UNIQUE</td><td>Human-readable code (KC_18, BN_73X030)</td></tr>
             <tr><td><code>spec_hash</code></td><td>String(256) UNIQUE</td><td>SHA256 of specifications (deterministic)</td></tr>
             <tr><td><code>product_type</code></td><td>String(50)</td><td>raw / half / final</td></tr>
             <tr><td><code>machine_type</code></td><td>String(50)</td><td>Which machine produces it</td></tr>
