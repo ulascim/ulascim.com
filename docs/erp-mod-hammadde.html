@@ -854,6 +854,211 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>The dependency chain:</strong> Supplier &rarr; supplier_materials (what they sell) &rarr; material_orders (what we ordered, referencing supplier_material_id) &rarr; raw_materials (what arrived, linked to order via material_order_id, with material_name resolved from supplier_materials). Remove a supplier, and this entire chain breaks. That is why FK protection exists on hard delete, and why soft delete (active/inactive) is the preferred approach.</p>
         </div>
 
+
+        <!-- ============================================= -->
+        <!--  6.2  HAMMADDE SİPARİŞ (Material Orders)     -->
+        <!-- ============================================= -->
+
+        <h2 id="material-orders">6.2 &mdash; Hammadde Sipari&#351; (Material Orders)</h2>
+
+        <h3>6.2.1 &mdash; Purpose and Business Context</h3>
+        <p>This is <strong>not</strong> an official purchase order system. It is an <em>internal tracking tool</em> that lets Solen record what raw materials they have ordered from which supplier, when they expect delivery, and what actually arrived. Its purpose is to give the purchasing and warehouse teams a clear picture of what is coming, what is late, and how well each supplier is performing.</p>
+        <p>The module sits between Supplier Management (where suppliers and their product catalogs are defined) and Material Entry (where physical deliveries are received). Orders created here become &ldquo;linkable targets&rdquo; for Material Entry &mdash; when a truck arrives, the operator can connect the incoming material to its corresponding order, which automatically increments the delivered quantity and provides full traceability.</p>
+
+        <h3>6.2.2 &mdash; Order Lifecycle</h3>
+        <p>Every order follows a four-state lifecycle:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #fa8c16;">
+                <div class="stat-value" style="font-size: 1.1rem;">Beklemede</div>
+                <div class="stat-label">Pending &mdash; order placed, waiting for shipment</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #1890ff;">
+                <div class="stat-value" style="font-size: 1.1rem;">Yolda</div>
+                <div class="stat-label">Shipped &mdash; supplier confirmed dispatch</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #52c41a;">
+                <div class="stat-value" style="font-size: 1.1rem;">Teslim Al&#305;nd&#305;</div>
+                <div class="stat-label">Delivered &mdash; material arrived at factory</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #d9d9d9;">
+                <div class="stat-value" style="font-size: 1.1rem;">&#304;ptal</div>
+                <div class="stat-label">Cancelled &mdash; order abandoned</div>
+            </div>
+        </div>
+        <p>Status transitions happen directly from the table &mdash; the status column is an inline dropdown selector, not a read-only label. The user clicks on the current status tag and picks the new one. When status changes to &ldquo;Delivered&rdquo;, the system automatically stamps today&rsquo;s date as the delivery date.</p>
+
+        <h3>6.2.3 &mdash; Order Group Codes (Shipment Grouping)</h3>
+        <p>A single shipment from a supplier often contains multiple distinct materials. For example, one truck from Supplier X might carry 5 tons of HF-500 plastic granules <em>and</em> 2 tons of catalyst. Instead of treating these as completely separate orders, the system groups them under a shared <strong>Order Group Code</strong>.</p>
+        <p>Group codes follow the pattern <strong>R1, R2, R3, R4&hellip;</strong> (the &ldquo;R&rdquo; prefix followed by a sequential number). When a user creates a new order with multiple line items, the backend generates one group code and assigns it to every order row in that batch. Even a single-item order gets a group code, ensuring consistency.</p>
+        <p>The generation logic finds the highest existing R-number in the database and increments by one. This is a simple sequential counter, not a UUID &mdash; the codes are meant to be human-readable and easy to communicate verbally (&ldquo;Shipment R47 is arriving tomorrow&rdquo;).</p>
+        <p>In the table, the group code appears as the first column (fixed left), displayed as a blue tag. It serves as a visual grouping mechanism &mdash; when users see multiple rows with &ldquo;R12&rdquo;, they immediately understand these items are from the same shipment.</p>
+
+        <h3>6.2.4 &mdash; Creating an Order (The Multi-Step Form Flow)</h3>
+        <p>The order creation follows a cascading selection flow that mirrors the supplier data hierarchy:</p>
+        <ol>
+            <li><strong>Select Material Type</strong> &mdash; the user picks from 8 types (copper, tin, plastic, catalyst, dye, antirodent, palette, reel). This is the first filter.</li>
+            <li><strong>Select Supplier</strong> &mdash; the supplier dropdown is <em>not</em> a full list. It shows only suppliers who provide active materials of the selected type. If you pick &ldquo;Copper&rdquo;, you only see copper suppliers. This filtering happens client-side by checking each supplier&rsquo;s <code>materials_provided</code> array.</li>
+            <li><strong>Add Products and Quantities</strong> &mdash; once a supplier is selected, the user sees their specific product catalog for that material type. Each product is a collapsible panel where the user picks the exact product and enters a quantity. The unit automatically adapts: palettes and reels use &ldquo;adet&rdquo; (pieces), everything else uses &ldquo;kg&rdquo;.</li>
+            <li><strong>Multiple Items</strong> &mdash; the user can add more product panels with a &ldquo;+&rdquo; button. Each panel represents a separate line item, but all items will share the same group code when saved. The &ldquo;+&rdquo; button is disabled until a supplier is selected.</li>
+            <li><strong>Set Dates</strong> &mdash; two dates are required: the order date (defaults to today) and the expected delivery date.</li>
+            <li><strong>Optional Notes</strong> &mdash; free-text field for any additional context.</li>
+        </ol>
+        <p>On save, the frontend sends all items in a single API call. The backend generates one group code and creates one database row per item, all sharing that code. This is a single transaction &mdash; either all items are created or none are.</p>
+
+        <h3>6.2.5 &mdash; Editing an Order</h3>
+        <p>Edit mode works differently from creation. When editing, the user operates on a <strong>single order row</strong>, not a group. The form loads with the existing values, and the user can change the supplier, material, quantity, dates, and notes. The multi-item &ldquo;+&rdquo; functionality is not available in edit mode &mdash; you edit one row at a time.</p>
+        <p>The most important behavior in edit mode is <strong>date change tracking</strong>, covered in detail below.</p>
+
+        <h3>6.2.6 &mdash; The Date Change Tracking System</h3>
+        <p>This is one of the most sophisticated features in the module. In real-world procurement, expected delivery dates shift constantly &mdash; suppliers delay, Solen requests postponement, logistics issues arise. The system does not just silently overwrite the date; it requires the user to explain <em>why</em> the date changed and stores a complete audit trail.</p>
+
+        <h4>How It Works</h4>
+        <p>When a user opens an existing order for editing, the system records the original expected date. If the user changes this date in the date picker, something unusual happens: the date picker does not close. Instead, a <strong>side panel</strong> slides into the right side of the calendar popup. This panel contains:</p>
+        <ul>
+            <li><strong>The new selected date</strong> displayed prominently</li>
+            <li><strong>A reason selector</strong> (required) with three options:
+                <ul>
+                    <li><em>Tedarik&ccedil;i kaynakl&#305;</em> &mdash; delay caused by the supplier</li>
+                    <li><em>Solen kaynakl&#305;</em> &mdash; delay caused by Solen (e.g., postponed due to schedule)</li>
+                    <li><em>Di&#287;er</em> &mdash; other reason (opens a free-text field)</li>
+                </ul>
+            </li>
+            <li><strong>Confirm / Cancel buttons</strong> &mdash; the user must explicitly confirm the date change after selecting a reason</li>
+        </ul>
+        <p>If the user selects &ldquo;Di&#287;er&rdquo; (Other), a text area appears for a manual explanation, and this explanation is also required. The user cannot save the order without completing this reason flow.</p>
+        <p>If the user changes their mind and picks the original date again, the side panel disappears and the reason fields reset automatically.</p>
+
+        <h4>Backend Storage</h4>
+        <p>When the order is saved with a changed date, the backend creates a new row in the <code>material_order_date_changes</code> table with: the old date, the new date, the reason type, the optional detail text, who made the change, and a timestamp. This table uses <code>CASCADE</code> delete &mdash; if the parent order is deleted, its date change history goes with it.</p>
+
+        <h4>Viewing the History</h4>
+        <p>Every order row in the table has a clock icon button (Tarih Ge&ccedil;mi&#351;i / Date History). Clicking it opens a modal that shows every date change that ever happened to that order, displayed as a vertical timeline. Each entry shows:</p>
+        <ul>
+            <li>The old date (struck through) with an arrow pointing to the new date</li>
+            <li>The reason as a colored tag</li>
+            <li>Any detail text in italics</li>
+            <li>When the change happened and who made it (shown in a right-aligned secondary column)</li>
+        </ul>
+        <p>Timestamps in this modal are converted to Turkey timezone (Europe/Istanbul) for accurate local display.</p>
+
+        <h3>6.2.7 &mdash; Delivery Tracking (Ordered vs. Delivered)</h3>
+        <p>Each order tracks two quantities: <strong>ordered quantity</strong> (what was requested) and <strong>delivered quantity</strong> (what actually arrived). The delivered quantity is <em>not</em> manually updated on this page. It is incremented automatically by the Material Entry module when incoming materials are linked to an order.</p>
+        <p>In the table, both quantities are displayed side by side. The delivered column uses color coding to communicate status at a glance:</p>
+        <ul>
+            <li><strong>No color</strong> &mdash; nothing delivered yet (0)</li>
+            <li><strong>Yellow/warning</strong> &mdash; partially delivered (some material arrived, but less than ordered)</li>
+            <li><strong>Green</strong> &mdash; fully delivered (delivered &ge; ordered)</li>
+        </ul>
+
+        <h3>6.2.8 &mdash; The Rating System</h3>
+        <p>Once an order reaches &ldquo;Delivered&rdquo; status, a star icon appears in the actions column. This enables a <strong>supplier delivery rating</strong> system. The user can rate the delivery on a 0.5&ndash;5 star scale (half-star increments) and optionally add a text note explaining the rating.</p>
+        <p>The rating modal shows the order context (group code, supplier name, material, delivered quantity) so the user knows exactly what they are rating. The rating and note are stored directly on the order record.</p>
+        <p>This rating data contributes to supplier performance tracking &mdash; over time, Solen can see which suppliers consistently deliver on time and in good condition, and which ones have recurring issues.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Business logic:</strong> The rating button only appears for &ldquo;delivered&rdquo; orders. You cannot rate a pending order because there is nothing to evaluate yet. If the order already has a rating, the star icon appears filled and yellow, showing the existing score in a tooltip on hover.</p>
+        </div>
+
+        <h3>6.2.9 &mdash; Client-Side Search and Localization</h3>
+        <p>The table includes a search bar that filters orders across <em>all visible columns</em> using client-side filtering. What makes this non-trivial is that the data is stored in English (e.g., &ldquo;copper&rdquo;, &ldquo;pending&rdquo;) but the users search in Turkish. The search system maintains two translation maps:</p>
+        <ul>
+            <li><strong>Material types:</strong> copper&rarr;bak&#305;r, tin&rarr;kalay, plastic&rarr;plastik, catalyst&rarr;kataliz&ouml;r, dye&rarr;boya, palette&rarr;palet, reel&rarr;makara</li>
+            <li><strong>Statuses:</strong> pending&rarr;beklemede, delivered&rarr;teslim al&#305;nd&#305;</li>
+        </ul>
+        <p>When the user types &ldquo;bak&#305;r&rdquo;, the filter matches any row where <code>material_type === 'copper'</code>. It also searches dates in DD.MM.YYYY format (not ISO), so searching &ldquo;15.03&rdquo; finds orders expected on March 15. The search covers: group code, supplier name, material name, material type (both EN and TR), status (both EN and TR), quantities, dates (both raw and formatted), and notes.</p>
+
+        <h3>6.2.10 &mdash; Table Layout and Columns</h3>
+        <p>The ProTable displays 11 columns with a scrollable layout:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Column</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Description</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Behavior</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipari&#351; No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Order group code (R1, R2&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed left, blue tag</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Material type</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Colored tag matching type</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Uuml;r&uuml;n</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Specific product name from supplier catalog</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue tag</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Supplier name</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue tag</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipari&#351; Miktar&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Ordered quantity + unit</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Turkish number formatting</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Gelen Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Delivered quantity + unit</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Green when complete, yellow when partial</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipari&#351; Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">When order was placed</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">DD.MM.YYYY format</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Beklenen Tarih</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Expected delivery date</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Red if overdue</strong> (past today)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Geli&#351; Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Actual delivery date</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Green text, or &ldquo;-&rdquo; if not delivered</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Order status</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Inline dropdown</strong> &mdash; clickable to change</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;&#351;lem</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Action buttons</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed right: history, rating, edit, delete</td></tr>
+            </tbody>
+        </table>
+        <p>The expected date column deserves special attention: it compares the date against today and renders it in <strong>red</strong> if the date is in the past. This gives instant visual feedback about overdue orders without any manual flagging.</p>
+
+        <h3>6.2.11 &mdash; API Endpoints</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Method</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Endpoint</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/list</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fetch all orders, sorted by expected date ascending. Optional filters: status, material type. Returns enriched data with supplier name and material name resolved from related tables.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/pending-by-type/{type}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Returns pending orders grouped by supplier + expected date. Consumed by Material Entry to let operators link deliveries to orders. Not used by the Orders page itself.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/create</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Creates one or more order rows with a shared group code. Accepts an <code>items</code> array; generates a new R-code; auto-determines unit (kg vs adet) from material type.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/update/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Updates a single order. Handles status changes (auto-stamps delivered_date), date changes with audit trail recording, and quantity/notes updates.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/date-changes/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fetches the complete date change history for one order. Returns all changes sorted newest-first, with the username of who made each change.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/rate/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Saves a 0.5&ndash;5 star rating and optional note. Validates the range on the backend. Only meaningful for delivered orders (enforced on frontend by showing the button conditionally).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>DELETE</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/delete/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Hard-deletes an order. The CASCADE relationship automatically removes associated date change history records.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.2.12 &mdash; Database Schema</h3>
+        <p>The module uses two tables:</p>
+        <p><strong><code>material_orders</code></strong> &mdash; the main order tracking table. Each row represents one material line in a purchase order. Key fields:</p>
+        <ul>
+            <li><code>order_group_code</code> (indexed) &mdash; groups multiple items from the same shipment (R1, R2&hellip;)</li>
+            <li><code>supplier_id</code> &rarr; FK to <code>suppliers</code></li>
+            <li><code>supplier_material_id</code> &rarr; FK to <code>supplier_materials</code> &mdash; the specific product ordered</li>
+            <li><code>quantity</code> / <code>delivered_quantity</code> &mdash; ordered vs. actually received</li>
+            <li><code>unit</code> &mdash; auto-determined: &ldquo;adet&rdquo; for palette/reel, &ldquo;kg&rdquo; for everything else</li>
+            <li><code>order_date</code> / <code>expected_date</code> / <code>delivered_date</code> &mdash; the three date milestones</li>
+            <li><code>status</code> &mdash; pending / shipped / delivered / cancelled</li>
+            <li><code>rating</code> / <code>rating_note</code> &mdash; post-delivery evaluation</li>
+            <li><code>created_by</code> &rarr; FK to <code>users</code> &mdash; audit trail for who created the order</li>
+        </ul>
+
+        <p><strong><code>material_order_date_changes</code></strong> &mdash; the audit trail for expected date modifications. Each row captures one change event:</p>
+        <ul>
+            <li><code>order_id</code> &rarr; FK to <code>material_orders</code> with <code>CASCADE</code> delete</li>
+            <li><code>old_date</code> / <code>new_date</code> &mdash; what changed</li>
+            <li><code>reason_type</code> &mdash; supplier, solen, or other</li>
+            <li><code>reason_detail</code> &mdash; free text (only for &ldquo;other&rdquo; type)</li>
+            <li><code>changed_by</code> &rarr; FK to <code>users</code></li>
+        </ul>
+
+        <h3>6.2.13 &mdash; How Material Orders Connect to Material Entry</h3>
+        <p>This is the most critical downstream connection. The <code>pending-by-type</code> endpoint exists specifically for Material Entry. When an operator starts entering a delivery of, say, copper wire, the Material Entry page calls this endpoint with <code>material_type=copper</code>. The response comes back as groups organized by supplier + expected date, showing each pending order line with its product name and quantity.</p>
+        <p>The operator selects the matching order group, and the system builds an internal <code>order_map</code> keyed by <code>supplier_material_id</code>. As each lot is entered, it is automatically linked to the correct order line. This link is stored in the <code>raw_materials.material_order_id</code> field.</p>
+        <p>When a material entry is saved with an order link, the backend increments the order&rsquo;s <code>delivered_quantity</code>. This happens in the material entry routes, not in the order routes &mdash; the order module is passive in this regard. It creates the tracking records; the entry module updates them on delivery.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The default sort order tells a story:</strong> orders are sorted by <code>expected_date ASC</code> &mdash; the soonest deliveries appear first. Combined with the red overdue highlighting, the table naturally pushes the most urgent items to the top. A warehouse manager opening this page immediately sees what is late and what is coming next.</p>
+        </div>
+
+        <h3>6.2.14 &mdash; Delete Behavior</h3>
+        <p>Orders can be hard-deleted through a confirmation dialog. There is no soft-delete / archive mechanism. The CASCADE relationship on <code>material_order_date_changes</code> ensures that deleting an order also removes its date change history. However, if a <code>raw_material</code> entry is already linked to this order via <code>material_order_id</code>, that link will become a dangling reference (the foreign key on raw_materials is nullable, so it will not cause a constraint violation, but the traceability chain is broken).</p>
+
+        <h3>6.2.15 &mdash; What This Module Does NOT Do</h3>
+        <ul>
+            <li>It does <strong>not</strong> generate official purchase orders or invoices</li>
+            <li>It does <strong>not</strong> manage pricing or costs &mdash; there are no price fields</li>
+            <li>It does <strong>not</strong> send notifications or emails to suppliers</li>
+            <li>It does <strong>not</strong> use WebSocket &mdash; the table refreshes on explicit user actions (save, delete, status change)</li>
+            <li>It does <strong>not</strong> use the permission system &mdash; any authenticated user can access all features</li>
+            <li>It does <strong>not</strong> auto-change status based on delivered quantity &mdash; even when fully delivered, the user must manually set the status to &ldquo;Delivered&rdquo;</li>
+        </ul>
+
     </main>
 </body>
 </html>

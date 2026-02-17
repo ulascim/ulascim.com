@@ -854,6 +854,211 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Bağımlılık zinciri:</strong> Tedarikçi &rarr; supplier_materials (ne satıyorlar) &rarr; material_orders (ne sipariş ettik, supplier_material_id referansıyla) &rarr; raw_materials (ne geldi, material_order_id ile siparişe bağlı, material_name supplier_materials&rsquo;dan çözümlenmiş). Bir tedarikçiyi kaldırın, tüm bu zincir kırılır. FK korumasının kalıcı silmede var olmasının ve yumuşak silmenin (aktif/pasif) tercih edilen yaklaşım olmasının nedeni budur.</p>
         </div>
 
+
+        <!-- ============================================= -->
+        <!--  6.2  HAMMADDE SİPARİŞ (Malzeme Siparişleri) -->
+        <!-- ============================================= -->
+
+        <h2 id="malzeme-siparis">6.2 &mdash; Hammadde Sipari&#351; (Malzeme Sipari&#351;leri)</h2>
+
+        <h3>6.2.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
+        <p>Bu resmi bir sat&#305;n alma sipari&#351;i sistemi <strong>de&#287;ildir</strong>. Solen&rsquo;in hangi hammaddeleri hangi tedarik&ccedil;iden sipari&#351; etti&#287;ini, teslimat&#305; ne zaman bekledi&#287;ini ve ger&ccedil;ekte neyin geldi&#287;ini kaydeden bir <em>dahili takip arac&#305;d&#305;r</em>. Amac&#305;, sat&#305;n alma ve depo ekiplerine neyin gelece&#287;i, neyin gecikti&#287;i ve her tedarik&ccedil;inin ne kadar iyi performans g&ouml;sterdi&#287;i konusunda net bir tablo sunmakt&#305;r.</p>
+        <p>Mod&uuml;l, Tedarik&ccedil;i Y&ouml;netimi (tedarik&ccedil;ilerin ve &uuml;r&uuml;n kataloglar&#305;n&#305;n tan&#305;mland&#305;&#287;&#305; yer) ile Hammadde Giri&#351;i (fiziksel teslimatlar&#305;n al&#305;nd&#305;&#287;&#305; yer) aras&#305;nda konumlan&#305;r. Burada olu&#351;turulan sipari&#351;ler, Hammadde Giri&#351;i i&ccedil;in &ldquo;ba&#287;lanabilir hedefler&rdquo; haline gelir &mdash; bir kamyon geldi&#287;inde operat&ouml;r gelen malzemeyi ilgili sipari&#351;e ba&#287;layabilir, bu da teslim edilen miktar&#305; otomatik art&#305;r&#305;r ve tam izlenebilirlik sa&#287;lar.</p>
+
+        <h3>6.2.2 &mdash; Sipari&#351; Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
+        <p>Her sipari&#351; d&ouml;rt durumlu bir ya&#351;am d&ouml;ng&uuml;s&uuml; izler:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #fa8c16;">
+                <div class="stat-value" style="font-size: 1.1rem;">Beklemede</div>
+                <div class="stat-label">Sipari&#351; verildi, g&ouml;nderim bekleniyor</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #1890ff;">
+                <div class="stat-value" style="font-size: 1.1rem;">Yolda</div>
+                <div class="stat-label">Tedarik&ccedil;i g&ouml;nderimi onaylad&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #52c41a;">
+                <div class="stat-value" style="font-size: 1.1rem;">Teslim Al&#305;nd&#305;</div>
+                <div class="stat-label">Malzeme fabrikaya ula&#351;t&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #d9d9d9;">
+                <div class="stat-value" style="font-size: 1.1rem;">&#304;ptal</div>
+                <div class="stat-label">Sipari&#351; iptal edildi</div>
+            </div>
+        </div>
+        <p>Durum ge&ccedil;i&#351;leri do&#287;rudan tablodan ger&ccedil;ekle&#351;ir &mdash; durum s&uuml;tunu salt okunur bir etiket de&#287;il, sat&#305;r i&ccedil;i bir a&ccedil;&#305;l&#305;r se&ccedil;icidir. Kullan&#305;c&#305; mevcut durum etiketine t&#305;klar ve yenisini se&ccedil;er. Durum &ldquo;Teslim Al&#305;nd&#305;&rdquo; olarak de&#287;i&#351;ti&#287;inde, sistem otomatik olarak bug&uuml;n&uuml;n tarihini teslimat tarihi olarak kaydeder.</p>
+
+        <h3>6.2.3 &mdash; Sipari&#351; Grup Kodlar&#305; (G&ouml;nderim Gruplama)</h3>
+        <p>Bir tedarik&ccedil;iden gelen tek bir g&ouml;nderim genellikle birden fazla farkl&#305; malzeme i&ccedil;erir. &Ouml;rne&#287;in, Tedarik&ccedil;i X&rsquo;ten gelen bir kamyon 5 ton HF-500 plastik gran&uuml;l <em>ve</em> 2 ton kataliz&ouml;r ta&#351;&#305;yor olabilir. Bunlar&#305; tamamen ayr&#305; sipari&#351;ler olarak ele almak yerine, sistem onlar&#305; payla&#351;&#305;lan bir <strong>Sipari&#351; Grup Kodu</strong> alt&#305;nda gruplar.</p>
+        <p>Grup kodlar&#305; <strong>R1, R2, R3, R4&hellip;</strong> kal&#305;b&#305;n&#305; izler (&ldquo;R&rdquo; &ouml;neki ard&#305;ndan s&#305;ral&#305; numara). Kullan&#305;c&#305; birden fazla kalem i&ccedil;eren yeni bir sipari&#351; olu&#351;turdu&#287;unda, backend tek bir grup kodu &uuml;retir ve o partideki her sipari&#351; sat&#305;r&#305;na atar. Tek kalemli sipari&#351;ler bile tutarl&#305;l&#305;k i&ccedil;in grup kodu al&#305;r.</p>
+        <p>&Uuml;retim mant&#305;&#287;&#305; veritaban&#305;ndaki en y&uuml;ksek R-numaras&#305;n&#305; bulup bir art&#305;r&#305;r. Bu basit bir s&#305;ral&#305; saya&ccedil;t&#305;r, UUID de&#287;il &mdash; kodlar insanlar taraf&#305;ndan okunabilir ve s&ouml;zl&uuml; ileti&#351;imde kolay kullan&#305;labilir olacak &#351;ekilde tasarlanm&#305;&#351;t&#305;r (&ldquo;R47 g&ouml;nderimi yar&#305;n geliyor&rdquo;).</p>
+        <p>Tabloda grup kodu ilk s&uuml;tun olarak (sola sabitlenmi&#351;) g&ouml;r&uuml;n&uuml;r ve mavi etiket olarak g&ouml;sterilir. G&ouml;rsel gruplama mekanizmas&#305; olarak hizmet eder &mdash; kullan&#305;c&#305;lar birden fazla sat&#305;rda &ldquo;R12&rdquo; g&ouml;rd&uuml;&#287;&uuml;nde, bu kalemlerin ayn&#305; g&ouml;nderimden oldu&#287;unu hemen anlarlar.</p>
+
+        <h3>6.2.4 &mdash; Sipari&#351; Olu&#351;turma (&#199;ok Ad&#305;ml&#305; Form Ak&#305;&#351;&#305;)</h3>
+        <p>Sipari&#351; olu&#351;turma, tedarik&ccedil;i veri hiyerar&#351;isini yans&#305;tan kademeli bir se&ccedil;im ak&#305;&#351;&#305; izler:</p>
+        <ol>
+            <li><strong>Malzeme Tipi Se&ccedil;</strong> &mdash; kullan&#305;c&#305; 8 tip aras&#305;ndan se&ccedil;er (bak&#305;r, kalay, plastik, kataliz&ouml;r, boya, antirodent, palet, makara). Bu ilk filtredir.</li>
+            <li><strong>Tedarik&ccedil;i Se&ccedil;</strong> &mdash; tedarik&ccedil;i a&ccedil;&#305;l&#305;r men&uuml;s&uuml; tam liste <em>de&#287;ildir</em>. Yaln&#305;zca se&ccedil;ilen tipte aktif malzeme sa&#287;layan tedarik&ccedil;ileri g&ouml;sterir. &ldquo;Bak&#305;r&rdquo; se&ccedil;erseniz yaln&#305;zca bak&#305;r tedarik&ccedil;ilerini g&ouml;r&uuml;rs&uuml;n&uuml;z. Bu filtreleme istemci taraf&#305;nda her tedarik&ccedil;inin <code>materials_provided</code> dizisi kontrol edilerek ger&ccedil;ekle&#351;ir.</li>
+            <li><strong>&Uuml;r&uuml;nler ve Miktarlar Ekle</strong> &mdash; tedarik&ccedil;i se&ccedil;ildikten sonra, kullan&#305;c&#305; o malzeme tipi i&ccedil;in tedarik&ccedil;inin &ouml;zel &uuml;r&uuml;n katalo&#287;unu g&ouml;r&uuml;r. Her &uuml;r&uuml;n, kullan&#305;c&#305;n&#305;n tam &uuml;r&uuml;n&uuml; se&ccedil;ip miktar girdi&#287;i a&ccedil;&#305;l&#305;r/kapan&#305;r bir paneldir. Birim otomatik uyarlan&#305;r: paletler ve makaralar &ldquo;adet&rdquo;, di&#287;er her &#351;ey &ldquo;kg&rdquo; kullan&#305;r.</li>
+            <li><strong>Birden Fazla Kalem</strong> &mdash; kullan&#305;c&#305; &ldquo;+&rdquo; butonuyla daha fazla &uuml;r&uuml;n paneli ekleyebilir. Her panel ayr&#305; bir sipari&#351; kalemi temsil eder, ancak t&uuml;m kalemler kaydedildi&#287;inde ayn&#305; grup kodunu payla&#351;&#305;r. &ldquo;+&rdquo; butonu tedarik&ccedil;i se&ccedil;ilene kadar devre d&#305;&#351;&#305;d&#305;r.</li>
+            <li><strong>Tarihleri Belirle</strong> &mdash; iki tarih zorunludur: sipari&#351; tarihi (varsay&#305;lan bug&uuml;n) ve beklenen teslim tarihi.</li>
+            <li><strong>&#304;ste&#287;e Ba&#287;l&#305; Not</strong> &mdash; ek ba&#287;lam i&ccedil;in serbest metin alan&#305;.</li>
+        </ol>
+        <p>Kaydetme s&#305;ras&#305;nda frontend t&uuml;m kalemleri tek bir API &ccedil;a&#287;r&#305;s&#305;nda g&ouml;nderir. Backend tek bir grup kodu &uuml;retir ve her kalem i&ccedil;in o kodu payla&#351;an bir veritaban&#305; sat&#305;r&#305; olu&#351;turur. Bu tek bir i&#351;lemdir &mdash; ya t&uuml;m kalemler olu&#351;turulur ya da hi&ccedil;biri.</p>
+
+        <h3>6.2.5 &mdash; Sipari&#351; D&uuml;zenleme</h3>
+        <p>D&uuml;zenleme modu, olu&#351;turmadan farkl&#305; &ccedil;al&#305;&#351;&#305;r. D&uuml;zenlerken kullan&#305;c&#305; bir grup &uuml;zerinde de&#287;il, <strong>tek bir sipari&#351; sat&#305;r&#305;</strong> &uuml;zerinde &ccedil;al&#305;&#351;&#305;r. Form mevcut de&#287;erlerle y&uuml;klenir ve kullan&#305;c&#305; tedarik&ccedil;i, malzeme, miktar, tarih ve notlar&#305; de&#287;i&#351;tirebilir. &Ccedil;oklu kalem &ldquo;+&rdquo; i&#351;levselli&#287;i d&uuml;zenleme modunda mevcut de&#287;ildir &mdash; bir seferde bir sat&#305;r d&uuml;zenlenir.</p>
+        <p>D&uuml;zenleme modundaki en &ouml;nemli davran&#305;&#351; a&#351;a&#287;&#305;da ayr&#305;nt&#305;l&#305; olarak ele al&#305;nan <strong>tarih de&#287;i&#351;ikli&#287;i takibidir</strong>.</p>
+
+        <h3>6.2.6 &mdash; Tarih De&#287;i&#351;ikli&#287;i Takip Sistemi</h3>
+        <p>Bu, mod&uuml;l&uuml;n en sofistike &ouml;zelliklerinden biridir. Ger&ccedil;ek d&uuml;nyada sat&#305;n alma s&uuml;re&ccedil;lerinde beklenen teslim tarihleri s&uuml;rekli de&#287;i&#351;ir &mdash; tedarik&ccedil;iler gecikir, Solen erteleme talep eder, lojistik sorunlar olu&#351;ur. Sistem tarihi sessizce &uuml;zerine yazmaz; kullan&#305;c&#305;dan tarihin <em>neden</em> de&#287;i&#351;ti&#287;ini a&ccedil;&#305;klamas&#305;n&#305; ister ve eksiksiz bir denetim izi saklar.</p>
+
+        <h4>Nas&#305;l &Ccedil;al&#305;&#351;&#305;r</h4>
+        <p>Kullan&#305;c&#305; mevcut bir sipari&#351;i d&uuml;zenlemek i&ccedil;in a&ccedil;t&#305;&#287;&#305;nda, sistem orijinal beklenen tarihi kaydeder. Kullan&#305;c&#305; tarih se&ccedil;icisinde bu tarihi de&#287;i&#351;tirirse, ola&#287;and&#305;&#351;&#305; bir &#351;ey olur: tarih se&ccedil;ici kapanmaz. Bunun yerine, takvim a&ccedil;&#305;l&#305;r penceresinin sa&#287; taraf&#305;na bir <strong>yan panel</strong> kay&#305;p girer. Bu panel &#351;unlar&#305; i&ccedil;erir:</p>
+        <ul>
+            <li><strong>Se&ccedil;ilen yeni tarih</strong> belirgin &#351;ekilde g&ouml;sterilir</li>
+            <li><strong>Sebep se&ccedil;ici</strong> (zorunlu), &uuml;&ccedil; se&ccedil;enekli:
+                <ul>
+                    <li><em>Tedarik&ccedil;i kaynakl&#305;</em> &mdash; tedarik&ccedil;iden kaynaklanan gecikme</li>
+                    <li><em>Solen kaynakl&#305;</em> &mdash; Solen&rsquo;den kaynaklanan gecikme (&ouml;rn. program nedeniyle erteleme)</li>
+                    <li><em>Di&#287;er</em> &mdash; ba&#351;ka sebep (serbest metin alan&#305; a&ccedil;ar)</li>
+                </ul>
+            </li>
+            <li><strong>Onayla / &#304;ptal butonlar&#305;</strong> &mdash; kullan&#305;c&#305; sebep se&ccedil;tikten sonra tarih de&#287;i&#351;ikli&#287;ini a&ccedil;&#305;k&ccedil;a onaylamal&#305;d&#305;r</li>
+        </ul>
+        <p>Kullan&#305;c&#305; &ldquo;Di&#287;er&rdquo; se&ccedil;erse, manuel a&ccedil;&#305;klama i&ccedil;in bir metin alan&#305; g&ouml;r&uuml;n&uuml;r ve bu a&ccedil;&#305;klama da zorunludur. Kullan&#305;c&#305; bu sebep ak&#305;&#351;&#305;n&#305; tamamlamadan sipari&#351;i kaydedemez.</p>
+        <p>Kullan&#305;c&#305; fikrini de&#287;i&#351;tirip orijinal tarihi tekrar se&ccedil;erse, yan panel kaybolur ve sebep alanlar&#305; otomatik s&#305;f&#305;rlan&#305;r.</p>
+
+        <h4>Backend Depolama</h4>
+        <p>Sipari&#351; de&#287;i&#351;en tarihle kaydedildi&#287;inde, backend <code>material_order_date_changes</code> tablosunda yeni bir sat&#305;r olu&#351;turur: eski tarih, yeni tarih, sebep t&uuml;r&uuml;, iste&#287;e ba&#287;l&#305; a&ccedil;&#305;klama metni, de&#287;i&#351;ikli&#287;i yapan ki&#351;i ve zaman damgas&#305;. Bu tablo <code>CASCADE</code> silme kullan&#305;r &mdash; ana sipari&#351; silinirse tarih de&#287;i&#351;ikli&#287;i ge&ccedil;mi&#351;i de silinir.</p>
+
+        <h4>Ge&ccedil;mi&#351;i G&ouml;r&uuml;nt&uuml;leme</h4>
+        <p>Tablodaki her sipari&#351; sat&#305;r&#305;nda bir saat ikonu butonu (Tarih Ge&ccedil;mi&#351;i) vard&#305;r. T&#305;kland&#305;&#287;&#305;nda, o sipari&#351;te ya&#351;anm&#305;&#351; her tarih de&#287;i&#351;ikli&#287;ini dikey zaman &ccedil;izelgesi olarak g&ouml;steren bir modal a&ccedil;&#305;l&#305;r. Her giri&#351; &#351;unlar&#305; g&ouml;sterir:</p>
+        <ul>
+            <li>Eski tarih (&uuml;st&uuml; &ccedil;izili) ve yeni tarihe i&#351;aret eden ok</li>
+            <li>Sebep renkli etiket olarak</li>
+            <li>Varsa a&ccedil;&#305;klama metni italik olarak</li>
+            <li>De&#287;i&#351;ikli&#287;in ne zaman yap&#305;ld&#305;&#287;&#305; ve kim taraf&#305;ndan (sa&#287;a hizal&#305; ikincil s&uuml;tunda)</li>
+        </ul>
+        <p>Bu modaldaki zaman damgalar&#305; do&#287;ru yerel g&ouml;sterim i&ccedil;in T&uuml;rkiye saat dilimine (Europe/Istanbul) d&ouml;n&uuml;&#351;t&uuml;r&uuml;l&uuml;r.</p>
+
+        <h3>6.2.7 &mdash; Teslimat Takibi (Sipari&#351; ve Gelen Miktar)</h3>
+        <p>Her sipari&#351; iki miktar takip eder: <strong>sipari&#351; miktar&#305;</strong> (talep edilen) ve <strong>gelen miktar</strong> (ger&ccedil;ekte teslim al&#305;nan). Gelen miktar bu sayfadan <em>manuel olarak g&uuml;ncellenmez</em>. Hammadde Giri&#351;i mod&uuml;l&uuml;nde gelen malzemeler bir sipari&#351;e ba&#287;land&#305;&#287;&#305;nda otomatik olarak art&#305;r&#305;l&#305;r.</p>
+        <p>Tabloda her iki miktar yan yana g&ouml;sterilir. Gelen s&uuml;tunu durumu bir bak&#305;&#351;ta iletmek i&ccedil;in renk kodlamas&#305; kullan&#305;r:</p>
+        <ul>
+            <li><strong>Renksiz</strong> &mdash; hen&uuml;z hi&ccedil;bir &#351;ey teslim edilmedi (0)</li>
+            <li><strong>Sar&#305;/uyar&#305;</strong> &mdash; k&#305;smen teslim edildi (bir miktar malzeme geldi ama sipari&#351;ten az)</li>
+            <li><strong>Ye&#351;il</strong> &mdash; tamamen teslim edildi (gelen &ge; sipari&#351;)</li>
+        </ul>
+
+        <h3>6.2.8 &mdash; De&#287;erlendirme Sistemi</h3>
+        <p>Bir sipari&#351; &ldquo;Teslim Al&#305;nd&#305;&rdquo; durumuna ula&#351;t&#305;&#287;&#305;nda, i&#351;lemler s&uuml;tununda bir y&#305;ld&#305;z ikonu g&ouml;r&uuml;n&uuml;r. Bu, <strong>tedarik&ccedil;i teslimat de&#287;erlendirmesi</strong> sistemini etkinle&#351;tirir. Kullan&#305;c&#305; teslimat&#305; 0,5&ndash;5 y&#305;ld&#305;z &ouml;l&ccedil;e&#287;inde (yar&#305;m y&#305;ld&#305;z art&#305;&#351;lar&#305;yla) puanlayabilir ve iste&#287;e ba&#287;l&#305; olarak de&#287;erlendirmeyi a&ccedil;&#305;klayan bir not ekleyebilir.</p>
+        <p>De&#287;erlendirme modal&#305; sipari&#351; ba&#287;lam&#305;n&#305; g&ouml;sterir (grup kodu, tedarik&ccedil;i ad&#305;, malzeme, teslim edilen miktar) b&ouml;ylece kullan&#305;c&#305; tam olarak neyi de&#287;erlendirdi&#287;ini bilir. Puan ve not do&#287;rudan sipari&#351; kayd&#305;nda saklan&#305;r.</p>
+        <p>Bu de&#287;erlendirme verileri tedarik&ccedil;i performans takibine katk&#305;da bulunur &mdash; zamanla Solen, hangi tedarik&ccedil;ilerin s&uuml;rekli zaman&#305;nda ve iyi durumda teslim etti&#287;ini, hangilerinin tekrarlayan sorunlar&#305; oldu&#287;unu g&ouml;rebilir.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>&#304;&#351; mant&#305;&#287;&#305;:</strong> De&#287;erlendirme butonu yaln&#305;zca &ldquo;teslim al&#305;nd&#305;&rdquo; sipari&#351;leri i&ccedil;in g&ouml;r&uuml;n&uuml;r. Bekleyen bir sipari&#351;i de&#287;erlendiremezsiniz &ccedil;&uuml;nk&uuml; de&#287;erlendirilecek bir &#351;ey yoktur. Sipari&#351;in zaten bir de&#287;erlendirmesi varsa, y&#305;ld&#305;z ikonu dolu ve sar&#305; g&ouml;r&uuml;n&uuml;r ve &uuml;zerine gelindiğinde mevcut puanı tooltip olarak gösterir.</p>
+        </div>
+
+        <h3>6.2.9 &mdash; &#304;stemci Taraf&#305; Arama ve Yerelleştirme</h3>
+        <p>Tablo, <em>tüm görünür sütunlar</em> üzerinde istemci tarafı filtreleme kullanarak siparişleri filtreleyen bir arama çubuğu içerir. Bunu önemsiz kılmayan şey, verilerin İngilizce saklanması (örn. &ldquo;copper&rdquo;, &ldquo;pending&rdquo;) ancak kullanıcıların Türkçe aramasıdır. Arama sistemi iki çeviri haritası tutar:</p>
+        <ul>
+            <li><strong>Malzeme tipleri:</strong> copper&rarr;bakır, tin&rarr;kalay, plastic&rarr;plastik, catalyst&rarr;katalizör, dye&rarr;boya, palette&rarr;palet, reel&rarr;makara</li>
+            <li><strong>Durumlar:</strong> pending&rarr;beklemede, delivered&rarr;teslim alındı</li>
+        </ul>
+        <p>Kullanıcı &ldquo;bakır&rdquo; yazdığında, filtre <code>material_type === 'copper'</code> olan her satırı eşleştirir. Ayrıca tarihleri DD.MM.YYYY formatında arar (ISO değil), dolayısıyla &ldquo;15.03&rdquo; araması 15 Mart beklenen siparişleri bulur. Arama şunları kapsar: grup kodu, tedarikçi adı, malzeme adı, malzeme tipi (hem EN hem TR), durum (hem EN hem TR), miktarlar, tarihler (hem ham hem formatlanmış) ve notlar.</p>
+
+        <h3>6.2.10 &mdash; Tablo Düzeni ve Sütunlar</h3>
+        <p>ProTable, kaydırılabilir düzende 11 sütun gösterir:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Sütun</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Açıklama</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Davranış</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş grup kodu (R1, R2&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sola sabit, mavi etiket</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme tipi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tipe göre renkli etiket</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Ürün</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi kataloğundan ürün adı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Mavi etiket</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi adı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Mavi etiket</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş Miktarı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş edilen miktar + birim</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Türkçe sayı formatı</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Gelen Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Teslim edilen miktar + birim</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tamam olunca yeşil, kısmi sarı</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Siparişin verildiği tarih</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">GG.AA.YYYY formatı</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Beklenen Tarih</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Beklenen teslim tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Gecikmiş ise kırmızı</strong> (bugünden önce)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Geliş Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Gerçek teslim tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Yeşil metin, veya teslim edilmediyse &ldquo;-&rdquo;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipariş durumu</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Satır içi açılır menü</strong> &mdash; tıklanarak değiştirilebilir</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">İşlem</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">İşlem butonları</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sağa sabit: geçmiş, değerlendirme, düzenle, sil</td></tr>
+            </tbody>
+        </table>
+        <p>Beklenen tarih sütunu özel ilgiyi hak eder: tarihi bugünle karşılaştırır ve geçmişte ise <strong>kırmızı</strong> olarak gösterir. Bu, herhangi bir manuel işaretleme olmadan gecikmiş siparişler hakkında anında görsel geri bildirim sağlar.</p>
+
+        <h3>6.2.11 &mdash; API Endpoint&rsquo;leri</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Metot</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Endpoint</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Amaç</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/list</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tüm siparişleri getirir, beklenen tarihe göre artan sırayla. Opsiyonel filtreler: durum, malzeme tipi. İlişkili tablolardan çözümlenmiş tedarikçi adı ve malzeme adıyla zenginleştirilmiş veri döner.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/pending-by-type/{type}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Bekleyen siparişleri tedarikçi + beklenen tarih bazında gruplanmış döner. Operatörlerin teslimatları siparişlere bağlaması için Hammadde Girişi tarafından tüketilir. Sipariş sayfasının kendisi tarafından kullanılmaz.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/create</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Paylaşılan grup koduyla bir veya daha fazla sipariş satırı oluşturur. <code>items</code> dizisi kabul eder; yeni R-kodu üretir; malzeme tipinden birimi otomatik belirler (kg vs adet).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/update/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tek bir siparişi günceller. Durum değişikliklerini (delivered_date otomatik damgalar), denetim izi kaydıyla tarih değişikliklerini ve miktar/not güncellemelerini yönetir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/date-changes/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Bir sipariş için eksiksiz tarih değişikliği geçmişini getirir. Tüm değişiklikleri en yeniden eskiye sıralı, her değişikliği kimin yaptığı kullanıcı adıyla döner.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/rate/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">0,5&ndash;5 yıldız puanı ve opsiyonel not kaydeder. Aralığı backend&rsquo;de doğrular. Yalnızca teslim alınmış siparişler için anlamlıdır (butonu koşullu göstererek frontend&rsquo;de zorunlu kılınır).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>DELETE</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/material-orders/delete/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Siparişi kalıcı olarak siler. CASCADE ilişkisi, ilişkili tarih değişikliği geçmişi kayıtlarını otomatik kaldırır.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.2.12 &mdash; Veritabanı Şeması</h3>
+        <p>Modül iki tablo kullanır:</p>
+        <p><strong><code>material_orders</code></strong> &mdash; ana sipariş takip tablosu. Her satır bir satın alma siparişindeki bir malzeme kalemini temsil eder. Önemli alanlar:</p>
+        <ul>
+            <li><code>order_group_code</code> (indeksli) &mdash; aynı gönderimden birden fazla kalemi gruplar (R1, R2&hellip;)</li>
+            <li><code>supplier_id</code> &rarr; <code>suppliers</code> tablosuna FK</li>
+            <li><code>supplier_material_id</code> &rarr; <code>supplier_materials</code> tablosuna FK &mdash; sipariş edilen spesifik ürün</li>
+            <li><code>quantity</code> / <code>delivered_quantity</code> &mdash; sipariş edilen ve gerçekte alınan</li>
+            <li><code>unit</code> &mdash; otomatik belirlenir: palet/makara için &ldquo;adet&rdquo;, diğer her şey için &ldquo;kg&rdquo;</li>
+            <li><code>order_date</code> / <code>expected_date</code> / <code>delivered_date</code> &mdash; üç tarih kilometre taşı</li>
+            <li><code>status</code> &mdash; pending / shipped / delivered / cancelled</li>
+            <li><code>rating</code> / <code>rating_note</code> &mdash; teslimat sonrası değerlendirme</li>
+            <li><code>created_by</code> &rarr; <code>users</code> tablosuna FK &mdash; siparişi kimin oluşturduğunun denetim izi</li>
+        </ul>
+
+        <p><strong><code>material_order_date_changes</code></strong> &mdash; beklenen tarih değişikliklerinin denetim izi. Her satır bir değişiklik olayını yakalar:</p>
+        <ul>
+            <li><code>order_id</code> &rarr; <code>material_orders</code> tablosuna <code>CASCADE</code> silmeli FK</li>
+            <li><code>old_date</code> / <code>new_date</code> &mdash; ne değişti</li>
+            <li><code>reason_type</code> &mdash; supplier, solen veya other</li>
+            <li><code>reason_detail</code> &mdash; serbest metin (yalnızca &ldquo;other&rdquo; tipi için)</li>
+            <li><code>changed_by</code> &rarr; <code>users</code> tablosuna FK</li>
+        </ul>
+
+        <h3>6.2.13 &mdash; Malzeme Siparişlerinin Hammadde Girişiyle Bağlantısı</h3>
+        <p>Bu en kritik alt akış bağlantısıdır. <code>pending-by-type</code> endpoint&rsquo;i özellikle Hammadde Girişi için mevcuttur. Bir operatör örneğin bakır tel teslimatı girmeye başladığında, Hammadde Girişi sayfası bu endpoint&rsquo;i <code>material_type=copper</code> ile çağırır. Yanıt, tedarikçi + beklenen tarih bazında organize edilmiş gruplar halinde, her bekleyen sipariş satırının ürün adı ve miktarıyla birlikte döner.</p>
+        <p>Operatör eşleşen sipariş grubunu seçer ve sistem <code>supplier_material_id</code> ile anahtarlanmış dahili bir <code>order_map</code> oluşturur. Her lot girildiğinde, otomatik olarak ilgili sipariş satırına bağlanır. Bu bağlantı <code>raw_materials.material_order_id</code> alanında saklanır.</p>
+        <p>Bir malzeme girişi sipariş bağlantısıyla kaydedildiğinde, backend siparişin <code>delivered_quantity</code> değerini artırır. Bu, sipariş rotalarında değil malzeme giriş rotalarında gerçekleşir &mdash; sipariş modülü bu açıdan pasiftir. Takip kayıtlarını oluşturur; giriş modülü teslimat sırasında onları günceller.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Varsayılan sıralama bir hikaye anlatır:</strong> siparişler <code>expected_date ASC</code> ile sıralanır &mdash; en yakın teslimatlar en üstte görünür. Kırmızı gecikme vurgulamasıyla birleşince, tablo doğal olarak en acil kalemleri en üste iter. Depo müdürü bu sayfayı açtığında neyin geciktiğini ve sırada neyin olduğunu anında görür.</p>
+        </div>
+
+        <h3>6.2.14 &mdash; Silme Davranışı</h3>
+        <p>Siparişler bir onay diyalogu aracılığıyla kalıcı olarak silinebilir. Yumuşak silme / arşivleme mekanizması yoktur. <code>material_order_date_changes</code> üzerindeki CASCADE ilişkisi, bir siparişin silinmesinin tarih değişikliği geçmişini de kaldırmasını sağlar. Ancak, bir <code>raw_material</code> girişi bu siparişe <code>material_order_id</code> aracılığıyla zaten bağlıysa, bu bağlantı asılı bir referans olur (raw_materials üzerindeki foreign key nullable olduğu için kısıtlama ihlali yaratmaz, ancak izlenebilirlik zinciri kırılır).</p>
+
+        <h3>6.2.15 &mdash; Bu Modülün YAPMADIĞI Şeyler</h3>
+        <ul>
+            <li>Resmi satın alma siparişleri veya faturalar <strong>üretmez</strong></li>
+            <li>Fiyatlandırma veya maliyet <strong>yönetmez</strong> &mdash; fiyat alanları yoktur</li>
+            <li>Tedarikçilere bildirim veya e-posta <strong>göndermez</strong></li>
+            <li>WebSocket <strong>kullanmaz</strong> &mdash; tablo açık kullanıcı işlemlerinde yenilenir (kaydetme, silme, durum değişikliği)</li>
+            <li>İzin sistemini <strong>kullanmaz</strong> &mdash; kimliği doğrulanmış her kullanıcı tüm özelliklere erişebilir</li>
+            <li>Teslim edilen miktara göre durumu otomatik <strong>değiştirmez</strong> &mdash; tamamen teslim edilse bile, kullanıcı durumu manuel olarak &ldquo;Teslim Alındı&rdquo; yapmalıdır</li>
+        </ul>
+
     </main>
 </body>
 </html>
