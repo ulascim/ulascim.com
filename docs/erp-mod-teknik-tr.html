@@ -84,7 +84,7 @@
         .bad { color: #dc2626; font-weight: 700; }
 
         .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
-        .submod-num { background: #000; color: #fff; font-size: 16px; font-weight: 700; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .submod-body { flex: 1; }
         .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
         .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
@@ -312,37 +312,10 @@
         <h2>6. ALT MOD&Uuml;LLER</h2>
         <!-- ============================================ -->
 
-        <p>A&scedil;a&#287;&#305;daki b&ouml;l&uuml;mler her alt mod&uuml;l&uuml; tam detay&#305;yla belgeler &mdash; her form alan&#305;, her API endpoint, her veritaban&#305; s&uuml;tunu, her do&#287;rulama kural&#305; ve arkas&#305;ndaki tasar&#305;m kararlar&#305;.</p>
+        <p>A&scedil;a&#287;&#305;daki b&ouml;l&uuml;mler her alt mod&uuml;l&uuml; tam detay&#305;yla belgeler &mdash; her form alan&#305;, her API endpoint, her veritaban&#305; s&uuml;tunu, her do&#287;rulama kural&#305; ve arkas&#305;ndaki tasar&#305;m kararlar&#305;. Temel veriden onu t&uuml;keten ara&ccedil;lara do&#287;ru s&#305;ralanm&#305;&scedil;t&#305;r.</p>
 
         <div class="submod-card">
-            <div class="submod-num">1</div>
-            <div class="submod-body">
-                <h4>Cable Playground</h4>
-                <p>G&ouml;rsel kablo tasar&#305;m at&ouml;lyesi. Makineleri canvas&rsquo;a s&uuml;r&uuml;kleyin, parametreleri yap&#305;land&#305;r&#305;n, &uuml;retim ak&#305;&scedil;&#305;n&#305;n ger&ccedil;ek zamanl&#305; olu&scedil;umunu izleyin. Oturum tabanl&#305;, bellek i&ccedil;i sim&uuml;lasyon; geri al/yinele, otomatik kaydetme ve &uuml;&ccedil; g&ouml;r&uuml;n&uuml;m modu.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">22 ENDPOINTS</span>
-                    <span class="submod-tag">4,300 LOC</span>
-                    <span class="submod-tag">6 UTILITY MODULES</span>
-                    <span class="submod-tag">SVG CANVAS</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">2</div>
-            <div class="submod-body">
-                <h4>Kablo Veritaban&#305;</h4>
-                <p>Onayl&#305; kablo tasar&#305;mlar&#305;n&#305;n k&uuml;t&uuml;phanesi. Her kay&#305;t eksiksiz &uuml;retim ak&#305;&scedil;&#305;n&#305;, yar&#305; mamul a&#287;ac&#305;n&#305;, hammadde listesini ve test gereksinimlerini yap&#305;land&#305;r&#305;lm&#305;&scedil; JSON olarak saklar. Sipari&scedil; ve &Uuml;retim i&ccedil;in tek do&#287;ru kaynak.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">15 ENDPOINTS</span>
-                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
-                    <span class="submod-tag">ANALYTICS</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">3</div>
+            <div class="submod-num">6.1</div>
             <div class="submod-body">
                 <h4>Makine Y&ouml;netimi</h4>
                 <p>7 fabrika makine tipi i&ccedil;in CRUD. Her tipin min/maks/art&#305;&scedil; aral&#305;klar&#305;yla benzersiz konfig&uuml;rasyon &scedil;emas&#305; vard&#305;r. Playground, tasar&#305;mlar&#305;n fiziksel olarak &uuml;retilebilir oldu&#287;unu do&#287;rulamak i&ccedil;in bunlar&#305; okur.</p>
@@ -355,7 +328,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">4</div>
+            <div class="submod-num">6.2</div>
             <div class="submod-body">
                 <h4>Standart Y&ouml;netimi</h4>
                 <p>Dinamik parametreler, ge&ccedil;/kal kriterleri ve test frekans kurallar&#305;yla test standard&#305; tan&#305;mlar&#305;. Ad&#305;m seviyesinde kablo tasar&#305;mlar&#305;na ba&#287;l&#305;d&#305;r &mdash; Lab mod&uuml;l&uuml; neyi ne zaman test edece&#287;ini bilmek i&ccedil;in bunlar&#305; okur.</p>
@@ -368,7 +341,19 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">5</div>
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Operat&ouml;r Y&ouml;netimi</h4>
+                <p>&Uuml;retim operat&ouml;r&uuml; kayd&#305;. Operat&ouml;rler oturumu ba&scedil;latan ki&scedil;i taraf&#305;ndan &uuml;retim oturumlar&#305;na atan&#305;r &mdash; sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur. Benzersizlik k&#305;s&#305;tlamas&#305;yla basit isim CRUD.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">4 ENDPOINTS</span>
+                    <span class="submod-tag">SIMPLE CRUD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
             <div class="submod-body">
                 <h4>Markalama</h4>
                 <p>Markalama &scedil;ablonlar&#305;, ekstr&uuml;zyon s&#305;ras&#305;nda kablolar&#305;n &uuml;zerine yaz&#305;lan metni tan&#305;mlar. De&#287;i&scedil;ken deste&#287;iyle s&#305;ral&#305; kelime dizileri olarak saklan&#305;r (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code> vb.). Her sipari&scedil;-kablo bir markalama &scedil;ablonunu referans al&#305;r.</p>
@@ -381,13 +366,28 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6</div>
+            <div class="submod-num">6.5</div>
             <div class="submod-body">
-                <h4>Operat&ouml;r Y&ouml;netimi</h4>
-                <p>&Uuml;retim operat&ouml;r&uuml; kayd&#305;. Operat&ouml;rler oturumu ba&scedil;latan ki&scedil;i taraf&#305;ndan &uuml;retim oturumlar&#305;na atan&#305;r &mdash; sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur. Benzersizlik k&#305;s&#305;tlamas&#305;yla basit isim CRUD.</p>
+                <h4>Kablo Tasar&#305;m (Playground)</h4>
+                <p>G&ouml;rsel kablo tasar&#305;m at&ouml;lyesi. Makineleri canvas&rsquo;a s&uuml;r&uuml;kleyin, parametreleri yap&#305;land&#305;r&#305;n, &uuml;retim ak&#305;&scedil;&#305;n&#305;n ger&ccedil;ek zamanl&#305; olu&scedil;umunu izleyin. T&uuml;m temel verinin &mdash; makineler, standartlar, operat&ouml;rler, markalar &mdash; bir kablo tasar&#305;m&#305;nda birle&scedil;ti&#287;i yer.</p>
                 <div class="submod-tags">
-                    <span class="submod-tag">4 ENDPOINTS</span>
-                    <span class="submod-tag">SIMPLE CRUD</span>
+                    <span class="submod-tag">22 ENDPOINTS</span>
+                    <span class="submod-tag">4.300 LOC</span>
+                    <span class="submod-tag">6 UTILITY MODULES</span>
+                    <span class="submod-tag">SVG CANVAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.6</div>
+            <div class="submod-body">
+                <h4>Kablo Veritaban&#305;</h4>
+                <p>Onayl&#305; kablo tasar&#305;mlar&#305;n&#305;n k&uuml;t&uuml;phanesi. Her kay&#305;t eksiksiz &uuml;retim ak&#305;&scedil;&#305;n&#305;, yar&#305; mamul a&#287;ac&#305;n&#305;, hammadde listesini ve test gereksinimlerini yap&#305;land&#305;r&#305;lm&#305;&scedil; JSON olarak saklar. Sipari&scedil; ve &Uuml;retim i&ccedil;in tek do&#287;ru kaynak.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">15 ENDPOINTS</span>
+                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
+                    <span class="submod-tag">ANALYTICS</span>
                 </div>
             </div>
         </div>

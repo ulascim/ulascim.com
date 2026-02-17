@@ -84,7 +84,7 @@
         .bad { color: #dc2626; font-weight: 700; }
 
         .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
-        .submod-num { background: #000; color: #fff; font-size: 16px; font-weight: 700; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .submod-body { flex: 1; }
         .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
         .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
@@ -312,37 +312,10 @@
         <h2>6. THE SUBMODULES</h2>
         <!-- ============================================ -->
 
-        <p>The sections that follow document each submodule in full detail &mdash; every form field, every API endpoint, every database column, every validation rule, and the design decisions behind them.</p>
+        <p>The sections that follow document each submodule in full detail &mdash; every form field, every API endpoint, every database column, every validation rule, and the design decisions behind them. Ordered from foundational data to the tools that consume it.</p>
 
         <div class="submod-card">
-            <div class="submod-num">1</div>
-            <div class="submod-body">
-                <h4>Cable Playground</h4>
-                <p>The visual cable design workshop. Drag machines onto a canvas, configure parameters, watch the production flow build in real-time. Session-based, in-memory simulation with undo/redo, autosave, and three view modes.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">22 ENDPOINTS</span>
-                    <span class="submod-tag">4,300 LOC</span>
-                    <span class="submod-tag">6 UTILITY MODULES</span>
-                    <span class="submod-tag">SVG CANVAS</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">2</div>
-            <div class="submod-body">
-                <h4>Cable Database</h4>
-                <p>The library of approved cable designs. Each entry stores the complete production flow, half-product tree, bill of materials, and test requirements as structured JSON. The single source of truth for Orders and Production.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">15 ENDPOINTS</span>
-                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
-                    <span class="submod-tag">ANALYTICS</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">3</div>
+            <div class="submod-num">6.1</div>
             <div class="submod-body">
                 <h4>Machine Management</h4>
                 <p>CRUD for all 7 factory machine types. Each type has a unique configuration schema with min/max/increment ranges. The Playground reads these to validate that designs are physically producible.</p>
@@ -355,7 +328,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">4</div>
+            <div class="submod-num">6.2</div>
             <div class="submod-body">
                 <h4>Standards Management</h4>
                 <p>Test standard definitions with dynamic parameters, pass/fail criteria, and test frequency rules. Linked to cable designs at the step level &mdash; the Lab module reads these to know what to test and when.</p>
@@ -368,7 +341,19 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">5</div>
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Operator Management</h4>
+                <p>Production operator registry. Operators are assigned to production sessions by the person starting the session &mdash; they don&rsquo;t need system logins. Simple name CRUD with uniqueness constraint.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">4 ENDPOINTS</span>
+                    <span class="submod-tag">SIMPLE CRUD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
             <div class="submod-body">
                 <h4>Markalama (Cable Marking)</h4>
                 <p>Marking templates define the text printed on cables during extrusion. Stored as ordered word arrays with variable support (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code>, etc.). Each order-cable references a marking template.</p>
@@ -381,13 +366,28 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6</div>
+            <div class="submod-num">6.5</div>
             <div class="submod-body">
-                <h4>Operator Management</h4>
-                <p>Production operator registry. Operators are assigned to production sessions by the person starting the session &mdash; they don&rsquo;t need system logins. Simple name CRUD with uniqueness constraint.</p>
+                <h4>Cable Playground</h4>
+                <p>The visual cable design workshop. Drag machines onto a canvas, configure parameters, watch the production flow build in real-time. Session-based, in-memory simulation with undo/redo, autosave, and three view modes. Where all foundational data &mdash; machines, standards, operators, markings &mdash; converges into a cable design.</p>
                 <div class="submod-tags">
-                    <span class="submod-tag">4 ENDPOINTS</span>
-                    <span class="submod-tag">SIMPLE CRUD</span>
+                    <span class="submod-tag">22 ENDPOINTS</span>
+                    <span class="submod-tag">4,300 LOC</span>
+                    <span class="submod-tag">6 UTILITY MODULES</span>
+                    <span class="submod-tag">SVG CANVAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.6</div>
+            <div class="submod-body">
+                <h4>Cable Database</h4>
+                <p>The library of approved cable designs. Each entry stores the complete production flow, half-product tree, bill of materials, and test requirements as structured JSON. The single source of truth for Orders and Production.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">15 ENDPOINTS</span>
+                    <span class="submod-tag">SHA-256 PRODUCT CODES</span>
+                    <span class="submod-tag">ANALYTICS</span>
                 </div>
             </div>
         </div>
