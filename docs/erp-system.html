@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System | UG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* NAVIGATION */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+
+        /* REPORT */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
+        .report .page-subtitle { font-size: 12px; color: #666; margin-bottom: 0; }
+
+        /* RESEARCH CARDS */
+        .research-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        .research-card {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.15s ease;
+        }
+        .research-card:hover {
+            background: #000;
+            color: #fff;
+        }
+        .research-card:hover .card-tag {
+            background: #fff;
+            color: #000;
+        }
+        .research-card:hover .card-arrow {
+            transform: translateX(4px);
+        }
+        .research-card:hover .card-subtitle {
+            color: #aaa;
+        }
+        .research-card:hover .card-meta {
+            border-top-color: #444;
+            color: #888;
+        }
+        .card-tag {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            font-size: 10px;
+            padding: 4px 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        .card-stats {
+            display: flex;
+            gap: 16px;
+        }
+        .card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-arrow {
+            font-size: 16px;
+            transition: transform 0.15s ease;
+        }
+        .coming-soon {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .coming-soon .card-tag {
+            background: #888;
+        }
+        .research-card.in-progress {
+            border: 3px solid #f59e0b;
+            background: #fffbeb;
+        }
+        .research-card.in-progress .card-tag {
+            background: #f59e0b;
+        }
+        .research-card.in-progress:hover {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .research-card.in-progress:hover .card-subtitle {
+            color: rgba(255,255,255,0.7);
+        }
+        .research-card.in-progress:hover .card-tag {
+            background: #fff;
+            color: #f59e0b;
+        }
+        .research-card.in-progress:hover .card-meta {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .research-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index.html" style="font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9;">UG</a>
+                <a href="erp-system.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-system-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-system.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>BUILDING CABLE FACTORY ERP SYSTEM</h1>
+        <p class="page-subtitle">One developer, one factory, one year. Digitizing the entire production flow of a solar cable manufacturer &mdash; from raw copper to shipment.</p>
+
+        <div class="research-grid">
+            <a href="erp-understanding.html" class="research-card in-progress">
+                <span class="card-tag">PHASE 0 &bull; IN PROGRESS</span>
+                <h2 class="card-title">UNDERSTANDING THE PROBLEM</h2>
+                <p class="card-subtitle">What does a solar cable factory actually do? 8 production steps, 6 machines, hundreds of design variations. The domain knowledge that took 7 months to acquire.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">8 STEPS</span>
+                        <span class="card-stat">6 MACHINES</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">PHASE 1 &bull; COMING SOON</span>
+                <h2 class="card-title">DATABASE &amp; FOUNDATION</h2>
+                <p class="card-subtitle">Designing the data model. Materials, machines, designs, production orders, test results &mdash; how everything connects.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">POSTGRESQL</span>
+                        <span class="card-stat">FASTAPI</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">PHASE 2 &bull; COMING SOON</span>
+                <h2 class="card-title">MATERIAL MANAGEMENT</h2>
+                <p class="card-subtitle">Tracking raw materials from warehouse entry to production consumption. Copper, tin, PVC compounds, dyes &mdash; with full traceability.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">INVENTORY</span>
+                        <span class="card-stat">TRACEABILITY</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">PHASE 3 &bull; COMING SOON</span>
+                <h2 class="card-title">PRODUCTION TRACKING</h2>
+                <p class="card-subtitle">Following every basket, reel, and cable through 8 production steps. Machine assignments, operator logs, real-time status.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">WORKFLOW</span>
+                        <span class="card-stat">REAL-TIME</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">PHASE 4 &bull; COMING SOON</span>
+                <h2 class="card-title">LAB TESTING</h2>
+                <p class="card-subtitle">Quality control at every stage. Tensile tests, insulation resistance, voltage withstand, dimensional checks &mdash; all tied to production batches.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">QUALITY</span>
+                        <span class="card-stat">COMPLIANCE</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+
+            <div class="research-card coming-soon">
+                <span class="card-tag">PHASE 5 &bull; COMING SOON</span>
+                <h2 class="card-title">ML &amp; AI INTEGRATION</h2>
+                <p class="card-subtitle">Where machine learning meets manufacturing. Predictive quality, production optimization, and the bridge between this ERP and the Token Sequencer project.</p>
+                <div class="card-meta">
+                    <div class="card-stats">
+                        <span class="card-stat">PREDICTION</span>
+                        <span class="card-stat">OPTIMIZATION</span>
+                    </div>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
