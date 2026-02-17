@@ -1098,6 +1098,309 @@
             <p style="margin-bottom: 0;"><strong>Design principle:</strong> Radical simplicity. One table, one field that matters (name), four endpoints, no role checks beyond authentication. The complexity lives in how production consumes this data &mdash; the dual storage pattern (FK for integrity, name for history) is the clever part. An operator&rsquo;s name is entered once into the registry, and from then on they simply pick it from a dropdown each time they start a production session &mdash; that name then follows every meter of cable they produce.</p>
         </div>
 
+
+        <!-- ============================================ -->
+        <!-- 6.4  MARKALAMA (CABLE MARKING)               -->
+        <!-- ============================================ -->
+
+        <h2 id="markalama">6.4 Markalama (Cable Marking)</h2>
+
+        <p>Every meter of cable that leaves the factory has text physically printed on its sheath &mdash; company name, standard, voltage rating, cross-section, production year. Markalama is the submodule that manages these <strong>marking templates</strong>: ordered arrays of words/segments that the extruder machine prints during cable production.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>What a marking template is:</strong> Not a single string, but an <strong>ordered JSON array</strong> of words. Each word is printed sequentially on the cable during extrusion, repeating along the cable&rsquo;s entire length. Words can include <strong>dynamic variables</strong> (<code>{CABLE_SIZE}</code>, <code>{ORDER_NO}</code>, <code>{YEAR}</code>, <code>{METER}</code>) that are resolved at production time. Example: <code>["SOLEN BEAM", "TUV RHEINLAND", "H07V-K", "{CABLE_SIZE}", "{YEAR}"]</code> &rarr; prints <code>SOLEN BEAM &middot; TUV RHEINLAND &middot; H07V-K &middot; 4mm&sup2; &middot; 2025</code> repeating along the cable.</p>
+        </div>
+
+        <h3>6.4.1 Database Schema</h3>
+
+        <p>One table. Minimal design.</p>
+
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td><code>Integer</code></td><td>PK, auto-increment, indexed</td><td>Unique identifier</td></tr>
+            <tr><td><code>name</code></td><td><code>String(200)</code></td><td><strong>UNIQUE</strong>, NOT NULL, indexed</td><td>Template name (e.g. &ldquo;SOLEN BEAM Standard&rdquo;)</td></tr>
+            <tr><td><code>words</code></td><td><code>JSON</code></td><td>NOT NULL</td><td>Ordered array of strings &mdash; the words printed on the cable</td></tr>
+            <tr><td><code>is_active</code></td><td><code>Boolean</code></td><td>NOT NULL, default <code>true</code></td><td>Soft delete flag. Inactive markings hidden from order dropdowns.</td></tr>
+            <tr><td><code>created_at</code></td><td><code>DateTime(tz)</code></td><td>server default <code>now()</code></td><td>Creation timestamp</td></tr>
+            <tr><td><code>updated_at</code></td><td><code>DateTime(tz)</code></td><td>on update <code>now()</code></td><td>Last modification timestamp</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>JSON storage for words:</strong> The <code>words</code> column stores a JSON array (e.g. <code>["SOLEN BEAM", "TUV RHEINLAND", "H07V-K"]</code>). The backend handles both native JSON and string-encoded JSON &mdash; the list endpoint explicitly parses: <code>json.loads(m.words) if isinstance(m.words, str) else m.words</code>. This dual handling ensures robustness regardless of how the database driver serializes the column.</p>
+        </div>
+
+        <h4>Key Constraints</h4>
+        <ul>
+            <li><strong>UNIQUE name:</strong> No two marking templates can share the same name. Enforced at both database level (unique index) and application level (duplicate check before create/update).</li>
+            <li><strong>No foreign keys:</strong> The <code>markings</code> table has no FKs. Instead, <code>order_cables.marking_id</code> in the Sipari&scedil; module references this table. The relationship is consumer-side, not defined here.</li>
+        </ul>
+
+        <h3>6.4.2 API Endpoints</h3>
+
+        <p>Six endpoints under <code>/api/teknik/markings</code>:</p>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/markings/create</code></td><td>super_admin + <code>teknik.markalama.create_marking</code></td><td>Create template. Checks duplicate name. Stores <code>name</code> + <code>words</code> array.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/markings/list</code></td><td>Authenticated</td><td>List all. <code>?active_only=true</code> (default), <code>?search=solen</code> (name ilike). Ordered by name. Parses JSON words.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/markings/{id}</code></td><td>Authenticated</td><td>Single marking by ID.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/markings/{id}</code></td><td>super_admin + <code>teknik.markalama.update_marking</code></td><td>Partial update. If name changes, checks for conflicts. Only provided fields are modified.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/markings/{id}/hard-delete</code></td><td>super_admin + <code>teknik.markalama.delete_marking</code></td><td>Permanent delete. No soft delete on this endpoint.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/markings/{id}/toggle-status</code></td><td>Authenticated</td><td>Flip <code>is_active</code> between <code>true</code>/<code>false</code>. No permission check beyond auth.</td></tr>
+        </table>
+
+        <h4>Validation Details</h4>
+        <table>
+            <tr><th>Check</th><th>Where</th><th>Details</th></tr>
+            <tr><td>Name required</td><td>Schema (<code>min_length=1</code>)</td><td>Pydantic rejects empty strings</td></tr>
+            <tr><td>Name max length</td><td>Schema + DB</td><td><code>max_length=200</code> in Pydantic, <code>String(200)</code> in SQLAlchemy</td></tr>
+            <tr><td>Words non-empty</td><td>Schema validator</td><td>Custom <code>@validator('words')</code> ensures <code>len(v) &gt; 0</code></td></tr>
+            <tr><td>Duplicate name</td><td>Route handler</td><td>Queries DB before create. On update, excludes self (<code>Marking.id != marking_id</code>)</td></tr>
+            <tr><td>Exists check</td><td>Route handler</td><td>404 if marking not found on get/update/delete</td></tr>
+        </table>
+
+        <h4>Delete Behavior</h4>
+        <p>The delete endpoint is <strong>hard delete</strong> (<code>db.delete(marking)</code>). Unlike Standards Management, there is no smart delete logic. If a marking is referenced by existing orders, those orders retain the <code>marking_id</code> integer but the marking record is gone. The safer workflow is to <strong>toggle status to inactive</strong> using the <code>/toggle-status</code> endpoint, which hides the marking from new orders while keeping the record intact for historical lookups.</p>
+
+        <h3>6.4.3 Pydantic Schemas</h3>
+
+        <table>
+            <tr><th>Schema</th><th>Fields</th><th>Used By</th></tr>
+            <tr><td><code>MarkingCreateRequest</code></td><td><code>name: str</code>, <code>words: List[str]</code> (min 1 item)</td><td>POST create</td></tr>
+            <tr><td><code>MarkingUpdateRequest</code></td><td><code>name?: str</code>, <code>words?: List[str]</code>, <code>is_active?: bool</code></td><td>PUT update (all optional for partial)</td></tr>
+            <tr><td><code>MarkingResponse</code></td><td><code>id, name, words, is_active, created_at, updated_at</code></td><td>All responses</td></tr>
+            <tr><td><code>MarkingListResponse</code></td><td><code>success: bool</code>, <code>data: List[MarkingResponse]</code>, <code>message: str</code></td><td>Defined but not used (list returns raw array)</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Unused wrapper:</strong> <code>MarkingListResponse</code> is defined in schemas but the <code>/list</code> endpoint returns a raw array, not the wrapper. The endpoint manually constructs dictionaries with parsed JSON words instead of using the Pydantic <code>response_model</code>. This is a pragmatic choice to handle the JSON string/native dual format.</p>
+        </div>
+
+        <h3>6.4.4 Dynamic Variables</h3>
+
+        <p>Marking words support four runtime variables that get resolved during production:</p>
+
+        <table>
+            <tr><th>Variable</th><th>Resolves To</th><th>Example</th></tr>
+            <tr><td><code>{CABLE_SIZE}</code></td><td>Cable cross-section from order</td><td><code>4mm&sup2;</code></td></tr>
+            <tr><td><code>{ORDER_NO}</code></td><td>Order number</td><td><code>SLN-2025-0042</code></td></tr>
+            <tr><td><code>{YEAR}</code></td><td>Production year</td><td><code>2025</code></td></tr>
+            <tr><td><code>{METER}</code></td><td>Running meter mark on cable</td><td><code>150</code></td></tr>
+        </table>
+
+        <p>Variable resolution happens at the production/extrusion layer, not in this submodule. Markalama just stores the templates with placeholder syntax. The frontend displays these as helper text in the form: <em>&ldquo;De&gbreve;i&scedil;kenler: {CABLE_SIZE}, {ORDER_NO}, {YEAR}, {METER}&rdquo;</em>.</p>
+
+        <h3>6.4.5 Permission Model</h3>
+
+        <table>
+            <tr><th>Action</th><th>Role Check</th><th>Permission Key</th></tr>
+            <tr><td>View / List / Search</td><td>Any authenticated user</td><td>Any authenticated user</td></tr>
+            <tr><td>Create</td><td>super_admin</td><td><code>teknik.markalama.create_marking</code></td></tr>
+            <tr><td>Update</td><td>super_admin</td><td><code>teknik.markalama.update_marking</code></td></tr>
+            <tr><td>Delete</td><td>super_admin</td><td><code>teknik.markalama.delete_marking</code></td></tr>
+            <tr><td>Toggle Status</td><td>Any authenticated user</td><td>No additional check</td></tr>
+        </table>
+
+        <p>Unlike Machines (which allow <code>production_manager</code>) or Standards (which allow <code>lab_user</code>), Markalama write operations are restricted to <code>super_admin</code> only. The <code>check_permission_smart</code> function validates both the role and the granular permission key. The toggle-status endpoint is an exception &mdash; any authenticated user can activate/deactivate a marking.</p>
+
+        <h4>Permission Manifest (Frontend)</h4>
+        <p>The frontend permission system defines 5 buttons for the Markalama page:</p>
+        <ul>
+            <li><code>access_page</code> &mdash; Can view the Markalama page</li>
+            <li><code>view_markings</code> &mdash; Can see the marking list</li>
+            <li><code>create_marking</code> &mdash; Can add new markings</li>
+            <li><code>edit_marking</code> &mdash; Can edit existing markings</li>
+            <li><code>delete_marking</code> &mdash; Can permanently delete markings (critical)</li>
+        </ul>
+
+        <h3>6.4.6 Frontend &mdash; Page Structure</h3>
+
+        <p>Single file: <code>src/pages/Teknik/Markalama/index.tsx</code> (374 lines). Route: <code>/teknik/markalama</code>.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>PageContainer</h4>
+                <p>Ant Design Pro wrapper with title &ldquo;Markalama&rdquo;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProTable</h4>
+                <p>Main data table. Fetches from <code>/api/teknik/markings/list</code> with <code>active_only=false</code> (shows all, including inactive). Client-side search and pagination.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Modal (700px)</h4>
+                <p>Create/edit form. Contains name input + dynamic word list (Form.List). Blur-on-backdrop effect.</p>
+            </div>
+        </div>
+
+        <h4>Table Columns (4)</h4>
+        <table>
+            <tr><th>#</th><th>Column</th><th>Width</th><th>Features</th></tr>
+            <tr><td>1</td><td>&Idot;sim (Name)</td><td>250px</td><td>Fixed left. Sortable (localeCompare). Primary identifier.</td></tr>
+            <tr><td>2</td><td>Kelime Say&inodot;s&inodot; (Word Count)</td><td>120px</td><td>Computed: parses <code>words</code> JSON/array, returns <code>.length</code>. Not the words themselves.</td></tr>
+            <tr><td>3</td><td>Durum (Status)</td><td>100px</td><td>Green <code>&lt;Tag&gt;</code> for Aktif, red for Pasif.</td></tr>
+            <tr><td>4</td><td>&Idot;&scedil;lemler (Actions)</td><td>100px</td><td>Fixed right. Edit button + Delete with Popconfirm (&ldquo;Are you sure?&rdquo;).</td></tr>
+        </table>
+
+        <h4>Create/Edit Modal</h4>
+        <p>The modal has two form sections:</p>
+
+        <p><strong>1. Name Field</strong></p>
+        <ul>
+            <li><code>&lt;Input&gt;</code> with placeholder &ldquo;&ouml;r: SOLEN BEAM Standard&rdquo;</li>
+            <li>Required validation</li>
+        </ul>
+
+        <p><strong>2. Words (Dynamic List)</strong></p>
+        <ul>
+            <li>Uses Ant Design <code>&lt;Form.List&gt;</code> for dynamic add/remove</li>
+            <li>Each word is a numbered row: <code>1.</code>, <code>2.</code>, <code>3.</code>&hellip; with a 550px-wide input</li>
+            <li>Minimum 1 word enforced by custom validator</li>
+            <li>Red <code>&lt;MinusCircleOutlined&gt;</code> to remove a word (hidden when only 1 word remains)</li>
+            <li>Dashed &ldquo;Kelime Ekle&rdquo; (Add Word) button at bottom to append new rows</li>
+            <li>On create, starts with one empty word slot</li>
+            <li>On edit, pre-populates all existing words</li>
+            <li>Variable hint text shown in the label: <em>&ldquo;De&gbreve;i&scedil;kenler: {CABLE_SIZE}, {ORDER_NO}, {YEAR}, {METER}&rdquo;</em></li>
+        </ul>
+
+        <h4>CRUD Flow</h4>
+
+        <div class="flow">
+            <span class="flow-step">Click &ldquo;Yeni Markalama&rdquo;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal opens (1 empty word slot)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Enter name + add words</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /markings/create</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Table refreshes (key increment)</span>
+        </div>
+
+        <div class="flow" style="margin-top: 12px;">
+            <span class="flow-step">Click edit icon</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal opens (pre-filled)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modify name/words</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PUT /markings/{id}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Table refreshes</span>
+        </div>
+
+        <div class="flow" style="margin-top: 12px;">
+            <span class="flow-step">Click delete icon</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Popconfirm dialog</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">DELETE /markings/{id}/hard-delete</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Table refreshes</span>
+        </div>
+
+        <h4>Search &amp; Pagination</h4>
+        <p><strong>Search</strong> is client-side (200px rounded input). Filters on name, status text (aktif/pasif), and word count number. <strong>Pagination</strong> defaults to 10 rows, options [10, 20, 50, 100]. Shows &ldquo;X-Y / Z kay&inodot;t&rdquo; total.</p>
+
+        <h3>6.4.7 How Markings Flow Through the System</h3>
+
+        <p>Markalama templates are <strong>reference data</strong>. They are created once in the Teknik module and then consumed at two critical points in the order-to-production pipeline:</p>
+
+        <h4>Step 1: Order Creation (Sipari&scedil; Module)</h4>
+
+        <div class="flow">
+            <span class="flow-step">Order creation page loads</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">GET /markings/list?active_only=true</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Populate marking dropdown per cable</span>
+        </div>
+
+        <p>In the order creation form, each cable entry has a <strong>&ldquo;Markalama&rdquo; dropdown</strong> (searchable <code>&lt;Select&gt;</code>). It shows only active markings. The user picks one, and the <code>marking_id</code> is stored in <code>order_cables.marking_id</code> (integer FK). Marking selection is required for a cable to be considered &ldquo;complete&rdquo; in the order form.</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;">// Order form cable completion check (SiparisOlustur/index.tsx)</span>
+const isComplete = hasDesign && hasMeters && hasMakara
+  && <strong>hasMarking</strong> && hasPrice && hasCurrency && materialsComplete;</pre>
+
+        <h4>Step 2: Work Card Generation &amp; Production Planning</h4>
+
+        <p>When an order is confirmed and work cards are generated:</p>
+
+        <div class="flow">
+            <span class="flow-step">Order confirmed</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Work card generator reads cable data</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Resolves marking_id &rarr; marking_name</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Stores both in extruder material_details</span>
+        </div>
+
+        <p>The <code>work_card_generator.py</code> service resolves each cable&rsquo;s <code>marking_id</code> to the actual marking name by querying the Marking table. Both <code>marking_id</code> and <code>marking_name</code> are embedded in the extruder work card&rsquo;s <code>material_details</code> JSON:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># work_card_generator.py &mdash; extruder material_details</span>
+{
+    'marking_id': cable_data.get('marking_id'),    <span style="color: #666;"># Integer FK</span>
+    'marking_name': cable_data.get('marking_name'), <span style="color: #666;"># Resolved text</span>
+    'tests': ex_tests,
+    'breakdown': [],
+    ...
+}</pre>
+
+        <h4>Step 3: Production Planning Display</h4>
+
+        <p>The Production Planning page reads the extruder work card&rsquo;s <code>material_details</code> and displays the marking name in the card UI:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;">// Production/Planning/index.tsx</span>
+{materialDetails.marking_name && (
+  &lt;div&gt;
+    &lt;div style={{ fontSize: 10, fontWeight: 600 }}&gt;Markalama&lt;/div&gt;
+    &lt;div style={{ fontSize: 11 }}&gt;{materialDetails.marking_name}&lt;/div&gt;
+  &lt;/div&gt;
+)}</pre>
+
+        <h4>Step 4: Order Detail View</h4>
+
+        <p>When viewing an existing order, the detail page shows the marking. The <code>order_routes.py</code> endpoint resolves <code>marking_id</code> to the name at query time:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># order_routes.py &mdash; marking resolution</span>
+marking_name = None
+if cable.marking_id:
+    marking = db.query(Marking).filter(Marking.id == cable.marking_id).first()
+    marking_name = marking.name if marking else None</pre>
+
+        <p>This pattern appears twice in <code>order_routes.py</code>: once for the single order detail endpoint, and once for the work card generation data extraction.</p>
+
+        <h3>6.4.8 Data Storage Pattern &mdash; ID vs Name</h3>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Dual storage in consumption:</strong> Like the Operator dual storage pattern (6.3), markings use a hybrid approach &mdash; but split across different storage locations. The <code>order_cables</code> table stores only <code>marking_id</code> (integer). The work card <code>material_details</code> JSON stores both <code>marking_id</code> and <code>marking_name</code> (denormalized). This means order detail views must query the Marking table at runtime, but production planning can display the name directly from the JSON without an extra join.</p>
+        </div>
+
+        <h3>6.4.9 Connections to Other Submodules</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; (Order Module)</h4>
+                <p>Primary consumer. Every cable in an order has a <code>marking_id</code> FK pointing to the <code>markings</code> table. The order creation page fetches active markings as a searchable dropdown. Marking is required for cable completion.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Planlama (Production Planning)</h4>
+                <p>The work card generator resolves marking names and embeds them in extruder work card material_details. Production planning displays the marking name on extruder cards so operators know what text to verify on the cable.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; Detay (Order Detail View)</h4>
+                <p>Order detail pages resolve <code>marking_id</code> to <code>marking_name</code> at query time. Displayed as a <code>ValueDisplay</code> component showing the template name.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Template-based marking. Rather than storing free-text marking instructions per order, the system maintains a registry of reusable templates. This ensures consistency &mdash; every order for the same cable type uses the exact same marking text. The ordered word array structure maps directly to how the extruder printing head works: it cycles through the words sequentially, printing each segment with spacing between them along the cable&rsquo;s length. Dynamic variables (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code>, etc.) add order-specific context without creating new templates.</p>
+        </div>
+
     </main>
 
 </body>

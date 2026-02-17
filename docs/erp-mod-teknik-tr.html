@@ -1087,6 +1087,309 @@
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Radikal basitlik. Bir tablo, &ouml;nemli olan tek alan (isim), d&ouml;rt endpoint, kimlik do&#287;rulama &ouml;tesinde rol kontrol&uuml; yok. Karma&scedil;&#305;kl&#305;k &uuml;retimin bu veriyi nas&#305;l t&uuml;ketti&#287;inde ya&scedil;ar &mdash; &ccedil;ift depolama d&uuml;zeni (b&uuml;t&uuml;nl&uuml;k i&ccedil;in FK, ge&ccedil;mi&scedil; i&ccedil;in isim) ak&#305;ll&#305; k&#305;s&#305;md&#305;r. Bir operat&ouml;r&uuml;n ad&#305; kay&#305;t defterine bir kez girilir ve o andan itibaren her &uuml;retim oturumu ba&scedil;lat&#305;&scedil;&#305;nda a&ccedil;&#305;l&#305;r men&uuml;den se&ccedil;ilir &mdash; bu ad &uuml;rettikleri her metre kabloyu takip eder.</p>
         </div>
 
+
+        <!-- ============================================ -->
+        <!-- 6.4  MARKALAMA (KABLO MARKALAMA)             -->
+        <!-- ============================================ -->
+
+        <h2 id="markalama">6.4 Markalama (Kablo Markalama)</h2>
+
+        <p>Fabrikadan &ccedil;&#305;kan her metre kablonun k&#305;l&#305;f&#305; &uuml;zerine fiziksel olarak metin bas&#305;l&#305;r &mdash; firma ad&#305;, standart, gerilim de&#287;eri, kesit, &uuml;retim y&#305;l&#305;. Markalama, ekstr&uuml;der makinesinin &uuml;retim s&#305;ras&#305;nda kabloya bast&#305;&#287;&#305; bu <strong>markalama &scedil;ablonlar&#305;n&#305;</strong> y&ouml;neten alt mod&uuml;ld&uuml;r: s&#305;ral&#305; kelime/segment dizileri.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Markalama &scedil;ablonu nedir:</strong> Tek bir metin de&#287;il, <strong>s&#305;ral&#305; bir JSON dizisi</strong>dir. Her kelime ekstr&uuml;zyon s&#305;ras&#305;nda kabloya s&#305;rayla bas&#305;l&#305;r ve kablonun t&uuml;m uzunlu&#287;u boyunca tekrarlan&#305;r. Kelimeler &uuml;retim zaman&#305;nda &ccedil;&ouml;z&uuml;mlenen <strong>dinamik de&#287;i&scedil;kenler</strong> i&ccedil;erebilir (<code>{CABLE_SIZE}</code>, <code>{ORDER_NO}</code>, <code>{YEAR}</code>, <code>{METER}</code>). &Ouml;rnek: <code>["SOLEN BEAM", "TUV RHEINLAND", "H07V-K", "{CABLE_SIZE}", "{YEAR}"]</code> &rarr; kabloya <code>SOLEN BEAM &middot; TUV RHEINLAND &middot; H07V-K &middot; 4mm&sup2; &middot; 2025</code> &scedil;eklinde tekrarlayarak bas&#305;l&#305;r.</p>
+        </div>
+
+        <h3>6.4.1 Veritaban&#305; &Scedil;emas&#305;</h3>
+
+        <p>Tek tablo. Minimal tasar&#305;m.</p>
+
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>K&#305;s&#305;tlamalar</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td><code>Integer</code></td><td>PK, otomatik art&#305;&scedil;, indeksli</td><td>Benzersiz tan&#305;mlay&#305;c&#305;</td></tr>
+            <tr><td><code>name</code></td><td><code>String(200)</code></td><td><strong>UNIQUE</strong>, NOT NULL, indeksli</td><td>&Scedil;ablon ad&#305; (&ouml;r. &ldquo;SOLEN BEAM Standard&rdquo;)</td></tr>
+            <tr><td><code>words</code></td><td><code>JSON</code></td><td>NOT NULL</td><td>S&#305;ral&#305; string dizisi &mdash; kabloya bas&#305;lan kelimeler</td></tr>
+            <tr><td><code>is_active</code></td><td><code>Boolean</code></td><td>NOT NULL, varsay&#305;lan <code>true</code></td><td>Soft delete bayra&#287;&#305;. Pasif markalamalar sipari&scedil; a&ccedil;&#305;l&#305;r men&uuml;lerinde gizlenir.</td></tr>
+            <tr><td><code>created_at</code></td><td><code>DateTime(tz)</code></td><td>sunucu varsay&#305;lan&#305; <code>now()</code></td><td>Olu&scedil;turma zaman damgas&#305;</td></tr>
+            <tr><td><code>updated_at</code></td><td><code>DateTime(tz)</code></td><td>g&uuml;ncellemede <code>now()</code></td><td>Son de&#287;i&scedil;iklik zaman damgas&#305;</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Kelimeler i&ccedil;in JSON depolama:</strong> <code>words</code> s&uuml;tunu bir JSON dizisi saklar (&ouml;r. <code>["SOLEN BEAM", "TUV RHEINLAND", "H07V-K"]</code>). Backend hem native JSON hem de string kodlu JSON&rsquo;u i&scedil;ler &mdash; listeleme endpoint&rsquo;i a&ccedil;&#305;k&ccedil;a ayr&#305;&scedil;t&#305;r&#305;r: <code>json.loads(m.words) if isinstance(m.words, str) else m.words</code>. Bu &ccedil;ift y&ouml;nl&uuml; i&scedil;leme, veritaban&#305; s&uuml;r&uuml;c&uuml;s&uuml;n&uuml;n s&uuml;tunu nas&#305;l serile&scedil;tirdi&#287;inden ba&#287;&#305;ms&#305;z sa&#287;laml&#305;k sa&#287;lar.</p>
+        </div>
+
+        <h4>Temel K&#305;s&#305;tlamalar</h4>
+        <ul>
+            <li><strong>UNIQUE isim:</strong> &#304;ki markalama &scedil;ablonu ayn&#305; ismi payla&scedil;amaz. Hem veritaban&#305; seviyesinde (unique index) hem de uygulama seviyesinde (olu&scedil;turma/g&uuml;ncelleme &ouml;ncesi tekrar kontrol&uuml;) uygulan&#305;r.</li>
+            <li><strong>Foreign key yok:</strong> <code>markings</code> tablosunda FK yoktur. Bunun yerine Sipari&scedil; mod&uuml;l&uuml;ndeki <code>order_cables.marking_id</code> bu tabloya referans verir. &#304;li&scedil;ki t&uuml;ketici taraf&#305;ndad&#305;r, burada tan&#305;mlanmam&#305;&scedil;t&#305;r.</li>
+        </ul>
+
+        <h3>6.4.2 API Endpoint&rsquo;leri</h3>
+
+        <p><code>/api/teknik/markings</code> alt&#305;nda alt&#305; endpoint:</p>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/markings/create</code></td><td>super_admin + <code>teknik.markalama.create_marking</code></td><td>&Scedil;ablon olu&scedil;tur. Tekrar isim kontrol&uuml;. <code>name</code> + <code>words</code> dizisi saklar.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/markings/list</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>T&uuml;m&uuml;n&uuml; listele. <code>?active_only=true</code> (varsay&#305;lan), <code>?search=solen</code> (isim ilike). &#304;sme g&ouml;re s&#305;ral&#305;. JSON kelimeleri ayr&#305;&scedil;t&#305;r&#305;r.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/markings/{id}</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td>ID ile tek markalama.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/markings/{id}</code></td><td>super_admin + <code>teknik.markalama.update_marking</code></td><td>K&#305;smi g&uuml;ncelleme. &#304;sim de&#287;i&scedil;irse &ccedil;ak&#305;&scedil;ma kontrol&uuml;. Sadece sa&#287;lanan alanlar de&#287;i&scedil;ir.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/markings/{id}/hard-delete</code></td><td>super_admin + <code>teknik.markalama.delete_marking</code></td><td>Kal&#305;c&#305; silme. Bu endpoint&rsquo;te soft delete yok.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/markings/{id}/toggle-status</code></td><td>Kimlik do&#287;rulanm&#305;&scedil;</td><td><code>is_active</code>&rsquo;i <code>true</code>/<code>false</code> aras&#305;nda de&#287;i&scedil;tir. Kimlik do&#287;rulama d&#305;&scedil;&#305;nda yetki kontrol&uuml; yok.</td></tr>
+        </table>
+
+        <h4>Do&#287;rulama Detaylar&#305;</h4>
+        <table>
+            <tr><th>Kontrol</th><th>Nerede</th><th>Detaylar</th></tr>
+            <tr><td>&#304;sim zorunlu</td><td>&Scedil;ema (<code>min_length=1</code>)</td><td>Pydantic bo&scedil; stringleri reddeder</td></tr>
+            <tr><td>&#304;sim maks uzunluk</td><td>&Scedil;ema + DB</td><td>Pydantic&rsquo;te <code>max_length=200</code>, SQLAlchemy&rsquo;de <code>String(200)</code></td></tr>
+            <tr><td>Kelimeler bo&scedil; de&#287;il</td><td>&Scedil;ema validator</td><td>&Ouml;zel <code>@validator('words')</code> ile <code>len(v) &gt; 0</code> kontrol&uuml;</td></tr>
+            <tr><td>Tekrar isim</td><td>Route handler</td><td>Olu&scedil;turmadan &ouml;nce DB sorgusu. G&uuml;ncellemede kendisini hari&ccedil; tutar (<code>Marking.id != marking_id</code>)</td></tr>
+            <tr><td>Var m&#305; kontrol&uuml;</td><td>Route handler</td><td>Get/update/delete&rsquo;te bulunamazsa 404</td></tr>
+        </table>
+
+        <h4>Silme Davran&#305;&scedil;&#305;</h4>
+        <p>Silme endpoint&rsquo;i <strong>kal&#305;c&#305; silmedir</strong> (<code>db.delete(marking)</code>). Standart Y&ouml;netimi&rsquo;nden farkl&#305; olarak ak&#305;ll&#305; silme mant&#305;&#287;&#305; yoktur. Bir markalama mevcut sipari&scedil;ler taraf&#305;ndan referans al&#305;n&#305;yorsa, o sipari&scedil;ler <code>marking_id</code> tam say&#305;s&#305;n&#305; tutar ama markalama kayd&#305; silinmi&scedil; olur. Daha g&uuml;venli i&scedil; ak&#305;&scedil;&#305;, <code>/toggle-status</code> endpoint&rsquo;ini kullanarak <strong>durumu pasife &ccedil;evirmektir</strong>; bu, yeni sipari&scedil;lerde marklamay&#305; gizlerken ge&ccedil;mi&scedil; sorgular i&ccedil;in kayd&#305; korur.</p>
+
+        <h3>6.4.3 Pydantic &Scedil;emalar&#305;</h3>
+
+        <table>
+            <tr><th>&Scedil;ema</th><th>Alanlar</th><th>Kullanan</th></tr>
+            <tr><td><code>MarkingCreateRequest</code></td><td><code>name: str</code>, <code>words: List[str]</code> (min 1 &ouml;ge)</td><td>POST olu&scedil;tur</td></tr>
+            <tr><td><code>MarkingUpdateRequest</code></td><td><code>name?: str</code>, <code>words?: List[str]</code>, <code>is_active?: bool</code></td><td>PUT g&uuml;ncelle (k&#305;smi i&ccedil;in hepsi opsiyonel)</td></tr>
+            <tr><td><code>MarkingResponse</code></td><td><code>id, name, words, is_active, created_at, updated_at</code></td><td>T&uuml;m yan&#305;tlar</td></tr>
+            <tr><td><code>MarkingListResponse</code></td><td><code>success: bool</code>, <code>data: List[MarkingResponse]</code>, <code>message: str</code></td><td>Tan&#305;ml&#305; ama kullan&#305;lm&#305;yor (liste ham dizi d&ouml;nd&uuml;r&uuml;r)</td></tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Kullan&#305;lmayan sar&#305;c&#305;:</strong> <code>MarkingListResponse</code> &scedil;emalarda tan&#305;ml&#305;d&#305;r ama <code>/list</code> endpoint&rsquo;i sar&#305;c&#305; yerine ham dizi d&ouml;nd&uuml;r&uuml;r. Endpoint, Pydantic <code>response_model</code> kullanmak yerine ayr&#305;&scedil;t&#305;r&#305;lm&#305;&scedil; JSON kelimelerle s&ouml;zl&uuml;kleri elle olu&scedil;turur. Bu, JSON string/native ikili format&#305; ele almak i&ccedil;in pragmatik bir se&ccedil;imdir.</p>
+        </div>
+
+        <h3>6.4.4 Dinamik De&#287;i&scedil;kenler</h3>
+
+        <p>Markalama kelimeleri &uuml;retim s&#305;ras&#305;nda &ccedil;&ouml;z&uuml;mlenen d&ouml;rt &ccedil;al&#305;&scedil;ma zaman&#305; de&#287;i&scedil;keni destekler:</p>
+
+        <table>
+            <tr><th>De&#287;i&scedil;ken</th><th>Ne Olur</th><th>&Ouml;rnek</th></tr>
+            <tr><td><code>{CABLE_SIZE}</code></td><td>Sipari&scedil;ten kablo kesiti</td><td><code>4mm&sup2;</code></td></tr>
+            <tr><td><code>{ORDER_NO}</code></td><td>Sipari&scedil; numaras&#305;</td><td><code>SLN-2025-0042</code></td></tr>
+            <tr><td><code>{YEAR}</code></td><td>&Uuml;retim y&#305;l&#305;</td><td><code>2025</code></td></tr>
+            <tr><td><code>{METER}</code></td><td>Kablo &uuml;zerinde say&#305;lan metre i&scedil;areti</td><td><code>150</code></td></tr>
+        </table>
+
+        <p>De&#287;i&scedil;ken &ccedil;&ouml;z&uuml;mleme &uuml;retim/ekstr&uuml;zyon katman&#305;nda yap&#305;l&#305;r, bu alt mod&uuml;lde de&#287;il. Markalama &scedil;ablonlar&#305; sadece yer tutucu s&ouml;zdizimiyle saklar. Frontend bunlar&#305; formda yard&#305;mc&#305; metin olarak g&ouml;sterir: <em>&ldquo;De&#287;i&scedil;kenler: {CABLE_SIZE}, {ORDER_NO}, {YEAR}, {METER}&rdquo;</em>.</p>
+
+        <h3>6.4.5 Yetki Modeli</h3>
+
+        <table>
+            <tr><th>&#304;&scedil;lem</th><th>Rol Kontrol&uuml;</th><th>Yetki Anahtar&#305;</th></tr>
+            <tr><td>G&ouml;r&uuml;nt&uuml;leme / Listeleme / Arama</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td></tr>
+            <tr><td>Olu&scedil;turma</td><td>super_admin</td><td><code>teknik.markalama.create_marking</code></td></tr>
+            <tr><td>G&uuml;ncelleme</td><td>super_admin</td><td><code>teknik.markalama.update_marking</code></td></tr>
+            <tr><td>Silme</td><td>super_admin</td><td><code>teknik.markalama.delete_marking</code></td></tr>
+            <tr><td>Durum De&#287;i&scedil;tirme</td><td>Kimli&#287;i do&#287;rulanm&#305;&scedil; herkes</td><td>Ek kontrol yok</td></tr>
+        </table>
+
+        <p>Makinelerden (<code>production_manager</code> izni olan) veya Standartlardan (<code>lab_user</code> izni olan) farkl&#305; olarak, Markalama yazma i&scedil;lemleri yaln&#305;zca <code>super_admin</code> ile s&#305;n&#305;rl&#305;d&#305;r. <code>check_permission_smart</code> fonksiyonu hem rol&uuml; hem de ayr&#305;nt&#305;l&#305; yetki anahtar&#305;n&#305; do&#287;rular. Durum de&#287;i&scedil;tirme endpoint&rsquo;i istisnad&#305;r &mdash; kimli&#287;i do&#287;rulanm&#305;&scedil; herkes bir marklamay&#305; aktifle&scedil;tirebilir/pasifle&scedil;tirebilir.</p>
+
+        <h4>Yetki Manifesti (Frontend)</h4>
+        <p>Frontend yetki sistemi Markalama sayfas&#305; i&ccedil;in 5 buton tan&#305;mlar:</p>
+        <ul>
+            <li><code>access_page</code> &mdash; Markalama sayfas&#305;n&#305; g&ouml;r&uuml;nt&uuml;leyebilir</li>
+            <li><code>view_markings</code> &mdash; Markalama listesini g&ouml;rebilir</li>
+            <li><code>create_marking</code> &mdash; Yeni markalama ekleyebilir</li>
+            <li><code>edit_marking</code> &mdash; Mevcut marklamalar&#305; d&uuml;zenleyebilir</li>
+            <li><code>delete_marking</code> &mdash; Marklamalar&#305; kal&#305;c&#305; olarak silebilir (kritik)</li>
+        </ul>
+
+        <h3>6.4.6 Frontend &mdash; Sayfa Yap&#305;s&#305;</h3>
+
+        <p>Tek dosya: <code>src/pages/Teknik/Markalama/index.tsx</code> (374 sat&#305;r). Rota: <code>/teknik/markalama</code>.</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>PageContainer</h4>
+                <p>Ant Design Pro sar&#305;c&#305;s&#305;, ba&scedil;l&#305;k &ldquo;Markalama&rdquo;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProTable</h4>
+                <p>Ana veri tablosu. <code>/api/teknik/markings/list</code>&rsquo;ten <code>active_only=false</code> ile &ccedil;eker (pasifler dahil t&uuml;m&uuml;n&uuml; g&ouml;sterir). &#304;stemci taraf&#305; arama ve sayfalama.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Modal (700px)</h4>
+                <p>Olu&scedil;turma/d&uuml;zenleme formu. &#304;sim giri&scedil;i + dinamik kelime listesi (Form.List) i&ccedil;erir. Arka plan bulan&#305;kla&scedil;t&#305;rma efekti.</p>
+            </div>
+        </div>
+
+        <h4>Tablo S&uuml;tunlar&#305; (4)</h4>
+        <table>
+            <tr><th>#</th><th>S&uuml;tun</th><th>Geni&scedil;lik</th><th>&Ouml;zellikler</th></tr>
+            <tr><td>1</td><td>&#304;sim</td><td>250px</td><td>Sola sabit. S&#305;ralanabilir (localeCompare). Birincil tan&#305;mlay&#305;c&#305;.</td></tr>
+            <tr><td>2</td><td>Kelime Say&#305;s&#305;</td><td>120px</td><td>Hesaplanm&#305;&scedil;: <code>words</code> JSON/dizi ayr&#305;&scedil;t&#305;r&#305;l&#305;r, <code>.length</code> d&ouml;nd&uuml;r&uuml;r. Kelimelerin kendisi de&#287;il.</td></tr>
+            <tr><td>3</td><td>Durum</td><td>100px</td><td>Aktif i&ccedil;in ye&scedil;il <code>&lt;Tag&gt;</code>, Pasif i&ccedil;in k&#305;rm&#305;z&#305;.</td></tr>
+            <tr><td>4</td><td>&#304;&scedil;lemler</td><td>100px</td><td>Sa&#287;a sabit. D&uuml;zenle butonu + Popconfirm ile Sil (&ldquo;Emin misiniz?&rdquo;).</td></tr>
+        </table>
+
+        <h4>Olu&scedil;turma/D&uuml;zenleme Modal&#305;</h4>
+        <p>Modal iki form b&ouml;l&uuml;m&uuml;ne sahiptir:</p>
+
+        <p><strong>1. &#304;sim Alan&#305;</strong></p>
+        <ul>
+            <li><code>&lt;Input&gt;</code> ile yer tutucu &ldquo;&ouml;r: SOLEN BEAM Standard&rdquo;</li>
+            <li>Zorunlu do&#287;rulama</li>
+        </ul>
+
+        <p><strong>2. Kelimeler (Dinamik Liste)</strong></p>
+        <ul>
+            <li>Dinamik ekleme/kald&#305;rma i&ccedil;in Ant Design <code>&lt;Form.List&gt;</code> kullan&#305;r</li>
+            <li>Her kelime numaral&#305; sat&#305;rd&#305;r: <code>1.</code>, <code>2.</code>, <code>3.</code>&hellip; 550px geni&scedil;likte giri&scedil;</li>
+            <li>Minimum 1 kelime &ouml;zel validator ile zorunlu</li>
+            <li>K&#305;rm&#305;z&#305; <code>&lt;MinusCircleOutlined&gt;</code> ile kelime kald&#305;rma (sadece 1 kelime kald&#305;&#287;&#305;nda gizlenir)</li>
+            <li>Altta kesikli &ldquo;Kelime Ekle&rdquo; butonu ile yeni sat&#305;r ekleme</li>
+            <li>Olu&scedil;turmada bir bo&scedil; kelime slotu ile ba&scedil;lar</li>
+            <li>D&uuml;zenlemede mevcut t&uuml;m kelimeleri &ouml;n doldurur</li>
+            <li>Etiket&rsquo;te de&#287;i&scedil;ken ipucu metni: <em>&ldquo;De&#287;i&scedil;kenler: {CABLE_SIZE}, {ORDER_NO}, {YEAR}, {METER}&rdquo;</em></li>
+        </ul>
+
+        <h4>CRUD Ak&#305;&scedil;&#305;</h4>
+
+        <div class="flow">
+            <span class="flow-step">&ldquo;Yeni Markalama&rdquo; t&#305;kla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal a&ccedil;&#305;l&#305;r (1 bo&scedil; kelime slotu)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&#304;sim gir + kelime ekle</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">POST /markings/create</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Tablo yenilenir (key art&#305;&scedil;&#305;)</span>
+        </div>
+
+        <div class="flow" style="margin-top: 12px;">
+            <span class="flow-step">D&uuml;zenle ikonuna t&#305;kla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Modal a&ccedil;&#305;l&#305;r (&ouml;n doldurulmu&scedil;)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&#304;sim/kelimeleri de&#287;i&scedil;tir</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PUT /markings/{id}</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Tablo yenilenir</span>
+        </div>
+
+        <div class="flow" style="margin-top: 12px;">
+            <span class="flow-step">Sil ikonuna t&#305;kla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Popconfirm diyalo&#287;u</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">DELETE /markings/{id}/hard-delete</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Tablo yenilenir</span>
+        </div>
+
+        <h4>Arama &amp; Sayfalama</h4>
+        <p><strong>Arama</strong> istemci taraf&#305;ndad&#305;r (200px yuvarlak giri&scedil;). &#304;sim, durum metni (aktif/pasif) ve kelime say&#305;s&#305; &uuml;zerinden filtreler. <strong>Sayfalama</strong> varsay&#305;lan 10 sat&#305;r, [10, 20, 50, 100] se&ccedil;enekleriyle. &ldquo;X-Y / Z kay&#305;t&rdquo; toplam&#305;n&#305; g&ouml;sterir.</p>
+
+        <h3>6.4.7 Marklamalar Sistemde Nas&#305;l Akar</h3>
+
+        <p>Markalama &scedil;ablonlar&#305; <strong>referans verileridir</strong>. Teknik mod&uuml;l&uuml;nde bir kez olu&scedil;turulur ve sipari&scedil;ten &uuml;retime giden hatta iki kritik noktada t&uuml;ketilir:</p>
+
+        <h4>Ad&#305;m 1: Sipari&scedil; Olu&scedil;turma (Sipari&scedil; Mod&uuml;l&uuml;)</h4>
+
+        <div class="flow">
+            <span class="flow-step">Sipari&scedil; olu&scedil;turma sayfas&#305; y&uuml;klenir</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">GET /markings/list?active_only=true</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Her kablo i&ccedil;in markalama a&ccedil;&#305;l&#305;r men&uuml;s&uuml;n&uuml; doldur</span>
+        </div>
+
+        <p>Sipari&scedil; olu&scedil;turma formunda her kablo giri&scedil;inin bir <strong>&ldquo;Markalama&rdquo; a&ccedil;&#305;l&#305;r men&uuml;s&uuml;</strong> (aranabilir <code>&lt;Select&gt;</code>) vard&#305;r. Sadece aktif marklamalar&#305; g&ouml;sterir. Kullan&#305;c&#305; birini se&ccedil;er ve <code>marking_id</code> <code>order_cables.marking_id</code>&rsquo;ye (tam say&#305; FK) kaydedilir. Bir kablonun sipari&scedil; formunda &ldquo;tamamlanm&#305;&scedil;&rdquo; say&#305;lmas&#305; i&ccedil;in markalama se&ccedil;imi zorunludur.</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;">// Sipari&scedil; formu kablo tamamlanma kontrol&uuml; (SiparisOlustur/index.tsx)</span>
+const isComplete = hasDesign && hasMeters && hasMakara
+  && <strong>hasMarking</strong> && hasPrice && hasCurrency && materialsComplete;</pre>
+
+        <h4>Ad&#305;m 2: &#304;&scedil; Kart&#305; &Uuml;retimi &amp; &Uuml;retim Planlama</h4>
+
+        <p>Sipari&scedil; onayland&#305;&#287;&#305;nda ve i&scedil; kartlar&#305; &uuml;retildi&#287;inde:</p>
+
+        <div class="flow">
+            <span class="flow-step">Sipari&scedil; onayland&#305;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&#304;&scedil; kart&#305; &uuml;reteci kablo verisini okur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">marking_id &rarr; marking_name &ccedil;&ouml;z&uuml;mler</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Her ikisini ekstr&uuml;der material_details&rsquo;e saklar</span>
+        </div>
+
+        <p><code>work_card_generator.py</code> servisi her kablonun <code>marking_id</code>&rsquo;sini Marking tablosunu sorgulayarak ger&ccedil;ek markalama ad&#305;na &ccedil;&ouml;z&uuml;mler. Hem <code>marking_id</code> hem de <code>marking_name</code> ekstr&uuml;der i&scedil; kart&#305;n&#305;n <code>material_details</code> JSON&rsquo;una g&ouml;m&uuml;l&uuml;r:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># work_card_generator.py &mdash; ekstr&uuml;der material_details</span>
+{
+    'marking_id': cable_data.get('marking_id'),    <span style="color: #666;"># Tam say&#305; FK</span>
+    'marking_name': cable_data.get('marking_name'), <span style="color: #666;"># &Ccedil;&ouml;z&uuml;mlenmi&scedil; metin</span>
+    'tests': ex_tests,
+    'breakdown': [],
+    ...
+}</pre>
+
+        <h4>Ad&#305;m 3: &Uuml;retim Planlama G&ouml;r&uuml;nt&uuml;s&uuml;</h4>
+
+        <p>&Uuml;retim Planlama sayfas&#305; ekstr&uuml;der i&scedil; kart&#305;n&#305;n <code>material_details</code>&rsquo;ini okur ve markalama ad&#305;n&#305; kart aray&uuml;z&uuml;nde g&ouml;sterir:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;">// Production/Planning/index.tsx</span>
+{materialDetails.marking_name && (
+  &lt;div&gt;
+    &lt;div style={{ fontSize: 10, fontWeight: 600 }}&gt;Markalama&lt;/div&gt;
+    &lt;div style={{ fontSize: 11 }}&gt;{materialDetails.marking_name}&lt;/div&gt;
+  &lt;/div&gt;
+)}</pre>
+
+        <h4>Ad&#305;m 4: Sipari&scedil; Detay G&ouml;r&uuml;n&uuml;m&uuml;</h4>
+
+        <p>Mevcut bir sipari&scedil; g&ouml;r&uuml;nt&uuml;lenirken detay sayfas&#305; marklamay&#305; g&ouml;sterir. <code>order_routes.py</code> endpoint&rsquo;i <code>marking_id</code>&rsquo;yi sorgu zaman&#305;nda isme &ccedil;&ouml;z&uuml;mler:</p>
+
+        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
+<span style="color: #666;"># order_routes.py &mdash; markalama &ccedil;&ouml;z&uuml;mleme</span>
+marking_name = None
+if cable.marking_id:
+    marking = db.query(Marking).filter(Marking.id == cable.marking_id).first()
+    marking_name = marking.name if marking else None</pre>
+
+        <p>Bu desen <code>order_routes.py</code>&rsquo;da iki kez ge&ccedil;er: bir kez tek sipari&scedil; detay endpoint&rsquo;i i&ccedil;in, bir kez i&scedil; kart&#305; &uuml;retimi veri &ccedil;&#305;karma i&ccedil;in.</p>
+
+        <h3>6.4.8 Veri Depolama D&uuml;zeni &mdash; ID vs &#304;sim</h3>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>T&uuml;ketimde &ccedil;ift depolama:</strong> Operat&ouml;r &ccedil;ift depolama d&uuml;zenine (6.3) benzer &scedil;ekilde, marklamalar hibrit bir yakla&scedil;&#305;m kullan&#305;r &mdash; ancak farkl&#305; depolama konumlar&#305;na da&#287;&#305;lm&#305;&scedil;t&#305;r. <code>order_cables</code> tablosu yaln&#305;zca <code>marking_id</code> (tam say&#305;) saklar. &#304;&scedil; kart&#305; <code>material_details</code> JSON&rsquo;u hem <code>marking_id</code> hem de <code>marking_name</code>&rsquo;i (denormalize) saklar. Bu, sipari&scedil; detay g&ouml;r&uuml;nt&uuml;lemelerinin &ccedil;al&#305;&scedil;ma zaman&#305;nda Marking tablosunu sorgulamak zorunda oldu&#287;u, ama &uuml;retim planlaman&#305;n ek bir join olmadan ad&#305; do&#287;rudan JSON&rsquo;dan g&ouml;sterebildi&#287;i anlam&#305;na gelir.</p>
+        </div>
+
+        <h3>6.4.9 Di&#287;er Alt Mod&uuml;llerle Ba&#287;lant&#305;lar</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; (Sipari&scedil; Mod&uuml;l&uuml;)</h4>
+                <p>Birincil t&uuml;ketici. Sipari&scedil;teki her kablonun <code>markings</code> tablosuna i&scedil;aret eden bir <code>marking_id</code> FK&rsquo;s&#305; vard&#305;r. Sipari&scedil; olu&scedil;turma sayfas&#305; aktif marklamalar&#305; aranabilir a&ccedil;&#305;l&#305;r men&uuml; olarak getirir. Kablo tamamlanmas&#305; i&ccedil;in markalama zorunludur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Planlama</h4>
+                <p>&#304;&scedil; kart&#305; &uuml;reteci markalama adlar&#305;n&#305; &ccedil;&ouml;z&uuml;mler ve ekstr&uuml;der i&scedil; kart&#305; material_details&rsquo;e g&ouml;mer. &Uuml;retim planlama, operat&ouml;rlerin kablodaki metni do&#287;rulayabilmeleri i&ccedil;in markalama ad&#305;n&#305; ekstr&uuml;der kartlar&#305;nda g&ouml;sterir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Sipari&scedil; Detay G&ouml;r&uuml;n&uuml;m&uuml;</h4>
+                <p>Sipari&scedil; detay sayfalar&#305; sorgu zaman&#305;nda <code>marking_id</code>&rsquo;yi <code>marking_name</code>&rsquo;e &ccedil;&ouml;z&uuml;mler. &Scedil;ablon ad&#305;n&#305; g&ouml;steren <code>ValueDisplay</code> bile&scedil;eni olarak g&ouml;r&uuml;nt&uuml;lenir.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> &Scedil;ablon tabanl&#305; markalama. Sipari&scedil; ba&scedil;&#305;na serbest metin markalama talimatlar&#305; saklamak yerine, sistem yeniden kullan&#305;labilir &scedil;ablonlar kayd&#305; tutar. Bu tutarl&#305;l&#305;k sa&#287;lar &mdash; ayn&#305; kablo tipi i&ccedil;in her sipari&scedil; tamamen ayn&#305; markalama metnini kullan&#305;r. S&#305;ral&#305; kelime dizisi yap&#305;s&#305;, ekstr&uuml;der bask&#305; kafas&#305;n&#305;n &ccedil;al&#305;&scedil;ma &scedil;ekliyle do&#287;rudan e&scedil;le&scedil;ir: kelimeleri s&#305;rayla d&ouml;ng&uuml;yle gezer, aralar&#305;nda bo&scedil;luk b&#305;rakarak kablo uzunlu&#287;u boyunca basar. Dinamik de&#287;i&scedil;kenler (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code> vb.) yeni &scedil;ablon olu&scedil;turmadan sipari&scedil;e &ouml;zel ba&#287;lam ekler.</p>
+        </div>
+
     </main>
 
 </body>
