@@ -1306,10 +1306,9 @@
 
         <p>Sipari&scedil; olu&scedil;turma formunda her kablo giri&scedil;inin bir <strong>&ldquo;Markalama&rdquo; a&ccedil;&#305;l&#305;r men&uuml;s&uuml;</strong> (aranabilir <code>&lt;Select&gt;</code>) vard&#305;r. Sadece aktif marklamalar&#305; g&ouml;sterir. Kullan&#305;c&#305; birini se&ccedil;er ve <code>marking_id</code> <code>order_cables.marking_id</code>&rsquo;ye (tam say&#305; FK) kaydedilir. Bir kablonun sipari&scedil; formunda &ldquo;tamamlanm&#305;&scedil;&rdquo; say&#305;lmas&#305; i&ccedil;in markalama se&ccedil;imi zorunludur.</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;">// Sipari&scedil; formu kablo tamamlanma kontrol&uuml; (SiparisOlustur/index.tsx)</span>
-const isComplete = hasDesign && hasMeters && hasMakara
-  && <strong>hasMarking</strong> && hasPrice && hasCurrency && materialsComplete;</pre>
+        <pre><span class="comment">// Sipari&scedil; formu kablo tamamlanma kontrol&uuml; (SiparisOlustur/index.tsx)</span>
+const isComplete = hasDesign &amp;&amp; hasMeters &amp;&amp; hasMakara
+  &amp;&amp; <span class="keyword">hasMarking</span> &amp;&amp; hasPrice &amp;&amp; hasCurrency &amp;&amp; materialsComplete;</pre>
 
         <h4>Ad&#305;m 2: &#304;&scedil; Kart&#305; &Uuml;retimi &amp; &Uuml;retim Planlama</h4>
 
@@ -1327,13 +1326,12 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p><code>work_card_generator.py</code> servisi her kablonun <code>marking_id</code>&rsquo;sini Marking tablosunu sorgulayarak ger&ccedil;ek markalama ad&#305;na &ccedil;&ouml;z&uuml;mler. Hem <code>marking_id</code> hem de <code>marking_name</code> ekstr&uuml;der i&scedil; kart&#305;n&#305;n <code>material_details</code> JSON&rsquo;una g&ouml;m&uuml;l&uuml;r:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># work_card_generator.py &mdash; ekstr&uuml;der material_details</span>
+        <pre><span class="comment"># work_card_generator.py &mdash; ekstr&uuml;der material_details</span>
 {
-    'marking_id': cable_data.get('marking_id'),    <span style="color: #666;"># Tam say&#305; FK</span>
-    'marking_name': cable_data.get('marking_name'), <span style="color: #666;"># &Ccedil;&ouml;z&uuml;mlenmi&scedil; metin</span>
-    'tests': ex_tests,
-    'breakdown': [],
+    <span class="string">'marking_id'</span>: cable_data.get(<span class="string">'marking_id'</span>),    <span class="comment"># Tam say&#305; FK</span>
+    <span class="string">'marking_name'</span>: cable_data.get(<span class="string">'marking_name'</span>), <span class="comment"># &Ccedil;&ouml;z&uuml;mlenmi&scedil; metin</span>
+    <span class="string">'tests'</span>: ex_tests,
+    <span class="string">'breakdown'</span>: [],
     ...
 }</pre>
 
@@ -1341,9 +1339,8 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p>&Uuml;retim Planlama sayfas&#305; ekstr&uuml;der i&scedil; kart&#305;n&#305;n <code>material_details</code>&rsquo;ini okur ve markalama ad&#305;n&#305; kart aray&uuml;z&uuml;nde g&ouml;sterir:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;">// Production/Planning/index.tsx</span>
-{materialDetails.marking_name && (
+        <pre><span class="comment">// Production/Planning/index.tsx</span>
+{materialDetails.marking_name &amp;&amp; (
   &lt;div&gt;
     &lt;div style={{ fontSize: 10, fontWeight: 600 }}&gt;Markalama&lt;/div&gt;
     &lt;div style={{ fontSize: 11 }}&gt;{materialDetails.marking_name}&lt;/div&gt;
@@ -1354,12 +1351,11 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p>Mevcut bir sipari&scedil; g&ouml;r&uuml;nt&uuml;lenirken detay sayfas&#305; marklamay&#305; g&ouml;sterir. <code>order_routes.py</code> endpoint&rsquo;i <code>marking_id</code>&rsquo;yi sorgu zaman&#305;nda isme &ccedil;&ouml;z&uuml;mler:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># order_routes.py &mdash; markalama &ccedil;&ouml;z&uuml;mleme</span>
-marking_name = None
-if cable.marking_id:
+        <pre><span class="comment"># order_routes.py &mdash; markalama &ccedil;&ouml;z&uuml;mleme</span>
+marking_name = <span class="keyword">None</span>
+<span class="keyword">if</span> cable.marking_id:
     marking = db.query(Marking).filter(Marking.id == cable.marking_id).first()
-    marking_name = marking.name if marking else None</pre>
+    marking_name = marking.name <span class="keyword">if</span> marking <span class="keyword">else</span> <span class="keyword">None</span></pre>
 
         <p>Bu desen <code>order_routes.py</code>&rsquo;da iki kez ge&ccedil;er: bir kez tek sipari&scedil; detay endpoint&rsquo;i i&ccedil;in, bir kez i&scedil; kart&#305; &uuml;retimi veri &ccedil;&#305;karma i&ccedil;in.</p>
 
@@ -1437,15 +1433,14 @@ if cable.marking_id:
             <li><strong>Extruder &rarr; Buncher:</strong> &Ccedil;ok damarl&#305; kablolar (tek damarlar&#305; izole et, birlikte b&uuml;k, sonra k&#305;l&#305;fla)</li>
         </ul>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># Makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305; (playground_session.py)</span>
+        <pre><span class="comment"># Makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305; (playground_session.py)</span>
 MACHINE_FLOW = {
-    'kabatel_cekme': ['kalaylama'],
-    'kalaylama':     ['incetel_cekme', 'buncher'],
-    'incetel_cekme': ['buncher', 'extruder'],
-    'buncher':       ['extruder', 'buncher'],    <span style="color: #666;"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
-    'extruder':      ['ebeam', 'extruder'],      <span style="color: #666;"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
-    'ebeam':         []                          <span style="color: #666;"># Son</span>
+    <span class="string">'kabatel_cekme'</span>: [<span class="string">'kalaylama'</span>],
+    <span class="string">'kalaylama'</span>:     [<span class="string">'incetel_cekme'</span>, <span class="string">'buncher'</span>],
+    <span class="string">'incetel_cekme'</span>: [<span class="string">'buncher'</span>, <span class="string">'extruder'</span>],
+    <span class="string">'buncher'</span>:       [<span class="string">'extruder'</span>, <span class="string">'buncher'</span>],    <span class="comment"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
+    <span class="string">'extruder'</span>:      [<span class="string">'ebeam'</span>, <span class="string">'extruder'</span>],      <span class="comment"># Kendi d&ouml;ng&uuml;s&uuml;!</span>
+    <span class="string">'ebeam'</span>:         []                          <span class="comment"># Son</span>
 }</pre>
 
         <h3>6.5.2 Backend Mimarisi &mdash; Motor</h3>
@@ -1482,20 +1477,19 @@ MACHINE_FLOW = {
 
         <p><code>ProgressionManager</code>, <code>ProgressionItem</code> nesnelerinin bir listesini tutar. Her &ouml;&#287;e, imalat&#305;n herhangi bir a&scedil;amas&#305;ndaki fiziksel bir &uuml;r&uuml;n&uuml; (tel, b&uuml;k&uuml;lm&uuml;&scedil; tel, kablo) temsil eder:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># ProgressionItem alanlar&#305;</span>
+        <pre><span class="comment"># ProgressionItem alanlar&#305;</span>
 {
-    'id': 'uuid',                    <span style="color: #666;"># Benzersiz tan&#305;mlay&#305;c&#305;</span>
-    'code': 'KC_18',                 <span style="color: #666;"># Deterministik &uuml;r&uuml;n kodu</span>
-    'quantity': 21,                  <span style="color: #666;"># Mevcut kullan&#305;labilir miktar</span>
-    'original_quantity': 21,         <span style="color: #666;"># &#304;lk &uuml;retildi&#287;indeki miktar</span>
-    'structure': '1.8mm',            <span style="color: #666;"># Yap&#305; form&uuml;l&uuml;</span>
-    'specification': '1.8mm Tel',    <span style="color: #666;"># Okunabilir ad</span>
-    'status': 'active' | 'inactive', <span style="color: #666;"># Inactive = tamamen t&uuml;ketildi</span>
-    'produced_by_step': 1,           <span style="color: #666;"># Hangi ad&#305;m olu&scedil;turdu</span>
-    'consumed_by_steps': [2],        <span style="color: #666;"># Bundan t&uuml;keten ad&#305;mlar</span>
-    'machine_type': 'kabatel_cekme', <span style="color: #666;"># Kaynak makine</span>
-    'properties': { ... }            <span style="color: #666;"># Makineye &ouml;zel veri</span>
+    <span class="string">'id'</span>: <span class="string">'uuid'</span>,                    <span class="comment"># Benzersiz tan&#305;mlay&#305;c&#305;</span>
+    <span class="string">'code'</span>: <span class="string">'KC_18'</span>,                 <span class="comment"># Deterministik &uuml;r&uuml;n kodu</span>
+    <span class="string">'quantity'</span>: 21,                  <span class="comment"># Mevcut kullan&#305;labilir miktar</span>
+    <span class="string">'original_quantity'</span>: 21,         <span class="comment"># &#304;lk &uuml;retildi&#287;indeki miktar</span>
+    <span class="string">'structure'</span>: <span class="string">'1.8mm'</span>,            <span class="comment"># Yap&#305; form&uuml;l&uuml;</span>
+    <span class="string">'specification'</span>: <span class="string">'1.8mm Tel'</span>,    <span class="comment"># Okunabilir ad</span>
+    <span class="string">'status'</span>: <span class="string">'active'</span> | <span class="string">'inactive'</span>, <span class="comment"># Inactive = tamamen t&uuml;ketildi</span>
+    <span class="string">'produced_by_step'</span>: 1,           <span class="comment"># Hangi ad&#305;m olu&scedil;turdu</span>
+    <span class="string">'consumed_by_steps'</span>: [2],        <span class="comment"># Bundan t&uuml;keten ad&#305;mlar</span>
+    <span class="string">'machine_type'</span>: <span class="string">'kabatel_cekme'</span>, <span class="comment"># Kaynak makine</span>
+    <span class="string">'properties'</span>: { ... }            <span class="comment"># Makineye &ouml;zel veri</span>
 }</pre>
 
         <p><strong>Temel kurallar:</strong></p>
@@ -1638,12 +1632,11 @@ MACHINE_FLOW = {
 
         <p>Kullan&#305;c&#305; bir ad&#305;m i&ccedil;in birden fazla alternatif makine se&ccedil;ti&#287;inde, sistem kapasite aral&#305;klar&#305;n&#305;n <strong>kesi&scedil;imini</strong> hesaplar. A&ccedil;&#305;l&#305;r men&uuml;lerde yaln&#305;zca se&ccedil;ilen <em>t&uuml;m</em> makinelerin &uuml;retebilece&#287;i de&#287;erler g&ouml;r&uuml;n&uuml;r.</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># Makine A h&#305;z se&ccedil;enekleri: [5, 10, 15, 20, 25]</span>
-<span style="color: #666;"># Makine B h&#305;z se&ccedil;enekleri: [10, 15, 20, 25, 30]</span>
-<span style="color: #666;"># Kesi&scedil;im: [10, 15, 20, 25]</span>
-<span style="color: #666;"># Bu, kesi&scedil;imdeki herhangi bir de&#287;erin se&ccedil;ilen</span>
-<span style="color: #666;"># HERHANGI B&#304;R makinede &uuml;retilebilece&#287;i anlam&#305;na gelir &rarr; &uuml;retim esnekli&#287;i</span></pre>
+        <pre><span class="comment"># Makine A h&#305;z se&ccedil;enekleri: [5, 10, 15, 20, 25]</span>
+<span class="comment"># Makine B h&#305;z se&ccedil;enekleri: [10, 15, 20, 25, 30]</span>
+<span class="comment"># Kesi&scedil;im: [10, 15, 20, 25]</span>
+<span class="comment"># Bu, kesi&scedil;imdeki herhangi bir de&#287;erin se&ccedil;ilen</span>
+<span class="comment"># HERHANGI B&#304;R makinede &uuml;retilebilece&#287;i anlam&#305;na gelir &rarr; &uuml;retim esnekli&#287;i</span></pre>
 
         <p>Bu, kullan&#305;c&#305; konfig&uuml;rasyon &ccedil;ekmecesinde bir makine onay kutusunu her i&scedil;aretledi&#287;inde veya kald&#305;rd&#305;&#287;&#305;nda <code>POST /calculate-intersection/{machine_type}</code> &uuml;zerinden dinamik olarak &ccedil;a&#287;r&#305;l&#305;r.</p>
 

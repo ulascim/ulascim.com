@@ -1317,10 +1317,9 @@
 
         <p>In the order creation form, each cable entry has a <strong>&ldquo;Markalama&rdquo; dropdown</strong> (searchable <code>&lt;Select&gt;</code>). It shows only active markings. The user picks one, and the <code>marking_id</code> is stored in <code>order_cables.marking_id</code> (integer FK). Marking selection is required for a cable to be considered &ldquo;complete&rdquo; in the order form.</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;">// Order form cable completion check (SiparisOlustur/index.tsx)</span>
-const isComplete = hasDesign && hasMeters && hasMakara
-  && <strong>hasMarking</strong> && hasPrice && hasCurrency && materialsComplete;</pre>
+        <pre><span class="comment">// Order form cable completion check (SiparisOlustur/index.tsx)</span>
+const isComplete = hasDesign &amp;&amp; hasMeters &amp;&amp; hasMakara
+  &amp;&amp; <span class="keyword">hasMarking</span> &amp;&amp; hasPrice &amp;&amp; hasCurrency &amp;&amp; materialsComplete;</pre>
 
         <h4>Step 2: Work Card Generation &amp; Production Planning</h4>
 
@@ -1338,13 +1337,12 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p>The <code>work_card_generator.py</code> service resolves each cable&rsquo;s <code>marking_id</code> to the actual marking name by querying the Marking table. Both <code>marking_id</code> and <code>marking_name</code> are embedded in the extruder work card&rsquo;s <code>material_details</code> JSON:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># work_card_generator.py &mdash; extruder material_details</span>
+        <pre><span class="comment"># work_card_generator.py &mdash; extruder material_details</span>
 {
-    'marking_id': cable_data.get('marking_id'),    <span style="color: #666;"># Integer FK</span>
-    'marking_name': cable_data.get('marking_name'), <span style="color: #666;"># Resolved text</span>
-    'tests': ex_tests,
-    'breakdown': [],
+    <span class="string">'marking_id'</span>: cable_data.get(<span class="string">'marking_id'</span>),    <span class="comment"># Integer FK</span>
+    <span class="string">'marking_name'</span>: cable_data.get(<span class="string">'marking_name'</span>), <span class="comment"># Resolved text</span>
+    <span class="string">'tests'</span>: ex_tests,
+    <span class="string">'breakdown'</span>: [],
     ...
 }</pre>
 
@@ -1352,9 +1350,8 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p>The Production Planning page reads the extruder work card&rsquo;s <code>material_details</code> and displays the marking name in the card UI:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;">// Production/Planning/index.tsx</span>
-{materialDetails.marking_name && (
+        <pre><span class="comment">// Production/Planning/index.tsx</span>
+{materialDetails.marking_name &amp;&amp; (
   &lt;div&gt;
     &lt;div style={{ fontSize: 10, fontWeight: 600 }}&gt;Markalama&lt;/div&gt;
     &lt;div style={{ fontSize: 11 }}&gt;{materialDetails.marking_name}&lt;/div&gt;
@@ -1365,12 +1362,11 @@ const isComplete = hasDesign && hasMeters && hasMakara
 
         <p>When viewing an existing order, the detail page shows the marking. The <code>order_routes.py</code> endpoint resolves <code>marking_id</code> to the name at query time:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># order_routes.py &mdash; marking resolution</span>
-marking_name = None
-if cable.marking_id:
+        <pre><span class="comment"># order_routes.py &mdash; marking resolution</span>
+marking_name = <span class="keyword">None</span>
+<span class="keyword">if</span> cable.marking_id:
     marking = db.query(Marking).filter(Marking.id == cable.marking_id).first()
-    marking_name = marking.name if marking else None</pre>
+    marking_name = marking.name <span class="keyword">if</span> marking <span class="keyword">else</span> <span class="keyword">None</span></pre>
 
         <p>This pattern appears twice in <code>order_routes.py</code>: once for the single order detail endpoint, and once for the work card generation data extraction.</p>
 
@@ -1454,15 +1450,14 @@ if cable.marking_id:
             <li><strong>Extruder &rarr; Buncher:</strong> Multi-core cables (insulate individual cores, then bunch them together, then sheath)</li>
         </ul>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># Machine flow constraints (playground_session.py)</span>
+        <pre><span class="comment"># Machine flow constraints (playground_session.py)</span>
 MACHINE_FLOW = {
-    'kabatel_cekme': ['kalaylama'],
-    'kalaylama':     ['incetel_cekme', 'buncher'],
-    'incetel_cekme': ['buncher', 'extruder'],
-    'buncher':       ['extruder', 'buncher'],    <span style="color: #666;"># Self-loop!</span>
-    'extruder':      ['ebeam', 'extruder'],      <span style="color: #666;"># Self-loop!</span>
-    'ebeam':         []                          <span style="color: #666;"># Terminal</span>
+    <span class="string">'kabatel_cekme'</span>: [<span class="string">'kalaylama'</span>],
+    <span class="string">'kalaylama'</span>:     [<span class="string">'incetel_cekme'</span>, <span class="string">'buncher'</span>],
+    <span class="string">'incetel_cekme'</span>: [<span class="string">'buncher'</span>, <span class="string">'extruder'</span>],
+    <span class="string">'buncher'</span>:       [<span class="string">'extruder'</span>, <span class="string">'buncher'</span>],    <span class="comment"># Self-loop!</span>
+    <span class="string">'extruder'</span>:      [<span class="string">'ebeam'</span>, <span class="string">'extruder'</span>],      <span class="comment"># Self-loop!</span>
+    <span class="string">'ebeam'</span>:         []                          <span class="comment"># Terminal</span>
 }</pre>
 
         <h3>6.5.2 Backend Architecture &mdash; The Engine</h3>
@@ -1499,20 +1494,19 @@ MACHINE_FLOW = {
 
         <p>The <code>ProgressionManager</code> maintains a list of <code>ProgressionItem</code> objects. Each item represents a physical product (wire, bunched wire, cable) at some stage of manufacturing:</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># ProgressionItem fields</span>
+        <pre><span class="comment"># ProgressionItem fields</span>
 {
-    'id': 'uuid',                    <span style="color: #666;"># Unique identifier</span>
-    'code': 'KC_18',                 <span style="color: #666;"># Deterministic product code</span>
-    'quantity': 21,                  <span style="color: #666;"># Current available amount</span>
-    'original_quantity': 21,         <span style="color: #666;"># Amount when first produced</span>
-    'structure': '1.8mm',            <span style="color: #666;"># Structure formula</span>
-    'specification': '1.8mm Tel',    <span style="color: #666;"># Human-readable name</span>
-    'status': 'active' | 'inactive', <span style="color: #666;"># Inactive = fully consumed</span>
-    'produced_by_step': 1,           <span style="color: #666;"># Which step created this</span>
-    'consumed_by_steps': [2],        <span style="color: #666;"># Steps that consumed from this</span>
-    'machine_type': 'kabatel_cekme', <span style="color: #666;"># Source machine</span>
-    'properties': { ... }            <span style="color: #666;"># Machine-specific data</span>
+    <span class="string">'id'</span>: <span class="string">'uuid'</span>,                    <span class="comment"># Unique identifier</span>
+    <span class="string">'code'</span>: <span class="string">'KC_18'</span>,                 <span class="comment"># Deterministic product code</span>
+    <span class="string">'quantity'</span>: 21,                  <span class="comment"># Current available amount</span>
+    <span class="string">'original_quantity'</span>: 21,         <span class="comment"># Amount when first produced</span>
+    <span class="string">'structure'</span>: <span class="string">'1.8mm'</span>,            <span class="comment"># Structure formula</span>
+    <span class="string">'specification'</span>: <span class="string">'1.8mm Tel'</span>,    <span class="comment"># Human-readable name</span>
+    <span class="string">'status'</span>: <span class="string">'active'</span> | <span class="string">'inactive'</span>, <span class="comment"># Inactive = fully consumed</span>
+    <span class="string">'produced_by_step'</span>: 1,           <span class="comment"># Which step created this</span>
+    <span class="string">'consumed_by_steps'</span>: [2],        <span class="comment"># Steps that consumed from this</span>
+    <span class="string">'machine_type'</span>: <span class="string">'kabatel_cekme'</span>, <span class="comment"># Source machine</span>
+    <span class="string">'properties'</span>: { ... }            <span class="comment"># Machine-specific data</span>
 }</pre>
 
         <p><strong>Key rules:</strong></p>
@@ -1655,12 +1649,11 @@ MACHINE_FLOW = {
 
         <p>When a user selects multiple alternative machines for a step, the system computes the <strong>intersection</strong> of their capability ranges. Only values that <em>all</em> selected machines can produce appear in the dropdowns.</p>
 
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px;">
-<span style="color: #666;"># Machine A speed options: [5, 10, 15, 20, 25]</span>
-<span style="color: #666;"># Machine B speed options: [10, 15, 20, 25, 30]</span>
-<span style="color: #666;"># Intersection: [10, 15, 20, 25]</span>
-<span style="color: #666;"># This means any value from the intersection can be</span>
-<span style="color: #666;"># produced on ANY selected machine → production flexibility</span></pre>
+        <pre><span class="comment"># Machine A speed options: [5, 10, 15, 20, 25]</span>
+<span class="comment"># Machine B speed options: [10, 15, 20, 25, 30]</span>
+<span class="comment"># Intersection: [10, 15, 20, 25]</span>
+<span class="comment"># This means any value from the intersection can be</span>
+<span class="comment"># produced on ANY selected machine &rarr; production flexibility</span></pre>
 
         <p>This is called dynamically via <code>POST /calculate-intersection/{machine_type}</code> every time the user checks or unchecks a machine checkbox in the configuration drawer.</p>
 
