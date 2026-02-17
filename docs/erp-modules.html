@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Module Map | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+
+        /* MODULE MAP SPECIFIC */
+        .module-card { background: #fff; border: 2px solid #000; padding: 20px; margin: 16px 0; }
+        .module-card h3 { margin-top: 0; font-size: 16px; margin-bottom: 4px; }
+        .module-card .module-desc { font-size: 13px; color: #444; margin-bottom: 12px; line-height: 1.5; }
+        .module-card .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .sub-item { background: var(--gray-100); border: 1px solid var(--gray-300); padding: 10px 12px; }
+        .sub-item .sub-name { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+        .sub-item .sub-desc { font-size: 11px; color: #555; line-height: 1.4; }
+        .sub-item .sub-tech { font-size: 10px; color: #888; margin-top: 4px; }
+        .connections { font-size: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; }
+        .connections strong { color: #2563eb; }
+
+        .dep-table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .dep-table th { padding: 6px 8px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; border-right: 1px solid #d1d5db; background: #f3f4f6; border-bottom: 2px solid #000; }
+        .dep-table th:first-child { text-align: left; border-right: 2px solid #000; min-width: 120px; }
+        .dep-table td { padding: 6px 8px; text-align: center; font-size: 11px; border-right: 1px solid #d1d5db; border-bottom: 1px solid #e5e7eb; }
+        .dep-table td:first-child { text-align: left; font-weight: 700; font-size: 11px; border-right: 2px solid #000; background: #f9fafb; }
+        .dep-table .dep-heavy { background: #dcfce7; font-weight: 700; color: #16a34a; }
+        .dep-table .dep-light { background: #eff6ff; color: #2563eb; }
+        .dep-table .dep-none { color: #d1d5db; }
+
+        .cross-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+        .cross-item { background: #fff; border: 2px solid #000; padding: 14px; text-align: center; }
+        .cross-item .cross-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        .cross-item .cross-desc { font-size: 11px; color: #555; line-height: 1.4; }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+            .module-card .sub-grid { grid-template-columns: 1fr; }
+            .cross-grid { grid-template-columns: 1fr; }
+            .dep-table { font-size: 9px; }
+            .dep-table th, .dep-table td { padding: 3px 4px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-modules-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-modules.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>THE MODULE MAP</h1>
+        <p class="subtitle">Phase 2 &mdash; Every module, every submodule, every connection</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>The system has 8 core modules, each with its own frontend pages, backend API routes, and database models.</strong> This document maps every module and submodule &mdash; what they do, what they contain, and how they depend on each other. Think of it as the table of contents for the entire ERP. The detailed deep-dive into each module comes in the subsequent phases.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">8</div>
+                <div class="label">CORE MODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">200+</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">50+</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">40+</div>
+                <div class="label">FRONTEND PAGES</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <p>Before diving into individual modules, here is how data flows through the system. Every module exists because something upstream produces data that something downstream consumes.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">TEKN&Idot;K<br><span style="font-size:9px;color:#666;">Define cables &amp; machines</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">S&Idot;PAR&Idot;&Scedil;<br><span style="font-size:9px;color:#666;">Accept orders</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">&Uuml;RET&Idot;M<br><span style="font-size:9px;color:#666;">Produce cables</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">STOK<br><span style="font-size:9px;color:#666;">Track inventory</span></div>
+        </div>
+        <div class="flow">
+            <div class="flow-box" style="background: #fef3c7; border-color: #d97706;">HAMMADDE<br><span style="font-size:9px;color:#666;">Supply materials</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">&Uuml;RET&Idot;M<br><span style="font-size:9px;color:#666;">Consume materials</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fce7f3; border-color: #db2777;">LAB<br><span style="font-size:9px;color:#666;">Test quality</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">STOK<br><span style="font-size:9px;color:#666;">Release to stock</span></div>
+        </div>
+
+        <p>Two parallel pipelines that converge at <strong>&Uuml;retim</strong> (Production). The top pipeline defines <em>what</em> to produce and <em>when</em>. The bottom pipeline supplies <em>what to produce with</em> and verifies <em>quality</em>.</p>
+
+        <!-- ============================================ -->
+        <h2>2. TEKNİK &mdash; ENGINEERING</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Foundation Module</h3>
+            <p class="module-desc">Everything starts here. Teknik defines what cables exist, how they are made, what machines the factory has, what standards they must pass, and what gets printed on them. No order can be placed, no production can start, and no test can be run without data from Teknik.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Cable Playground</div>
+                    <div class="sub-desc">Visual drag-and-drop cable design tool. Build a cable step by step &mdash; choose machines, configure parameters, define material layers. Outputs a complete production flow with material requirements, half-product codes, and test mappings.</div>
+                    <div class="sub-tech">Frontend: react-dnd canvas, undo/redo, autosave &bull; Backend: 20+ design endpoints, session-based</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Cable Database</div>
+                    <div class="sub-desc">Approved cable designs finalized from the Playground. Each entry stores the full production flow, half-product tree, material formulas, and test requirements as structured JSON. The single source of truth for everything downstream.</div>
+                    <div class="sub-tech">Backend: cable_code lookup, production-flow parsing, half-product tree, analytics</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Machine Management</div>
+                    <div class="sub-desc">CRUD for all 7 machine types (Kabatel &Ccedil;ekme, Kalaylama, &Idot;ncetel &Ccedil;ekme, Buncher, Extruder, E-beam, Aktarma). Each machine type has its own config schema &mdash; speed ranges, diameter limits, input/output constraints.</div>
+                    <div class="sub-tech">Backend: 7 machine-specific route groups, ~42 endpoints total</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Standards Management</div>
+                    <div class="sub-desc">Define test standards (IEC-EN, UL, SLN) with parameters, test types, frequency rules, and pass/fail criteria. Standards are linked to cable designs &mdash; each design knows which tests it requires and when.</div>
+                    <div class="sub-tech">Backend: standards CRUD, parameter management, test result recording</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Cable Marking</div>
+                    <div class="sub-desc">Marking templates define what gets printed on the cable itself during extrusion (company name, standard, voltage, cross-section, etc.). Stored as ordered word arrays. Each order-cable references a marking template.</div>
+                    <div class="sub-tech">Backend: marking CRUD, toggle active/inactive</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Operator Management</div>
+                    <div class="sub-desc">Production operator registry. Operators are assigned to production sessions. Separate from system users &mdash; an operator doesn&rsquo;t need a login, they are assigned by the person starting the session.</div>
+                    <div class="sub-tech">Backend: simple CRUD, referenced by production sessions</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Consumed by:</strong> Sipari&scedil; (cable selection, marking selection) &bull; &Uuml;retim (machine configs, work card generation, test triggers) &bull; Lab (test standards, pass/fail criteria) &bull; Stok (half-product definitions, product codes)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. HAMMADDE &mdash; RAW MATERIALS</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Supply Chain Module</h3>
+            <p class="module-desc">Tracks everything that enters the factory &mdash; from the moment a purchase order is placed to the moment the material is consumed in production. Copper, tin, PVC compounds, catalysts, dyes, antirodent additives, reels, and palettes. Every physical item gets a QR code, a photo, and a lot number on entry.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Material Entry</div>
+                    <div class="sub-desc">QR-scanned material intake. Lab user photographs each item, assigns it to a pending order, generates a QR code, and prints a label. Two entry modes: individual items (copper/tin baskets) and lot-based (plastic bags, dye barrels &mdash; multiple items from one lot).</div>
+                    <div class="sub-tech">Backend: /api/materials/entry + /lot-entry + /palette-entry + /reel-entry</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Materials List</div>
+                    <div class="sub-desc">Full inventory view of all raw materials in the system. Photos, QR codes, lot numbers, supplier, weight, remaining weight, and lifecycle status (Received &rarr; Approved &rarr; In Use &rarr; Consumed / Rejected).</div>
+                    <div class="sub-tech">Backend: /api/materials/list with filtering, photo lazy-loading</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Material Orders</div>
+                    <div class="sub-desc">Purchase order tracking with suppliers. Multi-item orders, expected delivery dates, date change history with reason codes (supplier delay, internal change, other), delivery ratings (1&ndash;5 stars), and status lifecycle (Pending &rarr; Shipped &rarr; Delivered / Cancelled).</div>
+                    <div class="sub-tech">Backend: /api/material-orders/* CRUD + date-changes + rating</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Supplier Management</div>
+                    <div class="sub-desc">Supplier registry with nested material catalogs. Each supplier declares which material types they provide (copper, tin, plastic, catalyst, dye, antirodent, reel, palette) with brand names and specifications. Real-time updates via WebSocket.</div>
+                    <div class="sub-tech">Backend: /api/suppliers/* CRUD, WebSocket broadcasts on change</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Feeds into:</strong> &Uuml;retim (materials consumed in production sessions) &bull; Lab (material inspection on entry) &bull; Stok (raw material stock view) &bull; Sipari&scedil; (material calculator references available stock)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. SİPARİŞ &mdash; ORDERS</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Demand Module</h3>
+            <p class="module-desc">Turns customer requests into structured production jobs. An order selects cables from the Cable Database, specifies quantities and reel configurations, plans deliveries, and &mdash; on approval &mdash; triggers the Material Calculator that computes exact raw material needs and generates work cards for the production floor.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Order Creation</div>
+                    <div class="sub-desc">Multi-step order form: select customer, select cable(s) from Cable Database, choose marking template, define reel lengths and quantities, plan deliveries on a week calendar, configure shipment (sevkiyat) details with palette arrangements. Material selection per cable (plastic, catalyst, dye, antirodent).</div>
+                    <div class="sub-tech">Backend: /api/siparis/orders POST with nested cables, deliveries, sevkiyat, payments</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Order List</div>
+                    <div class="sub-desc">All orders with expandable rows showing full details. Status management (Taslak &rarr; Beklemede &rarr; Onayland&inodot; &rarr; &Uuml;retimde &rarr; Tamamland&inodot; / Reddedildi), approve/reject actions, calculation trigger, and search. Each order shows its cables, deliveries, and work card status.</div>
+                    <div class="sub-tech">Backend: /api/siparis/orders GET with pagination + validation-status</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Material Calculator</div>
+                    <div class="sub-desc">The brain of the order pipeline. Walks through the cable design&rsquo;s production flow, applies twist factors, overfill constants, coating ratios, and plastic density formulas to compute exact kg of copper, tin, and plastic needed. Generates work cards for every production step automatically.</div>
+                    <div class="sub-tech">Backend: /api/siparis/calculate-materials + work card generation service</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Customer Management</div>
+                    <div class="sub-desc">Customer registry with domestic/export classification, contact info, tax numbers, and address. Referenced by every order. Real-time WebSocket updates on changes.</div>
+                    <div class="sub-tech">Backend: /api/siparis/customers CRUD, WebSocket broadcasts</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Delivery Planning</div>
+                    <div class="sub-desc">Delivery schedule per order &mdash; when, how much, which cable. Supports partial deliveries. Linked to Sevkiyat (Shipment) for palette configuration and truck loading.</div>
+                    <div class="sub-tech">Backend: /api/siparis/deliveries CRUD, per-order filtering</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Depends on:</strong> Teknik (Cable Database, marking templates) &bull; Hammadde (available material stock for calculator) <br>
+                <strong>Feeds into:</strong> &Uuml;retim (work cards, production flow) &bull; Stok (demand for projection)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>5. ÜRETİM &mdash; PRODUCTION</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Largest Module</h3>
+            <p class="module-desc">The heart of the system. 12 submodules, 7 machine-specific operator interfaces, production planning calendar, session management, and output tracking. This is where orders become physical cables. Every basket weighed, every reel measured, every QR code scanned.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Production Planning</div>
+                    <div class="sub-desc">Calendar-based scheduling. Drag work cards onto machine time slots (daily/weekly/monthly views). Parallel slot support for machines that process multiple inputs simultaneously. Machine availability tracking and production adjustments (stock allocation, wastage factors).</div>
+                    <div class="sub-tech">Backend: work card scheduling/unscheduling, machine status, next-card lookup</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kabatel &Ccedil;ekme Operator</div>
+                    <div class="sub-desc">Wire drawing machine. Operator scans input copper basket QR code, starts session, records output baskets with weights. Input: 1 filma&scedil;in basket &rarr; Output: 1 basket of &ccedil;&inodot;plak bak&inodot;r. Allocation mode: ORDER (for a specific order) or STOCK (generic production).</div>
+                    <div class="sub-tech">Frontend: QR scanner, session controls, basket output form</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kalaylama Operator</div>
+                    <div class="sub-desc">Tin plating machine. Input: 1 basket &ccedil;&inodot;plak bak&inodot;r &rarr; Output: 1 basket kalayl&inodot; bak&inodot;r. Similar session flow as Kabatel &mdash; scan input, start, record output, end.</div>
+                    <div class="sub-tech">Frontend: QR scanner, session controls</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Idot;ncetel &Ccedil;ekme Operator</div>
+                    <div class="sub-desc">Fine wire drawing machine. Input: 1&ndash;16 baskets &rarr; Output: 1 reel of multi-strand wire. This is where production becomes design-dependent &mdash; the number of inputs, output strand count, and wire diameter all come from the cable design.</div>
+                    <div class="sub-tech">Frontend: multi-input QR scanning, strand configuration display</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Buncher Operator</div>
+                    <div class="sub-desc">Bunching machine. Input: 1&ndash;7 reels from &Idot;ncetel &rarr; Output: 1 reel of b&uuml;k&uuml;l&uuml; bak&inodot;r (twisted conductor). The last copper processing step before extrusion. Multi-reel input scanning with validation against work card requirements.</div>
+                    <div class="sub-tech">Frontend: multi-input scanning, twist factor display</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Extruder Operator</div>
+                    <div class="sub-desc">Extrusion machine. This is where copper becomes cable &mdash; insulation, sheath, or both applied simultaneously. Input: 1 reel of b&uuml;k&uuml;l&uuml; bak&inodot;r + plastic compound + catalyst + dye + antirodent (all QR-scanned). Output: 1 reel of finished or semi-finished cable.</div>
+                    <div class="sub-tech">Frontend: multi-material scanning, plastic/catalyst/dye input forms</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">E-beam Operator</div>
+                    <div class="sub-desc">Electron beam radiation. Optional step for e-beam cable types. Input: 1 reel from Extruder &rarr; Output: 1 reel of irradiated cable. Radiation dosage (5&ndash;25 Mrad) determined by cable design&rsquo;s material and plastic thickness.</div>
+                    <div class="sub-tech">Frontend: radiation dosage display, session controls</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Aktarma Operator</div>
+                    <div class="sub-desc">Transfer/winding machine. Transfers from production reels to customer reels or kangal (loose coils). 100m to 5000m per output. The bridge between production and shipment.</div>
+                    <div class="sub-tech">Frontend: length input, reel/kangal mode selector</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Production List</div>
+                    <div class="sub-desc">Inventory of all half-products currently in the system, organized by production step. Every basket and reel with QR code, weight, allocation status, and bonded test results. The real-time view of what exists on the factory floor.</div>
+                    <div class="sub-tech">Backend: /api/stock/half-products with step filtering + summary</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Production History</div>
+                    <div class="sub-desc">Completed production sessions archive. Full audit trail: which operator, which machine, which work card, start/end times, all outputs with weights, all inputs consumed, and all tests performed during the session.</div>
+                    <div class="sub-tech">Backend: /api/production/sessions/history with full-details endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Paletleme</div>
+                    <div class="sub-desc">Palette arrangement. After Aktarma, finished reels are arranged onto palettes for shipment. Manual palette configuration matching the sevkiyat plan from the order.</div>
+                    <div class="sub-tech">Frontend: palette layout tool</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Sevkiyat</div>
+                    <div class="sub-desc">Shipment management. Final step &mdash; palettes loaded for delivery. Completes the production-to-customer chain.</div>
+                    <div class="sub-tech">Frontend: shipment organization, delivery completion</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Depends on:</strong> Teknik (machine configs, cable designs) &bull; Sipari&scedil; (work cards, order allocation) &bull; Hammadde (raw material QR codes) <br>
+                <strong>Feeds into:</strong> Stok (half-product creation, stock entries) &bull; Lab (test requests at production intervals)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. STOK &mdash; STOCK &amp; INVENTORY</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Visibility Module</h3>
+            <p class="module-desc">Three views of the same question: &ldquo;what do we have?&rdquo; Raw material stock from Hammadde, half-product stock from &Uuml;retim, and finished product stock from Aktarma/Sevkiyat. Plus a forward-looking projection that answers &ldquo;what will we need?&rdquo;</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Projeksiyon (Forecast)</div>
+                    <div class="sub-desc">Forward-looking material projection. Calculates what raw materials are needed for all pending orders, compares against current stock, and flags shortages. The decision-support tool for purchasing.</div>
+                    <div class="sub-tech">Backend: /api/projeksiyon with summary + per-material breakdown</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Uuml;r&uuml;n Stok (Product Stock)</div>
+                    <div class="sub-desc">Finished product inventory. Cables that have completed all production steps, passed all tests, and are ready for shipment or already allocated to orders.</div>
+                    <div class="sub-tech">Frontend: product-level stock view with order allocation status</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Hammadde Stok (Raw Material Stock)</div>
+                    <div class="sub-desc">3-level hierarchy view: material type sections (copper, tin, plastic...) &rarr; grouped tables &rarr; individual items. Shows quantities, reserved/available amounts, and QR codes. The purchasing team&rsquo;s primary screen.</div>
+                    <div class="sub-tech">Frontend: collapsible 3-tier hierarchy with quantity summaries</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Depends on:</strong> &Uuml;retim (half-product creation) &bull; Hammadde (raw material entries) &bull; Sipari&scedil; (demand data for projection) &bull; Teknik (product code definitions)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. LAB &mdash; LABORATORY</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Quality Gate</h3>
+            <p class="module-desc">Quality control woven into production. Tests are not ad-hoc &mdash; they are triggered automatically based on cable design requirements at specific production intervals (start of production, end of production, every basket). Lab users see pending tests, record results, and the system blocks production progress if critical tests fail.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Lab Dashboard</div>
+                    <div class="sub-desc">Overview panel showing pending alerts, active tests in progress, recently completed tests, and today&rsquo;s statistics. The lab user&rsquo;s primary screen &mdash; shows what needs attention right now.</div>
+                    <div class="sub-tech">Frontend: real-time alerts, test counters, quick-action links</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Test Management</div>
+                    <div class="sub-desc">Record test results against production outputs. Each test request is bonded to a specific production output (basket/reel) and linked to a test standard from Teknik. Pass/fail determination based on standard parameters. Self-referencing test requests support re-testing failed items.</div>
+                    <div class="sub-tech">Backend: /api/test-requests + /api/production/test-requests with bonded output tracking</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Depends on:</strong> Teknik (test standards, parameters, pass/fail criteria) &bull; &Uuml;retim (production test requests triggered at intervals, bonded to outputs) <br>
+                <strong>Feeds into:</strong> Stok (test pass required for stock release) &bull; Hammadde (material inspection on entry)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>8. ADMIN &mdash; SYSTEM ADMINISTRATION</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>The Control Module</h3>
+            <p class="module-desc">System-wide configuration. Users, permissions, printers, and AI. Only accessible to Super Admin users. The module that keeps everything else running.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">User Management</div>
+                    <div class="sub-desc">User CRUD with granular button-level permissions. Three user types (Super Admin, Lab User, Operator) with permission templates. Password reset, account suspension, activity logging. Every action in the system is traceable to a user.</div>
+                    <div class="sub-tech">Backend: /api/user-management/* with role templates + activity logs</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Printer Management</div>
+                    <div class="sub-desc">Network printer configuration for the 4 Epson thermal printers on the factory floor. IP/port settings, material type assignments (which printer prints which labels), and connection testing.</div>
+                    <div class="sub-tech">Backend: /api/printers/* CRUD with test endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Print Monitor</div>
+                    <div class="sub-desc">Real-time print queue across all 4 printers. Job states: Queued &rarr; Printing &rarr; Completed / Failed. Retry failed jobs, cancel queued jobs. Statistics dashboard showing print volumes and failure rates.</div>
+                    <div class="sub-tech">Backend: /api/print-queue/* with stats endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">AI Settings</div>
+                    <div class="sub-desc">Multi-provider AI configuration. API key management for dozens of providers, model selection, service account settings. Full audit log viewer showing every AI query, tool call, and response with timestamps and user attribution.</div>
+                    <div class="sub-tech">Backend: /api/ai/* with config, stats, audit-logs, api-keys management</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Cross-cutting:</strong> Authentication serves all modules &bull; Print queue serves Hammadde (material labels) and &Uuml;retim (output labels) &bull; AI assistant accesses all modules read-only &bull; User permissions control access to every page and button
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>9. CROSS-CUTTING SERVICES</h2>
+        <!-- ============================================ -->
+
+        <p>These are not modules with their own pages &mdash; they are services woven into every module.</p>
+
+        <div class="cross-grid">
+            <div class="cross-item">
+                <div class="cross-name">Authentication</div>
+                <div class="cross-desc">JWT-based. 12h access tokens, 7d refresh tokens. Every API call authenticated. Role-based route guards on frontend.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">WebSocket</div>
+                <div class="cross-desc">Real-time updates. Customer changes, supplier changes, production events broadcast to all connected clients instantly.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Notifications</div>
+                <div class="cross-desc">User-to-user notifications. Lab alerts for pending tests, production events for planners, material arrival notices.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Print Queue</div>
+                <div class="cross-desc">Async label printing. Material QR codes, half-product labels &mdash; queued and dispatched to 4 network printers.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Global Search</div>
+                <div class="cross-desc">Cross-module search. Find materials, orders, cables, customers, operators by any attribute from one search bar.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">AI Assistant</div>
+                <div class="cross-desc">Read-only AI chat. Accesses 92 API tools to search, summarize, and answer questions about any data in the system. Audit-logged.</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>10. THE DEPENDENCY MAP</h2>
+        <!-- ============================================ -->
+
+        <p>Which module depends on which? Rows read as &ldquo;this module depends on...&rdquo; The column headers are the providers. <span class="good">Strong</span> means heavy data dependency. <span style="color: #2563eb; font-weight: 700;">Light</span> means occasional reference.</p>
+
+        <div style="overflow-x: auto;">
+        <table class="dep-table">
+            <tr>
+                <th></th>
+                <th>Teknik</th>
+                <th>Hammadde</th>
+                <th>Sipari&scedil;</th>
+                <th>&Uuml;retim</th>
+                <th>Stok</th>
+                <th>Lab</th>
+                <th>Admin</th>
+            </tr>
+            <tr>
+                <td>Teknik</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Hammadde</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Sipari&scedil;</td>
+                <td class="dep-heavy">cables, markings</td>
+                <td class="dep-light">stock check</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>&Uuml;retim</td>
+                <td class="dep-heavy">machines, designs</td>
+                <td class="dep-heavy">materials (QR)</td>
+                <td class="dep-heavy">work cards</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">stock lookup</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users, printers</td>
+            </tr>
+            <tr>
+                <td>Stok</td>
+                <td class="dep-heavy">product codes</td>
+                <td class="dep-heavy">materials</td>
+                <td class="dep-heavy">demand data</td>
+                <td class="dep-heavy">outputs</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">test status</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Lab</td>
+                <td class="dep-heavy">standards</td>
+                <td class="dep-light">material tests</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-heavy">test requests</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Admin</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Key observation:</strong> Teknik has zero dependencies on other business modules &mdash; it is the foundation. Admin has zero dependencies &mdash; it is the infrastructure. &Uuml;retim and Stok have the most dependencies &mdash; they sit at the convergence point of the entire system. This is consistent with the modular monolith architecture: highly connected modules that benefit from sharing a single database and single transaction context.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. NUMBERS</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Module</th><th>Frontend Pages</th><th>API Endpoints</th><th>DB Tables</th><th>Key Models</th></tr>
+            <tr><td><strong>Teknik</strong></td><td>7</td><td>~75</td><td>10</td><td>CableDesign, CableDatabase, Machine&times;7, TestStandard, Marking, ProductCode</td></tr>
+            <tr><td><strong>Hammadde</strong></td><td>4</td><td>~30</td><td>6</td><td>RawMaterial, MaterialOrder, Supplier, SupplierMaterial, MaterialPhoto</td></tr>
+            <tr><td><strong>Sipari&scedil;</strong></td><td>3</td><td>~25</td><td>11</td><td>Order, OrderCable, OrderDelivery, OrderSevkiyat, Customer</td></tr>
+            <tr><td><strong>&Uuml;retim</strong></td><td>12</td><td>~35</td><td>5</td><td>ProductionSession, WorkCard, ProductionOutput, HalfProductSequence</td></tr>
+            <tr><td><strong>Stok</strong></td><td>3</td><td>~10</td><td>2</td><td>HalfProductStock, ProductCode</td></tr>
+            <tr><td><strong>Lab</strong></td><td>2</td><td>~15</td><td>3</td><td>ProductionTestRequest, TestRequest, TestResult</td></tr>
+            <tr><td><strong>Admin</strong></td><td>4</td><td>~25</td><td>6</td><td>User, UserRole, Printer, PrintJob, AIAuditLog, Notification</td></tr>
+            <tr><td><strong>Dashboard</strong></td><td>1</td><td>~5</td><td>&mdash;</td><td>Aggregates from all modules</td></tr>
+            <tr><td style="border-top: 2px solid #000;"><strong>TOTAL</strong></td><td style="border-top: 2px solid #000;"><strong>36+</strong></td><td style="border-top: 2px solid #000;"><strong>~220</strong></td><td style="border-top: 2px solid #000;"><strong>50+</strong></td><td style="border-top: 2px solid #000;">&mdash;</td></tr>
+        </table>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>What comes next:</strong> Each module gets its own deep-dive phase document &mdash; database schemas, API contracts, frontend patterns, code walkthroughs, and the decisions made while building it. This map is the index. The details follow.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mod&uuml;l Haritas&inodot; | Kablo Fabrikas&inodot; ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .quote { border-left: 3px solid #7c3aed; padding: 12px 16px; margin: 16px 0; background: #faf5ff; font-style: italic; }
+
+        /* MODULE MAP SPECIFIC */
+        .module-card { background: #fff; border: 2px solid #000; padding: 20px; margin: 16px 0; }
+        .module-card h3 { margin-top: 0; font-size: 16px; margin-bottom: 4px; }
+        .module-card .module-desc { font-size: 13px; color: #444; margin-bottom: 12px; line-height: 1.5; }
+        .module-card .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .sub-item { background: var(--gray-100); border: 1px solid var(--gray-300); padding: 10px 12px; }
+        .sub-item .sub-name { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+        .sub-item .sub-desc { font-size: 11px; color: #555; line-height: 1.4; }
+        .sub-item .sub-tech { font-size: 10px; color: #888; margin-top: 4px; }
+        .connections { font-size: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; }
+        .connections strong { color: #2563eb; }
+
+        .dep-table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .dep-table th { padding: 6px 8px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; border-right: 1px solid #d1d5db; background: #f3f4f6; border-bottom: 2px solid #000; }
+        .dep-table th:first-child { text-align: left; border-right: 2px solid #000; min-width: 120px; }
+        .dep-table td { padding: 6px 8px; text-align: center; font-size: 11px; border-right: 1px solid #d1d5db; border-bottom: 1px solid #e5e7eb; }
+        .dep-table td:first-child { text-align: left; font-weight: 700; font-size: 11px; border-right: 2px solid #000; background: #f9fafb; }
+        .dep-table .dep-heavy { background: #dcfce7; font-weight: 700; color: #16a34a; }
+        .dep-table .dep-light { background: #eff6ff; color: #2563eb; }
+        .dep-table .dep-none { color: #d1d5db; }
+
+        .cross-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+        .cross-item { background: #fff; border: 2px solid #000; padding: 14px; text-align: center; }
+        .cross-item .cross-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        .cross-item .cross-desc { font-size: 11px; color: #555; line-height: 1.4; }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+            .module-card .sub-grid { grid-template-columns: 1fr; }
+            .cross-grid { grid-template-columns: 1fr; }
+            .dep-table { font-size: 9px; }
+            .dep-table th, .dep-table td { padding: 3px 4px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system-tr.html" class="nav-logo">ERP S&Idot;STEM&Idot;</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-modules-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-modules.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <h1>MOD&Uuml;L HAR&Idot;TASI</h1>
+        <p class="subtitle">B&ouml;l&uuml;m 2 &mdash; Her mod&uuml;l, her alt mod&uuml;l, her ba&gbreve;lant&inodot;</p>
+        <p class="authors">&Scedil;ubat 2026 &bull; Solen Kablo &bull; Ya&scedil;ayan Dok&uuml;man</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Sistem 8 ana mod&uuml;lden olu&scedil;uyor; her birinin kendi frontend sayfalar&inodot;, backend API rotalar&inodot; ve veritaban&inodot; modelleri var.</strong> Bu dok&uuml;man her mod&uuml;l ve alt mod&uuml;l&uuml; haritaland&inodot;r&inodot;yor &mdash; ne yapt&inodot;klar&inodot;n&inodot;, ne i&ccedil;erdiklerini ve birbirlerine nas&inodot;l ba&gbreve;&inodot;ml&inodot; olduklar&inodot;n&inodot;. T&uuml;m ERP&rsquo;nin i&ccedil;indekiler tablosu olarak d&uuml;&scedil;&uuml;n&uuml;lebilir. Her mod&uuml;l&uuml;n detayl&inodot; incelemesi sonraki b&ouml;l&uuml;mlerde.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">8</div>
+                <div class="label">ANA MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">200+</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">50+</div>
+                <div class="label">VER&Idot;TABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">40+</div>
+                <div class="label">FRONTEND SAYFA</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>1. VER&Idot; AKI&Scedil;I</h2>
+        <!-- ============================================ -->
+
+        <p>Tek tek mod&uuml;llere ge&ccedil;meden &ouml;nce, verinin sistem i&ccedil;inde nas&inodot;l akt&inodot;&gbreve;&inodot;n&inodot; g&ouml;relim. Her mod&uuml;l, yukar&inodot; ak&inodot;&scedil;taki bir mod&uuml;l&uuml;n &uuml;retti&gbreve;i veriyi a&scedil;a&gbreve;&inodot; ak&inodot;&scedil;taki bir mod&uuml;l&uuml;n t&uuml;ketmesi i&ccedil;in var.</p>
+
+        <div class="flow">
+            <div class="flow-box" style="background: #faf5ff; border-color: #7c3aed;">TEKN&Idot;K<br><span style="font-size:9px;color:#666;">Kablo &amp; makine tan&inodot;mla</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #eff6ff; border-color: #2563eb;">S&Idot;PAR&Idot;&Scedil;<br><span style="font-size:9px;color:#666;">Sipari&scedil; al</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">&Uuml;RET&Idot;M<br><span style="font-size:9px;color:#666;">Kablo &uuml;ret</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">STOK<br><span style="font-size:9px;color:#666;">Stok takip et</span></div>
+        </div>
+        <div class="flow">
+            <div class="flow-box" style="background: #fef3c7; border-color: #d97706;">HAMMADDE<br><span style="font-size:9px;color:#666;">Malzeme tedarik et</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fffbe6; border-color: #f59e0b;">&Uuml;RET&Idot;M<br><span style="font-size:9px;color:#666;">Malzeme t&uuml;ket</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #fce7f3; border-color: #db2777;">LAB<br><span style="font-size:9px;color:#666;">Kalite test et</span></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box" style="background: #dcfce7; border-color: #16a34a;">STOK<br><span style="font-size:9px;color:#666;">Sto&gbreve;a al</span></div>
+        </div>
+
+        <p>&Uuml;retim&rsquo;de birle&scedil;en iki paralel hat. &Uuml;st hat <em>ne</em> &uuml;retilece&gbreve;ini ve <em>ne zaman</em> &uuml;retilece&gbreve;ini tan&inodot;mlar. Alt hat <em>neyle</em> &uuml;retilece&gbreve;ini sa&gbreve;lar ve <em>kaliteyi</em> do&gbreve;rular.</p>
+
+        <!-- ============================================ -->
+        <h2>2. TEKNİK &mdash; M&Uuml;HEND&Idot;SL&Idot;K</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>Temel Mod&uuml;l</h3>
+            <p class="module-desc">Her &scedil;ey buradan ba&scedil;lar. Teknik, hangi kablolar&inodot;n var oldu&gbreve;unu, nas&inodot;l &uuml;retildiklerini, fabrikan&inodot;n hangi makinelere sahip oldu&gbreve;unu, hangi standartlardan ge&ccedil;meleri gerekti&gbreve;ini ve &uuml;zerlerine ne yaz&inodot;laca&gbreve;&inodot;n&inodot; tan&inodot;mlar. Teknik&rsquo;ten veri olmadan sipari&scedil; verilemez, &uuml;retim ba&scedil;layamaz, test yap&inodot;lamaz.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Kablo Tasar&inodot;m</div>
+                    <div class="sub-desc">G&ouml;rsel s&uuml;r&uuml;kle-b&inodot;rak kablo tasar&inodot;m arac&inodot;. Ad&inodot;m ad&inodot;m kablo olu&scedil;tur &mdash; makine se&ccedil;, parametre yap&inodot;land&inodot;r, malzeme katmanlar&inodot;n&inodot; tan&inodot;mla. &Ccedil;&inodot;kt&inodot;: malzeme gereksinimleri, yar&inodot; &uuml;r&uuml;n kodlar&inodot; ve test e&scedil;lemeleri ile birlikte tam &uuml;retim ak&inodot;&scedil;&inodot;.</div>
+                    <div class="sub-tech">Frontend: react-dnd canvas, geri al/yinele, otomatik kaydetme &bull; Backend: 20+ tasar&inodot;m endpoint, oturum tabanl&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kablo Veritaban&inodot;</div>
+                    <div class="sub-desc">Tasar&inodot;m Alan&inodot;&rsquo;ndan onayl&inodot; kablo tasar&inodot;mlar&inodot;. Her kay&inodot;t, tam &uuml;retim ak&inodot;&scedil;&inodot;n&inodot;, yar&inodot; &uuml;r&uuml;n a&gbreve;ac&inodot;n&inodot;, malzeme form&uuml;llerini ve test gereksinimlerini yap&inodot;land&inodot;r&inodot;lm&inodot;&scedil; JSON olarak saklar. A&scedil;a&gbreve;&inodot; ak&inodot;&scedil;taki her &scedil;ey i&ccedil;in tek do&gbreve;ru kaynak.</div>
+                    <div class="sub-tech">Backend: cable_code arama, &uuml;retim ak&inodot;&scedil;&inodot; ayr&inodot;&scedil;t&inodot;rma, yar&inodot; &uuml;r&uuml;n a&gbreve;ac&inodot;, analitik</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Makine Y&ouml;netimi</div>
+                    <div class="sub-desc">7 makine tipi i&ccedil;in CRUD (Kabatel &Ccedil;ekme, Kalaylama, &Idot;ncetel &Ccedil;ekme, Buncher, Extruder, E-beam, Aktarma). Her makine tipinin kendi yap&inodot;land&inodot;rma &scedil;emas&inodot; var &mdash; h&inodot;z aral&inodot;klar&inodot;, &ccedil;ap limitleri, giri&scedil;/&ccedil;&inodot;k&inodot;&scedil; k&inodot;s&inodot;tlamalar&inodot;.</div>
+                    <div class="sub-tech">Backend: 7 makineye &ouml;zel rota grubu, toplamda ~42 endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Standart Y&ouml;netimi</div>
+                    <div class="sub-desc">Parametreler, test t&uuml;rleri, frekans kurallar&inodot; ve ge&ccedil;/kal kriterleri ile test standartlar&inodot;n&inodot; (IEC-EN, UL, SLN) tan&inodot;mla. Standartlar kablo tasar&inodot;mlar&inodot;na ba&gbreve;l&inodot; &mdash; her tasar&inodot;m hangi testlerin ne zaman gerekti&gbreve;ini bilir.</div>
+                    <div class="sub-tech">Backend: standart CRUD, parametre y&ouml;netimi, test sonu&ccedil; kayd&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kablo Markalama</div>
+                    <div class="sub-desc">Markalama &scedil;ablonlar&inodot; ekstr&uuml;zyon s&inodot;ras&inodot;nda kablonun &uuml;zerine ne yaz&inodot;laca&gbreve;&inodot;n&inodot; tan&inodot;mlar (firma ad&inodot;, standart, gerilim, kesit vb.). S&inodot;ral&inodot; kelime dizileri olarak saklan&inodot;r. Her sipari&scedil;-kablo bir markalama &scedil;ablonuna referans verir.</div>
+                    <div class="sub-tech">Backend: markalama CRUD, aktif/pasif ge&ccedil;i&scedil;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Operat&ouml;r Y&ouml;netimi</div>
+                    <div class="sub-desc">&Uuml;retim operat&ouml;r kayd&inodot;. Operat&ouml;rler &uuml;retim oturumlar&inodot;na atanir. Sistem kullan&inodot;c&inodot;lar&inodot;ndan ayr&inodot; &mdash; operat&ouml;r&uuml;n giri&scedil; yapmas&inodot;na gerek yok, oturumu ba&scedil;latan ki&scedil;i taraf&inodot;ndan atan&inodot;r.</div>
+                    <div class="sub-tech">Backend: basit CRUD, &uuml;retim oturumlar&inodot; taraf&inodot;ndan referans edilir</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>T&uuml;ketenler:</strong> Sipari&scedil; (kablo se&ccedil;imi, markalama se&ccedil;imi) &bull; &Uuml;retim (makine yap&inodot;land&inodot;rmalar&inodot;, i&scedil; kart&inodot; &uuml;retimi, test tetiklemeleri) &bull; Lab (test standartlar&inodot;, ge&ccedil;/kal kriterleri) &bull; Stok (yar&inodot; &uuml;r&uuml;n tan&inodot;mlar&inodot;, &uuml;r&uuml;n kodlar&inodot;)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>3. HAMMADDE &mdash; MALZEME Y&Ouml;NET&Idot;M&Idot;</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>Tedarik Zinciri Mod&uuml;l&uuml;</h3>
+            <p class="module-desc">Fabrikaya giren her &scedil;eyi takip eder &mdash; sat&inodot;n alma sipari&scedil;i verildi&gbreve;i andan malzeme &uuml;retimde t&uuml;ketildi&gbreve;i ana kadar. Bak&inodot;r, kalay, PVC bile&scedil;ikleri, kataliz&ouml;rler, boyalar, antikemirgen katk&inodot;lar, makaralar ve paletler. Her fiziksel &ouml;&gbreve;e giri&scedil;te QR kod, foto&gbreve;raf ve lot numaras&inodot; al&inodot;r.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Hammadde Giri&scedil;i</div>
+                    <div class="sub-desc">QR taramal&inodot; malzeme kabul&uuml;. Lab kullan&inodot;c&inodot;s&inodot; her &ouml;&gbreve;eyi foto&gbreve;raflar, bekleyen sipari&scedil;e atar, QR kod &uuml;retir ve etiket basar. &Idot;ki giri&scedil; modu: tekil &ouml;&gbreve;eler (bak&inodot;r/kalay sepetleri) ve lot bazl&inodot; (plastik &ccedil;uvallar, boya varilleri &mdash; bir lottan birden fazla &ouml;&gbreve;e).</div>
+                    <div class="sub-tech">Backend: /api/materials/entry + /lot-entry + /palette-entry + /reel-entry</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Hammaddeler Listesi</div>
+                    <div class="sub-desc">Sistemdeki t&uuml;m hammaddelerin envanter g&ouml;r&uuml;n&uuml;m&uuml;. Foto&gbreve;raflar, QR kodlar, lot numaralar&inodot;, tedarik&ccedil;i, a&gbreve;&inodot;rl&inodot;k, kalan a&gbreve;&inodot;rl&inodot;k ve ya&scedil;am d&ouml;ng&uuml;s&uuml; durumu (Teslim Al&inodot;nd&inodot; &rarr; Onayland&inodot; &rarr; Kullan&inodot;mda &rarr; T&uuml;ketildi / Reddedildi).</div>
+                    <div class="sub-tech">Backend: /api/materials/list filtreleme, foto&gbreve;raf lazy-loading</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Hammadde Sipari&scedil;</div>
+                    <div class="sub-desc">Tedarik&ccedil;ilerle sat&inodot;n alma sipari&scedil;i takibi. &Ccedil;oklu sipari&scedil;ler, beklenen teslimat tarihleri, neden kodlu tarih de&gbreve;i&scedil;iklik ge&ccedil;mi&scedil;i (tedarik&ccedil;i gecikmesi, i&ccedil; de&gbreve;i&scedil;iklik, di&gbreve;er), teslimat puanlamas&inodot; (1&ndash;5 y&inodot;ld&inodot;z) ve durum ya&scedil;am d&ouml;ng&uuml;s&uuml; (Beklemede &rarr; Kargoda &rarr; Teslim Edildi / &Idot;ptal).</div>
+                    <div class="sub-tech">Backend: /api/material-orders/* CRUD + tarih de&gbreve;i&scedil;iklikleri + puanlama</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Tedarik&ccedil;i Y&ouml;netimi</div>
+                    <div class="sub-desc">Tedarik&ccedil;i kayd&inodot; ve i&ccedil; i&ccedil;e malzeme kataloglar&inodot;. Her tedarik&ccedil;i hangi malzeme t&uuml;rlerini sa&gbreve;lad&inodot;&gbreve;&inodot;n&inodot; beyan eder (bak&inodot;r, kalay, plastik, kataliz&ouml;r, boya, antikemirgen, makara, palet) marka adlar&inodot; ve spesifikasyonlarla. WebSocket &uuml;zerinden ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler.</div>
+                    <div class="sub-tech">Backend: /api/suppliers/* CRUD, de&gbreve;i&scedil;iklikte WebSocket yay&inodot;n&inodot;</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Besler:</strong> &Uuml;retim (&uuml;retim oturumlar&inodot;nda t&uuml;ketilen malzemeler) &bull; Lab (giri&scedil;te malzeme muayenesi) &bull; Stok (hammadde stok g&ouml;r&uuml;n&uuml;m&uuml;) &bull; Sipari&scedil; (malzeme hesaplay&inodot;c&inodot; mevcut sto&gbreve;u referans al&inodot;r)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>4. SİPARİŞ &mdash; S&Idot;PAR&Idot;&Scedil; Y&Ouml;NET&Idot;M&Idot;</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>Talep Mod&uuml;l&uuml;</h3>
+            <p class="module-desc">M&uuml;&scedil;teri taleplerini yap&inodot;land&inodot;r&inodot;lm&inodot;&scedil; &uuml;retim i&scedil;lerine d&ouml;n&uuml;&scedil;t&uuml;r&uuml;r. Sipari&scedil;, Kablo Veritaban&inodot;&rsquo;ndan kablo se&ccedil;er, miktar ve makara yap&inodot;land&inodot;rmalar&inodot;n&inodot; belirler, teslimatlar&inodot; planlar ve &mdash; onay &uuml;zerine &mdash; tam hammadde ihtiyac&inodot;n&inodot; hesaplayan ve &uuml;retim sahas&inodot; i&ccedil;in i&scedil; kartlar&inodot; &uuml;reten Malzeme Hesaplay&inodot;c&inodot;&rsquo;y&inodot; tetikler.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Sipari&scedil; Olu&scedil;tur</div>
+                    <div class="sub-desc">&Ccedil;ok ad&inodot;ml&inodot; sipari&scedil; formu: m&uuml;&scedil;teri se&ccedil;, Kablo Veritaban&inodot;&rsquo;ndan kablo se&ccedil;, markalama &scedil;ablonu belirle, makara uzunluklar&inodot; ve miktarlar&inodot; tan&inodot;mla, haftal&inodot;k takvimde teslimat planla, palet d&uuml;zenlemeli sevkiyat detaylar&inodot;n&inodot; yap&inodot;land&inodot;r. Kablo ba&scedil;&inodot;na malzeme se&ccedil;imi (plastik, kataliz&ouml;r, boya, antikemirgen).</div>
+                    <div class="sub-tech">Backend: /api/siparis/orders POST, i&ccedil; i&ccedil;e kablolar, teslimatlar, sevkiyat, &ouml;demeler</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Sipari&scedil;lerim</div>
+                    <div class="sub-desc">Geni&scedil;letilebilir sat&inodot;rlarla t&uuml;m sipari&scedil;ler. Durum y&ouml;netimi (Taslak &rarr; Beklemede &rarr; Onayland&inodot; &rarr; &Uuml;retimde &rarr; Tamamland&inodot; / Reddedildi), onayla/reddet i&scedil;lemleri, hesaplama tetikleme ve arama. Her sipari&scedil; kablolar&inodot;n&inodot;, teslimatlar&inodot;n&inodot; ve i&scedil; kart&inodot; durumunu g&ouml;sterir.</div>
+                    <div class="sub-tech">Backend: /api/siparis/orders GET, sayfalama + do&gbreve;rulama durumu</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Malzeme Hesaplay&inodot;c&inodot;</div>
+                    <div class="sub-desc">Sipari&scedil; hatt&inodot;n&inodot;n beyni. Kablo tasar&inodot;m&inodot;n&inodot;n &uuml;retim ak&inodot;&scedil;&inodot;nda y&uuml;r&uuml;r, b&uuml;k&uuml;m fakt&ouml;rlerini, ta&scedil;ma sabitlerini, kaplama oranlar&inodot;n&inodot; ve plastik yo&gbreve;unluk form&uuml;llerini uygulayarak gereken tam kg bak&inodot;r, kalay ve plasti&gbreve;i hesaplar. Her &uuml;retim ad&inodot;m&inodot; i&ccedil;in otomatik i&scedil; kart&inodot; &uuml;retir.</div>
+                    <div class="sub-tech">Backend: /api/siparis/calculate-materials + i&scedil; kart&inodot; &uuml;retim servisi</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">M&uuml;&scedil;teri Y&ouml;netimi</div>
+                    <div class="sub-desc">Yurt i&ccedil;i/ihracat s&inodot;n&inodot;fland&inodot;rmas&inodot;, ileti&scedil;im bilgileri, vergi numaralar&inodot; ve adresle m&uuml;&scedil;teri kayd&inodot;. Her sipari&scedil; taraf&inodot;ndan referans edilir. De&gbreve;i&scedil;ikliklerde WebSocket &uuml;zerinden ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler.</div>
+                    <div class="sub-tech">Backend: /api/siparis/customers CRUD, WebSocket yay&inodot;nlar&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Teslimat Planlama</div>
+                    <div class="sub-desc">Sipari&scedil; ba&scedil;&inodot;na teslimat takvimi &mdash; ne zaman, ne kadar, hangi kablo. K&inodot;smi teslimatlar&inodot; destekler. Palet yap&inodot;land&inodot;rmas&inodot; ve kamyon y&uuml;kleme i&ccedil;in Sevkiyat&rsquo;a ba&gbreve;l&inodot;.</div>
+                    <div class="sub-tech">Backend: /api/siparis/deliveries CRUD, sipari&scedil; bazl&inodot; filtreleme</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Ba&gbreve;&inodot;ml&inodot;:</strong> Teknik (Kablo Veritaban&inodot;, markalama &scedil;ablonlar&inodot;) &bull; Hammadde (hesaplay&inodot;c&inodot; i&ccedil;in mevcut malzeme sto&gbreve;u) <br>
+                <strong>Besler:</strong> &Uuml;retim (i&scedil; kartlar&inodot;, &uuml;retim ak&inodot;&scedil;&inodot;) &bull; Stok (projeksiyon i&ccedil;in talep verisi)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>5. ÜRETİM</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>En B&uuml;y&uuml;k Mod&uuml;l</h3>
+            <p class="module-desc">Sistemin kalbi. 12 alt mod&uuml;l, 7 makineye &ouml;zel operat&ouml;r aray&uuml;z&uuml;, &uuml;retim planlama takvimi, oturum y&ouml;netimi ve &ccedil;&inodot;kt&inodot; takibi. Sipari&scedil;lerin fiziksel kabloya d&ouml;n&uuml;&scedil;t&uuml;&gbreve;&uuml; yer. Her sepet tart&inodot;l&inodot;r, her makara &ouml;l&ccedil;&uuml;l&uuml;r, her QR kod taran&inodot;r.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">&Uuml;retim Planlama</div>
+                    <div class="sub-desc">Takvim tabanl&inodot; planlama. &Idot;&scedil; kartlar&inodot;n&inodot; makine zaman dilimlerine s&uuml;r&uuml;kle (g&uuml;nl&uuml;k/haftal&inodot;k/ayl&inodot;k g&ouml;r&uuml;n&uuml;m). Ayn&inodot; anda birden fazla giri&scedil; i&scedil;leyen makineler i&ccedil;in paralel slot deste&gbreve;i. Makine m&uuml;saitlik takibi ve &uuml;retim ayarlamalar&inodot; (stok tahsisi, fire fakt&ouml;rleri).</div>
+                    <div class="sub-tech">Backend: i&scedil; kart&inodot; planlama/plandan &ccedil;&inodot;karma, makine durumu, s&inodot;radaki kart sorgusu</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kabatel &Ccedil;ekme Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">Tel &ccedil;ekme makinesi. Operat&ouml;r giri&scedil; bak&inodot;r sepeti QR kodunu tarar, oturumu ba&scedil;lat&inodot;r, a&gbreve;&inodot;rl&inodot;klarla &ccedil;&inodot;k&inodot;&scedil; sepetlerini kaydeder. Giri&scedil;: 1 filma&scedil;in sepeti &rarr; &Ccedil;&inodot;k&inodot;&scedil;: 1 sepet &ccedil;&inodot;plak bak&inodot;r. Tahsis modu: S&Idot;PAR&Idot;&Scedil; (belirli bir sipari&scedil; i&ccedil;in) veya STOK (genel &uuml;retim).</div>
+                    <div class="sub-tech">Frontend: QR taray&inodot;c&inodot;, oturum kontrolleri, sepet &ccedil;&inodot;kt&inodot; formu</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Kalaylama Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">Kalaylama makinesi. Giri&scedil;: 1 sepet &ccedil;&inodot;plak bak&inodot;r &rarr; &Ccedil;&inodot;k&inodot;&scedil;: 1 sepet kalayl&inodot; bak&inodot;r. Kabatel ile benzer oturum ak&inodot;&scedil;&inodot; &mdash; giri&scedil; tara, ba&scedil;lat, &ccedil;&inodot;k&inodot;&scedil; kaydet, bitir.</div>
+                    <div class="sub-tech">Frontend: QR taray&inodot;c&inodot;, oturum kontrolleri</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Idot;ncetel &Ccedil;ekme Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">&Idot;nce tel &ccedil;ekme makinesi. Giri&scedil;: 1&ndash;16 sepet &rarr; &Ccedil;&inodot;k&inodot;&scedil;: 1 makara &ccedil;ok damarl&inodot; tel. &Uuml;retimin tasar&inodot;ma ba&gbreve;&inodot;ml&inodot; hale geldi&gbreve;i yer &mdash; giri&scedil; say&inodot;s&inodot;, &ccedil;&inodot;k&inodot;&scedil; damar say&inodot;s&inodot; ve tel &ccedil;ap&inodot; tamam&inodot;yla kablo tasar&inodot;m&inodot;ndan gelir.</div>
+                    <div class="sub-tech">Frontend: &ccedil;oklu giri&scedil; QR tarama, damar yap&inodot;land&inodot;rma g&ouml;sterimi</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Buncher Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">B&uuml;k&uuml;m makinesi. Giri&scedil;: &Idot;ncetel&rsquo;den 1&ndash;7 makara &rarr; &Ccedil;&inodot;k&inodot;&scedil;: 1 makara b&uuml;k&uuml;l&uuml; bak&inodot;r (b&uuml;k&uuml;lm&uuml;&scedil; iletken). Ekstr&uuml;zyondan &ouml;nceki son bak&inodot;r i&scedil;leme ad&inodot;m&inodot;. &Idot;&scedil; kart&inodot; gereksinimlerine kar&scedil;&inodot; do&gbreve;rulamal&inodot; &ccedil;oklu makara giri&scedil; tarama.</div>
+                    <div class="sub-tech">Frontend: &ccedil;oklu giri&scedil; tarama, b&uuml;k&uuml;m fakt&ouml;r&uuml; g&ouml;sterimi</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Extruder Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">Ekstr&uuml;zyon makinesi. Bak&inodot;r&inodot;n kablo oldu&gbreve;u yer &mdash; izolasyon, k&inodot;l&inodot;f veya her ikisi ayn&inodot; anda uygulan&inodot;r. Giri&scedil;: 1 makara b&uuml;k&uuml;l&uuml; bak&inodot;r + plastik bile&scedil;ik + kataliz&ouml;r + boya + antikemirgen (hepsi QR taranm&inodot;&scedil;). &Ccedil;&inodot;k&inodot;&scedil;: 1 makara bitmi&scedil; veya yar&inodot; mamul kablo.</div>
+                    <div class="sub-tech">Frontend: &ccedil;oklu malzeme tarama, plastik/kataliz&ouml;r/boya giri&scedil; formlar&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">E-beam Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">Elektron &inodot;&scedil;&inodot;n radyasyonu. E-beam kablo tipleri i&ccedil;in opsiyonel ad&inodot;m. Giri&scedil;: Extruder&rsquo;dan 1 makara &rarr; &Ccedil;&inodot;k&inodot;&scedil;: 1 makara &inodot;&scedil;&inodot;nlanm&inodot;&scedil; kablo. Radyasyon dozaj&inodot; (5&ndash;25 Mrad) kablo tasar&inodot;m&inodot;n&inodot;n malzemesi ve plastik kal&inodot;nl&inodot;&gbreve;&inodot;na g&ouml;re belirlenir.</div>
+                    <div class="sub-tech">Frontend: radyasyon dozaj g&ouml;sterimi, oturum kontrolleri</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Aktarma Operat&ouml;r&uuml;</div>
+                    <div class="sub-desc">Aktarma/sarma makinesi. &Uuml;retim makaralar&inodot;ndan m&uuml;&scedil;teri makaralar&inodot;na veya kangala (serbest halka) aktar&inodot;m. &Ccedil;&inodot;k&inodot;&scedil; ba&scedil;&inodot;na 100m&rsquo;den 5000m&rsquo;ye kadar. &Uuml;retim ile sevkiyat aras&inodot;ndaki k&ouml;pr&uuml;.</div>
+                    <div class="sub-tech">Frontend: uzunluk giri&scedil;i, makara/kangal modu se&ccedil;ici</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Uuml;retim Listesi</div>
+                    <div class="sub-desc">Sistemdeki t&uuml;m yar&inodot; &uuml;r&uuml;nlerin &uuml;retim ad&inodot;m&inodot;na g&ouml;re d&uuml;zenlenmi&scedil; envanteri. Her sepet ve makara QR kodu, a&gbreve;&inodot;rl&inodot;&gbreve;&inodot;, tahsis durumu ve ba&gbreve;l&inodot; test sonu&ccedil;lar&inodot; ile. Fabrika zemininde ne oldu&gbreve;unun ger&ccedil;ek zamanl&inodot; g&ouml;r&uuml;n&uuml;m&uuml;.</div>
+                    <div class="sub-tech">Backend: /api/stock/half-products ad&inodot;m filtreleme + &ouml;zet</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Uuml;retim Ge&ccedil;mi&scedil;i</div>
+                    <div class="sub-desc">Tamamlanm&inodot;&scedil; &uuml;retim oturumlar&inodot; ar&scedil;ivi. Tam denetim izi: hangi operat&ouml;r, hangi makine, hangi i&scedil; kart&inodot;, ba&scedil;lang&inodot;&ccedil;/biti&scedil; zamanlar&inodot;, a&gbreve;&inodot;rl&inodot;klarla t&uuml;m &ccedil;&inodot;kt&inodot;lar, t&uuml;ketilen t&uuml;m giri&scedil;ler ve oturum s&inodot;ras&inodot;nda yap&inodot;lan t&uuml;m testler.</div>
+                    <div class="sub-tech">Backend: /api/production/sessions/history + tam detay endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Paletleme</div>
+                    <div class="sub-desc">Palet d&uuml;zenleme. Aktarma sonras&inodot; bitmi&scedil; makaralar sevkiyat i&ccedil;in paletlere yerle&scedil;tirilir. Sipari&scedil;teki sevkiyat plan&inodot;na uygun manuel palet yap&inodot;land&inodot;rmas&inodot;.</div>
+                    <div class="sub-tech">Frontend: palet d&uuml;zenleme arac&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Sevkiyat</div>
+                    <div class="sub-desc">Sevkiyat y&ouml;netimi. Son ad&inodot;m &mdash; paletler teslimata y&uuml;klenir. &Uuml;retimden m&uuml;&scedil;teriye zinciri tamamlar.</div>
+                    <div class="sub-tech">Frontend: sevkiyat organizasyonu, teslimat tamamlama</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Ba&gbreve;&inodot;ml&inodot;:</strong> Teknik (makine yap&inodot;land&inodot;rmalar&inodot;, kablo tasar&inodot;mlar&inodot;) &bull; Sipari&scedil; (i&scedil; kartlar&inodot;, sipari&scedil; tahsisi) &bull; Hammadde (hammadde QR kodlar&inodot;) <br>
+                <strong>Besler:</strong> Stok (yar&inodot; &uuml;r&uuml;n olu&scedil;turma, stok giri&scedil;leri) &bull; Lab (&uuml;retim aral&inodot;klar&inodot;nda test talepleri)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>6. STOK &mdash; STOK &amp; ENVANTER</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>G&ouml;r&uuml;n&uuml;rl&uuml;k Mod&uuml;l&uuml;</h3>
+            <p class="module-desc">Ayn&inodot; sorunun &uuml;&ccedil; g&ouml;r&uuml;n&uuml;m&uuml;: &ldquo;elimizde ne var?&rdquo; Hammadde&rsquo;den hammadde sto&gbreve;u, &Uuml;retim&rsquo;den yar&inodot; mamul sto&gbreve;u, Aktarma/Sevkiyat&rsquo;tan bitmi&scedil; &uuml;r&uuml;n sto&gbreve;u. Art&inodot; &ldquo;neye ihtiyac&inodot;m&inodot;z olacak?&rdquo; sorusunu yan&inodot;tlayan ileriye d&ouml;n&uuml;k projeksiyon.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Projeksiyon (Tahmin)</div>
+                    <div class="sub-desc">&Idot;leriye d&ouml;n&uuml;k malzeme projeksiyonu. Bekleyen t&uuml;m sipari&scedil;ler i&ccedil;in gereken hammaddeleri hesaplar, mevcut stokla kar&scedil;&inodot;la&scedil;t&inodot;r&inodot;r ve eksiklikleri i&scedil;aretler. Sat&inodot;n alma i&ccedil;in karar destek arac&inodot;.</div>
+                    <div class="sub-tech">Backend: /api/projeksiyon, &ouml;zet + malzeme bazl&inodot; d&ouml;k&uuml;m</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">&Uuml;r&uuml;n Stok</div>
+                    <div class="sub-desc">Bitmi&scedil; &uuml;r&uuml;n envanteri. T&uuml;m &uuml;retim ad&inodot;mlar&inodot;n&inodot; tamamlam&inodot;&scedil;, t&uuml;m testlerden ge&ccedil;mi&scedil; ve sevkiyata haz&inodot;r veya sipari&scedil;lere tahsis edilmi&scedil; kablolar.</div>
+                    <div class="sub-tech">Frontend: &uuml;r&uuml;n seviyesinde stok g&ouml;r&uuml;n&uuml;m&uuml;, sipari&scedil; tahsis durumu</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Hammadde Stok</div>
+                    <div class="sub-desc">3 seviyeli hiyerar&scedil;i g&ouml;r&uuml;n&uuml;m&uuml;: malzeme tipi b&ouml;l&uuml;mleri (bak&inodot;r, kalay, plastik...) &rarr; grupland&inodot;r&inodot;lm&inodot;&scedil; tablolar &rarr; tekil &ouml;&gbreve;eler. Miktarlar&inodot;, ayr&inodot;lm&inodot;&scedil;/kullan&inodot;labilir tutarlar&inodot; ve QR kodlar&inodot; g&ouml;sterir. Sat&inodot;n alma ekibinin ana ekran&inodot;.</div>
+                    <div class="sub-tech">Frontend: a&ccedil;&inodot;l&inodot;r kapan&inodot;r 3 katmanl&inodot; hiyerar&scedil;i, miktar &ouml;zetleri</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Ba&gbreve;&inodot;ml&inodot;:</strong> &Uuml;retim (yar&inodot; &uuml;r&uuml;n olu&scedil;turma) &bull; Hammadde (hammadde giri&scedil;leri) &bull; Sipari&scedil; (projeksiyon i&ccedil;in talep verisi) &bull; Teknik (&uuml;r&uuml;n kodu tan&inodot;mlar&inodot;)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>7. LAB &mdash; LABORATUVAR</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>Kalite Kap&inodot;s&inodot;</h3>
+            <p class="module-desc">&Uuml;retimle i&ccedil; i&ccedil;e ge&ccedil;mi&scedil; kalite kontrol. Testler rastgele de&gbreve;il &mdash; kablo tasar&inodot;m gereksinimlerine dayanarak belirli &uuml;retim aral&inodot;klar&inodot;nda (&uuml;retim ba&scedil;&inodot;, &uuml;retim sonu, her sepet) otomatik tetiklenir. Lab kullan&inodot;c&inodot;lar&inodot; bekleyen testleri g&ouml;r&uuml;r, sonu&ccedil;lar&inodot; kaydeder ve kritik testler ba&scedil;ar&inodot;s&inodot;z olursa sistem &uuml;retim ilerlemesini engeller.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Lab Paneli</div>
+                    <div class="sub-desc">Bekleyen uyar&inodot;lar&inodot;, devam eden aktif testleri, son tamamlanan testleri ve g&uuml;n&uuml;n istatistiklerini g&ouml;steren genel bak&inodot;&scedil; paneli. Lab kullan&inodot;c&inodot;s&inodot;n&inodot;n ana ekran&inodot; &mdash; &scedil;u anda neye dikkat edilmesi gerekti&gbreve;ini g&ouml;sterir.</div>
+                    <div class="sub-tech">Frontend: ger&ccedil;ek zamanl&inodot; uyar&inodot;lar, test saya&ccedil;lar&inodot;, h&inodot;zl&inodot; i&scedil;lem ba&gbreve;lant&inodot;lar&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Test Y&ouml;netimi</div>
+                    <div class="sub-desc">&Uuml;retim &ccedil;&inodot;kt&inodot;lar&inodot;na kar&scedil;&inodot; test sonu&ccedil;lar&inodot;n&inodot; kaydet. Her test talebi belirli bir &uuml;retim &ccedil;&inodot;kt&inodot;s&inodot;na (sepet/makara) ba&gbreve;l&inodot; ve Teknik&rsquo;ten bir test standard&inodot;na ba&gbreve;lant&inodot;l&inodot;. Standart parametrelerine g&ouml;re ge&ccedil;/kal belirleme. Kendi kendine referansl&inodot; test talepleri, ba&scedil;ar&inodot;s&inodot;z &ouml;&gbreve;elerin yeniden test edilmesini destekler.</div>
+                    <div class="sub-tech">Backend: /api/test-requests + /api/production/test-requests, ba&gbreve;l&inodot; &ccedil;&inodot;kt&inodot; takibi</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>Ba&gbreve;&inodot;ml&inodot;:</strong> Teknik (test standartlar&inodot;, parametreler, ge&ccedil;/kal kriterleri) &bull; &Uuml;retim (aral&inodot;klarda tetiklenen &uuml;retim test talepleri, &ccedil;&inodot;kt&inodot;lara ba&gbreve;l&inodot;) <br>
+                <strong>Besler:</strong> Stok (sto&gbreve;a al&inodot;nmas&inodot; i&ccedil;in test ge&ccedil;i&scedil;i gerekli) &bull; Hammadde (giri&scedil;te malzeme muayenesi)
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>8. ADMIN &mdash; S&Idot;STEM Y&Ouml;NET&Idot;M&Idot;</h2>
+        <!-- ============================================ -->
+
+        <div class="module-card">
+            <h3>Kontrol Mod&uuml;l&uuml;</h3>
+            <p class="module-desc">Sistem geneli yap&inodot;land&inodot;rma. Kullan&inodot;c&inodot;lar, yetkiler, yaz&inodot;c&inodot;lar ve AI. Yaln&inodot;zca Super Admin kullan&inodot;c&inodot;lar&inodot; taraf&inodot;ndan eri&scedil;ilebilir. Di&gbreve;er her &scedil;eyi &ccedil;al&inodot;&scedil;&inodot;r tutan mod&uuml;l.</p>
+
+            <div class="sub-grid">
+                <div class="sub-item">
+                    <div class="sub-name">Kullan&inodot;c&inodot; Y&ouml;netimi</div>
+                    <div class="sub-desc">Buton seviyesinde ayr&inodot;nt&inodot;l&inodot; yetkilerle kullan&inodot;c&inodot; CRUD. &Uuml;&ccedil; kullan&inodot;c&inodot; tipi (Super Admin, Lab Kullan&inodot;c&inodot;s&inodot;, Operat&ouml;r) yetki &scedil;ablonlar&inodot;yla. &Scedil;ifre s&inodot;f&inodot;rlama, hesap ask&inodot;ya alma, aktivite loglama. Sistemdeki her i&scedil;lem bir kullan&inodot;c&inodot;ya izlenebilir.</div>
+                    <div class="sub-tech">Backend: /api/user-management/* rol &scedil;ablonlar&inodot; + aktivite loglar&inodot;</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Yaz&inodot;c&inodot; Y&ouml;netimi</div>
+                    <div class="sub-desc">Fabrika zeminindeki 4 Epson termal yaz&inodot;c&inodot; i&ccedil;in a&gbreve; yaz&inodot;c&inodot; yap&inodot;land&inodot;rmas&inodot;. IP/port ayarlar&inodot;, malzeme tipi atamalar&inodot; (hangi yaz&inodot;c&inodot; hangi etiketi basar) ve ba&gbreve;lant&inodot; testi.</div>
+                    <div class="sub-tech">Backend: /api/printers/* CRUD, test endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">Yazd&inodot;rma &Idot;zleme</div>
+                    <div class="sub-desc">4 yaz&inodot;c&inodot; genelinde ger&ccedil;ek zamanl&inodot; yazd&inodot;rma kuyru&gbreve;u. &Idot;&scedil; durumlar&inodot;: Kuyrukta &rarr; Bas&inodot;l&inodot;yor &rarr; Tamamland&inodot; / Ba&scedil;ar&inodot;s&inodot;z. Ba&scedil;ar&inodot;s&inodot;z i&scedil;leri tekrarla, kuyruktakileri iptal et. Bask&inodot; hacimlerini ve hata oranlar&inodot;n&inodot; g&ouml;steren istatistik panosu.</div>
+                    <div class="sub-tech">Backend: /api/print-queue/* istatistik endpoint</div>
+                </div>
+                <div class="sub-item">
+                    <div class="sub-name">AI Ayarlar&inodot;</div>
+                    <div class="sub-desc">&Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; AI yap&inodot;land&inodot;rmas&inodot;. D&uuml;zinelerce sa&gbreve;lay&inodot;c&inodot; i&ccedil;in API anahtar y&ouml;netimi, model se&ccedil;imi, servis hesab&inodot; ayarlar&inodot;. Her AI sorgusunu, ara&ccedil; &ccedil;a&gbreve;r&inodot;s&inodot;n&inodot; ve yan&inodot;t&inodot; zaman damgas&inodot; ve kullan&inodot;c&inodot; atfal&inodot;yla g&ouml;steren tam denetim log g&ouml;r&uuml;nt&uuml;leyici.</div>
+                    <div class="sub-tech">Backend: /api/ai/* config, stats, audit-logs, api-keys y&ouml;netimi</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <strong>&Ccedil;apraz kesim:</strong> Kimlik do&gbreve;rulama t&uuml;m mod&uuml;llere hizmet eder &bull; Yazd&inodot;rma kuyru&gbreve;u Hammadde (malzeme etiketleri) ve &Uuml;retim (&ccedil;&inodot;kt&inodot; etiketleri) i&ccedil;in &ccedil;al&inodot;&scedil;&inodot;r &bull; AI asistan t&uuml;m mod&uuml;llere salt okunur eri&scedil;ir &bull; Kullan&inodot;c&inodot; yetkileri her sayfa ve butona eri&scedil;imi kontrol eder
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>9. &Ccedil;APRAZ SERV&Idot;SLER</h2>
+        <!-- ============================================ -->
+
+        <p>Bunlar kendi sayfalar&inodot; olan mod&uuml;ller de&gbreve;il &mdash; her mod&uuml;le dokunmu&scedil; servisler.</p>
+
+        <div class="cross-grid">
+            <div class="cross-item">
+                <div class="cross-name">Kimlik Do&gbreve;rulama</div>
+                <div class="cross-desc">JWT tabanl&inodot;. 12 saat eri&scedil;im token&inodot;, 7 g&uuml;n yenileme token&inodot;. Her API &ccedil;a&gbreve;r&inodot;s&inodot; kimlik do&gbreve;rulamal&inodot;. Frontend&rsquo;te rol bazl&inodot; rota korumalar&inodot;.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">WebSocket</div>
+                <div class="cross-desc">Ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler. M&uuml;&scedil;teri de&gbreve;i&scedil;iklikleri, tedarik&ccedil;i de&gbreve;i&scedil;iklikleri, &uuml;retim olaylar&inodot; t&uuml;m ba&gbreve;l&inodot; istemcilere an&inodot;nda yay&inodot;nlan&inodot;r.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Bildirimler</div>
+                <div class="cross-desc">Kullan&inodot;c&inodot;dan kullan&inodot;c&inodot;ya bildirimler. Bekleyen testler i&ccedil;in lab uyar&inodot;lar&inodot;, planlamac&inodot;lar i&ccedil;in &uuml;retim olaylar&inodot;, malzeme var&inodot;&scedil; bildirimleri.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Yazd&inodot;rma Kuyru&gbreve;u</div>
+                <div class="cross-desc">Asenkron etiket bask&inodot;. Malzeme QR kodlar&inodot;, yar&inodot; &uuml;r&uuml;n etiketleri &mdash; kuyru&gbreve;a al&inodot;n&inodot;p 4 a&gbreve; yaz&inodot;c&inodot;s&inodot;na g&ouml;nderilir.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">Genel Arama</div>
+                <div class="cross-desc">Mod&uuml;ller aras&inodot; arama. Tek bir arama &ccedil;ubu&gbreve;undan herhangi bir &ouml;zellikle malzeme, sipari&scedil;, kablo, m&uuml;&scedil;teri, operat&ouml;r bul.</div>
+            </div>
+            <div class="cross-item">
+                <div class="cross-name">AI Asistan</div>
+                <div class="cross-desc">Salt okunur AI sohbet. Sistemdeki herhangi bir veri hakk&inodot;nda arama, &ouml;zetleme ve soru yan&inodot;tlama i&ccedil;in 92 API arac&inodot;na eri&scedil;ir. Denetim loglu.</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>10. BA&Gbreve;IMLILIK HAR&Idot;TASI</h2>
+        <!-- ============================================ -->
+
+        <p>Hangi mod&uuml;l hangisine ba&gbreve;&inodot;ml&inodot;? Sat&inodot;rlar &ldquo;bu mod&uuml;l &scedil;una ba&gbreve;&inodot;ml&inodot;...&rdquo; olarak okunur. S&uuml;tun ba&scedil;l&inodot;klar&inodot; sa&gbreve;lay&inodot;c&inodot;lard&inodot;r. <span class="good">G&uuml;&ccedil;l&uuml;</span> a&gbreve;&inodot;r veri ba&gbreve;&inodot;ml&inodot;l&inodot;&gbreve;&inodot;. <span style="color: #2563eb; font-weight: 700;">Hafif</span> ara s&inodot;ra referans.</p>
+
+        <div style="overflow-x: auto;">
+        <table class="dep-table">
+            <tr>
+                <th></th>
+                <th>Teknik</th>
+                <th>Hammadde</th>
+                <th>Sipari&scedil;</th>
+                <th>&Uuml;retim</th>
+                <th>Stok</th>
+                <th>Lab</th>
+                <th>Admin</th>
+            </tr>
+            <tr>
+                <td>Teknik</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Hammadde</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Sipari&scedil;</td>
+                <td class="dep-heavy">cables, markings</td>
+                <td class="dep-light">stock check</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>&Uuml;retim</td>
+                <td class="dep-heavy">machines, designs</td>
+                <td class="dep-heavy">materials (QR)</td>
+                <td class="dep-heavy">work cards</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">stock lookup</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users, printers</td>
+            </tr>
+            <tr>
+                <td>Stok</td>
+                <td class="dep-heavy">product codes</td>
+                <td class="dep-heavy">materials</td>
+                <td class="dep-heavy">demand data</td>
+                <td class="dep-heavy">outputs</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">test status</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Lab</td>
+                <td class="dep-heavy">standards</td>
+                <td class="dep-light">material tests</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-heavy">test requests</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-light">users</td>
+            </tr>
+            <tr>
+                <td>Admin</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+                <td class="dep-none">&mdash;</td>
+            </tr>
+        </table>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Kilit g&ouml;zlem:</strong> Teknik&rsquo;in di&gbreve;er i&scedil; mod&uuml;llerine s&inodot;f&inodot;r ba&gbreve;&inodot;ml&inodot;l&inodot;&gbreve;&inodot; var &mdash; temeldir. Admin&rsquo;in s&inodot;f&inodot;r ba&gbreve;&inodot;ml&inodot;l&inodot;&gbreve;&inodot; var &mdash; altyap&inodot;d&inodot;r. &Uuml;retim ve Stok en fazla ba&gbreve;&inodot;ml&inodot;l&inodot;&gbreve;a sahip &mdash; t&uuml;m sistemin birle&scedil;me noktas&inodot;nda otururlar. Bu, mod&uuml;ler monolitik mimariyle tutarl&inodot;d&inodot;r: tek bir veritaban&inodot; ve tek bir i&scedil;lem ba&gbreve;lam&inodot;n&inodot; payla&scedil;maktan fayda g&ouml;ren y&uuml;ksek ba&gbreve;lant&inodot;l&inodot; mod&uuml;ller.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2>11. RAKAMLAR</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Mod&uuml;l</th><th>Frontend Sayfa</th><th>API Endpoint</th><th>DB Tablo</th><th>Anahtar Modeller</th></tr>
+            <tr><td><strong>Teknik</strong></td><td>7</td><td>~75</td><td>10</td><td>CableDesign, CableDatabase, Machine&times;7, TestStandard, Marking, ProductCode</td></tr>
+            <tr><td><strong>Hammadde</strong></td><td>4</td><td>~30</td><td>6</td><td>RawMaterial, MaterialOrder, Supplier, SupplierMaterial, MaterialPhoto</td></tr>
+            <tr><td><strong>Sipari&scedil;</strong></td><td>3</td><td>~25</td><td>11</td><td>Order, OrderCable, OrderDelivery, OrderSevkiyat, Customer</td></tr>
+            <tr><td><strong>&Uuml;retim</strong></td><td>12</td><td>~35</td><td>5</td><td>ProductionSession, WorkCard, ProductionOutput, HalfProductSequence</td></tr>
+            <tr><td><strong>Stok</strong></td><td>3</td><td>~10</td><td>2</td><td>HalfProductStock, ProductCode</td></tr>
+            <tr><td><strong>Lab</strong></td><td>2</td><td>~15</td><td>3</td><td>ProductionTestRequest, TestRequest, TestResult</td></tr>
+            <tr><td><strong>Admin</strong></td><td>4</td><td>~25</td><td>6</td><td>User, UserRole, Printer, PrintJob, AIAuditLog, Notification</td></tr>
+            <tr><td><strong>Dashboard</strong></td><td>1</td><td>~5</td><td>&mdash;</td><td>T&uuml;m mod&uuml;llerden toplama</td></tr>
+            <tr><td style="border-top: 2px solid #000;"><strong>TOPLAM</strong></td><td style="border-top: 2px solid #000;"><strong>36+</strong></td><td style="border-top: 2px solid #000;"><strong>~220</strong></td><td style="border-top: 2px solid #000;"><strong>50+</strong></td><td style="border-top: 2px solid #000;">&mdash;</td></tr>
+        </table>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>S&inodot;rada ne var:</strong> Her mod&uuml;l kendi derinlemesine b&ouml;l&uuml;m dok&uuml;man&inodot;n&inodot; al&inodot;r &mdash; veritaban&inodot; &scedil;emalar&inodot;, API s&ouml;zle&scedil;meleri, frontend desenleri, kod incelemeleri ve in&scedil;a edilirken al&inodot;nan kararlar. Bu harita i&ccedil;indekiler tablosudur. Detaylar takip eder.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
