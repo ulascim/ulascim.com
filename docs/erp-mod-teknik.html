@@ -1890,6 +1890,104 @@ MACHINE_FLOW = {
             <p style="margin-bottom: 0;"><strong>Design principle:</strong> The Playground is a <em>production simulation engine</em>, not a drawing tool. It doesn&rsquo;t just record specifications &mdash; it executes the entire manufacturing logic step by step, tracking exact quantities, enforcing machine flow constraints, validating against real machine capabilities, and computing capability intersections. The result is a complete production blueprint stored in Cable Database that every downstream module trusts as the single source of truth. The deterministic code generation ensures identical products always get the same code, enabling stock reuse across different cable designs. The in-memory session architecture with atomic checkpoint/restore guarantees that no partial or invalid state ever reaches the database.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2 style="margin-top: 64px;">7. CONCLUSION</h2>
+        <!-- ============================================ -->
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Teknik is not just a module &mdash; it is the foundation on which the entire Solen ERP system stands.</strong> Every cable ever produced by the factory begins its life as data defined here. Every order, every work card, every quality test, every material calculation, every stock entry traces back to a record that Teknik created. Without it, the rest of the system has nothing to work with.</p>
+        </div>
+
+        <h3>7.1 What This Document Covered</h3>
+
+        <p>This deep dive analyzed the Teknik module across six submodules, from high-level architecture down to individual lines of code:</p>
+
+        <table>
+            <tr><th>Section</th><th>Submodule</th><th>Depth</th><th>Key Insight</th></tr>
+            <tr><td>6.1</td><td>Machine Management</td><td>Full</td><td>Capability-range model (min/max/increment) enables dynamic dropdown generation and cross-machine intersection</td></tr>
+            <tr><td>6.2</td><td>Standards &amp; Tests</td><td>Full</td><td>Three-layer hierarchy (standard &rarr; test group &rarr; individual test) with multi-standard assignments</td></tr>
+            <tr><td>6.3</td><td>Operator Management</td><td>Full</td><td>Dual-storage pattern: integer FK for integrity + denormalized name for display-without-join</td></tr>
+            <tr><td>6.4</td><td>Markalama</td><td>Full</td><td>Cross-module data flow: marking_id travels from order &rarr; work card &rarr; production planning &rarr; operator screen</td></tr>
+            <tr><td>6.5</td><td>Cable Playground</td><td>Exhaustive</td><td>Production simulation engine with in-memory sessions, atomic checkpoints, quantity tracking, and machine flow constraints</td></tr>
+            <tr><td>6.6</td><td>Cable Database</td><td>Exhaustive</td><td>Single source of truth: denormalized JSON blobs enabling zero-join reads for all downstream modules</td></tr>
+        </table>
+
+        <h3>7.2 Architectural Principles</h3>
+
+        <p>Several design principles recur throughout the Teknik module and define its character:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Read-Only Downstream</h4>
+                <p>Every other module <em>reads from</em> Teknik but never writes to it. Machines, standards, operators, markings, and cable designs are defined here and consumed everywhere else. This enforces a clean dependency direction.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Simulation Before Storage</h4>
+                <p>The Playground doesn&rsquo;t accept free-form input. It simulates the real production line: enforce flow constraints, validate against actual machine capabilities, compute intersections, track quantities. Only a fully valid design can be finalized to the database.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Deterministic Identity</h4>
+                <p>SHA-256 spec hashing guarantees that the same physical product always gets the same code, regardless of which cable design created it. This is what makes stock pooling across cable designs possible.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Denormalized for Speed</h4>
+                <p>Cable Database stores production_flow, half_products, raw_materials, and test_requirements as JSON blobs. This is intentional: downstream modules need the complete picture in a single read, not a 12-table join.</p>
+            </div>
+        </div>
+
+        <h3>7.3 The Numbers</h3>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">6</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~75</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">12</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">~12,000</div>
+                <div class="label">LINES BACKEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--negative);">~4,000</div>
+                <div class="label">LINES FRONTEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">MACHINE TYPES</div>
+            </div>
+        </div>
+
+        <h3>7.4 How Teknik Feeds the Factory</h3>
+
+        <div class="flow">
+            <span class="flow-step">Teknik</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Cable Database</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Sipari&scedil; (Orders)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;retim Planlama (Production)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Stok &amp; Malzeme (Stock &amp; Materials)</span>
+        </div>
+
+        <p>Every cable order references a <code>cable_code</code> from Cable Database. Every work card is generated from the <code>production_flow</code> JSON. Every material calculation reads <code>half_products</code> properties. Every quality test is assigned from the standard hierarchy defined in Teknik. The marking printed on the cable comes from the Markalama submodule. The machines that produce it are validated against capabilities stored in Machine Management.</p>
+
+        <p>In short: <strong>if Teknik is wrong, everything downstream is wrong.</strong> This is why the Playground uses atomic transactions, capability validation, and deterministic code generation &mdash; to guarantee that what enters the Cable Database is production-ready and correct.</p>
+
+        <h3>7.5 Final Word</h3>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;">The Teknik module transforms domain expertise &mdash; wire diameters, machine capabilities, production sequences, test standards, marking templates &mdash; into structured, validated, machine-readable data. It is the bridge between what engineers know and what software can execute. Every record created here carries the weight of the entire production chain that follows. This document has traced that chain from the first 8mm filma&scedil;in entering Kabatel &Ccedil;ekme to the final cable code stored in the database, through every machine step, every quantity split, every validation check, and every downstream consumer. The system works because Teknik is thorough. This document exists to prove it.</p>
+        </div>
+
     </main>
 
 </body>

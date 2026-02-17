@@ -1869,6 +1869,104 @@ MACHINE_FLOW = {
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Playground bir <em>&uuml;retim sim&uuml;lasyon motorudur</em>, bir &ccedil;izim arac&#305; de&#287;il. Sadece spesifikasyonlar&#305; kaydetmez &mdash; t&uuml;m imalat mant&#305;&#287;&#305;n&#305; ad&#305;m ad&#305;m y&uuml;r&uuml;t&uuml;r, kesin miktarlar&#305; takip eder, makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305;n&#305; uygular, ger&ccedil;ek makine kapasitelerine kar&scedil;&#305; do&#287;rular ve kapasite kesi&scedil;imlerini hesaplar. Sonu&ccedil;, her alt mod&uuml;l&uuml;n tek do&#287;ru kaynak olarak g&uuml;vendi&#287;i Kablo Veritaban&#305;&rsquo;nda saklanm&#305;&scedil; eksiksiz bir &uuml;retim plan&#305;d&#305;r. Deterministik kod &uuml;retimi, ayn&#305; &uuml;r&uuml;nlerin her zaman ayn&#305; kodu almas&#305;n&#305; sa&#287;layarak farkl&#305; kablo tasar&#305;mlar&#305; aras&#305;nda stok yeniden kullan&#305;m&#305;n&#305; m&uuml;mk&uuml;n k&#305;lar. Atomik checkpoint/geri y&uuml;kleme ile bellek i&ccedil;i oturum mimarisi, hi&ccedil;bir k&#305;smi veya ge&ccedil;ersiz durumun veritaban&#305;na ula&scedil;mamas&#305;n&#305; garanti eder.</p>
         </div>
 
+        <!-- ============================================ -->
+        <h2 style="margin-top: 64px;">7. SONU&Ccedil;</h2>
+        <!-- ============================================ -->
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Teknik sadece bir mod&uuml;l de&#287;il &mdash; t&uuml;m Solen ERP sisteminin &uuml;zerine in&scedil;a edildi&#287;i temeldir.</strong> Fabrikan&#305;n &uuml;retti&#287;i her kablo, hayat&#305;na burada tan&#305;mlanan veri olarak ba&scedil;lar. Her sipari&scedil;, her i&scedil; kart&#305;, her kalite testi, her malzeme hesaplamas&#305;, her stok kayd&#305; Teknik&rsquo;in olu&scedil;turdu&#287;u bir kay&#305;da geri d&ouml;ner. Teknik olmadan sistemin geri kalan&#305;n&#305;n &uuml;zerinde &ccedil;al&#305;&scedil;aca&#287;&#305; hi&ccedil;bir &scedil;ey yoktur.</p>
+        </div>
+
+        <h3>7.1 Bu Belgenin Kapsam&#305;</h3>
+
+        <p>Bu derin analiz, Teknik mod&uuml;l&uuml;n&uuml; alt&#305; alt mod&uuml;l boyunca, &uuml;st d&uuml;zey mimariden bireysel kod sat&#305;rlar&#305;na kadar inceledi:</p>
+
+        <table>
+            <tr><th>B&ouml;l&uuml;m</th><th>Alt Mod&uuml;l</th><th>Derinlik</th><th>Ana &Ccedil;&#305;kar&#305;m</th></tr>
+            <tr><td>6.1</td><td>Makine Y&ouml;netimi</td><td>Tam</td><td>Kapasite-aral&#305;k modeli (min/maks/art&#305;&scedil;) dinamik a&ccedil;&#305;l&#305;r men&uuml; &uuml;retimi ve makineler aras&#305; kesi&scedil;im hesaplamas&#305;n&#305; m&uuml;mk&uuml;n k&#305;lar</td></tr>
+            <tr><td>6.2</td><td>Standartlar &amp; Testler</td><td>Tam</td><td>&Uuml;&ccedil; katmanl&#305; hiyerar&scedil;i (standart &rarr; test grubu &rarr; bireysel test) ile &ccedil;oklu standart atamalar&#305;</td></tr>
+            <tr><td>6.3</td><td>Operat&ouml;r Y&ouml;netimi</td><td>Tam</td><td>&Ccedil;ift depolama deseni: b&uuml;t&uuml;nl&uuml;k i&ccedil;in tam say&#305; FK + join&rsquo;siz g&ouml;r&uuml;nt&uuml;leme i&ccedil;in denormalize ad</td></tr>
+            <tr><td>6.4</td><td>Markalama</td><td>Tam</td><td>Mod&uuml;ller aras&#305; veri ak&#305;&scedil;&#305;: marking_id sipari&scedil; &rarr; i&scedil; kart&#305; &rarr; &uuml;retim planlama &rarr; operat&ouml;r ekran&#305; boyunca ilerler</td></tr>
+            <tr><td>6.5</td><td>Kablo Tasar&#305;m</td><td>Kapsaml&#305;</td><td>Bellek i&ccedil;i oturumlar, atomik checkpoint&rsquo;ler, miktar takibi ve makine ak&#305;&scedil; k&#305;s&#305;tlamalar&#305; ile &uuml;retim sim&uuml;lasyon motoru</td></tr>
+            <tr><td>6.6</td><td>Kablo Veritaban&#305;</td><td>Kapsaml&#305;</td><td>Tek do&#287;ru kaynak: t&uuml;m alt mod&uuml;ller i&ccedil;in s&#305;f&#305;r-join okuma sa&#287;layan denormalize JSON blob&rsquo;lar&#305;</td></tr>
+        </table>
+
+        <h3>7.2 Mimari &#304;lkeler</h3>
+
+        <p>Teknik mod&uuml;l&uuml; boyunca birka&ccedil; tasar&#305;m ilkesi tekrarlan&#305;r ve mod&uuml;l&uuml;n karakterini tan&#305;mlar:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>A&scedil;a&#287;&#305; Y&ouml;nl&uuml; Salt Okunur</h4>
+                <p>Di&#287;er t&uuml;m mod&uuml;ller Teknik&rsquo;ten <em>okur</em> ama asla yazmaz. Makineler, standartlar, operat&ouml;rler, markalar ve kablo tasar&#305;mlar&#305; burada tan&#305;mlan&#305;r ve her yerde t&uuml;ketilir. Bu, temiz bir ba&#287;&#305;ml&#305;l&#305;k y&ouml;n&uuml; uygular.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Depolamadan &Ouml;nce Sim&uuml;lasyon</h4>
+                <p>Playground serbest form giri&scedil; kabul etmez. Ger&ccedil;ek &uuml;retim hatt&#305;n&#305; sim&uuml;le eder: ak&#305;&scedil; k&#305;s&#305;tlamalar&#305;n&#305; uygular, ger&ccedil;ek makine kapasitelerine kar&scedil;&#305; do&#287;rular, kesi&scedil;imleri hesaplar, miktarlar&#305; takip eder. Yaln&#305;zca tamamen ge&ccedil;erli bir tasar&#305;m veritaban&#305;na sonland&#305;r&#305;labilir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Deterministik Kimlik</h4>
+                <p>SHA-256 spec hash&rsquo;leme, ayn&#305; fiziksel &uuml;r&uuml;n&uuml;n hangi kablo tasar&#305;m&#305; olu&scedil;turursa olu&scedil;tursun her zaman ayn&#305; kodu almas&#305;n&#305; garanti eder. Kablo tasar&#305;mlar&#305; aras&#305;nda stok havuzlamas&#305;n&#305; m&uuml;mk&uuml;n k&#305;lan budur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>H&#305;z &#304;&ccedil;in Denormalize</h4>
+                <p>Kablo Veritaban&#305;, production_flow, half_products, raw_materials ve test_requirements&rsquo;&#305; JSON blob&rsquo;lar&#305; olarak saklar. Bu bilin&ccedil;lidir: alt mod&uuml;ller tam resmi tek bir okumada ister, 12 tablolu bir join&rsquo;de de&#287;il.</p>
+            </div>
+        </div>
+
+        <h3>7.3 Say&#305;larla</h3>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">6</div>
+                <div class="label">ALT MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~75</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">12</div>
+                <div class="label">VER&#304;TABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">~12.000</div>
+                <div class="label">SATIR BACKEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--negative);">~4.000</div>
+                <div class="label">SATIR FRONTEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">MAK&#304;NE T&#304;P&#304;</div>
+            </div>
+        </div>
+
+        <h3>7.4 Teknik Fabrikay&#305; Nas&#305;l Besler</h3>
+
+        <div class="flow">
+            <span class="flow-step">Teknik</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Kablo Veritaban&#305;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Sipari&scedil;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;retim Planlama</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Stok &amp; Malzeme</span>
+        </div>
+
+        <p>Her kablo sipari&scedil;i, Kablo Veritaban&#305;&rsquo;ndan bir <code>cable_code</code>&rsquo;a referans verir. Her i&scedil; kart&#305;, <code>production_flow</code> JSON&rsquo;undan &uuml;retilir. Her malzeme hesaplamas&#305;, <code>half_products</code> &ouml;zelliklerini okur. Her kalite testi, Teknik&rsquo;te tan&#305;mlanan standart hiyerar&scedil;isinden atan&#305;r. Kablo &uuml;zerine bas&#305;lan markalama, Markalama alt mod&uuml;l&uuml;nden gelir. Kablolar&#305; &uuml;reten makineler, Makine Y&ouml;netimi&rsquo;nde saklanan kapasitelere kar&scedil;&#305; do&#287;rulan&#305;r.</p>
+
+        <p>K&#305;sacas&#305;: <strong>Teknik yanl&#305;&scedil;sa, a&scedil;a&#287;&#305;daki her &scedil;ey yanl&#305;&scedil;t&#305;r.</strong> Bu y&uuml;zden Playground atomik i&scedil;lemler, kapasite do&#287;rulamas&#305; ve deterministik kod &uuml;retimi kullan&#305;r &mdash; Kablo Veritaban&#305;&rsquo;na giren her &scedil;eyin &uuml;retime haz&#305;r ve do&#287;ru oldu&#287;unu garanti etmek i&ccedil;in.</p>
+
+        <h3>7.5 Son S&ouml;z</h3>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;">Teknik mod&uuml;l&uuml;, alan uzmanl&#305;&#287;&#305;n&#305; &mdash; tel &ccedil;aplar&#305;, makine kapasiteleri, &uuml;retim s&#305;ralar&#305;, test standartlar&#305;, markalama &scedil;ablonlar&#305; &mdash; yap&#305;land&#305;r&#305;lm&#305;&scedil;, do&#287;rulanm&#305;&scedil;, makine taraf&#305;ndan okunabilir veriye d&ouml;n&uuml;&scedil;t&uuml;r&uuml;r. M&uuml;hendislerin bildikleri ile yaz&#305;l&#305;m&#305;n y&uuml;r&uuml;tebildikleri aras&#305;ndaki k&ouml;pr&uuml;d&uuml;r. Burada olu&scedil;turulan her kay&#305;t, pe&scedil;inden gelen t&uuml;m &uuml;retim zincirinin a&#287;&#305;rl&#305;&#287;&#305;n&#305; ta&scedil;&#305;r. Bu belge, o zinciri &mdash; 8mm filma&scedil;inin Kabatel &Ccedil;ekme&rsquo;ye girmesinden veritaban&#305;nda saklanan nihai kablo koduna kadar, her makine ad&#305;m&#305;ndan, her miktar b&ouml;l&uuml;nmesinden, her do&#287;rulama kontrol&uuml;nden ve her alt t&uuml;keticiden ge&ccedil;erek &mdash; izlemi&scedil;tir. Sistem &ccedil;al&#305;&scedil;&#305;r &ccedil;&uuml;nk&uuml; Teknik titizdir. Bu belge, bunu kan&#305;tlamak i&ccedil;in vard&#305;r.</p>
+        </div>
+
     </main>
 
 </body>
