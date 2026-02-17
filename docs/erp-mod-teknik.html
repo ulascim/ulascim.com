@@ -957,7 +957,7 @@
         <p>Production operators are the people running the machines on the factory floor. They don&rsquo;t need system logins &mdash; they are simply names in a registry that get assigned to production sessions when someone starts a manufacturing run. This is the simplest submodule in Teknik (284 lines of frontend, 4 endpoints), but its data appears in every production session, every work card, and every half-product record.</p>
 
         <div class="insight">
-            <p style="margin-bottom: 0;"><strong>Two kinds of &ldquo;operator&rdquo; in the system:</strong> <code>ProductionOperator</code> (this submodule) is a simple name registry &mdash; no login, no password, no permissions. The separate <code>Operator</code> model in the User system extends user accounts for operator-type users who log into the system. A production manager picks a <code>ProductionOperator</code> name when starting a session; the operator themselves may or may not have a system account.</p>
+            <p style="margin-bottom: 0;"><strong>Two kinds of &ldquo;operator&rdquo; in the system:</strong> <code>ProductionOperator</code> (this submodule) is a simple name registry &mdash; no login, no password, no permissions. The separate <code>Operator</code> model in the User system extends user accounts for operator-type users who log into the system. When an operator starts a production session, they select their own name from the <code>ProductionOperator</code> registry. The work card they&rsquo;re producing was planned earlier by a production manager via the planning module.</p>
         </div>
 
         <h3>6.3.1 Database Schema</h3>
@@ -1024,7 +1024,7 @@
             <tr><td><code>operator_name</code></td><td>String (denormalized)</td><td>The <em>production operator</em> running the machine (from this registry)</td></tr>
         </table>
 
-        <p>This separation exists because the person starting a production session in the system (a production manager with a login) is often not the person physically operating the machine. The manager selects the operator&rsquo;s name from a dropdown populated by this registry.</p>
+        <p>This separation exists because the system tracks both <em>who</em> is logged in (the user account, stored as <code>operator_id</code> FK) and <em>which production operator</em> is physically running the machine (the name from this registry, stored as <code>operator_name</code>). The operator selects their own name from a dropdown when starting a production session for a work card that was pre-planned by the production manager.</p>
 
         <h4>Operator in the Production Lifecycle</h4>
 
@@ -1039,7 +1039,7 @@
         </div>
 
         <ul>
-            <li><strong>Session Start:</strong> Production page fetches operators with <code>GET /operators/list?active_only=true</code>. Manager selects one from a dropdown. Required to start.</li>
+            <li><strong>Session Start:</strong> Production page fetches operators with <code>GET /operators/list?active_only=true</code>. The operator selects their own name from the dropdown before starting a pre-planned work card. Required to start.</li>
             <li><strong>Mid-Session Change:</strong> Operators can be swapped during a session via <code>POST /production/update-operator</code> &mdash; useful for shift changes.</li>
             <li><strong>Half-Product Tracking:</strong> Stock pages enrich half-product records with <code>operator_name</code> from the production session that created them.</li>
             <li><strong>History:</strong> Production history pages show operator name for every completed session.</li>
@@ -1095,7 +1095,7 @@
         </div>
 
         <div class="discovery">
-            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Radical simplicity. One table, one field that matters (name), four endpoints, no role checks beyond authentication. The complexity lives in how production consumes this data &mdash; the dual storage pattern (FK for integrity, name for history) is the clever part. Operators don&rsquo;t need to know the system exists; a manager types their name once and it follows every meter of cable they produce.</p>
+            <p style="margin-bottom: 0;"><strong>Design principle:</strong> Radical simplicity. One table, one field that matters (name), four endpoints, no role checks beyond authentication. The complexity lives in how production consumes this data &mdash; the dual storage pattern (FK for integrity, name for history) is the clever part. An operator&rsquo;s name is entered once into the registry, and from then on they simply pick it from a dropdown each time they start a production session &mdash; that name then follows every meter of cable they produce.</p>
         </div>
 
     </main>

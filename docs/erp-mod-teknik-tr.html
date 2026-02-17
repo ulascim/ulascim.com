@@ -946,7 +946,7 @@
         <p>&Uuml;retim operat&ouml;rleri fabrika kat&#305;nda makineleri &ccedil;al&#305;&scedil;t&#305;ran ki&scedil;ilerdir. Sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur &mdash; sadece bir kay&#305;t defterindeki isimlerdir ve birisi &uuml;retim &ccedil;al&#305;&scedil;t&#305;rmas&#305; ba&scedil;latt&#305;&#287;&#305;nda &uuml;retim oturumlar&#305;na atan&#305;rlar. Teknik&rsquo;in en basit alt mod&uuml;l&uuml;d&uuml;r (284 sat&#305;r frontend, 4 endpoint), ama verisi her &uuml;retim oturumunda, her i&scedil; kart&#305;nda ve her yar&#305; mamul kayd&#305;nda g&ouml;r&uuml;n&uuml;r.</p>
 
         <div class="insight">
-            <p style="margin-bottom: 0;"><strong>Sistemde iki t&uuml;r &ldquo;operat&ouml;r&rdquo;:</strong> <code>ProductionOperator</code> (bu alt mod&uuml;l) basit bir isim kayd&#305;d&#305;r &mdash; giri&scedil; yok, &scedil;ifre yok, yetki yok. Kullan&#305;c&#305; sistemindeki ayr&#305; <code>Operator</code> modeli, sisteme giri&scedil; yapan operat&ouml;r tipi kullan&#305;c&#305;lar i&ccedil;in kullan&#305;c&#305; hesaplar&#305;n&#305; geni&scedil;letir. &Uuml;retim m&uuml;d&uuml;r&uuml; oturum ba&scedil;lat&#305;rken bu kay&#305;ttan bir <code>ProductionOperator</code> ad&#305; se&ccedil;er; operat&ouml;r&uuml;n kendisinin sistem hesab&#305; olabilir de olmayabilir de.</p>
+            <p style="margin-bottom: 0;"><strong>Sistemde iki t&uuml;r &ldquo;operat&ouml;r&rdquo;:</strong> <code>ProductionOperator</code> (bu alt mod&uuml;l) basit bir isim kayd&#305;d&#305;r &mdash; giri&scedil; yok, &scedil;ifre yok, yetki yok. Kullan&#305;c&#305; sistemindeki ayr&#305; <code>Operator</code> modeli, sisteme giri&scedil; yapan operat&ouml;r tipi kullan&#305;c&#305;lar i&ccedil;in kullan&#305;c&#305; hesaplar&#305;n&#305; geni&scedil;letir. Operat&ouml;r &uuml;retim oturumu ba&scedil;lat&#305;rken bu kay&#305;ttan kendi ad&#305;n&#305; se&ccedil;er. &Uuml;retece&#287;i i&scedil; kart&#305; daha &ouml;nce &uuml;retim m&uuml;d&uuml;r&uuml; taraf&#305;ndan planlama mod&uuml;l&uuml; ile planlanm&#305;&scedil;t&#305;r.</p>
         </div>
 
         <h3>6.3.1 Veritaban&#305; &Scedil;emas&#305;</h3>
@@ -1013,7 +1013,7 @@
             <tr><td><code>operator_name</code></td><td>String (denormalize)</td><td>Makineyi &ccedil;al&#305;&scedil;t&#305;ran <em>&uuml;retim operat&ouml;r&uuml;</em> (bu kay&#305;ttan)</td></tr>
         </table>
 
-        <p>Bu ayr&#305;m, sistemde &uuml;retim oturumu ba&scedil;latan ki&scedil;inin (giri&scedil; yapan &uuml;retim m&uuml;d&uuml;r&uuml;) &ccedil;o&#287;u zaman makineyi fiziksel olarak &ccedil;al&#305;&scedil;t&#305;ran ki&scedil;i olmamas&#305; nedeniyle vard&#305;r. M&uuml;d&uuml;r, bu kay&#305;ttan doldurulan a&ccedil;&#305;l&#305;r men&uuml;den operat&ouml;r&uuml;n ad&#305;n&#305; se&ccedil;er.</p>
+        <p>Bu ayr&#305;m, sistemin hem <em>kimin</em> giri&scedil; yapt&#305;&#287;&#305;n&#305; (kullan&#305;c&#305; hesab&#305;, <code>operator_id</code> FK olarak saklan&#305;r) hem de <em>hangi &uuml;retim operat&ouml;r&uuml;n&uuml;n</em> makineyi fiziksel olarak &ccedil;al&#305;&scedil;t&#305;rd&#305;&#287;&#305;n&#305; (bu kay&#305;ttan gelen isim, <code>operator_name</code> olarak saklan&#305;r) takip etmesinden dolay&#305; vard&#305;r. Operat&ouml;r, &uuml;retim m&uuml;d&uuml;r&uuml; taraf&#305;ndan &ouml;nceden planlanm&#305;&scedil; bir i&scedil; kart&#305; i&ccedil;in &uuml;retim oturumu ba&scedil;lat&#305;rken a&ccedil;&#305;l&#305;r men&uuml;den kendi ad&#305;n&#305; se&ccedil;er.</p>
 
         <h4>&Uuml;retim Ya&scedil;am D&ouml;ng&uuml;s&uuml;nde Operat&ouml;r</h4>
 
@@ -1028,7 +1028,7 @@
         </div>
 
         <ul>
-            <li><strong>Oturum Ba&scedil;latma:</strong> &Uuml;retim sayfas&#305; <code>GET /operators/list?active_only=true</code> ile operat&ouml;rleri getirir. M&uuml;d&uuml;r a&ccedil;&#305;l&#305;r men&uuml;den birini se&ccedil;er. Ba&scedil;lamak i&ccedil;in zorunlu.</li>
+            <li><strong>Oturum Ba&scedil;latma:</strong> &Uuml;retim sayfas&#305; <code>GET /operators/list?active_only=true</code> ile operat&ouml;rleri getirir. Operat&ouml;r, &ouml;nceden planlanm&#305;&scedil; i&scedil; kart&#305;n&#305; ba&scedil;latmadan &ouml;nce a&ccedil;&#305;l&#305;r men&uuml;den kendi ad&#305;n&#305; se&ccedil;er. Ba&scedil;lamak i&ccedil;in zorunlu.</li>
             <li><strong>Oturum &#304;&ccedil;i De&#287;i&scedil;iklik:</strong> Operat&ouml;rler oturum s&#305;ras&#305;nda <code>POST /production/update-operator</code> ile de&#287;i&scedil;tirilebilir &mdash; vardiya de&#287;i&scedil;imleri i&ccedil;in kullan&#305;&scedil;l&#305;.</li>
             <li><strong>Yar&#305; Mamul Takibi:</strong> Stok sayfalar&#305; yar&#305; mamul kay&#305;tlar&#305;n&#305; onlar&#305; &uuml;reten &uuml;retim oturumunun <code>operator_name</code>&rsquo;iyle zenginle&scedil;tirir.</li>
             <li><strong>Ge&ccedil;mi&scedil;:</strong> &Uuml;retim ge&ccedil;mi&scedil;i sayfalar&#305; tamamlanan her oturum i&ccedil;in operat&ouml;r ad&#305;n&#305; g&ouml;sterir.</li>
@@ -1084,7 +1084,7 @@
         </div>
 
         <div class="discovery">
-            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Radikal basitlik. Bir tablo, &ouml;nemli olan tek alan (isim), d&ouml;rt endpoint, kimlik do&#287;rulama &ouml;tesinde rol kontrol&uuml; yok. Karma&scedil;&#305;kl&#305;k &uuml;retimin bu veriyi nas&#305;l t&uuml;ketti&#287;inde ya&scedil;ar &mdash; &ccedil;ift depolama d&uuml;zeni (b&uuml;t&uuml;nl&uuml;k i&ccedil;in FK, ge&ccedil;mi&scedil; i&ccedil;in isim) ak&#305;ll&#305; k&#305;s&#305;md&#305;r. Operat&ouml;rlerin sistemin varl&#305;&#287;&#305;ndan haberi olmas&#305; gerekmez; bir m&uuml;d&uuml;r adlar&#305;n&#305; bir kez yazar ve bu ad &uuml;rettikleri her metre kabloyu takip eder.</p>
+            <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> Radikal basitlik. Bir tablo, &ouml;nemli olan tek alan (isim), d&ouml;rt endpoint, kimlik do&#287;rulama &ouml;tesinde rol kontrol&uuml; yok. Karma&scedil;&#305;kl&#305;k &uuml;retimin bu veriyi nas&#305;l t&uuml;ketti&#287;inde ya&scedil;ar &mdash; &ccedil;ift depolama d&uuml;zeni (b&uuml;t&uuml;nl&uuml;k i&ccedil;in FK, ge&ccedil;mi&scedil; i&ccedil;in isim) ak&#305;ll&#305; k&#305;s&#305;md&#305;r. Bir operat&ouml;r&uuml;n ad&#305; kay&#305;t defterine bir kez girilir ve o andan itibaren her &uuml;retim oturumu ba&scedil;lat&#305;&scedil;&#305;nda a&ccedil;&#305;l&#305;r men&uuml;den se&ccedil;ilir &mdash; bu ad &uuml;rettikleri her metre kabloyu takip eder.</p>
         </div>
 
     </main>
