@@ -1376,6 +1376,116 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Form neden &#351;ekil de&#287;i&#351;tirir:</strong> Her malzeme t&uuml;r&uuml; temelden farkl&#305; fiziksel &ouml;zelliklere sahiptir. Bak&#305;r tek tek tart&#305;lmas&#305; gereken paletlerde gelir. Kalay tek bir bloktur. Plastikler bireysel takip gerektiren numaral&#305; lotlarda gelir. Paletler ve makaralar tart&#305;lmaz, say&#305;l&#305;r. Tek bir genel form ya &ccedil;ok karma&#351;&#305;k olurdu (alakas&#305;z alanlar g&ouml;stererek) ya da &ccedil;ok basit (gerekli verileri ka&ccedil;&#305;rarak). D&ouml;rt arketip yakla&#351;&#305;m&#305;, her malzemenin tam olarak ihtiya&ccedil; duydu&#287;u alanlar&#305; almas&#305;n&#305; sa&#287;lar &mdash; ne eksik ne fazla.</p>
         </div>
 
+
+        <!-- ============================================= -->
+        <!--  6.4  HAMMADDELER L&#304;STES&#304;               -->
+        <!-- ============================================= -->
+
+        <h2 id="materials-list">6.4 &mdash; Hammaddeler Listesi</h2>
+
+        <h3>6.4.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
+        <p>Bu mod&uuml;l, fabrikaya giren <strong>her hammaddenin envanter g&ouml;r&uuml;n&uuml;m&uuml;d&uuml;r</strong>. Hammadde Giri&#351;i teslimatlar&#305; kaydetmekle ilgiliyken, bu mod&uuml;l envanterin g&ouml;r&uuml;nt&uuml;lenmesi, aranmas&#305;, y&ouml;netilmesi ve &uuml;zerinde i&#351;lem yap&#305;lmas&#305;yla ilgilidir. Okuma a&#287;&#305;rl&#305;kl&#305; bir mod&uuml;ld&uuml;r &mdash; birincil kullan&#305;m senaryosu malzemelerin QR koduna g&ouml;re aranmas&#305;, kalan a&#287;&#305;rl&#305;klar&#305;n kontrol edilmesi, foto&#287;raflar&#305;n g&ouml;r&uuml;nt&uuml;lenmesi ve etiket yeniden yazd&#305;r&#305;lmas&#305;d&#305;r. Ancak s&uuml;per adminler i&ccedil;in d&uuml;zenleme ve silme yetenekleri de sa&#287;lar.</p>
+        <p>Sayfa, Hammadde Giri&#351;inin &ccedil;&#305;kt&#305;s&#305;n&#305; t&uuml;ketir: d&ouml;rt giri&#351; arketipinden herhangi biri arac&#305;l&#305;&#287;&#305;yla olu&#351;turulan her sat&#305;r burada g&ouml;r&uuml;n&uuml;r. &ldquo;Hangi hammaddelerimiz var ve ne durumda?&rdquo; sorusunun tek do&#287;ruluk kayna&#287;&#305;d&#305;r.</p>
+
+        <h3>6.4.2 &mdash; WebSocket ile Ger&ccedil;ek Zamanl&#305; G&uuml;ncellemeler</h3>
+        <p>Hammadde Sipari&#351;lerinin aksine (kullan&#305;c&#305; eylemlerinde yenilenen), bu sayfa <code>materials</code> ve <code>all</code> WebSocket odalar&#305;na abone olur. Herhangi bir kullan&#305;c&#305; herhangi bir cihaz veya oturumdan bir malzeme olu&#351;turdu&#287;unda, g&uuml;ncelledi&#287;inde veya sildi&#287;inde tablo otomatik olarak yenilenir. Bu, depodan tablet &uuml;zerinden Hammadde Giri&#351;i yapan bir operat&ouml;r oldu&#287;unda, masa&uuml;st&uuml;nde listeyi g&ouml;r&uuml;nt&uuml;leyen y&ouml;neticinin yeni sat&#305;rlar&#305; yenilemek d&uuml;&#287;mesine basmadan an&#305;nda g&ouml;rmesi anlam&#305;na gelir.</p>
+
+        <h3>6.4.3 &mdash; Tablo: 14 S&uuml;tun</h3>
+        <p>ProTable, her malzeme kayd&#305;n&#305;n kapsaml&#305; bir g&ouml;r&uuml;n&uuml;m&uuml;n&uuml; sunar:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">S&uuml;tun</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">A&ccedil;&#305;klama</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Davran&#305;&#351;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Benzersiz tan&#305;mlay&#305;c&#305; (A1, B5, C23&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sola sabit, mavi etiket</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipari&#351; No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Ba&#287;l&#305; sipari&#351; grup kodu (R1, R2&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Cyan etiket, veya sipari&#351; ba&#287;lant&#305;s&#305; yoksa &ldquo;-&rdquo;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tip</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme t&uuml;r&uuml;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">T&uuml;rk&ccedil;e ad&#305;yla renkli etiket (Bak&#305;r, Kalay, Plastik&hellip;)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme Ad&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Spesifik &uuml;r&uuml;n ad&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Ccedil;&ouml;z&uuml;mlenmi&#351; ad&#305; g&ouml;sterir, bak&#305;r i&ccedil;in &ldquo;Filma&#351;in&rdquo;, kalay i&ccedil;in &ldquo;Kalay K&uuml;l&ccedil;e&rdquo; varsay&#305;lan</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i ad&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">D&uuml;z metin</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot/parti numaras&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Palet/makara i&ccedil;in &ldquo;&mdash;&rdquo; g&ouml;sterir (uygulanmaz)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Form Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;inin beyan etti&#287;i miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">T&uuml;re g&ouml;re kg veya adet</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Ouml;l&ccedil;&uuml;len Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fiili &ouml;l&ccedil;&uuml;len miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">T&uuml;re g&ouml;re kg veya adet</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Uuml;retim sonras&#305; kalan a&#287;&#305;rl&#305;k</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Renk kodlu:</strong> orijinalin %95&rsquo;inden azsa sar&#305;, %20&rsquo;sinden azsa k&#305;rm&#305;z&#305;. Palet/makara i&ccedil;in &ldquo;&mdash;&rdquo;.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giri&#351; Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzemenin girildi&#287;i tarih</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">GG.AA.YYYY T&uuml;rk&ccedil;e format</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;rsaliye</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Teslimat belgesi foto&#287;raflar&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lazy-load k&uuml;&ccedil;&uuml;k resim, birden fazlaysa &ldquo;+N&rdquo; rozeti</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Test</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Test/hasar foto&#287;raflar&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lazy-load k&uuml;&ccedil;&uuml;k resim, birden fazlaysa &ldquo;+N&rdquo; rozeti</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme durumu</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Renkli etiket: ye&#351;il=teslim al&#305;nd&#305;, k&#305;rm&#305;z&#305;=reddedildi, mavi=mevcut, sar&#305;=kullan&#305;mda, gri=t&uuml;kendi</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;&#351;lemler</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Eylem d&uuml;&#287;meleri</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sa&#287;a sabit: yazd&#305;r, d&uuml;zenle, sil</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.4.4 &mdash; &ldquo;Kalan&rdquo; (Kalan A&#287;&#305;rl&#305;k) S&uuml;tunu</h3>
+        <p>Bu, operasyonel olarak en &ouml;nemli s&uuml;tunlardan biridir. &Uuml;retim malzemenin bir k&#305;sm&#305;n&#305; t&uuml;kettikten sonra orijinal malzemeden ne kadar kald&#305;&#287;&#305;n&#305; g&ouml;sterir. Renk kodlamas&#305; anl&#305;k g&ouml;rsel geri bildirim sa&#287;lar:</p>
+        <ul>
+            <li><strong>Renk yok</strong> &mdash; kalan a&#287;&#305;rl&#305;k orijinale yak&#305;n (%5 tolerans i&ccedil;inde)</li>
+            <li><strong>Sar&#305; / kal&#305;n</strong> &mdash; malzeme k&#305;smen t&uuml;ketilmi&#351; (kalan orijinalin %95&rsquo;inden az)</li>
+            <li><strong>K&#305;rm&#305;z&#305; / kal&#305;n</strong> &mdash; malzeme neredeyse t&uuml;kenmi&#351; (kalan orijinalin %20&rsquo;sinden az)</li>
+        </ul>
+        <p>Palet ve makara malzemeler i&ccedil;in bu s&uuml;tun &ldquo;&mdash;&rdquo; g&ouml;sterir &ccedil;&uuml;nk&uuml; say&#305;lan &ouml;&#287;eler kalan a&#287;&#305;rl&#305;k kavram&#305;na sahip de&#287;ildir &mdash; b&uuml;t&uuml;n birim olarak ya mevcuttur ya da t&uuml;kenmi&#351;tir.</p>
+        <p>E&#287;er <code>remaining_weight</code> ayarlanmam&#305;&#351;sa (eski kay&#305;tlar), sistem geriye d&ouml;n&uuml;k uyumluluk i&ccedil;in orijinal <code>weight</code> de&#287;erine d&ouml;ner.</p>
+
+        <h3>6.4.5 &mdash; Lazy Photo Y&uuml;kleme Sistemi</h3>
+        <p>Foto&#287;raf s&uuml;tunlar&#305; bu sayfan&#305;n teknik olarak en ilgin&ccedil; k&#305;sm&#305;d&#305;r. Potansiyel olarak binlerce malzeme ve her biri i&ccedil;in 6&rsquo;ya kadar foto&#287;raf (3 irsaliye + 3 test) ile, t&uuml;m foto&#287;raf verilerini tabloyla birlikte y&uuml;klemek felaket olurdu. Sistem <strong>iki katmanl&#305; lazy loading</strong> yakla&#351;&#305;m&#305; kullan&#305;r:</p>
+        <ol>
+            <li><strong>Tablo y&uuml;kleme:</strong> <code>/materials/list</code> endpoint&rsquo;i yaln&#305;zca foto&#287;raf <em>ID&rsquo;lerini</em> (k&uuml;&ccedil;&uuml;k tamsay&#305;lar) d&ouml;nd&uuml;r&uuml;r, foto&#287;raf verisini de&#287;il. Bu, API yan&#305;t&#305;n&#305; h&#305;zl&#305; tutar.</li>
+            <li><strong>K&uuml;&ccedil;&uuml;k resim y&uuml;kleme:</strong> her foto&#287;raf h&uuml;cresi ba&#287;&#305;ms&#305;z olarak <code>GET /materials/photo/{id}</code> &uuml;zerinden ilk foto&#287;raf&#305;n base64 verisini getiren bir <code>LazyPhotoThumbnail</code> bile&#351;eni olu&#351;turur. K&uuml;&ccedil;&uuml;k resim i&ccedil;in yaln&#305;zca ilk foto&#287;raf y&uuml;klenir.</li>
+            <li><strong>&Ouml;nizleme y&uuml;kleme:</strong> kullan&#305;c&#305; &ouml;nizleme i&ccedil;in bir k&uuml;&ccedil;&uuml;k resme t&#305;klad&#305;&#287;&#305;nda, bile&#351;en o gruptaki t&uuml;m kalan foto&#287;raflar&#305; getirir. Yani bir malzemenin 3 irsaliye foto&#287;raf&#305; varsa, ba&#351;lang&#305;&ccedil;ta yaln&#305;zca ilki y&uuml;klenir; di&#287;er ikisi t&#305;klama &uuml;zerine y&uuml;klenir.</li>
+        </ol>
+        <p>K&uuml;&ccedil;&uuml;k resim 40x40 piksel, yuvarlatilm&#305;&#351; k&ouml;&#351;elerle g&ouml;sterilir. Birden fazla foto&#287;raf varsa, sa&#287; altta &ldquo;+N&rdquo; g&ouml;steren mavi bir rozet belirir (3 foto&#287;raf i&ccedil;in &ldquo;+2&rdquo;). T&#305;klama, sol/sa&#287; gezinme ve sayfa say&#305;c&#305;s&#305;yla tam boyutlu &ouml;nizlemeyi a&ccedil;ar.</p>
+
+        <h3>6.4.6 &mdash; &#304;stemci Taraf&#305; Arama</h3>
+        <p>Arama &ccedil;ubu&#287;u y&uuml;klenen t&uuml;m verileri istemci taraf&#305;nda filtreler. Hammadde Sipari&#351;leri aramas&#305; gibi, hem malzeme t&uuml;rleri hem de durumlar i&ccedil;in EN&rarr;TR &ccedil;eviri haritalar&#305;yla iki dilli e&#351;le&#351;meyi destekler. Aranabilir alanlar: QR kod, malzeme ad&#305;, malzeme t&uuml;r&uuml; (raw_copper&rarr;bak&#305;r, vb.), tedarik&ccedil;i ad&#305;, lot numaras&#305;, sipari&#351; grup kodu, durum (received&rarr;teslim al&#305;nd&#305;, vb.) ve t&uuml;m a&#287;&#305;rl&#305;k/miktar de&#287;erleri metin olarak.</p>
+        <p>Arama, t&uuml;m <code>allMaterials</code> dizisine kar&#351;&#305; her tu&#351; vurusunda yeniden hesaplanan bir <code>useMemo</code> olarak uygulanm&#305;&#351;t&#305;r. Tablo filtrelenmi&#351; sonu&ccedil;lar&#305; <code>dataSource={filteredData}</code> arac&#305;l&#305;&#287;&#305;yla g&ouml;sterir.</p>
+
+        <h3>6.4.7 &mdash; D&uuml;zenleme Modal&#305;: &Uuml;&ccedil; Form Varyant&#305;</h3>
+        <p>D&uuml;zenleme modal&#305;, d&uuml;zenlenen malzeme t&uuml;r&uuml;ne g&ouml;re alanlar&#305;n&#305; uyarlar ve &uuml;&ccedil; varyant kullan&#305;r:</p>
+        <ul>
+            <li><strong>Bak&#305;r/Kalay:</strong> QR kod, lot numaras&#305;, form a&#287;&#305;rl&#305;k, &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k, <strong>kalan a&#287;&#305;rl&#305;k</strong> (d&uuml;zeltmeler i&ccedil;in d&uuml;zenlenebilir, amac&#305;n&#305; a&ccedil;&#305;klayan yard&#305;mc&#305; metinle), durum (4 se&ccedil;enek: teslim al&#305;nd&#305;, mevcut, kullan&#305;mda, t&uuml;kendi), foto&#287;raflar, notlar</li>
+            <li><strong>Lot bazl&#305; (plastik, kataliz&ouml;r, boya, antirodent):</strong> QR kod, lot numaras&#305;, form a&#287;&#305;rl&#305;k, &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k, <strong>adet</strong> (etiket say&#305;s&#305;), durum (2 se&ccedil;enek: teslim al&#305;nd&#305;, reddedildi), foto&#287;raflar, notlar</li>
+            <li><strong>Palet/Makara:</strong> QR kod, <strong>miktar (adet)</strong>, durum (2 se&ccedil;enek: teslim al&#305;nd&#305;, reddedildi) &mdash; en basit form, a&#287;&#305;rl&#305;k veya lot numaras&#305; yok</li>
+        </ul>
+        <p>Her varyant, bir uyar&#305; i&ccedil;eren QR kod alan&#305;n&#305; i&ccedil;erir: &ldquo;Dikkat: QR kodunu de&#287;i&#351;tirmek sistemdeki kay&#305;tlar&#305; etkileyebilir.&rdquo;</p>
+        <p>D&uuml;zenleme modal&#305; a&ccedil;&#305;l&#305;rken foto&#287;raflar lazy-load edilir: sistem API&rsquo;den her foto&#287;raf&#305; ID ile getirir ve upload bile&#351;eni i&ccedil;in Ant Design <code>UploadFile</code> nesnelerine d&ouml;n&uuml;&#351;t&uuml;r&uuml;r. Bu, modal&#305;n mevcut foto&#287;raflar&#305; g&ouml;stermesini ve yenilerinin eklenmesini veya mevcutlar&#305;n kald&#305;r&#305;lmas&#305;n&#305; sa&#287;lar.</p>
+
+        <h3>6.4.8 &mdash; Yaz&#305;c&#305; Se&ccedil;imli Yazd&#305;rma</h3>
+        <p>&#304;&#351;lemler s&uuml;tunundaki yazd&#305;r d&uuml;&#287;mesi, yazd&#305;rmadan &ouml;nce bir <strong>yaz&#305;c&#305; se&ccedil;im modal&#305;</strong> a&ccedil;ar. Bu modal &#351;unlar&#305; g&ouml;sterir:</p>
+        <ul>
+            <li>Onay i&ccedil;in malzemenin QR kodu</li>
+            <li>Etiket say&#305;s&#305; (lot bazl&#305; malzemelerde <code>quantity &gt; 1</code> ise birden fazla etiket yazd&#305;r&#305;l&#305;r)</li>
+            <li><code>GET /printers/list?active_only=true</code>&rsquo;den getirilen aktif yaz&#305;c&#305;lar&#305;n bir a&ccedil;&#305;l&#305;r listesi, her yaz&#305;c&#305;n&#305;n ad&#305; ve konumuyla</li>
+        </ul>
+        <p>Yazd&#305;rma i&#351;i <code>POST /print-queue/queue/{material_id}?printer_id={id}</code>&rsquo;ye g&ouml;nderilir. Yazd&#305;r d&uuml;&#287;mesi palet ve makara malzemeleri i&ccedil;in <strong>devre d&#305;&#351;&#305;d&#305;r</strong> (&ccedil;&uuml;nk&uuml; QR etiket kullanmazlar), nedenini a&ccedil;&#305;klayan bir tooltip ile.</p>
+
+        <h3>6.4.9 &mdash; Yetki Sistemi</h3>
+        <p>Sayfa <strong>12 sayfa d&uuml;zeyi d&uuml;&#287;mesi</strong> kaydeder:</p>
+        <ul>
+            <li><code>access_page</code>, <code>view_table</code>, <code>view_photos</code>, <code>search_filter</code> &mdash; okuma yetenekleri</li>
+            <li><code>print_qr</code> &mdash; yazd&#305;rma</li>
+            <li><code>edit_material</code> &mdash; d&uuml;zenleme modal&#305;n&#305; a&ccedil;ma</li>
+            <li><code>delete_material</code>, <code>hard_delete_material</code> (<em>kritik</em> i&#351;aretli) &mdash; silme</li>
+            <li><code>update_qr_code</code>, <code>update_weight</code>, <code>update_status</code>, <code>update_photos</code> &mdash; gran&uuml;ler d&uuml;zenleme alan&#305; yetkileri</li>
+        </ul>
+        <p>&ldquo;hard_delete_material&rdquo; yetkisi <code>critical: true</code> olarak i&#351;aretlenmi&#351;tir, bu y&ouml;neticilere bunun y&#305;k&#305;c&#305; ve geri d&ouml;n&uuml;&#351;&uuml; olmayan bir eylem oldu&#287;unu bildirir.</p>
+
+        <h3>6.4.10 &mdash; Tablo Yerelle&#351;tirmesi</h3>
+        <p>ProTable ara&ccedil; &ccedil;ubu&#287;u d&uuml;&#287;meleri (yenile, yo&#287;unluk, s&uuml;tun ayarlar&#305;) dahili mesaj ID&rsquo;lerini T&uuml;rk&ccedil;e dizelere e&#351;leyen &ouml;zel bir <code>ProConfigProvider</code> arac&#305;l&#305;&#287;&#305;yla T&uuml;rk&ccedil;e&rsquo;ye yerellendirilmi&#351;tir. Buna &ldquo;Yenile&rdquo;, &ldquo;Sat&#305;r Yo&#287;unlu&#287;u&rdquo;, &ldquo;Tablo Ayarlar&#305;&rdquo;, &ldquo;S&uuml;tun G&ouml;r&uuml;n&uuml;m&uuml;&rdquo;, sabitleme y&ouml;nleri ve daha fazlas&#305; dahildir. Ant Design dili de tarih/say&#305; bi&ccedil;imlendirmesi i&ccedil;in <code>trTR</code> olarak ayarlanm&#305;&#351;t&#305;r.</p>
+
+        <h3>6.4.11 &mdash; Bu Mod&uuml;l&uuml;n Sisteme Ba&#287;lant&#305;s&#305;</h3>
+        <ul>
+            <li><strong>Hammadde Giri&#351;i (&uuml;st ak&#305;&#351;)</strong> &mdash; tek veri kayna&#287;&#305;. Bu tablodaki her sat&#305;r, d&ouml;rt giri&#351; endpoint&rsquo;inden biri taraf&#305;ndan olu&#351;turulmu&#351;tur.</li>
+            <li><strong>Hammadde Sipari&#351;leri (dolayl&#305;)</strong> &mdash; &ldquo;Sipari&#351; No&rdquo; s&uuml;tunu sipari&#351; grup kodunu g&ouml;stererek, envanterden sat&#305;n alma sipari&#351;ine g&ouml;rsel izlenebilirlik sa&#287;lar.</li>
+            <li><strong>&Uuml;retim Sistemi (alt ak&#305;&#351;)</strong> &mdash; &uuml;retim mod&uuml;lleri bu envanterdeki verileri (<code>/materials/list</code> veya do&#287;rudan veritaban&#305; sorgular&#305; &uuml;zerinden) okur, QR koduna g&ouml;re malzeme se&ccedil;er ve malzeme t&uuml;kettik&ccedil;e <code>remaining_weight</code> ve <code>status</code>&rsquo;&uuml; g&uuml;nceller. Bu sayfa bu de&#287;i&#351;iklikleri WebSocket &uuml;zerinden ger&ccedil;ek zamanl&#305; yans&#305;t&#305;r.</li>
+            <li><strong>Yazd&#305;rma Kuyru&#287;u (alt ak&#305;&#351;)</strong> &mdash; yazd&#305;rma eylemi fiziksel etiket &ccedil;&#305;kt&#305;s&#305; i&ccedil;in yazd&#305;rma kuyru&#287;una i&#351; g&ouml;nderir.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Tek sat&#305;rda g&ouml;r&uuml;nen tam izlenebilirlik zinciri:</strong> Bu tablodaki tek bir sat&#305;r size &#351;unlar&#305; s&ouml;yler: ne oldu&#287;unu (QR kod + tip + malzeme ad&#305;), nereden geldi&#287;ini (tedarik&ccedil;i + sipari&#351; grup kodu), ne kadar oldu&#287;unu (form a&#287;&#305;rl&#305;k vs. &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k), ne kadar kald&#305;&#287;&#305;n&#305; (renk kodlu kalan a&#287;&#305;rl&#305;k), neye benzedi&#287;ini (irsaliye ve test foto&#287;raflar&#305;) ve &#351;u anki durumunun ne oldu&#287;unu (durum). Bu, bir hammaddenin tam ya&#351;am d&ouml;ng&uuml;s&uuml; g&ouml;r&uuml;n&uuml;m&uuml;d&uuml;r &mdash; teslimattan t&uuml;kenmeye kadar &mdash; hepsi tek bir sat&#305;rda.</p>
+        </div>
+
     </main>
 </body>
 </html>

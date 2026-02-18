@@ -1376,6 +1376,116 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Why the form changes shape:</strong> Each material type has fundamentally different physical properties. Copper arrives on palettes that must be individually weighed. Tin is a single block. Plastics come in numbered lots that need individual tracking. Palettes and reels are counted, not weighed. A single generic form would either be too complex (showing irrelevant fields) or too simple (missing required data). The four-archetype approach ensures every material gets exactly the fields it needs &mdash; no more, no less.</p>
         </div>
 
+
+        <!-- ============================================= -->
+        <!--  6.4  HAMMADDELER LİSTESİ (Materials List)    -->
+        <!-- ============================================= -->
+
+        <h2 id="materials-list">6.4 &mdash; Hammaddeler Listesi (Materials List)</h2>
+
+        <h3>6.4.1 &mdash; Purpose and Business Context</h3>
+        <p>This is the <strong>inventory view</strong> of every raw material that has ever entered the factory. While Material Entry is about recording arrivals, this module is about seeing, searching, managing, and acting on the inventory. It is a read-heavy module &mdash; the primary use case is looking up materials by QR code, checking remaining weights, viewing photos, and reprinting labels. But it also provides editing and deletion capabilities for super admins.</p>
+        <p>The page consumes the output of Material Entry: every row created through any of the four entry archetypes shows up here. It is the single source of truth for &ldquo;what raw materials do we have, and what state are they in?&rdquo;</p>
+
+        <h3>6.4.2 &mdash; Real-Time Updates via WebSocket</h3>
+        <p>Unlike Material Orders (which refreshes on user actions), this page subscribes to WebSocket rooms <code>materials</code> and <code>all</code>. When any user creates, updates, or deletes a material from any device or session, the table automatically reloads. This means if an operator enters a delivery through Material Entry on a tablet in the warehouse, a manager viewing the list on their desktop sees the new rows appear instantly without pressing refresh.</p>
+
+        <h3>6.4.3 &mdash; The Table: 14 Columns</h3>
+        <p>The ProTable displays a comprehensive view of every material record:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Column</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Description</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Behavior</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Unique identifier (A1, B5, C23&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed left, blue tag</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sipari&#351; No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Linked order group code (R1, R2&hellip;)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Cyan tag, or &ldquo;-&rdquo; if no order link</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tip</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Material type</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Colored tag with Turkish name (Bak&#305;r, Kalay, Plastik&hellip;)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme Ad&#305;</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Specific product name</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Shows resolved name, defaults to &ldquo;Filma&#351;in&rdquo; for copper, &ldquo;Kalay K&uuml;l&ccedil;e&rdquo; for tin</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Supplier name</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Plain text</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot/batch number</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Shows &ldquo;&mdash;&rdquo; for palette/reel (not applicable)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Form Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Supplier&rsquo;s declared weight</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">kg or adet based on type</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Ouml;l&ccedil;&uuml;len Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Actual measured weight</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">kg or adet based on type</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Remaining weight after production</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Color-coded:</strong> yellow if &lt;95% of original, red if &lt;20%. &ldquo;&mdash;&rdquo; for palette/reel.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giri&#351; Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">When material was entered</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">DD.MM.YYYY Turkish locale</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;rsaliye</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Delivery document photos</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lazy-loaded thumbnail with &ldquo;+N&rdquo; badge if multiple</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Test</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Test/damage photos</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lazy-loaded thumbnail with &ldquo;+N&rdquo; badge if multiple</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Material status</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Colored tag: green=received, red=rejected, blue=available, yellow=in_use, grey=consumed</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;&#351;lemler</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Action buttons</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed right: print, edit, delete</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.4.4 &mdash; The &ldquo;Kalan&rdquo; (Remaining Weight) Column</h3>
+        <p>This is one of the most operationally important columns. It shows how much of the original material is still available after production has consumed portions of it. The color coding provides instant visual feedback:</p>
+        <ul>
+            <li><strong>No color</strong> &mdash; the remaining weight is close to the original (within 5% tolerance)</li>
+            <li><strong>Yellow / bold</strong> &mdash; the material has been partially consumed (remaining is less than 95% of original)</li>
+            <li><strong>Red / bold</strong> &mdash; the material is nearly depleted (remaining is less than 20% of original)</li>
+        </ul>
+        <p>For palette and reel materials, this column shows &ldquo;&mdash;&rdquo; because counted items do not have a remaining weight concept &mdash; they are either available or consumed as whole units.</p>
+        <p>If <code>remaining_weight</code> is not set (older records), the system falls back to the original <code>weight</code> value for backward compatibility.</p>
+
+        <h3>6.4.5 &mdash; Lazy Photo Loading System</h3>
+        <p>The photo columns are the most technically interesting part of this page. With potentially thousands of materials and up to 6 photos each (3 delivery + 3 test), loading all photo data with the table would be catastrophically slow. The system uses a <strong>two-tier lazy loading</strong> approach:</p>
+        <ol>
+            <li><strong>Table load:</strong> the <code>/materials/list</code> endpoint returns only photo <em>IDs</em> (small integers), not photo data. This keeps the API response fast.</li>
+            <li><strong>Thumbnail load:</strong> each photo cell renders a <code>LazyPhotoThumbnail</code> component that independently fetches the first photo&rsquo;s base64 data via <code>GET /materials/photo/{id}</code>. Only the first photo is loaded for the thumbnail.</li>
+            <li><strong>Preview load:</strong> when the user clicks a thumbnail to preview, the component fetches all remaining photos in that group. This means if a material has 3 delivery photos, only the first is loaded initially; the other two load on click.</li>
+        </ol>
+        <p>The thumbnail shows as a 40x40 pixel image with rounded corners. If there are multiple photos, a blue badge appears at the bottom-right showing &ldquo;+N&rdquo; (e.g., &ldquo;+2&rdquo; for 3 photos). Clicking opens the full-size preview with left/right navigation and a page counter.</p>
+
+        <h3>6.4.6 &mdash; Client-Side Search</h3>
+        <p>The search bar filters across all loaded data on the client side. Like the Material Orders search, it supports bilingual matching with EN&rarr;TR translation maps for both material types and statuses. Searchable fields include: QR code, material name, material type (raw_copper&rarr;bak&#305;r, etc.), supplier name, lot number, order group code, status (received&rarr;teslim al&#305;nd&#305;, etc.), and all weight/quantity values as strings.</p>
+        <p>The search is implemented as a <code>useMemo</code> that recomputes on every keystroke against the full <code>allMaterials</code> array. The table renders the filtered result via <code>dataSource={filteredData}</code>.</p>
+
+        <h3>6.4.7 &mdash; The Edit Modal: Three Form Variants</h3>
+        <p>The edit modal adapts its fields based on the material type being edited, using three variants:</p>
+        <ul>
+            <li><strong>Copper/Tin:</strong> QR code, lot number, form weight, measured weight, <strong>remaining weight</strong> (editable for corrections, with helper text explaining its purpose), status (4 options: received, available, in_use, consumed), photos, notes</li>
+            <li><strong>Lot-based (plastic, catalyst, dye, antirodent):</strong> QR code, lot number, form weight, measured weight, <strong>quantity</strong> (label count), status (2 options: received, rejected), photos, notes</li>
+            <li><strong>Palette/Reel:</strong> QR code, <strong>quantity (adet)</strong>, status (2 options: received, rejected) &mdash; the simplest form, no weights or lot numbers</li>
+        </ul>
+        <p>Every variant includes the QR code field with a warning: &ldquo;Dikkat: QR kodunu de&#287;i&#351;tirmek sistemdeki kay&#305;tlar&#305; etkileyebilir&rdquo; (Changing the QR code may affect system records).</p>
+        <p>When opening the edit modal, photos are lazy-loaded: the system fetches each photo by ID from the API and converts them into Ant Design <code>UploadFile</code> objects for the upload component. This means the modal shows the existing photos and allows adding new ones or removing existing ones.</p>
+
+        <h3>6.4.8 &mdash; Print with Printer Selection</h3>
+        <p>The print button in the actions column opens a <strong>printer selection modal</strong> before printing. This modal shows:</p>
+        <ul>
+            <li>The material&rsquo;s QR code for confirmation</li>
+            <li>The label count (for lot-based materials with <code>quantity &gt; 1</code>, multiple labels are printed)</li>
+            <li>A dropdown of active printers fetched from <code>GET /printers/list?active_only=true</code>, showing each printer&rsquo;s name and location</li>
+        </ul>
+        <p>The print job is submitted to <code>POST /print-queue/queue/{material_id}?printer_id={id}</code>. The print button is <strong>disabled</strong> for palette and reel materials (they don&rsquo;t use QR labels), with a tooltip explaining why.</p>
+
+        <h3>6.4.9 &mdash; Permission System</h3>
+        <p>The page registers <strong>12 page-level buttons</strong>:</p>
+        <ul>
+            <li><code>access_page</code>, <code>view_table</code>, <code>view_photos</code>, <code>search_filter</code> &mdash; read capabilities</li>
+            <li><code>print_qr</code> &mdash; printing</li>
+            <li><code>edit_material</code> &mdash; open edit modal</li>
+            <li><code>delete_material</code>, <code>hard_delete_material</code> (marked <em>critical</em>) &mdash; deletion</li>
+            <li><code>update_qr_code</code>, <code>update_weight</code>, <code>update_status</code>, <code>update_photos</code> &mdash; granular edit field permissions</li>
+        </ul>
+        <p>The &ldquo;hard_delete_material&rdquo; permission is flagged as <code>critical: true</code>, signaling to administrators that this is a destructive, irreversible action.</p>
+
+        <h3>6.4.10 &mdash; Table Localization</h3>
+        <p>The ProTable toolbar buttons (reload, density, column settings) are localized to Turkish through a custom <code>ProConfigProvider</code> that maps internal message IDs to Turkish strings. This includes: &ldquo;Yenile&rdquo; (Reload), &ldquo;Sat&#305;r Yo&#287;unlu&#287;u&rdquo; (Row Density), &ldquo;Tablo Ayarlar&#305;&rdquo; (Table Settings), &ldquo;S&uuml;tun G&ouml;r&uuml;n&uuml;m&uuml;&rdquo; (Column Display), pin directions, and more. The Ant Design locale is also set to <code>trTR</code> for date/number formatting.</p>
+
+        <h3>6.4.11 &mdash; How This Module Connects to the System</h3>
+        <ul>
+            <li><strong>Material Entry (upstream)</strong> &mdash; the sole data source. Every row in this table was created by one of the four entry endpoints.</li>
+            <li><strong>Material Orders (indirect)</strong> &mdash; the &ldquo;Sipari&#351; No&rdquo; column shows the order group code, providing visual traceability from inventory back to the purchase order.</li>
+            <li><strong>Production System (downstream)</strong> &mdash; production modules read from this inventory (via <code>/materials/list</code> or direct DB queries), select materials by QR code, and update <code>remaining_weight</code> and <code>status</code> as they consume materials. This page reflects those changes in real-time via WebSocket.</li>
+            <li><strong>Print Queue (downstream)</strong> &mdash; the print action sends jobs to the print queue for physical label output.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The full traceability chain visible on one row:</strong> A single row in this table tells you: what it is (QR code + type + material name), where it came from (supplier + order group code), how much there was (form weight vs. measured weight), how much is left (remaining weight with color coding), what it looks like (delivery and test photos), and what its current state is (status). This is the complete lifecycle view of a raw material &mdash; from delivery to depletion &mdash; all in one row.</p>
+        </div>
+
     </main>
 </body>
 </html>
