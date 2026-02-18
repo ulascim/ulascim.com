@@ -31,7 +31,7 @@
         .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -164,8 +164,25 @@
             </div>
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Data Flow</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Teknik &mdash; Engineering</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Hammadde &mdash; Raw Materials</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Sipari&#351; &mdash; Orders</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> &Uuml;retim &mdash; Production</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Stok &mdash; Stock &amp; Inventory</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Lab &mdash; Laboratory</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Admin &mdash; System Administration</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Cross-Cutting Services</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> The Dependency Map</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Numbers</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. THE DATA FLOW</h2>
+        <h2 id="sec-1">1. THE DATA FLOW</h2>
         <!-- ============================================ -->
 
         <p>Before diving into individual modules, here is how data flows through the system. Every module exists because something upstream produces data that something downstream consumes.</p>
@@ -192,7 +209,7 @@
         <p>Two parallel pipelines that converge at <strong>&Uuml;retim</strong> (Production). The top pipeline defines <em>what</em> to produce and <em>when</em>. The bottom pipeline supplies <em>what to produce with</em> and verifies <em>quality</em>.</p>
 
         <!-- ============================================ -->
-        <h2>2. TEKNİK &mdash; ENGINEERING</h2>
+        <h2 id="sec-2">2. TEKNİK &mdash; ENGINEERING</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -238,7 +255,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. HAMMADDE &mdash; RAW MATERIALS</h2>
+        <h2 id="sec-3">3. HAMMADDE &mdash; RAW MATERIALS</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -274,7 +291,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. SİPARİŞ &mdash; ORDERS</h2>
+        <h2 id="sec-4">4. SİPARİŞ &mdash; ORDERS</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -316,7 +333,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>5. ÜRETİM &mdash; PRODUCTION</h2>
+        <h2 id="sec-5">5. ÜRETİM &mdash; PRODUCTION</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -393,7 +410,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6. STOK &mdash; STOCK &amp; INVENTORY</h2>
+        <h2 id="sec-6">6. STOK &mdash; STOCK &amp; INVENTORY</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -424,7 +441,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. LAB &mdash; LABORATORY</h2>
+        <h2 id="sec-7">7. LAB &mdash; LABORATORY</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -451,7 +468,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>8. ADMIN &mdash; SYSTEM ADMINISTRATION</h2>
+        <h2 id="sec-8">8. ADMIN &mdash; SYSTEM ADMINISTRATION</h2>
         <!-- ============================================ -->
 
         <div class="module-card">
@@ -487,7 +504,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>9. CROSS-CUTTING SERVICES</h2>
+        <h2 id="sec-9">9. CROSS-CUTTING SERVICES</h2>
         <!-- ============================================ -->
 
         <p>These are not modules with their own pages &mdash; they are services woven into every module.</p>
@@ -520,7 +537,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>10. THE DEPENDENCY MAP</h2>
+        <h2 id="sec-10">10. THE DEPENDENCY MAP</h2>
         <!-- ============================================ -->
 
         <p>Which module depends on which? Rows read as &ldquo;this module depends on...&rdquo; The column headers are the providers. <span class="good">Strong</span> means heavy data dependency. <span style="color: #2563eb; font-weight: 700;">Light</span> means occasional reference.</p>
@@ -615,7 +632,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>11. NUMBERS</h2>
+        <h2 id="sec-11">11. NUMBERS</h2>
         <!-- ============================================ -->
 
         <table>

@@ -60,7 +60,7 @@
         /* REPORT */
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -180,8 +180,24 @@
             </div>
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Company</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Production Flow &mdash; Overview</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Production Steps &mdash; In Detail</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Raw Materials</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Hidden Math</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Standards, Testing &amp; Quality Control</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Cable Marking</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Cable Design Notation</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Half-Product Tracking</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Why This Is an ERP Problem</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. THE COMPANY</h2>
+        <h2 id="sec-1">1. THE COMPANY</h2>
         <!-- ============================================ -->
 
         <p><strong>Solen Kablo</strong> manufactures solar cables &mdash; primarily the <strong>H1Z2Z2-K</strong> standard used in photovoltaic installations worldwide. The cables are TUV Rheinland certified, use electron beam (E-beam) cross-linked insulation, and range from 1.5mm&sup2; to 240mm&sup2; cross-section.</p>
@@ -193,7 +209,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. THE PRODUCTION FLOW &mdash; OVERVIEW</h2>
+        <h2 id="sec-2">2. THE PRODUCTION FLOW &mdash; OVERVIEW</h2>
         <!-- ============================================ -->
 
         <p>From raw copper to shipped cable, the production passes through 8 distinct steps. Each step has its own machine, its own operators, its own constraints, and its own quality requirements.</p>
@@ -221,7 +237,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. THE PRODUCTION STEPS &mdash; IN DETAIL</h2>
+        <h2 id="sec-3">3. THE PRODUCTION STEPS &mdash; IN DETAIL</h2>
         <!-- ============================================ -->
 
         <p>The following uses a <strong>6mm&sup2; solar cable</strong> as a running example to show concrete numbers. Every number changes for different cable designs.</p>
@@ -493,7 +509,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. RAW MATERIALS</h2>
+        <h2 id="sec-4">4. RAW MATERIALS</h2>
         <!-- ============================================ -->
 
         <p>Before production can begin, raw materials must be received, inspected, tracked, and allocated. Every material enters the system with a <strong>QR code</strong>, a <strong>lot number</strong>, a <strong>measured weight</strong>, and delivery documentation.</p>
@@ -561,7 +577,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>5. THE HIDDEN MATH</h2>
+        <h2 id="sec-5">5. THE HIDDEN MATH</h2>
         <!-- ============================================ -->
 
         <p>Behind every production order is a material calculator that walks through the entire production flow and computes exact material requirements. These are not approximations &mdash; they are derived from <strong>laboratory-verified production constants</strong>.</p>
@@ -617,7 +633,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6. STANDARDS, TESTING &amp; QUALITY CONTROL</h2>
+        <h2 id="sec-6">6. STANDARDS, TESTING &amp; QUALITY CONTROL</h2>
         <!-- ============================================ -->
 
         <p>Solar cables must comply with international standards. Quality control is not a final inspection &mdash; it is woven into every production step.</p>
@@ -679,7 +695,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. CABLE MARKING</h2>
+        <h2 id="sec-7">7. CABLE MARKING</h2>
         <!-- ============================================ -->
 
         <p>Every meter of cable is printed with identification markings during extrusion. The marking is a legal requirement &mdash; it identifies the manufacturer, standard, cable type, and production batch. A typical marking sequence:</p>
@@ -693,7 +709,7 @@
         <p>Dynamic fields like <code>{ORDER_NO}</code> and <code>{METER}</code> are populated in real-time during production. The meter counter increments continuously as cable is extruded.</p>
 
         <!-- ============================================ -->
-        <h2>8. CABLE DESIGN NOTATION</h2>
+        <h2 id="sec-8">8. CABLE DESIGN NOTATION</h2>
         <!-- ============================================ -->
 
         <p>Every cable design is encoded in a structure formula that describes its complete physical composition. This notation drives the entire production flow calculation.</p>
@@ -726,7 +742,7 @@
         <p>Siyah (Black) &bull; K&#305;rm&#305;z&#305; (Red) &bull; Beyaz (White) &bull; Ye&#351;il-Sar&#305; (Green-Yellow) &bull; Pembe (Pink) &bull; Mavi (Blue)</p>
 
         <!-- ============================================ -->
-        <h2>9. HALF-PRODUCT TRACKING</h2>
+        <h2 id="sec-9">9. HALF-PRODUCT TRACKING</h2>
         <!-- ============================================ -->
 
         <p>Between raw material and finished cable, the factory floor is covered with <strong>half products</strong> (yar&#305; mamul) &mdash; intermediate goods at various stages of completion. Each half product has a system-generated code that encodes its exact state.</p>
@@ -746,7 +762,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>10. WHY THIS IS AN ERP PROBLEM</h2>
+        <h2 id="sec-10">10. WHY THIS IS AN ERP PROBLEM</h2>
         <!-- ============================================ -->
 
         <p>A cable factory looks simple from the outside: copper goes in, cable comes out. But the production flow has several properties that make manual tracking impossible at scale:</p>

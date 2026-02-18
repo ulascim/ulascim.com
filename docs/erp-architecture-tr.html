@@ -22,7 +22,7 @@
         .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -117,7 +117,22 @@
             </div>
         </div>
 
-        <h2>1. M&#304;MAR&#304;: MOD&Uuml;LER MONOL&#304;T</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">&#304;&Ccedil;&#304;NDEK&#304;LER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Mimari: Mod&uuml;ler Monolit</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Teknoloji Stack&rsquo;i</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Tasar&#305;m Kurallar&#305;</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> API Tasar&#305;m&#305;</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Veritaban&#305; Stratejisi</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Frontend Mimarisi</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> AI Entegrasyonu</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> A&#287; &amp; Deployment</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Evrim Yolu</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. M&#304;MAR&#304;: MOD&Uuml;LER MONOL&#304;T</h2>
 
         <p>Sistem bir <strong>Mod&uuml;ler Monolit</strong>&rsquo;tir &mdash; a&ccedil;&#305;k&ccedil;a ayr&#305;lm&#305;&#351; dahili mod&uuml;llere sahip, tek bir veritaban&#305;n&#305; payla&#351;an tek bir uygulama. Mikroservis de&#287;il. Geleneksel monolit de&#287;il. Aradaki ideal nokta.</p>
 
@@ -148,7 +163,7 @@
             <p style="margin-bottom: 0;"><strong>&Ouml;d&uuml;n verme bilinmektedir:</strong> Veritaban&#305; &ccedil;&ouml;kt&uuml;&#287;&uuml;nde her &#351;ey &ccedil;&ouml;ker. T&uuml;m mod&uuml;ller tek bir SQLite/PostgreSQL &ouml;rne&#287;ini payla&#351;&#305;r &mdash; tek bir ar&#305;za noktas&#305; vard&#305;r. Yerinde donan&#305;ma sahip bir fabrika ERP&rsquo;si i&ccedil;in bu kabul edilebilir bir &ouml;d&uuml;n vermedir.</p>
         </div>
 
-        <h2>2. TEKNOLOJ&#304; STACK&rsquo;&#304;</h2>
+        <h2 id="sec-2">2. TEKNOLOJ&#304; STACK&rsquo;&#304;</h2>
 
         <h3>Backend</h3>
         <table>
@@ -179,7 +194,7 @@
             <p style="margin-bottom: 0;"><strong>Neden Ant Design Pro?</strong> En &ouml;nemli tek framework se&ccedil;imi. Kablo fabrikas&#305; ERP&rsquo;si %80 tablo, form ve CRUD ekran&#305;d&#305;r. Ant Design Pro bunlar&#305;n hepsini dahili T&uuml;rk&ccedil;e yerelleshtirme, responsive layoutlar, rol tabanl&#305; men&uuml;ler ve karanl&#305;k mod ile &uuml;retim haz&#305;r olarak sunar. Bunlar&#305; s&#305;f&#305;rdan yazmak aylarca eklerdi.</p>
         </div>
 
-        <h2>3. TASARIM KURALLARI</h2>
+        <h2 id="sec-3">3. TASARIM KURALLARI</h2>
 
         <h3>Kural 1: T&uuml;rk&ccedil;e-&Ouml;ncelikli Aray&uuml;z</h3>
         <p>Her UI etiketi, her hata mesaj&#305;, her bildirim T&uuml;rk&ccedil;e. Fabrika operat&ouml;rleri &#304;ngilizce konu&#351;maz. Ant Design yerel ayar&#305; T&uuml;rk&ccedil;e&rsquo;ye kilitli. AI promptlar&#305; T&uuml;rk&ccedil;e.</p>
@@ -201,7 +216,7 @@
         <h3>Kural 5: Erken Optimizasyon Yok</h3>
         <p>Geli&#351;tirmede SQLite. Gerekti&#287;inde PostgreSQL. &Ouml;l&ccedil;&uuml;lm&uuml;&#351; bir performans problemi olana kadar Redis cache yok. Senkron i&#351;lemenin yetersiz oldu&#287;u kan&#305;tlanana kadar mesaj kuyru&#287;u yok. &Ccedil;al&#305;&#351;an en basit &#351;eyi in&#351;a et, &ouml;l&ccedil;, sonra optimize et.</p>
 
-        <h2>4. API TASARIMI</h2>
+        <h2 id="sec-4">4. API TASARIMI</h2>
 
         <p>Backend, port 8000&rsquo;de &ccedil;al&#305;&#351;an tek bir FastAPI uygulamas&#305;na monte edilmi&#351; 25&rsquo;ten fazla router grubu sunar. Her endpoint ayn&#305; deseni izler:</p>
 
@@ -222,7 +237,7 @@ async def get_something(
             <li><strong>Fabrika a&#287;&#305; CORS.</strong> CORS konfig&uuml;rasyonu, 192.168.x.x ve 10.0.0.x fabrika a&#287;lar&#305;ndaki herhangi bir cihazdan HTTP ve HTTPS eri&#351;imini desteklemek i&ccedil;in 1000&rsquo;den fazla origin kombinasyonu &uuml;retir.</li>
         </ul>
 
-        <h2>5. VER&#304;TABANI STRATEJ&#304;S&#304;</h2>
+        <h2 id="sec-5">5. VER&#304;TABANI STRATEJ&#304;S&#304;</h2>
 
         <p>Veritaban&#305; &ouml;nceden tasarlanmad&#305;. Her mod&uuml;l in&#351;a edildik&ccedil;e organik olarak b&uuml;y&uuml;d&uuml;. Bu kas&#305;tl&#305;d&#305;r &mdash; alan, anla&#351;&#305;lmadan &ouml;nce bir &#351;ema tasarlamak i&ccedil;in &ccedil;ok karma&#351;&#305;kt&#305;.</p>
 
@@ -240,7 +255,7 @@ async def get_something(
             <p style="margin-bottom: 0;"><strong>Neden Alembic de&#287;il?</strong> &#350;eman&#305;n h&#305;zla geli&#351;ti&#287;i tek geli&#351;tiricili bir sistem i&ccedil;in, <code>IF NOT EXISTS</code> korumalar&#305;yla elle yaz&#305;lm&#305;&#351; migration scriptleri, otomatik &uuml;retilen migration&rsquo;lardan daha basit ve &ouml;ng&ouml;r&uuml;lebilirdir.</p>
         </div>
 
-        <h2>6. FRONTEND M&#304;MAR&#304;S&#304;</h2>
+        <h2 id="sec-6">6. FRONTEND M&#304;MAR&#304;S&#304;</h2>
 
         <p>Frontend, Ant Design Pro ile in&#351;a edilmi&#351;, rol tabanl&#305; men&uuml;ler arac&#305;l&#305;&#287;&#305;yla t&uuml;m mod&uuml;llere hizmet veren tek bir React uygulamas&#305;d&#305;r.</p>
 
@@ -255,7 +270,7 @@ src/pages/
 &#9500;&#9472;&#9472; Hammadde/               <span class="comment"># Hammadde &mdash; malzeme giri&#351;i, sipari&#351;ler</span>
 &#9492;&#9472;&#9472; Admin/                  <span class="comment"># Admin &mdash; yaz&#305;c&#305;lar, kullan&#305;c&#305;lar, AI ayarlar&#305;</span></pre>
 
-        <h2>7. AI ENTEGRASYONU</h2>
+        <h2 id="sec-7">7. AI ENTEGRASYONU</h2>
 
         <p>Ayr&#305; bir Python servisi, panodan eri&#351;ilebilen AI destekli arama ve sohbet sa&#287;lar. AI, 92 API endpoint arac&#305; &uuml;zerinden t&uuml;m veritaban&#305;na <strong>salt okunur eri&#351;ime</strong> sahiptir.</p>
 
@@ -278,7 +293,7 @@ src/pages/
             <p style="margin-bottom: 0;"><strong>Neden salt okunur?</strong> Bir fabrikada &uuml;retim verilerini de&#287;i&#351;tirebilen bir AI asistan&#305; sorumluluktur. Bir hal&uuml;sinasyon sonucu malzeme silme &uuml;retimi durdurabilir. AI arama yapabilir, &ouml;zetleyebilir ve sorular&#305; yan&#305;tlayabilir &mdash; ancak &#351;imdilik hi&ccedil;bir &#351;ey olu&#351;turamaz, g&uuml;ncelleyemez veya silemez.</p>
         </div>
 
-        <h2>8. A&#286; &amp; DEPLOYMENT</h2>
+        <h2 id="sec-8">8. A&#286; &amp; DEPLOYMENT</h2>
 
         <p>Sistem, fabrika zeminindeki bir <strong>Mac Mini</strong>&rsquo;de &ccedil;al&#305;&#351;&#305;r ve yerel a&#287;daki t&uuml;m cihazlara eri&#351;ilebilir.</p>
 
@@ -299,7 +314,7 @@ src/pages/
 
         <p>Operat&ouml;rler QR kod taramak ve &uuml;retim kaydetmek i&ccedil;in telefon/tabletlerde mobil Chrome kullan&#305;r. Y&ouml;neticiler sipari&#351; y&ouml;netimi, tasar&#305;m ve raporlama i&ccedil;in masa&uuml;st&uuml; taray&#305;c&#305;lar&#305; kullan&#305;r.</p>
 
-        <h2>9. EVR&#304;M YOLU</h2>
+        <h2 id="sec-9">9. EVR&#304;M YOLU</h2>
 
         <p>Mimari, &ouml;l&ccedil;ek gerektirdi&#287;inde planl&#305; bir evrim yoluna sahiptir:</p>
 

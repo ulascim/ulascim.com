@@ -31,7 +31,7 @@
         .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -135,8 +135,23 @@
             </div>
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Architecture: Modular Monolith</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Technology Stack</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Design Rules</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> API Design</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Database Strategy</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Frontend Architecture</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> AI Integration</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Network &amp; Deployment</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> The Evolution Path</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. THE ARCHITECTURE: MODULAR MONOLITH</h2>
+        <h2 id="sec-1">1. THE ARCHITECTURE: MODULAR MONOLITH</h2>
         <!-- ============================================ -->
 
         <p>The system is a <strong>Modular Monolith</strong> &mdash; a single application with clearly separated internal modules, sharing a single database. Not microservices. Not a traditional monolith. The sweet spot in between.</p>
@@ -199,7 +214,7 @@ solen_backend/
 └── main.py                     <span class="comment"># FastAPI application entry point</span></pre>
 
         <!-- ============================================ -->
-        <h2>2. TECHNOLOGY STACK</h2>
+        <h2 id="sec-2">2. TECHNOLOGY STACK</h2>
         <!-- ============================================ -->
 
         <h3>Backend</h3>
@@ -242,7 +257,7 @@ solen_backend/
         </table>
 
         <!-- ============================================ -->
-        <h2>3. DESIGN RULES</h2>
+        <h2 id="sec-3">3. DESIGN RULES</h2>
         <!-- ============================================ -->
 
         <p>These rules were not written on day one &mdash; they crystallized over months of building, breaking, and rebuilding.</p>
@@ -268,7 +283,7 @@ solen_backend/
         <p>SQLite in development. PostgreSQL when needed. No Redis cache until there&rsquo;s a measured performance problem. No message queue until synchronous processing is proven insufficient. Build the simplest thing that works, measure, then optimize.</p>
 
         <!-- ============================================ -->
-        <h2>4. API DESIGN</h2>
+        <h2 id="sec-4">4. API DESIGN</h2>
         <!-- ============================================ -->
 
         <p>The backend exposes 25+ router groups, all mounted on a single FastAPI application running on port 8000. Every endpoint follows the same pattern:</p>
@@ -304,7 +319,7 @@ solen_backend/
         </table>
 
         <!-- ============================================ -->
-        <h2>5. DATABASE STRATEGY</h2>
+        <h2 id="sec-5">5. DATABASE STRATEGY</h2>
         <!-- ============================================ -->
 
         <p>The database was not designed upfront. It grew organically as each module was built. This is intentional &mdash; the domain was too complex to design a schema before understanding it.</p>
@@ -328,7 +343,7 @@ solen_backend/
         </div>
 
         <!-- ============================================ -->
-        <h2>6. FRONTEND ARCHITECTURE</h2>
+        <h2 id="sec-6">6. FRONTEND ARCHITECTURE</h2>
         <!-- ============================================ -->
 
         <p>The frontend is a single React application built with Ant Design Pro, serving all modules through role-based menus.</p>
@@ -364,7 +379,7 @@ src/pages/
         </ul>
 
         <!-- ============================================ -->
-        <h2>7. AI INTEGRATION</h2>
+        <h2 id="sec-7">7. AI INTEGRATION</h2>
         <!-- ============================================ -->
 
         <p>A separate Python service provides AI-powered search and chat, accessible from the dashboard. The AI has <strong>read-only access</strong> to the entire database through 92 API endpoint tools.</p>
@@ -389,7 +404,7 @@ src/pages/
         </div>
 
         <!-- ============================================ -->
-        <h2>8. NETWORK &amp; DEPLOYMENT</h2>
+        <h2 id="sec-8">8. NETWORK &amp; DEPLOYMENT</h2>
         <!-- ============================================ -->
 
         <p>The system runs on a <strong>Mac Mini</strong> on the factory floor, accessible to all devices on the local network.</p>
@@ -412,7 +427,7 @@ src/pages/
         <p>Operators use mobile Chrome on phones/tablets to scan QR codes and log production. Managers use desktop browsers for order management, design, and reporting. Both access the same backend on the same network. HTTPS is enabled for mobile device security (camera access for QR scanning requires secure context).</p>
 
         <!-- ============================================ -->
-        <h2>9. THE EVOLUTION PATH</h2>
+        <h2 id="sec-9">9. THE EVOLUTION PATH</h2>
         <!-- ============================================ -->
 
         <p>The architecture has a planned evolution path if scale ever demands it:</p>
