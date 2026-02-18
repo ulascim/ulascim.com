@@ -708,6 +708,277 @@
             </div>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.3  YAZICI YÖNETİMİ                         -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
+
+        <h3>6.3.1 Purpose and Business Context</h3>
+
+        <p>Every raw material that enters the factory receives a printed A6 label with a QR code, weight, supplier, lot number, and entry date. These labels are the physical identity of the material &mdash; they&rsquo;re scanned at every downstream station (lab testing, production, stock). The label printers are industrial network devices (TCP port 9100 / IPP port 631) placed in specific locations: the laboratory and three production lines. <strong>Printer Management</strong> is the registry where these physical devices are configured, tested, and assigned to material types.</p>
+
+        <p>Without this submodule, the system wouldn&rsquo;t know <em>where</em> to send print jobs. It answers four questions: What printers exist? Where are they? Are they online? What material types can each printer handle?</p>
+
+        <h3>6.3.2 Database Schema</h3>
+
+        <p>Single table: <code>printers</code> (model file: 66 lines)</p>
+
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment, indexed</td><td>Unique printer identifier</td></tr>
+            <tr><td><code>name</code></td><td>String(100)</td><td>NOT NULL</td><td>Human-readable name (e.g. &ldquo;Lab Yaz&inodot;c&inodot;s&inodot;&rdquo;)</td></tr>
+            <tr><td><code>description</code></td><td>Text</td><td>NULLABLE</td><td>Optional description</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(50)</td><td>NOT NULL</td><td>Network IP (e.g. 192.168.0.182)</td></tr>
+            <tr><td><code>port</code></td><td>Integer</td><td>NOT NULL, default 9100</td><td>Network port (9100 for RAW, 631 for IPP)</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td>NOT NULL, default &ldquo;online&rdquo;</td><td>Current status: online / offline / error / maintenance</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>NOT NULL, default True</td><td>Soft-enable/disable toggle</td></tr>
+            <tr><td><code>assigned_materials</code></td><td>Text</td><td>NULLABLE</td><td>JSON array of material type codes this printer handles (e.g. <code>["raw_copper","raw_tin"]</code>)</td></tr>
+            <tr><td><code>location</code></td><td>String(100)</td><td>NULLABLE</td><td>Physical location (e.g. &ldquo;Laboratuvar&rdquo;, &ldquo;&Uuml;retim - Hat 1&rdquo;)</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>NOT NULL, auto</td><td>Creation timestamp</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>NOT NULL, auto + onupdate</td><td>Last modification timestamp</td></tr>
+            <tr><td><code>last_checked</code></td><td>DateTime</td><td>NULLABLE</td><td>Last connection test timestamp</td></tr>
+        </table>
+
+        <h4>PrinterStatus Enum</h4>
+        <pre><span class="keyword">class</span> <span class="string">PrinterStatus</span>(str, Enum):
+    ONLINE      = <span class="string">"online"</span>
+    OFFLINE     = <span class="string">"offline"</span>
+    ERROR       = <span class="string">"error"</span>
+    MAINTENANCE = <span class="string">"maintenance"</span></pre>
+
+        <h4>Default Printers (Migration Seed Data)</h4>
+        <table>
+            <tr><th>ID</th><th>Name</th><th>IP</th><th>Port</th><th>Location</th><th>Assigned Materials</th></tr>
+            <tr><td>1</td><td>Lab Yaz&inodot;c&inodot;s&inodot;</td><td>192.168.0.182</td><td>9100</td><td>Laboratuvar</td><td>A, B, C, D, E, F (all types)</td></tr>
+            <tr><td>2</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 1</td><td>192.168.0.183</td><td>9100</td><td>&Uuml;retim - Hat 1</td><td>[] (none)</td></tr>
+            <tr><td>3</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 2</td><td>192.168.0.184</td><td>9100</td><td>&Uuml;retim - Hat 2</td><td>[] (none)</td></tr>
+            <tr><td>4</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 3</td><td>192.168.0.185</td><td>9100</td><td>&Uuml;retim - Hat 3</td><td>[] (none)</td></tr>
+        </table>
+
+        <h3>6.3.3 API Contract &mdash; 5 Endpoints</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/printers/list</code></td><td>Any authenticated</td><td>List all printers. Optional <code>?active_only=true</code> filter. Parses <code>assigned_materials</code> from JSON.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/printers/create</code></td><td>super_admin only</td><td>Create new printer. Required: name, ip_address. Default port=9100, status=online, is_active=true. Converts assigned_materials array to JSON string.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/printers/update/{id}</code></td><td>super_admin only</td><td>Update printer. Partial update &mdash; only provided fields change. Stamps <code>updated_at</code>.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/printers/{id}/test</code></td><td>super_admin or lab_user</td><td>Test connection via CUPS <code>lpstat -p</code>. Updates <code>status</code> to online/offline and stamps <code>last_checked</code>.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/printers/{id}</code></td><td>super_admin only</td><td>Delete printer. <strong>Blocked</strong> if printer has pending jobs (QUEUED or PRINTING). Error: &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var.&rdquo;</td></tr>
+        </table>
+
+        <h3>6.3.4 CRUD Flow</h3>
+
+        <p><strong>Create:</strong></p>
+        <ol>
+            <li>Click &ldquo;Yeni Yaz&inodot;c&inodot; Ekle&rdquo; button in toolbar</li>
+            <li>Modal (600px) opens with 7 fields: name (required), description, location, IP address (required), port (default 9100), assigned materials (multi-select: A=Bak&inodot;r, B=Kalay, C=Plastik, D=Kataliz&ouml;r, E=Boya, F=Antirodent), status</li>
+            <li>On submit: <code>POST /api/printers/create</code></li>
+            <li>Backend creates record with <code>is_active=true</code>, <code>status=online</code>, converts assigned_materials array to JSON string</li>
+            <li>On success: toast &ldquo;Yaz&inodot;c&inodot; &lsquo;{name}&rsquo; eklendi&rdquo; &rarr; modal closes &rarr; table reloads</li>
+            <li><strong>Note:</strong> New printer requires application restart for its background print worker to initialize</li>
+        </ol>
+
+        <p><strong>Read:</strong></p>
+        <ol>
+            <li>Page loads &rarr; <code>GET /api/printers/list</code></li>
+            <li>ProTable (11 columns) renders: ID, name, description, IP (blue tag), port, location, status (color-coded tag), assigned materials (letter tags), active (check/cross icon), actions</li>
+            <li>Client-side search filters across name, description, IP, location, status, port, and ID simultaneously</li>
+        </ol>
+
+        <p><strong>Update:</strong></p>
+        <ol>
+            <li>Click edit icon in Actions column</li>
+            <li>Same modal opens pre-filled with current values</li>
+            <li>Modify any fields &rarr; click &ldquo;G&uuml;ncelle&rdquo;</li>
+            <li><code>PUT /api/printers/update/{id}</code> &rarr; backend updates only provided fields, stamps <code>updated_at</code></li>
+            <li>On success: toast &ldquo;Yaz&inodot;c&inodot; &lsquo;{name}&rsquo; g&uuml;ncellendi&rdquo; &rarr; modal closes &rarr; table reloads</li>
+        </ol>
+
+        <p><strong>Delete:</strong></p>
+        <ol>
+            <li>Click delete icon (danger button) in Actions column</li>
+            <li>Confirmation modal: &ldquo;{name} yaz&inodot;c&inodot;s&inodot;n&inodot; silmek istedi&gbreve;inize emin misiniz?&rdquo;</li>
+            <li>On confirm: <code>DELETE /api/printers/{id}</code></li>
+            <li>Backend checks for pending print jobs (QUEUED or PRINTING status)</li>
+            <li>If pending jobs exist: deletion <strong>blocked</strong> with error &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var. &Ouml;nce i&#351;leri tamamlay&inodot;n veya iptal edin.&rdquo;</li>
+            <li>If no pending jobs: printer deleted &rarr; toast &rarr; table reloads</li>
+        </ol>
+
+        <p><strong>Test Connection:</strong></p>
+        <ol>
+            <li>Click test icon (ApiOutlined) in Actions column</li>
+            <li><code>POST /api/printers/{id}/test</code></li>
+            <li>Backend calls <code>PrintService.test_printer_connection()</code> which executes <code>lpstat -p {printer_name}</code> via subprocess</li>
+            <li>Possible results: &ldquo;connected&rdquo; (idle), &ldquo;busy&rdquo;, &ldquo;not_found&rdquo;, &ldquo;timeout&rdquo;, &ldquo;error&rdquo;</li>
+            <li>Backend updates <code>printer.status</code> (ONLINE or OFFLINE) and stamps <code>last_checked</code></li>
+            <li>On success: toast with printer name &rarr; table reloads (status column reflects new state)</li>
+            <li>On failure: warning message &rarr; table reloads (status shows &ldquo;&Ccedil;evrimd&inodot;&#351;&inodot;&rdquo; in red)</li>
+        </ol>
+
+        <h3>6.3.5 The Print Service &mdash; Label Generation Engine</h3>
+
+        <p>File: <code>app/services/print_service.py</code> (576 lines). This is the core service that generates and prints A6 labels.</p>
+
+        <h4>Label Specifications</h4>
+        <table>
+            <tr><th>Property</th><th>Value</th></tr>
+            <tr><td>Size</td><td>A6 (827 &times; 1165 pixels)</td></tr>
+            <tr><td>DPI</td><td>200</td></tr>
+            <tr><td>QR Code Size</td><td>300px, centered, error correction level H</td></tr>
+            <tr><td>Timezone</td><td>Europe/Istanbul (Turkey)</td></tr>
+            <tr><td>Print Protocol</td><td>CUPS/IPP via <code>lp</code> command with A6 media + fit-to-page</td></tr>
+            <tr><td>Timeout</td><td>10 seconds per print command</td></tr>
+        </table>
+
+        <h4>Label Content Layout</h4>
+        <ol>
+            <li>Centered QR code (300px) with QR text below</li>
+            <li>Lot number (if exists)</li>
+            <li>Weight (kg)</li>
+            <li>Material type / product name</li>
+            <li>Date and time (Turkey timezone)</li>
+            <li>&ldquo;Created by&rdquo; user name</li>
+            <li>Notes (if exists)</li>
+        </ol>
+
+        <h4>Key Service Methods</h4>
+        <table>
+            <tr><th>Method</th><th>What It Does</th></tr>
+            <tr><td><code>generate_qr_code(data, size)</code></td><td>Creates QR code image with error correction H</td></tr>
+            <tr><td><code>create_label_image(material_data)</code></td><td>Builds A6 label with QR, weight, supplier, lot, dates using PIL</td></tr>
+            <tr><td><code>print_via_cups(image, printer_name, copies)</code></td><td>Saves to temp PNG &rarr; <code>lp</code> command with A6 media &rarr; cleans up</td></tr>
+            <tr><td><code>print_label(material_data)</code></td><td>Generate + print single label (1 copy)</td></tr>
+            <tr><td><code>print_label_with_quantity(material_data, copies)</code></td><td>Generate + print with multiple copies</td></tr>
+            <tr><td><code>print_multiple_labels(materials)</code></td><td>Batch print: sequential processing with success/fail counts</td></tr>
+            <tr><td><code>get_label_preview(material_data)</code></td><td>Returns base64-encoded label image (no printing)</td></tr>
+            <tr><td><code>test_printer_connection(printer_name)</code></td><td>Runs <code>lpstat -p</code> subprocess, returns connected/busy/not_found/timeout/error</td></tr>
+            <tr><td><code>get_available_printers()</code></td><td>Runs <code>lpstat -p -d</code>, parses available CUPS printers</td></tr>
+        </table>
+
+        <h4>Font Fallback Chain</h4>
+        <p>The service tries fonts in platform order: macOS (<code>/System/Library/Fonts/</code>) &rarr; Linux (<code>/usr/share/fonts/</code>) &rarr; Windows (<code>C:/Windows/Fonts/</code>) &rarr; PIL default. This makes label generation work across all development and production environments.</p>
+
+        <h3>6.3.6 The Print Worker &mdash; Background Job Processing</h3>
+
+        <p>File: <code>app/services/print_worker.py</code> (292 lines). Each active printer gets a dedicated background worker thread.</p>
+
+        <h4>Architecture</h4>
+        <div class="flow">
+            <span class="flow-step">App starts</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">initialize_workers(db_url)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Load active printers from DB</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Create PrintWorker per printer</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">start_all_workers()</span>
+        </div>
+
+        <h4>Worker Lifecycle</h4>
+        <ol>
+            <li><strong>Init:</strong> Generates CUPS printer name from IP (e.g. <code>Printer_192_168_0_182</code>), ensures printer is registered in CUPS via <code>lpadmin</code>, sets A6 as default media via <code>lpoptions</code></li>
+            <li><strong>Poll loop:</strong> Every 1 second, queries DB for next QUEUED job for this printer (ordered by <code>requested_at</code> &mdash; FIFO)</li>
+            <li><strong>Process job:</strong> Sets status to PRINTING &rarr; stamps <code>started_at</code> &rarr; fetches material + user data &rarr; calls <code>print_label_with_quantity()</code></li>
+            <li><strong>On success:</strong> Status &rarr; COMPLETED, stamps <code>completed_at</code></li>
+            <li><strong>On failure:</strong> If <code>retry_count &lt; 3</code>: increment, set back to QUEUED. If <code>retry_count &ge; 3</code>: status &rarr; FAILED</li>
+        </ol>
+
+        <h4>CUPS Auto-Registration</h4>
+        <p>When a worker starts, if the printer isn&rsquo;t registered in CUPS, the worker automatically adds it:</p>
+        <pre><span class="comment"># Auto-register printer in CUPS</span>
+lpadmin -p Printer_192_168_0_182 -E -v ipp://192.168.0.182:631/ipp/print -m everywhere
+lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
+
+        <h3>6.3.7 Material Assignment System</h3>
+
+        <p>Each printer can be assigned specific material types via the <code>assigned_materials</code> JSON array. The six material type codes map to the factory&rsquo;s QR code letter system:</p>
+
+        <table>
+            <tr><th>Code</th><th>Letter</th><th>Material</th></tr>
+            <tr><td><code>raw_copper</code></td><td>A</td><td>Bak&inodot;r (Copper)</td></tr>
+            <tr><td><code>raw_tin</code></td><td>B</td><td>Kalay (Tin)</td></tr>
+            <tr><td><code>raw_plastic</code></td><td>C</td><td>Plastik (Plastic)</td></tr>
+            <tr><td><code>raw_catalyst</code></td><td>D</td><td>Kataliz&ouml;r (Catalyst)</td></tr>
+            <tr><td><code>raw_dye</code></td><td>E</td><td>Boya (Dye)</td></tr>
+            <tr><td><code>raw_antirodent</code></td><td>F</td><td>Antirodent</td></tr>
+        </table>
+
+        <p>The Lab printer (ID 1) is assigned all six types since it handles all material entries. Production printers have empty assignments &mdash; they are used for production-stage labeling.</p>
+
+        <h3>6.3.8 Frontend Architecture</h3>
+
+        <p>Single file: <code>src/pages/Admin/PrinterManagement/index.tsx</code> (527 lines). Route: <code>/admin/printer-management</code>.</p>
+
+        <h4>Component Structure</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>ProTable (11 columns)</h4>
+                <p>ID (fixed left), name (fixed left), description, IP address (blue tag), port, location, status (color-coded tag: green=online, red=offline, orange=error, gray=maintenance), assigned materials (letter tags), active (check/cross icon), actions (fixed right).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Add/Edit Modal (600px)</h4>
+                <p>7 form fields: name (required), description (textarea), location, IP address (required), port (number, default 9100), assigned materials (multi-select with material codes), status (dropdown: online/offline/maintenance/error).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Toolbar</h4>
+                <p>Search input (client-side filtering across all columns) + &ldquo;Yeni Yaz&inodot;c&inodot; Ekle&rdquo; primary button. Table options: density toggle, reload, column settings.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Action Buttons (per row)</h4>
+                <p>Test connection (ApiOutlined), Edit (EditOutlined), Delete (DeleteOutlined, danger). Delete shows confirmation modal before proceeding.</p>
+            </div>
+        </div>
+
+        <h4>Client-Side Search</h4>
+        <p>The search input filters across <strong>all</strong> visible columns simultaneously: name, description, IP address, location, status (both English and Turkish terms), port, and ID. This is pure frontend filtering &mdash; the full dataset is always fetched.</p>
+
+        <h4>No WebSocket Integration</h4>
+        <p>Unlike other modules, Printer Management does not use WebSocket for real-time updates. Table refreshes happen via manual <code>actionRef.current?.reload()</code> after each mutation (create, update, delete, test).</p>
+
+        <h3>6.3.9 Permission Model</h3>
+
+        <p>Page ID: <code>admin.yazici_yonetimi</code></p>
+
+        <table>
+            <tr><th>Permission ID</th><th>Label</th><th>Description</th><th>Critical</th></tr>
+            <tr><td><code>access_page</code></td><td>Sayfaya Eri&#351;im</td><td>View the page</td><td></td></tr>
+            <tr><td><code>view_table</code></td><td>Tablo G&ouml;r&uuml;nt&uuml;le</td><td>See the printer table</td><td></td></tr>
+            <tr><td><code>create_printer</code></td><td>Yeni Yaz&inodot;c&inodot; Ekle</td><td>Create a new printer</td><td></td></tr>
+            <tr><td><code>edit_printer</code></td><td>Yaz&inodot;c&inodot; D&uuml;zenle</td><td>Update printer settings</td><td></td></tr>
+            <tr><td><code>test_connection</code></td><td>Ba&gbreve;lant&inodot; Test</td><td>Test printer connectivity</td><td></td></tr>
+            <tr><td><code>assign_materials</code></td><td>Malzeme Ata</td><td>Assign material types to printer</td><td></td></tr>
+            <tr><td><code>delete_printer</code></td><td>Yaz&inodot;c&inodot; Sil</td><td>Delete a printer</td><td>&#9679;</td></tr>
+        </table>
+
+        <p>Backend enforces role-based: only <code>super_admin</code> can create/update/delete, <code>super_admin</code> + <code>lab_user</code> can test. Frontend registers these 7 granular permissions in <code>buttonRegistry</code> for the permission editor to discover.</p>
+
+        <h3>6.3.10 How Printer Management Connects to the Rest of the System</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Print Queue (6.4)</h4>
+                <p>When Material Entry queues a print job, it specifies a <code>printer_id</code> (1&ndash;4). The print queue routes validate this ID against the printers table. The background workers are initialized from the printers table at application startup.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Material Entry (Hammadde Giri&#351;i)</h4>
+                <p>After a material is entered, the success modal offers a &ldquo;Print Label&rdquo; button. This calls <code>POST /api/print-queue/queue/{material_id}?printer_id=X</code>, sending the job to the queue for the selected printer.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Materials List (Hammaddeler Listesi)</h4>
+                <p>The reprint action in Materials List also targets a specific printer by ID. The <code>GET /api/materials/print/preview/{id}</code> endpoint uses <code>get_default_print_service()</code> which loads printer config from the printers table (prefers &ldquo;Lab&rdquo; printer, falls back to first active).</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Application Startup (main.py)</h4>
+                <p><code>initialize_workers(db_url)</code> reads all active printers from DB, creates one <code>PrintWorker</code> daemon thread per printer, auto-registers each in CUPS, and starts polling. Workers are the bridge between the digital queue and physical hardware.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> Printer Management is a hardware abstraction layer. The rest of the system never talks to printers directly &mdash; they queue jobs with a <code>printer_id</code>, and the worker threads handle the physical communication via CUPS/IPP. This decoupling means a printer can be replaced, re-IPed, or taken offline without any code changes in Material Entry or Materials List. The <code>assigned_materials</code> field is metadata for the UI (helping users pick the right printer) but is not enforced at the queue level &mdash; any printer can technically print any material&rsquo;s label.</p>
+        </div>
+
     </main>
 </body>
 </html>

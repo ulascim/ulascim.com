@@ -708,6 +708,277 @@
             </div>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.3  YAZICI YÖNETİMİ                         -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
+
+        <h3>6.3.1 Ama&ccedil; ve &Idot;&#351; Ba&gbreve;lam&inodot;</h3>
+
+        <p>Fabrikaya giren her hammadde, QR kodu, a&gbreve;&inodot;rl&inodot;k, tedarik&ccedil;i, lot numaras&inodot; ve giri&#351; tarihi i&ccedil;eren bas&inodot;l&inodot; bir A6 etiket al&inodot;r. Bu etiketler malzemenin fiziksel kimli&gbreve;idir &mdash; a&#351;a&gbreve;&inodot; ak&inodot;&#351;taki her istasyonda (lab testi, &uuml;retim, stok) taran&inodot;r. Etiket yaz&inodot;c&inodot;lar&inodot;, belirli konumlara yerle&#351;tirilmi&#351; end&uuml;striyel a&gbreve; cihazlar&inodot;d&inodot;r (TCP port 9100 / IPP port 631): laboratuvar ve &uuml;&ccedil; &uuml;retim hatt&inodot;. <strong>Yaz&inodot;c&inodot; Y&ouml;netimi</strong>, bu fiziksel cihazlar&inodot;n yap&inodot;land&inodot;r&inodot;ld&inodot;&gbreve;&inodot;, test edildi&gbreve;i ve malzeme t&uuml;rlerine atand&inodot;&gbreve;&inodot; kay&inodot;t defteridir.</p>
+
+        <p>Bu alt mod&uuml;l olmadan sistem yazd&inodot;rma i&#351;lerini <em>nereye</em> g&ouml;nderece&gbreve;ini bilemez. D&ouml;rt soruyu yan&inodot;tlar: Hangi yaz&inodot;c&inodot;lar var? Neredeler? &Ccedil;evrimi&ccedil;iler mi? Her yaz&inodot;c&inodot; hangi malzeme t&uuml;rlerini idare edebilir?</p>
+
+        <h3>6.3.2 Veritaban&inodot; &#350;emas&inodot;</h3>
+
+        <p>Tek tablo: <code>printers</code> (model dosyas&inodot;: 66 sat&inodot;r)</p>
+
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>K&inodot;s&inodot;tlamalar</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik art&inodot;&#351;, indeksli</td><td>Benzersiz yaz&inodot;c&inodot; tan&inodot;mlay&inodot;c&inodot;</td></tr>
+            <tr><td><code>name</code></td><td>String(100)</td><td>NOT NULL</td><td>Okunabilir ad (&ouml;rn. &ldquo;Lab Yaz&inodot;c&inodot;s&inodot;&rdquo;)</td></tr>
+            <tr><td><code>description</code></td><td>Text</td><td>NULLABLE</td><td>&Idot;ste&gbreve;e ba&gbreve;l&inodot; a&ccedil;&inodot;klama</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(50)</td><td>NOT NULL</td><td>A&gbreve; IP adresi (&ouml;rn. 192.168.0.182)</td></tr>
+            <tr><td><code>port</code></td><td>Integer</td><td>NOT NULL, varsay&inodot;lan 9100</td><td>A&gbreve; portu (RAW i&ccedil;in 9100, IPP i&ccedil;in 631)</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td>NOT NULL, varsay&inodot;lan &ldquo;online&rdquo;</td><td>Mevcut durum: online / offline / error / maintenance</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>NOT NULL, varsay&inodot;lan True</td><td>Ge&ccedil;ici etkinle&#351;tirme/devre d&inodot;&#351;&inodot; b&inodot;rakma</td></tr>
+            <tr><td><code>assigned_materials</code></td><td>Text</td><td>NULLABLE</td><td>Bu yaz&inodot;c&inodot;n&inodot;n idare etti&gbreve;i malzeme t&uuml;r kodlar&inodot;n&inodot;n JSON dizisi (&ouml;rn. <code>["raw_copper","raw_tin"]</code>)</td></tr>
+            <tr><td><code>location</code></td><td>String(100)</td><td>NULLABLE</td><td>Fiziksel konum (&ouml;rn. &ldquo;Laboratuvar&rdquo;, &ldquo;&Uuml;retim - Hat 1&rdquo;)</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>NOT NULL, otomatik</td><td>Olu&#351;turma zaman damgas&inodot;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>NOT NULL, otomatik + onupdate</td><td>Son de&gbreve;i&#351;iklik zaman damgas&inodot;</td></tr>
+            <tr><td><code>last_checked</code></td><td>DateTime</td><td>NULLABLE</td><td>Son ba&gbreve;lant&inodot; testi zaman damgas&inodot;</td></tr>
+        </table>
+
+        <h4>PrinterStatus Enum</h4>
+        <pre><span class="keyword">class</span> <span class="string">PrinterStatus</span>(str, Enum):
+    ONLINE      = <span class="string">"online"</span>
+    OFFLINE     = <span class="string">"offline"</span>
+    ERROR       = <span class="string">"error"</span>
+    MAINTENANCE = <span class="string">"maintenance"</span></pre>
+
+        <h4>Varsay&inodot;lan Yaz&inodot;c&inodot;lar (Migration Tohum Verisi)</h4>
+        <table>
+            <tr><th>ID</th><th>Ad</th><th>IP</th><th>Port</th><th>Konum</th><th>Atanm&inodot;&#351; Malzemeler</th></tr>
+            <tr><td>1</td><td>Lab Yaz&inodot;c&inodot;s&inodot;</td><td>192.168.0.182</td><td>9100</td><td>Laboratuvar</td><td>A, B, C, D, E, F (t&uuml;m t&uuml;rler)</td></tr>
+            <tr><td>2</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 1</td><td>192.168.0.183</td><td>9100</td><td>&Uuml;retim - Hat 1</td><td>[] (yok)</td></tr>
+            <tr><td>3</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 2</td><td>192.168.0.184</td><td>9100</td><td>&Uuml;retim - Hat 2</td><td>[] (yok)</td></tr>
+            <tr><td>4</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 3</td><td>192.168.0.185</td><td>9100</td><td>&Uuml;retim - Hat 3</td><td>[] (yok)</td></tr>
+        </table>
+
+        <h3>6.3.3 API S&ouml;zle&#351;mesi &mdash; 5 Endpoint</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/printers/list</code></td><td>Kimlik do&gbreve;rulanm&inodot;&#351; herkes</td><td>T&uuml;m yaz&inodot;c&inodot;lar&inodot; listeler. &Idot;ste&gbreve;e ba&gbreve;l&inodot; <code>?active_only=true</code> filtresi. <code>assigned_materials</code>&rsquo;&inodot; JSON&rsquo;dan ayr&inodot;&#351;t&inodot;r&inodot;r.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/printers/create</code></td><td>Yaln&inodot;zca super_admin</td><td>Yeni yaz&inodot;c&inodot; olu&#351;turur. Zorunlu: name, ip_address. Varsay&inodot;lan port=9100, status=online, is_active=true. assigned_materials dizisini JSON string&rsquo;e d&ouml;n&uuml;&#351;t&uuml;r&uuml;r.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/printers/update/{id}</code></td><td>Yaln&inodot;zca super_admin</td><td>Yaz&inodot;c&inodot;y&inodot; g&uuml;nceller. K&inodot;smi g&uuml;ncelleme &mdash; yaln&inodot;zca g&ouml;nderilen alanlar de&gbreve;i&#351;ir. <code>updated_at</code> damgalanr.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/printers/{id}/test</code></td><td>super_admin veya lab_user</td><td>CUPS <code>lpstat -p</code> ile ba&gbreve;lant&inodot; testi. <code>status</code>&rsquo;&uuml; online/offline olarak g&uuml;nceller ve <code>last_checked</code> damgalar.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/printers/{id}</code></td><td>Yaln&inodot;zca super_admin</td><td>Yaz&inodot;c&inodot;y&inodot; siler. Bekleyen i&#351;ler (QUEUED veya PRINTING) varsa <strong>engellenir</strong>. Hata: &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var.&rdquo;</td></tr>
+        </table>
+
+        <h3>6.3.4 CRUD Ak&inodot;&#351;&inodot;</h3>
+
+        <p><strong>Olu&#351;tur:</strong></p>
+        <ol>
+            <li>Ara&ccedil; &ccedil;ubu&gbreve;unda &ldquo;Yeni Yaz&inodot;c&inodot; Ekle&rdquo; butonuna t&inodot;kla</li>
+            <li>Modal (600px) 7 alanla a&ccedil;&inodot;l&inodot;r: ad (zorunlu), a&ccedil;&inodot;klama, konum, IP adresi (zorunlu), port (varsay&inodot;lan 9100), atanm&inodot;&#351; malzemeler (&ccedil;oklu se&ccedil;im: A=Bak&inodot;r, B=Kalay, C=Plastik, D=Kataliz&ouml;r, E=Boya, F=Antirodent), durum</li>
+            <li>G&ouml;nderimde: <code>POST /api/printers/create</code></li>
+            <li>Backend <code>is_active=true</code>, <code>status=online</code> ile kay&inodot;t olu&#351;turur, assigned_materials dizisini JSON string&rsquo;e d&ouml;n&uuml;&#351;t&uuml;r&uuml;r</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;Yaz&inodot;c&inodot; &lsquo;{ad}&rsquo; eklendi&rdquo; &rarr; modal kapan&inodot;r &rarr; tablo yenilenir</li>
+            <li><strong>Not:</strong> Yeni yaz&inodot;c&inodot;n&inodot;n arka plan yazd&inodot;rma i&#351;&ccedil;isinin ba&#351;lamas&inodot; i&ccedil;in uygulama yeniden ba&#351;lat&inodot;lmal&inodot;d&inodot;r</li>
+        </ol>
+
+        <p><strong>Oku:</strong></p>
+        <ol>
+            <li>Sayfa y&uuml;klenir &rarr; <code>GET /api/printers/list</code></li>
+            <li>ProTable (11 s&uuml;tun) render eder: ID, ad, a&ccedil;&inodot;klama, IP (mavi etiket), port, konum, durum (renk kodlu etiket), atanm&inodot;&#351; malzemeler (harf etiketleri), aktif (onay/&ccedil;arp&inodot; ikon), i&#351;lemler</li>
+            <li>&Idot;stemci taraf&inodot; arama, ad, a&ccedil;&inodot;klama, IP, konum, durum, port ve ID &uuml;zerinde ayn&inodot; anda filtreler</li>
+        </ol>
+
+        <p><strong>G&uuml;ncelle:</strong></p>
+        <ol>
+            <li>&Idot;&#351;lemler s&uuml;tunundaki d&uuml;zenle ikonuna t&inodot;kla</li>
+            <li>Ayn&inodot; modal mevcut de&gbreve;erlerle dolu olarak a&ccedil;&inodot;l&inodot;r</li>
+            <li>Alanlar&inodot; de&gbreve;i&#351;tir &rarr; &ldquo;G&uuml;ncelle&rdquo;ye t&inodot;kla</li>
+            <li><code>PUT /api/printers/update/{id}</code> &rarr; backend yaln&inodot;zca g&ouml;nderilen alanlar&inodot; g&uuml;nceller, <code>updated_at</code> damgalar</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;Yaz&inodot;c&inodot; &lsquo;{ad}&rsquo; g&uuml;ncellendi&rdquo; &rarr; modal kapan&inodot;r &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Sil:</strong></p>
+        <ol>
+            <li>&Idot;&#351;lemler s&uuml;tunundaki sil ikonuna (tehlike butonu) t&inodot;kla</li>
+            <li>Onay modal&inodot;: &ldquo;{ad} yaz&inodot;c&inodot;s&inodot;n&inodot; silmek istedi&gbreve;inize emin misiniz?&rdquo;</li>
+            <li>Onayda: <code>DELETE /api/printers/{id}</code></li>
+            <li>Backend bekleyen yazd&inodot;rma i&#351;lerini (QUEUED veya PRINTING durumu) kontrol eder</li>
+            <li>Bekleyen i&#351;ler varsa: silme <strong>engellenir</strong>, hata &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var. &Ouml;nce i&#351;leri tamamlay&inodot;n veya iptal edin.&rdquo;</li>
+            <li>Bekleyen i&#351; yoksa: yaz&inodot;c&inodot; silinir &rarr; toast &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Ba&gbreve;lant&inodot; Testi:</strong></p>
+        <ol>
+            <li>&Idot;&#351;lemler s&uuml;tunundaki test ikonuna (ApiOutlined) t&inodot;kla</li>
+            <li><code>POST /api/printers/{id}/test</code></li>
+            <li>Backend <code>PrintService.test_printer_connection()</code> &ccedil;a&gbreve;&inodot;r&inodot;r, alt s&uuml;re&ccedil; &uuml;zerinden <code>lpstat -p {yaz&inodot;c&inodot;_ad&inodot;}</code> &ccedil;al&inodot;&#351;t&inodot;r&inodot;r</li>
+            <li>Olas&inodot; sonu&ccedil;lar: &ldquo;connected&rdquo; (bo&#351;ta), &ldquo;busy&rdquo;, &ldquo;not_found&rdquo;, &ldquo;timeout&rdquo;, &ldquo;error&rdquo;</li>
+            <li>Backend <code>printer.status</code>&rsquo;&uuml; (ONLINE veya OFFLINE) ve <code>last_checked</code>&rsquo;&inodot; g&uuml;nceller</li>
+            <li>Ba&#351;ar&inodot;da: yaz&inodot;c&inodot; ad&inodot;yla toast &rarr; tablo yenilenir (durum s&uuml;tunu yeni durumu yans&inodot;t&inodot;r)</li>
+            <li>Ba&#351;ar&inodot;s&inodot;zl&inodot;kta: uyar&inodot; mesaj&inodot; &rarr; tablo yenilenir (durum &ldquo;&Ccedil;evrimd&inodot;&#351;&inodot;&rdquo; k&inodot;rm&inodot;z&inodot; g&ouml;r&uuml;n&uuml;r)</li>
+        </ol>
+
+        <h3>6.3.5 Yazd&inodot;rma Servisi &mdash; Etiket &Uuml;retim Motoru</h3>
+
+        <p>Dosya: <code>app/services/print_service.py</code> (576 sat&inodot;r). A6 etiketleri &uuml;reten ve yazd&inodot;ran &ccedil;ekirdek servis.</p>
+
+        <h4>Etiket &Ouml;zellikleri</h4>
+        <table>
+            <tr><th>&Ouml;zellik</th><th>De&gbreve;er</th></tr>
+            <tr><td>Boyut</td><td>A6 (827 &times; 1165 piksel)</td></tr>
+            <tr><td>DPI</td><td>200</td></tr>
+            <tr><td>QR Kod Boyutu</td><td>300px, ortalanm&inodot;&#351;, hata d&uuml;zeltme seviyesi H</td></tr>
+            <tr><td>Saat Dilimi</td><td>Europe/Istanbul (T&uuml;rkiye)</td></tr>
+            <tr><td>Yazd&inodot;rma Protokol&uuml;</td><td>CUPS/IPP, <code>lp</code> komutu ile A6 medya + sayfaya s&inodot;&gbreve;d&inodot;r</td></tr>
+            <tr><td>Zaman A&#351;&inodot;m&inodot;</td><td>Yazd&inodot;rma komutu ba&#351;&inodot;na 10 saniye</td></tr>
+        </table>
+
+        <h4>Etiket &Idot;&ccedil;erik D&uuml;zeni</h4>
+        <ol>
+            <li>Ortalanm&inodot;&#351; QR kod (300px) ve alt&inodot;nda QR metni</li>
+            <li>Lot numaras&inodot; (varsa)</li>
+            <li>A&gbreve;&inodot;rl&inodot;k (kg)</li>
+            <li>Malzeme t&uuml;r&uuml; / &uuml;r&uuml;n ad&inodot;</li>
+            <li>Tarih ve saat (T&uuml;rkiye saat dilimi)</li>
+            <li>&ldquo;Olu&#351;turan&rdquo; kullan&inodot;c&inodot; ad&inodot;</li>
+            <li>Notlar (varsa)</li>
+        </ol>
+
+        <h4>Temel Servis Metotlar&inodot;</h4>
+        <table>
+            <tr><th>Metot</th><th>Ne Yapar</th></tr>
+            <tr><td><code>generate_qr_code(data, size)</code></td><td>Hata d&uuml;zeltme H ile QR kod g&ouml;r&uuml;nt&uuml;s&uuml; olu&#351;turur</td></tr>
+            <tr><td><code>create_label_image(material_data)</code></td><td>PIL kullanarak QR, a&gbreve;&inodot;rl&inodot;k, tedarik&ccedil;i, lot, tarihlerle A6 etiket olu&#351;turur</td></tr>
+            <tr><td><code>print_via_cups(image, printer_name, copies)</code></td><td>Ge&ccedil;ici PNG&rsquo;ye kaydeder &rarr; A6 medya ile <code>lp</code> komutu &rarr; temizler</td></tr>
+            <tr><td><code>print_label(material_data)</code></td><td>&Uuml;ret + tek etiket yazd&inodot;r (1 kopya)</td></tr>
+            <tr><td><code>print_label_with_quantity(material_data, copies)</code></td><td>&Uuml;ret + birden fazla kopya ile yazd&inodot;r</td></tr>
+            <tr><td><code>print_multiple_labels(materials)</code></td><td>Toplu yazd&inodot;rma: ba&#351;ar&inodot;/ba&#351;ar&inodot;s&inodot;z say&inodot;lar&inodot;yla s&inodot;ral&inodot; i&#351;leme</td></tr>
+            <tr><td><code>get_label_preview(material_data)</code></td><td>Base64 kodlanm&inodot;&#351; etiket g&ouml;r&uuml;nt&uuml;s&uuml; d&ouml;nd&uuml;r&uuml;r (yazd&inodot;rma yok)</td></tr>
+            <tr><td><code>test_printer_connection(printer_name)</code></td><td><code>lpstat -p</code> alt s&uuml;reci &ccedil;al&inodot;&#351;t&inodot;r&inodot;r, connected/busy/not_found/timeout/error d&ouml;nd&uuml;r&uuml;r</td></tr>
+            <tr><td><code>get_available_printers()</code></td><td><code>lpstat -p -d</code> &ccedil;al&inodot;&#351;t&inodot;r&inodot;r, mevcut CUPS yaz&inodot;c&inodot;lar&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;r</td></tr>
+        </table>
+
+        <h4>Font Geri D&ouml;n&uuml;&#351; Zinciri</h4>
+        <p>Servis fontlar&inodot; platform s&inodot;ras&inodot;yla dener: macOS (<code>/System/Library/Fonts/</code>) &rarr; Linux (<code>/usr/share/fonts/</code>) &rarr; Windows (<code>C:/Windows/Fonts/</code>) &rarr; PIL varsay&inodot;lan. Bu, etiket &uuml;retiminin t&uuml;m geli&#351;tirme ve &uuml;retim ortamlar&inodot;nda &ccedil;al&inodot;&#351;mas&inodot;n&inodot; sa&gbreve;lar.</p>
+
+        <h3>6.3.6 Yazd&inodot;rma &Idot;&#351;&ccedil;isi &mdash; Arka Plan &Idot;&#351; &Idot;&#351;leme</h3>
+
+        <p>Dosya: <code>app/services/print_worker.py</code> (292 sat&inodot;r). Her aktif yaz&inodot;c&inodot; kendine ait bir arka plan i&#351;&ccedil;i thread&rsquo;i al&inodot;r.</p>
+
+        <h4>Mimari</h4>
+        <div class="flow">
+            <span class="flow-step">Uygulama ba&#351;lar</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">initialize_workers(db_url)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">DB&rsquo;den aktif yaz&inodot;c&inodot;lar&inodot; y&uuml;kle</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Her yaz&inodot;c&inodot; i&ccedil;in PrintWorker olu&#351;tur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">start_all_workers()</span>
+        </div>
+
+        <h4>&Idot;&#351;&ccedil;i Ya&#351;am D&ouml;ng&uuml;s&uuml;</h4>
+        <ol>
+            <li><strong>Ba&#351;latma:</strong> IP&rsquo;den CUPS yaz&inodot;c&inodot; ad&inodot; &uuml;retir (&ouml;rn. <code>Printer_192_168_0_182</code>), yaz&inodot;c&inodot;y&inodot; <code>lpadmin</code> ile CUPS&rsquo;a kaydeder, <code>lpoptions</code> ile A6&rsquo;y&inodot; varsay&inodot;lan medya olarak ayarlar</li>
+            <li><strong>Yoklama d&ouml;ng&uuml;s&uuml;:</strong> Her 1 saniyede bu yaz&inodot;c&inodot; i&ccedil;in s&inodot;radaki QUEUED i&#351;i sorgular (<code>requested_at</code>&rsquo;a g&ouml;re s&inodot;ral&inodot; &mdash; FIFO)</li>
+            <li><strong>&Idot;&#351; i&#351;leme:</strong> Durumu PRINTING yapar &rarr; <code>started_at</code> damgalar &rarr; malzeme + kullan&inodot;c&inodot; verisini &ccedil;eker &rarr; <code>print_label_with_quantity()</code> &ccedil;a&gbreve;&inodot;r&inodot;r</li>
+            <li><strong>Ba&#351;ar&inodot;da:</strong> Durum &rarr; COMPLETED, <code>completed_at</code> damgalan&inodot;r</li>
+            <li><strong>Ba&#351;ar&inodot;s&inodot;zl&inodot;kta:</strong> <code>retry_count &lt; 3</code> ise: art&inodot;r, QUEUED&rsquo;a geri al. <code>retry_count &ge; 3</code> ise: durum &rarr; FAILED</li>
+        </ol>
+
+        <h4>CUPS Otomatik Kay&inodot;t</h4>
+        <p>Bir i&#351;&ccedil;i ba&#351;lad&inodot;&gbreve;&inodot;nda, yaz&inodot;c&inodot; CUPS&rsquo;a kay&inodot;tl&inodot; de&gbreve;ilse i&#351;&ccedil;i otomatik olarak ekler:</p>
+        <pre><span class="comment"># Yaz&inodot;c&inodot;y&inodot; CUPS&rsquo;a otomatik kaydet</span>
+lpadmin -p Printer_192_168_0_182 -E -v ipp://192.168.0.182:631/ipp/print -m everywhere
+lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
+
+        <h3>6.3.7 Malzeme Atama Sistemi</h3>
+
+        <p>Her yaz&inodot;c&inodot;ya <code>assigned_materials</code> JSON dizisi arac&inodot;l&inodot;&gbreve;&inodot;yla belirli malzeme t&uuml;rleri atanabilir. Alt&inodot; malzeme t&uuml;r&uuml; kodu, fabrikan&inodot;n QR kod harf sistemine kar&#351;&inodot;l&inodot;k gelir:</p>
+
+        <table>
+            <tr><th>Kod</th><th>Harf</th><th>Malzeme</th></tr>
+            <tr><td><code>raw_copper</code></td><td>A</td><td>Bak&inodot;r</td></tr>
+            <tr><td><code>raw_tin</code></td><td>B</td><td>Kalay</td></tr>
+            <tr><td><code>raw_plastic</code></td><td>C</td><td>Plastik</td></tr>
+            <tr><td><code>raw_catalyst</code></td><td>D</td><td>Kataliz&ouml;r</td></tr>
+            <tr><td><code>raw_dye</code></td><td>E</td><td>Boya</td></tr>
+            <tr><td><code>raw_antirodent</code></td><td>F</td><td>Antirodent</td></tr>
+        </table>
+
+        <p>Lab yaz&inodot;c&inodot;s&inodot; (ID 1) t&uuml;m malzeme giri&#351;lerini idare etti&gbreve;i i&ccedil;in alt&inodot; t&uuml;re de atanm&inodot;&#351;t&inodot;r. &Uuml;retim yaz&inodot;c&inodot;lar&inodot;n&inodot;n bo&#351; atamalar&inodot; vard&inodot;r &mdash; &uuml;retim a&#351;amas&inodot; etiketleme i&ccedil;in kullan&inodot;l&inodot;rlar.</p>
+
+        <h3>6.3.8 Frontend Mimarisi</h3>
+
+        <p>Tek dosya: <code>src/pages/Admin/PrinterManagement/index.tsx</code> (527 sat&inodot;r). Rota: <code>/admin/printer-management</code>.</p>
+
+        <h4>Bile&#351;en Yap&inodot;s&inodot;</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>ProTable (11 s&uuml;tun)</h4>
+                <p>ID (sabit sol), ad (sabit sol), a&ccedil;&inodot;klama, IP adresi (mavi etiket), port, konum, durum (renk kodlu etiket: ye&#351;il=&ccedil;evrimi&ccedil;i, k&inodot;rm&inodot;z&inodot;=&ccedil;evrimd&inodot;&#351;&inodot;, turuncu=hata, gri=bak&inodot;mda), atanm&inodot;&#351; malzemeler (harf etiketleri), aktif (onay/&ccedil;arp&inodot; ikon), i&#351;lemler (sabit sa&gbreve;).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Ekle/D&uuml;zenle Modal&inodot; (600px)</h4>
+                <p>7 form alan&inodot;: ad (zorunlu), a&ccedil;&inodot;klama (textarea), konum, IP adresi (zorunlu), port (say&inodot;, varsay&inodot;lan 9100), atanm&inodot;&#351; malzemeler (malzeme kodlar&inodot;yla &ccedil;oklu se&ccedil;im), durum (a&ccedil;&inodot;l&inodot;r liste: &ccedil;evrimi&ccedil;i/&ccedil;evrimd&inodot;&#351;&inodot;/bak&inodot;mda/hata).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Ara&ccedil; &Ccedil;ubu&gbreve;u</h4>
+                <p>Arama girdisi (t&uuml;m s&uuml;tunlarda istemci taraf&inodot; filtreleme) + &ldquo;Yeni Yaz&inodot;c&inodot; Ekle&rdquo; birincil buton. Tablo se&ccedil;enekleri: yo&gbreve;unluk, yenile, s&uuml;tun ayarlar&inodot;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&Idot;&#351;lem Butonlar&inodot; (sat&inodot;r ba&#351;&inodot;na)</h4>
+                <p>Ba&gbreve;lant&inodot; testi (ApiOutlined), D&uuml;zenle (EditOutlined), Sil (DeleteOutlined, tehlike). Sil, devam etmeden &ouml;nce onay modal&inodot; g&ouml;sterir.</p>
+            </div>
+        </div>
+
+        <h4>&Idot;stemci Taraf&inodot; Arama</h4>
+        <p>Arama girdisi t&uuml;m g&ouml;r&uuml;n&uuml;r s&uuml;tunlarda ayn&inodot; anda filtreler: ad, a&ccedil;&inodot;klama, IP adresi, konum, durum (&Idot;ngilizce ve T&uuml;rk&ccedil;e terimler), port ve ID. Bu tamamen frontend filtrelemededir &mdash; tam veri seti her zaman &ccedil;ekilir.</p>
+
+        <h4>WebSocket Entegrasyonu Yok</h4>
+        <p>Di&gbreve;er mod&uuml;llerin aksine, Yaz&inodot;c&inodot; Y&ouml;netimi ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler i&ccedil;in WebSocket kullanmaz. Tablo yenilemeleri her mutasyondan (olu&#351;tur, g&uuml;ncelle, sil, test) sonra manuel <code>actionRef.current?.reload()</code> ile ger&ccedil;ekle&#351;ir.</p>
+
+        <h3>6.3.9 Yetki Modeli</h3>
+
+        <p>Sayfa ID: <code>admin.yazici_yonetimi</code></p>
+
+        <table>
+            <tr><th>Yetki ID</th><th>Etiket</th><th>A&ccedil;&inodot;klama</th><th>Kritik</th></tr>
+            <tr><td><code>access_page</code></td><td>Sayfaya Eri&#351;im</td><td>Sayfay&inodot; g&ouml;r&uuml;nt&uuml;leme</td><td></td></tr>
+            <tr><td><code>view_table</code></td><td>Tablo G&ouml;r&uuml;nt&uuml;le</td><td>Yaz&inodot;c&inodot; tablosunu g&ouml;rme</td><td></td></tr>
+            <tr><td><code>create_printer</code></td><td>Yeni Yaz&inodot;c&inodot; Ekle</td><td>Yeni yaz&inodot;c&inodot; olu&#351;turma</td><td></td></tr>
+            <tr><td><code>edit_printer</code></td><td>Yaz&inodot;c&inodot; D&uuml;zenle</td><td>Yaz&inodot;c&inodot; ayarlar&inodot;n&inodot; g&uuml;ncelleme</td><td></td></tr>
+            <tr><td><code>test_connection</code></td><td>Ba&gbreve;lant&inodot; Test</td><td>Yaz&inodot;c&inodot; ba&gbreve;lant&inodot;s&inodot;n&inodot; test etme</td><td></td></tr>
+            <tr><td><code>assign_materials</code></td><td>Malzeme Ata</td><td>Yaz&inodot;c&inodot;ya malzeme t&uuml;rlerini atama</td><td></td></tr>
+            <tr><td><code>delete_printer</code></td><td>Yaz&inodot;c&inodot; Sil</td><td>Yaz&inodot;c&inodot;y&inodot; silme</td><td>&#9679;</td></tr>
+        </table>
+
+        <p>Backend rol tabanl&inodot; uygular: yaln&inodot;zca <code>super_admin</code> olu&#351;turabilir/g&uuml;ncelleyebilir/silebilir, <code>super_admin</code> + <code>lab_user</code> test edebilir. Frontend bu 7 gran&uuml;ler yetkiyi yetki edit&ouml;r&uuml;n&uuml;n ke&#351;fetmesi i&ccedil;in <code>buttonRegistry</code>&rsquo;ye kaydeder.</p>
+
+        <h3>6.3.10 Yaz&inodot;c&inodot; Y&ouml;netimi Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Yazd&inodot;rma Kuyru&gbreve;u (6.4)</h4>
+                <p>Hammadde Giri&#351;i bir yazd&inodot;rma i&#351;i kuyru&gbreve;a ald&inodot;&gbreve;&inodot;nda, bir <code>printer_id</code> (1&ndash;4) belirtir. Yazd&inodot;rma kuyru&gbreve;u rotalar&inodot; bu ID&rsquo;yi yaz&inodot;c&inodot;lar tablosuna kar&#351;&inodot; do&gbreve;rular. Arka plan i&#351;&ccedil;ileri uygulama ba&#351;lang&inodot;c&inodot;nda yaz&inodot;c&inodot;lar tablosundan ba&#351;lat&inodot;l&inodot;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Hammadde Giri&#351;i</h4>
+                <p>Bir malzeme girildikten sonra ba&#351;ar&inodot; modal&inodot; &ldquo;Etiket Yazd&inodot;r&rdquo; butonu sunar. Bu <code>POST /api/print-queue/queue/{material_id}?printer_id=X</code> &ccedil;a&gbreve;&inodot;r&inodot;r ve i&#351;i se&ccedil;ilen yaz&inodot;c&inodot;n&inodot;n kuyru&gbreve;una g&ouml;nderir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Hammaddeler Listesi</h4>
+                <p>Hammaddeler Listesi&rsquo;ndeki yeniden yazd&inodot;rma eylemi de ID ile belirli bir yaz&inodot;c&inodot;y&inodot; hedefler. <code>GET /api/materials/print/preview/{id}</code> endpoint&rsquo;i, yaz&inodot;c&inodot;lar tablosundan yaz&inodot;c&inodot; konfig&uuml;rasyonunu y&uuml;kleyen <code>get_default_print_service()</code> kullan&inodot;r (&ldquo;Lab&rdquo; yaz&inodot;c&inodot;s&inodot;n&inodot; tercih eder, ilk aktif yaz&inodot;c&inodot;ya geri d&ouml;ner).</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Uygulama Ba&#351;lang&inodot;c&inodot; (main.py)</h4>
+                <p><code>initialize_workers(db_url)</code> DB&rsquo;den t&uuml;m aktif yaz&inodot;c&inodot;lar&inodot; okur, her yaz&inodot;c&inodot; i&ccedil;in bir <code>PrintWorker</code> daemon thread&rsquo;i olu&#351;turur, her birini CUPS&rsquo;a otomatik kaydeder ve yoklamay&inodot; ba&#351;lat&inodot;r. &Idot;&#351;&ccedil;iler dijital kuyruk ile fiziksel donan&inodot;m aras&inodot;ndaki k&ouml;pr&uuml;d&uuml;r.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> Yaz&inodot;c&inodot; Y&ouml;netimi bir donan&inodot;m soyutlama katman&inodot;d&inodot;r. Sistemin geri kalan&inodot; asla do&gbreve;rudan yaz&inodot;c&inodot;larla konu&#351;maz &mdash; bir <code>printer_id</code> ile i&#351; kuyru&gbreve;a al&inodot;r ve i&#351;&ccedil;i thread&rsquo;leri CUPS/IPP &uuml;zerinden fiziksel ileti&#351;imi y&ouml;netir. Bu ayr&inodot;&#351;t&inodot;rma, bir yaz&inodot;c&inodot;n&inodot;n Hammadde Giri&#351;i veya Hammaddeler Listesi&rsquo;nde hi&ccedil;bir kod de&gbreve;i&#351;ikli&gbreve;i olmadan de&gbreve;i&#351;tirilebilece&gbreve;i, IP&rsquo;sinin g&uuml;ncellenebilece&gbreve;i veya &ccedil;evrimd&inodot;&#351;&inodot; al&inodot;nabilece&gbreve;i anlam&inodot;na gelir. <code>assigned_materials</code> alan&inodot; kullan&inodot;c&inodot; aray&uuml;z&uuml; i&ccedil;in meta veridir (kullan&inodot;c&inodot;lar&inodot;n do&gbreve;ru yaz&inodot;c&inodot;y&inodot; se&ccedil;mesine yard&inodot;mc&inodot; olur) ancak kuyruk d&uuml;zeyinde uygulanmaz &mdash; herhangi bir yaz&inodot;c&inodot; teknik olarak herhangi bir malzemenin etiketini yazd&inodot;rabilir.</p>
+        </div>
+
     </main>
 </body>
 </html>
