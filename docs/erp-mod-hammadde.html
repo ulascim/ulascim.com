@@ -144,8 +144,25 @@
             </div>
         </div>
 
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> What Hammadde Does</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Data Flow</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Database Layer</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Tedarik&ccedil;i Y&ouml;netimi</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Hammadde Sipari&#351;</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Giri&#351;i</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Hammaddeler Listesi</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. WHAT HAMMADDE DOES</h2>
+        <h2 id="sec-1">1. WHAT HAMMADDE DOES</h2>
         <!-- ============================================ -->
 
         <p>The Hammadde module answers four questions that the factory&rsquo;s supply chain depends on:</p>
@@ -162,7 +179,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. THE DATA FLOW</h2>
+        <h2 id="sec-2">2. THE DATA FLOW</h2>
         <!-- ============================================ -->
 
         <p>Data flows through Hammadde in a clear procurement-to-consumption cycle:</p>
@@ -197,7 +214,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. THE DATABASE LAYER</h2>
+        <h2 id="sec-3">3. THE DATABASE LAYER</h2>
         <!-- ============================================ -->
 
         <p>6 tables serve the Hammadde module. They fall into three groups:</p>
@@ -318,7 +335,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. THE BACKEND ARCHITECTURE</h2>
+        <h2 id="sec-4">4. THE BACKEND ARCHITECTURE</h2>
         <!-- ============================================ -->
 
         <p>The backend is built with FastAPI and organized into 4 route files, 4 models, 2 schema files, and 1 service. Total backend code: ~3,200 lines.</p>
@@ -467,7 +484,7 @@
         <p>Material QR code printing is <strong>non-blocking</strong>. The <code>POST /materials/print/{material_id}</code> endpoint forwards to the print queue system rather than blocking the HTTP request while waiting for the printer. The system generates a preview image (base64) via <code>GET /materials/print/preview/{material_id}</code> and allows printer IP configuration via <code>POST /materials/print/update-printer-ip</code>.</p>
 
         <!-- ============================================ -->
-        <h2>5. THE FRONTEND</h2>
+        <h2 id="sec-5">5. THE FRONTEND</h2>
         <!-- ============================================ -->
 
         <p>4 React pages built with Ant Design Pro, totaling ~5,100 lines of TypeScript. All pages are dark-mode aware with conditional styling.</p>
@@ -517,7 +534,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>6. THE SUBMODULES</h2>
+        <h2 id="sec-6">6. THE SUBMODULES</h2>
         <!-- ============================================ -->
 
         <p>The Hammadde module consists of 4 submodules, each handling a different aspect of raw material management. The following sections will dive deep into each one.</p>
@@ -583,7 +600,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
+        <h2 id="sec-6-1">6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
         <!-- ============================================ -->
 
         <p>The starting point of the entire Hammadde module. Before any material can be ordered or entered into the system, a supplier must exist. This page manages supplier companies and the specific materials each one provides.</p>
@@ -859,7 +876,7 @@ registerPageButtons({
         <!--  6.2  HAMMADDE SİPARİŞ (Material Orders)     -->
         <!-- ============================================= -->
 
-        <h2 id="material-orders">6.2 &mdash; Hammadde Sipari&#351; (Material Orders)</h2>
+        <h2 id="sec-6-2">6.2 &mdash; Hammadde Sipari&#351; (Material Orders)</h2>
 
         <h3>6.2.1 &mdash; Purpose and Business Context</h3>
         <p>This is <strong>not</strong> an official purchase order system. It is an <em>internal tracking tool</em> that lets Solen record what raw materials they have ordered from which supplier, when they expect delivery, and what actually arrived. Its purpose is to give the purchasing and warehouse teams a clear picture of what is coming, what is late, and how well each supplier is performing.</p>
@@ -1091,7 +1108,7 @@ registerPageButtons({
         <!--  6.3  HAMMADDE GİRİŞİ (Material Entry)       -->
         <!-- ============================================= -->
 
-        <h2 id="material-entry">6.3 &mdash; Hammadde Giri&#351;i (Material Entry)</h2>
+        <h2 id="sec-6-3">6.3 &mdash; Hammadde Giri&#351;i (Material Entry)</h2>
 
         <h3>6.3.1 &mdash; Purpose and Business Context</h3>
         <p>This is where physical reality meets the digital system. When a truck arrives at Solen&rsquo;s factory with raw materials, the warehouse operator uses this module to register what came in. Every kilogram of copper, every barrel of plastic, every pallet &mdash; it all enters the system through this single page.</p>
@@ -1381,7 +1398,7 @@ registerPageButtons({
         <!--  6.4  HAMMADDELER LİSTESİ (Materials List)    -->
         <!-- ============================================= -->
 
-        <h2 id="materials-list">6.4 &mdash; Hammaddeler Listesi (Materials List)</h2>
+        <h2 id="sec-6-4">6.4 &mdash; Hammaddeler Listesi (Materials List)</h2>
 
         <h3>6.4.1 &mdash; Purpose and Business Context</h3>
         <p>This is the <strong>inventory view</strong> of every raw material that has ever entered the factory. While Material Entry is about recording arrivals, this module is about seeing, searching, managing, and acting on the inventory. It is a read-heavy module &mdash; the primary use case is looking up materials by QR code, checking remaining weights, viewing photos, and reprinting labels. But it also provides editing and deletion capabilities for super admins.</p>

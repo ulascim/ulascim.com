@@ -144,8 +144,25 @@
             </div>
         </div>
 
+        <!-- İÇİNDEKİLER -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">&#304;&Ccedil;&#304;NDEK&#304;LER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Hammadde Ne Yapar</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Ak&#305;&#351;&#305;</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Veritaban&#305; Katman&#305;</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Tedarik&ccedil;i Y&ouml;netimi</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Hammadde Sipari&#351;</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Giri&#351;i</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Hammaddeler Listesi</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. HAMMADDE NE YAPAR</h2>
+        <h2 id="sec-1">1. HAMMADDE NE YAPAR</h2>
         <!-- ============================================ -->
 
         <p>Hammadde modülü, fabrikanın tedarik zincirinin bağlı olduğu dört soruyu yanıtlar:</p>
@@ -162,7 +179,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. VERİ AKIŞI</h2>
+        <h2 id="sec-2">2. VERİ AKIŞI</h2>
         <!-- ============================================ -->
 
         <p>Veri, Hammadde modülünde net bir tedarik-tüketim döngüsünde akar:</p>
@@ -197,7 +214,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. VERİTABANI KATMANI</h2>
+        <h2 id="sec-3">3. VERİTABANI KATMANI</h2>
         <!-- ============================================ -->
 
         <p>Hammadde modülüne 6 tablo hizmet eder. Üç gruba ayrılırlar:</p>
@@ -318,7 +335,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. BACKEND MİMARİSİ</h2>
+        <h2 id="sec-4">4. BACKEND MİMARİSİ</h2>
         <!-- ============================================ -->
 
         <p>Backend FastAPI ile inşa edilmiş olup 4 route dosyası, 4 model, 2 şema dosyası ve 1 servisten oluşur. Toplam backend kodu: ~3.200 satır.</p>
@@ -467,7 +484,7 @@
         <p>Malzeme QR kodu yazdırma <strong>engelleyici değildir</strong>. <code>POST /materials/print/{material_id}</code> endpoint&rsquo;i, yazıcıyı beklerken HTTP isteğini engellemek yerine yazdırma kuyruğu sistemine yönlendirir. Sistem <code>GET /materials/print/preview/{material_id}</code> ile önizleme görüntüsü (base64) üretir ve <code>POST /materials/print/update-printer-ip</code> ile yazıcı IP yapılandırmasına izin verir.</p>
 
         <!-- ============================================ -->
-        <h2>5. FRONTEND</h2>
+        <h2 id="sec-5">5. FRONTEND</h2>
         <!-- ============================================ -->
 
         <p>Ant Design Pro ile inşa edilmiş 4 React sayfası, toplamda ~5.100 satır TypeScript. Tüm sayfalar koşullu stillendirme ile karanlık mod desteğine sahiptir.</p>
@@ -517,7 +534,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>6. ALT MODÜLLER</h2>
+        <h2 id="sec-6">6. ALT MODÜLLER</h2>
         <!-- ============================================ -->
 
         <p>Hammadde modülü, her biri ham malzeme yönetiminin farklı bir yönünü ele alan 4 alt modülden oluşur. Aşağıdaki bölümler her birini derinlemesine inceleyecektir.</p>
@@ -583,7 +600,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
+        <h2 id="sec-6-1">6.1 TEDARİKÇİ YÖNETİMİ (SUPPLIER MANAGEMENT)</h2>
         <!-- ============================================ -->
 
         <p>Tüm Hammadde modülünün başlangıç noktası. Herhangi bir malzeme sipariş edilmeden veya sisteme girilmeden önce bir tedarikçi mevcut olmalıdır. Bu sayfa tedarikçi şirketlerini ve her birinin sağladığı spesifik malzemeleri yönetir.</p>
@@ -859,7 +876,7 @@ registerPageButtons({
         <!--  6.2  HAMMADDE SİPARİŞ (Malzeme Siparişleri) -->
         <!-- ============================================= -->
 
-        <h2 id="malzeme-siparis">6.2 &mdash; Hammadde Sipari&#351; (Malzeme Sipari&#351;leri)</h2>
+        <h2 id="sec-6-2">6.2 &mdash; Hammadde Sipari&#351; (Malzeme Sipari&#351;leri)</h2>
 
         <h3>6.2.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
         <p>Bu resmi bir sat&#305;n alma sipari&#351;i sistemi <strong>de&#287;ildir</strong>. Solen&rsquo;in hangi hammaddeleri hangi tedarik&ccedil;iden sipari&#351; etti&#287;ini, teslimat&#305; ne zaman bekledi&#287;ini ve ger&ccedil;ekte neyin geldi&#287;ini kaydeden bir <em>dahili takip arac&#305;d&#305;r</em>. Amac&#305;, sat&#305;n alma ve depo ekiplerine neyin gelece&#287;i, neyin gecikti&#287;i ve her tedarik&ccedil;inin ne kadar iyi performans g&ouml;sterdi&#287;i konusunda net bir tablo sunmakt&#305;r.</p>
@@ -1091,7 +1108,7 @@ registerPageButtons({
         <!--  6.3  HAMMADDE GİRİŞİ (Malzeme Girişi)       -->
         <!-- ============================================= -->
 
-        <h2 id="malzeme-girisi">6.3 &mdash; Hammadde Giri&#351;i (Malzeme Giri&#351;i)</h2>
+        <h2 id="sec-6-3">6.3 &mdash; Hammadde Giri&#351;i (Malzeme Giri&#351;i)</h2>
 
         <h3>6.3.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
         <p>Fiziksel ger&ccedil;ekli&#287;in dijital sistemle bulu&#351;tu&#287;u yer buras&#305;d&#305;r. Solen fabrikas&#305;na hammadde y&uuml;kl&uuml; bir kamyon geldi&#287;inde, depo operat&ouml;r&uuml; neyin geldi&#287;ini kaydetmek i&ccedil;in bu mod&uuml;l&uuml; kullan&#305;r. Her kilogram bak&#305;r, her varil plastik, her palet &mdash; hepsi sisteme bu tek sayfadan girer.</p>
@@ -1381,7 +1398,7 @@ registerPageButtons({
         <!--  6.4  HAMMADDELER L&#304;STES&#304;               -->
         <!-- ============================================= -->
 
-        <h2 id="materials-list">6.4 &mdash; Hammaddeler Listesi</h2>
+        <h2 id="sec-6-4">6.4 &mdash; Hammaddeler Listesi</h2>
 
         <h3>6.4.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
         <p>Bu mod&uuml;l, fabrikaya giren <strong>her hammaddenin envanter g&ouml;r&uuml;n&uuml;m&uuml;d&uuml;r</strong>. Hammadde Giri&#351;i teslimatlar&#305; kaydetmekle ilgiliyken, bu mod&uuml;l envanterin g&ouml;r&uuml;nt&uuml;lenmesi, aranmas&#305;, y&ouml;netilmesi ve &uuml;zerinde i&#351;lem yap&#305;lmas&#305;yla ilgilidir. Okuma a&#287;&#305;rl&#305;kl&#305; bir mod&uuml;ld&uuml;r &mdash; birincil kullan&#305;m senaryosu malzemelerin QR koduna g&ouml;re aranmas&#305;, kalan a&#287;&#305;rl&#305;klar&#305;n kontrol edilmesi, foto&#287;raflar&#305;n g&ouml;r&uuml;nt&uuml;lenmesi ve etiket yeniden yazd&#305;r&#305;lmas&#305;d&#305;r. Ancak s&uuml;per adminler i&ccedil;in d&uuml;zenleme ve silme yetenekleri de sa&#287;lar.</p>
