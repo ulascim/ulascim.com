@@ -158,6 +158,7 @@
                 <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Hammadde Sipari&#351;</a>
                 <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Giri&#351;i</a>
                 <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Hammaddeler Listesi</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonu&ccedil;</a>
             </div>
         </div>
 
@@ -1501,6 +1502,103 @@ registerPageButtons({
 
         <div class="insight">
             <p style="margin-bottom: 0;"><strong>Tek sat&#305;rda g&ouml;r&uuml;nen tam izlenebilirlik zinciri:</strong> Bu tablodaki tek bir sat&#305;r size &#351;unlar&#305; s&ouml;yler: ne oldu&#287;unu (QR kod + tip + malzeme ad&#305;), nereden geldi&#287;ini (tedarik&ccedil;i + sipari&#351; grup kodu), ne kadar oldu&#287;unu (form a&#287;&#305;rl&#305;k vs. &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k), ne kadar kald&#305;&#287;&#305;n&#305; (renk kodlu kalan a&#287;&#305;rl&#305;k), neye benzedi&#287;ini (irsaliye ve test foto&#287;raflar&#305;) ve &#351;u anki durumunun ne oldu&#287;unu (durum). Bu, bir hammaddenin tam ya&#351;am d&ouml;ng&uuml;s&uuml; g&ouml;r&uuml;n&uuml;m&uuml;d&uuml;r &mdash; teslimattan t&uuml;kenmeye kadar &mdash; hepsi tek bir sat&#305;rda.</p>
+        </div>
+
+
+        <!-- ============================================= -->
+        <!--  7.  SONU&Ccedil;                                  -->
+        <!-- ============================================= -->
+
+        <h2 id="sec-7" style="margin-top: 64px;">7. SONU&Ccedil;</h2>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Hammadde, fiziksel d&uuml;nyan&#305;n dijital sistemle bulu&#351;tu&#287;u noktad&#305;r.</strong> Fabrika kap&#305;s&#305;ndan giren her gram bak&#305;r, her kalay k&uuml;t&uuml;k, her plastik parti, her palet ve makara bu mod&uuml;lden ge&ccedil;er. Kimli&#287;i atar (QR kod), kan&#305;t&#305; kaydeder (foto&#287;raflar), miktarlar&#305; takip eder (a&#287;&#305;rl&#305;k) ve durumu y&ouml;netir (durum ya&#351;am d&ouml;ng&uuml;s&uuml;). Bu mod&uuml;l olmadan &uuml;retim sisteminin t&uuml;ketece&#287;i malzeme, stok sisteminin raporlayaca&#287;&#305; envanter ve projeksiyon sisteminin tahmin i&ccedil;in kullanaca&#287;&#305; giri&#351; verisi yoktur.</p>
+        </div>
+
+        <h3>7.1 Bu Dok&uuml;man&#305;n Kapsam&#305;</h3>
+
+        <p>Bu derinlemesine analiz, Hammadde mod&uuml;l&uuml;n&uuml; d&ouml;rt alt mod&uuml;l &uuml;zerinden inceledi &mdash; tedarik&ccedil;i tan&#305;mlar&#305;ndan sat&#305;n alma takibine, malzeme giri&#351;inden envanter g&ouml;r&uuml;nt&uuml;lemeye:</p>
+
+        <table>
+            <tr><th>B&ouml;l&uuml;m</th><th>Alt Mod&uuml;l</th><th>Derinlik</th><th>Temel &Ouml;ng&ouml;r&uuml;</th></tr>
+            <tr><td>6.1</td><td>Tedarik&ccedil;i Y&ouml;netimi</td><td>Tam</td><td>Bire-&ccedil;ok tedarik&ccedil;i&rarr;malzeme, malzemeye &ouml;zel &ouml;zellikler (yo&#287;unluk, boyut, makara tipi); sil-ve-yeniden-olu&#351;tur g&uuml;ncelleme stratejisi; Giri&#351;, Sipari&#351; ve Hesap Makinesi taraf&#305;ndan t&uuml;ketilir</td></tr>
+            <tr><td>6.2</td><td>Hammadde Sipari&#351;</td><td>Tam</td><td>Sevkiyat grupland&#305;rmas&#305; i&ccedil;in sipari&#351; grup kodlar&#305; (R1, R2&hellip;); zorunlu nedenlere sahip tarih de&#287;i&#351;ikli&#287;i denetim izi; Hammadde Giri&#351;i taraf&#305;ndan otomatik durum g&uuml;ncellemesi; Projeksiyon&rsquo;u &ldquo;ARTI&rdquo; taraf&#305; olarak besler</td></tr>
+            <tr><td>6.3</td><td>Hammadde Giri&#351;i</td><td>Kapsaml&#305;</td><td>D&ouml;rt dinamik form arketipi (bak&#305;r/kalay/lot bazl&#305;/say&#305; bazl&#305;); deterministik QR kodlar (A&ndash;H &ouml;nekleri); iki katmanl&#305; tembel foto&#287;raf y&uuml;kleme; otomatik sipari&#351; teslimat g&uuml;ncellemeleri</td></tr>
+            <tr><td>6.4</td><td>Hammaddeler Listesi</td><td>Tam</td><td>Renk kodlu kalan a&#287;&#305;rl&#305;kl&#305; 14 s&uuml;tunlu envanter g&ouml;r&uuml;n&uuml;m&uuml;; &uuml;&ccedil; d&uuml;zenleme formu varyant&#305;; tembel foto&#287;raf k&uuml;&ccedil;&uuml;k resimleri ve &ouml;nizleme; ger&ccedil;ek zamanl&#305; WebSocket g&uuml;ncellemeleri</td></tr>
+        </table>
+
+        <h3>7.2 Mimari Prensipler</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Fiziksel-&Ouml;ncelikli Tasar&#305;m</h4>
+                <p>Her malzeme t&uuml;r&uuml;n&uuml;n temelde farkl&#305; fiziksel &ouml;zellikleri vard&#305;r. Tek bir genel form dayatmak yerine, sistem d&ouml;rt farkl&#305; arketip kullan&#305;r &mdash; bak&#305;r paletlerin tek tek tart&#305;lmas&#305;n&#305;, kalay&#305;n otomatik lot numaras&#305; almas&#305;n&#305;, plastiklerin etiketler i&ccedil;in lot say&#305;lar&#305;n&#305; takip etmesini ve palet/makaralar&#305;n sadece say&#305;lmas&#305;n&#305; sa&#287;lar. Aray&uuml;z malzemeye uyum sa&#287;lar, tersi de&#287;il.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tembel Y&uuml;kleme</h4>
+                <p>Foto&#287;raflar ayr&#305; depolanarak talep &uuml;zerine y&uuml;klenir. Malzeme listesi yaln&#305;zca foto&#287;raf kimliklerini d&ouml;nd&uuml;r&uuml;r, base64 verisini de&#287;il. K&uuml;&ccedil;&uuml;k resimler birer foto&#287;raf y&uuml;kler; &ouml;nizlemeler geri kalanlar&#305; t&#305;kland&#305;&#287;&#305;nda getirir. Bu desen, binlerce sat&#305;rl&#305; ve potansiyel olarak on binlerce foto&#287;rafl&#305; bir tabloyu duyarl&#305; tutar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Otomatik Kademelendirme</h4>
+                <p>Malzeme teslimat&#305; kaydedildi&#287;inde, ba&#287;lant&#305;l&#305; sat&#305;n alma sipari&#351;inin teslim_miktar&#305;, durumu ve teslim_tarihi otomatik olarak g&uuml;ncellenir. Bu, Projeksiyon&rsquo;a da yans&#305;r &mdash; planlanm&#305;&#351; veriden ger&ccedil;ek veriye ge&ccedil;ilir. Hammadde Giri&#351;i&rsquo;ndeki tek bir eylem, Sipari&#351;ler &uuml;zerinden projeksiyon sistemine manuel m&uuml;dahaleye gerek kalmadan yay&#305;l&#305;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Deterministik Kimlik</h4>
+                <p>QR kodlar kat&#305; bir &ouml;nek+s&#305;ra deseni izler (A=bak&#305;r, B=kalay, C=plastik&hellip;). UUID yok, rastgelelik yok. S&#305;ra tipe &ouml;zeldir ve otomatik artan. Bu, QR kodlar&#305;n&#305;n insan taraf&#305;ndan okunabilir, s&#305;ralanabilir ve tahmin edilebilir olmas&#305;n&#305; sa&#287;lar &mdash; operat&ouml;rlerin el tipi cihazlarla etiket tarad&#305;&#287;&#305; bir fabrika zemininde kritik &ouml;neme sahiptir.</p>
+            </div>
+        </div>
+
+        <h3>7.3 Rakamlarla</h3>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">4</div>
+                <div class="label">ALT MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~30</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">6</div>
+                <div class="label">VER&#304;TABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">~2.200</div>
+                <div class="label">SATIR BACKEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--negative);">~5.100</div>
+                <div class="label">SATIR FRONTEND</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">8</div>
+                <div class="label">MALZEME T&#304;P&#304;</div>
+            </div>
+        </div>
+
+        <h3>7.4 Hammadde Fabrikay&#305; Nas&#305;l Besler</h3>
+
+        <div class="flow">
+            <span class="flow-step">Tedarik&ccedil;i</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Sipari&#351;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammadde Giri&#351;i</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammaddeler Listesi</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;retim</span>
+        </div>
+
+        <p>Tedarik&ccedil;iler hangi malzemelerin mevcut oldu&#287;unu ve &ouml;zelliklerini tan&#305;mlar. Sipari&#351;ler nelerin sat&#305;n al&#305;nd&#305;&#287;&#305;n&#305; ve ne zaman gelece&#287;ini takip eder. Hammadde Giri&#351;i fiziksel var&#305;&#351;&#305; kaydeder &mdash; tartma, foto&#287;raflama, QR kodlama ve sipari&#351;e ba&#287;lama. Hammaddeler Listesi, &uuml;retimin t&uuml;ketti&#287;i canl&#305; envanter haline gelir. &Uuml;retim malzeme kulland&#305;k&ccedil;a kalan a&#287;&#305;rl&#305;klar d&uuml;&#351;er, durumlar de&#287;i&#351;ir ve malzeme tamamen t&uuml;kenene kadar d&ouml;ng&uuml; devam eder.</p>
+
+        <p>Paralel olarak, her sipari&#351; <strong>Projeksiyon</strong> sistemini planlanm&#305;&#351; ve ger&ccedil;ek teslimat verileriyle besleyerek, fabrikan&#305;n malzeme mevcudiyetini haftalarca &ouml;nceden tahmin etmesini sa&#287;lar.</p>
+
+        <h3>7.5 Son S&ouml;z</h3>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;">Hammadde mod&uuml;l&uuml;, kaotik bir fiziksel s&uuml;reci &mdash; bak&#305;r tel, kalay k&uuml;t&uuml;k, plastik varil ve tahta palet ta&#351;&#305;yan kamyonlar&#305;n gel&#305;&#351;&#305;ni &mdash; yap&#305;land&#305;r&#305;lm&#305;&#351;, izlenebilir, aranabilir dijital kay&#305;tlara d&ouml;n&uuml;&#351;t&uuml;r&uuml;r. Her malzeme bir kimlik, bir ge&ccedil;mi&#351; ve bir durum kazan&#305;r. Bir tedarik&ccedil;inin tan&#305;mlanmas&#305;ndan bak&#305;r&#305;n son gram&#305;n&#305;n &uuml;retimde t&uuml;ketilmesine kadar, bu mod&uuml;l veri izini sa&#287;lar. D&ouml;rt arketipli form tasar&#305;m&#305;, tembel foto&#287;raf mimarisi, otomatik sipari&#351; kademelendirmesi ve ger&ccedil;ek zamanl&#305; WebSocket g&uuml;ncellemeleri tek bir hedefe hizmet eder: fiziksel ger&ccedil;eklik ile dijital kay&#305;t aras&#305;ndaki bo&#351;lu&#287;u m&uuml;mk&uuml;n oldu&#287;unca k&uuml;&ccedil;&uuml;k tutmak. Bu dok&uuml;man, tedarik&ccedil;i tan&#305;m&#305;ndan envanter t&uuml;kenme noktas&#305;na kadar t&uuml;m bu zinciri &mdash; her API endpoint&rsquo;i, her veritaban&#305; s&uuml;tunu, her &ouml;ny&uuml;z etkile&#351;imi ve her mod&uuml;ller aras&#305; ba&#287;lant&#305;y&#305; &mdash; takip etmi&#351;tir.</p>
         </div>
 
     </main>
