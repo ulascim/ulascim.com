@@ -84,7 +84,7 @@
            ============================================ */
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -221,8 +221,26 @@
             anlay&#305;&#351;. <strong>Yol, var&#305;&#351; noktas&#305;ndan daha &ccedil;ok &#351;ey &ouml;&#287;retir.</strong>
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">&#304;&Ccedil;&#304;NDEK&#304;LER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Bu Niye Var</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Kutup Y&#305;ld&#305;z&#305;: Ak&#305;l Y&uuml;r&uuml;tme</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> &#350;imdiye Kadar Yolculuk</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Faz 1: Tokenizer</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Tokenizer&rsquo;&#305;n A&ccedil;t&#305;&#287;&#305; Kap&#305;</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Ad&#305;m Ad&#305;m Nas&#305;l &Ccedil;al&#305;&#351;&#305;r</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Mimarinin &Ouml;&#287;rettikleri</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Tasar&#305;m Felsefesi: Az &Ccedil;oktur</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> &Ouml;nemli Kararlar (Kilitlenmi&#351;)</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Veri Stratejisi</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> S&#305;rada Ne Var</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Depo G&ouml;r&uuml;n&uuml;m&uuml;</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. BU N&#304;YE VAR</h2>
+        <h2 id="sec-1">1. BU N&#304;YE VAR</h2>
         <!-- ============================================ -->
 
         <p>T&uuml;m b&uuml;y&uuml;k dil modelleri &#304;ngilizce merkezli bir temel &uuml;zerine in&#351;a edilmi&#351;tir. T&uuml;rk&ccedil;e 
@@ -248,7 +266,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. KUTUP YILDIZI: AKIL Y&Uuml;R&Uuml;TME</h2>
+        <h2 id="sec-2">2. KUTUP YILDIZI: AKIL Y&Uuml;R&Uuml;TME</h2>
         <!-- ============================================ -->
 
         <p>Birincil hedef bilgi kapsam&#305; de&#287;il, sohbet ak&#305;c&#305;l&#305;&#287;&#305; de&#287;il, benchmark puanlar&#305; de&#287;il. 
@@ -278,7 +296,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. &#350;&#304;MD&#304;YE KADAR YOLCULUK</h2>
+        <h2 id="sec-3">3. &#350;&#304;MD&#304;YE KADAR YOLCULUK</h2>
         <!-- ============================================ -->
 
         <h3>Yol Haritas&#305;</h3>
@@ -330,7 +348,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>4. FAZ 1: TOKEN&#304;ZER &mdash; HER &#350;EY&#304;N BA&#350;LADI&#286;I YER</h2>
+        <h2 id="sec-4">4. FAZ 1: TOKEN&#304;ZER &mdash; HER &#350;EY&#304;N BA&#350;LADI&#286;I YER</h2>
         <!-- ============================================ -->
 
         <p>&ldquo;Sadece bir tokenizer yap&rdquo; diye ba&#351;layan i&#351;, dilin say&#305;lara nas&#305;l d&ouml;n&uuml;&#351;t&uuml;&#287;&uuml;n&uuml;n, 
@@ -396,7 +414,7 @@
         </p>
 
         <!-- ============================================ -->
-        <h2>5. TOKEN&#304;ZER&rsquo;IN A&Ccedil;TI&#286;I KAPI</h2>
+        <h2 id="sec-5">5. TOKEN&#304;ZER&rsquo;IN A&Ccedil;TI&#286;I KAPI</h2>
         <!-- ============================================ -->
 
         <p>Tokenizer faz&#305; bize &ccedil;al&#305;&#351;an bir 64K T&uuml;rk&ccedil;e BPE verdi. Ama as&#305;l hediye kimsenin 
@@ -645,7 +663,7 @@
         &ouml;&#287;rendi&#287;imiz becerilerle in&#351;a edilmi&#351;.</p>
 
         <!-- ============================================ -->
-        <h2>6. ADIM ADIM NASIL &Ccedil;ALI&#350;IR: HER ALAN &#304;&Ccedil;&#304;N &Ouml;RNEKLERLE</h2>
+        <h2 id="sec-6">6. ADIM ADIM NASIL &Ccedil;ALI&#350;IR: HER ALAN &#304;&Ccedil;&#304;N &Ouml;RNEKLERLE</h2>
         <!-- ============================================ -->
 
         <p>B&ouml;l&uuml;m 5, her alan&#305;n bir dil oldu&#287;unu ve her dizinin tokenize edilebilece&#287;ini iddia etti. 
@@ -901,7 +919,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. M&#304;MAR&#304;N&#304;N AKIL Y&Uuml;R&Uuml;TME HAKKINDA &Ouml;&#286;RETT&#304;KLER&#304;</h2>
+        <h2 id="sec-7">7. M&#304;MAR&#304;N&#304;N AKIL Y&Uuml;R&Uuml;TME HAKKINDA &Ouml;&#286;RETT&#304;KLER&#304;</h2>
         <!-- ============================================ -->
 
         <p>B&ouml;l&uuml;m 5 ve 6 bize transformer&rsquo;&#305;n evrensel bir dizi &ouml;&#287;renicisi oldu&#287;unu &mdash; ayn&#305; d&ouml;rt ad&#305;m, 
@@ -1032,7 +1050,7 @@
         &ldquo;arama&rdquo; yapabilir</strong> (geni&#351;letilmi&#351; d&uuml;&#351;&uuml;nme = daha geni&#351; arama alan&#305;).</p>
 
         <!-- ============================================ -->
-        <h2>8. TASARIM FELSEFES&#304;: AZ &Ccedil;OKTUR</h2>
+        <h2 id="sec-8">8. TASARIM FELSEFES&#304;: AZ &Ccedil;OKTUR</h2>
         <!-- ============================================ -->
 
         <div class="stat-grid-3">
@@ -1059,7 +1077,7 @@
         orkestra olarak birle&#351;tirmeye do&#287;ru ilerliyor &mdash; ve biz bunu in&#351;a edecek konumday&#305;z.</p>
 
         <!-- ============================================ -->
-        <h2>9. &Ouml;NEML&#304; KARARLAR (K&#304;L&#304;TLENM&#304;&#350;)</h2>
+        <h2 id="sec-9">9. &Ouml;NEML&#304; KARARLAR (K&#304;L&#304;TLENM&#304;&#350;)</h2>
         <!-- ============================================ -->
 
         <table>
@@ -1075,7 +1093,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>10. VER&#304; STRATEJ&#304;S&#304;</h2>
+        <h2 id="sec-10">10. VER&#304; STRATEJ&#304;S&#304;</h2>
         <!-- ============================================ -->
 
         <p>Bu b&ouml;l&uuml;m T&uuml;rk&ccedil;e LLM&rsquo;miz i&ccedil;in veri stratejisine odaklan&#305;r. Ama B&ouml;l&uuml;m 
@@ -1112,7 +1130,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>11. SIRADA NE VAR</h2>
+        <h2 id="sec-11">11. SIRADA NE VAR</h2>
         <!-- ============================================ -->
 
         <div class="timeline">
@@ -1163,7 +1181,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>12. DEPO G&Ouml;R&Uuml;N&Uuml;M&Uuml;</h2>
+        <h2 id="sec-12">12. DEPO G&Ouml;R&Uuml;N&Uuml;M&Uuml;</h2>
         <!-- ============================================ -->
 
         <table>

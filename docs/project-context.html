@@ -84,7 +84,7 @@
            ============================================ */
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -220,8 +220,26 @@
             every layer from scratch. <strong>The path teaches more than the destination.</strong>
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Why This Exists</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The North Star: Reasoning</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Journey So Far</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Phase 1: The Tokenizer</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Door the Tokenizer Opened</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> How It Actually Works</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> What Architecture Taught Us</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Design Philosophy: Less Is More</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Important Decisions (Locked)</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Data Strategy</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> What&rsquo;s Next</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Repo Snapshot</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. WHY THIS EXISTS</h2>
+        <h2 id="sec-1">1. WHY THIS EXISTS</h2>
         <!-- ============================================ -->
 
         <p>Every major LLM is built on an English-centric foundation. When Turkish text passes through GPT-4&rsquo;s tokenizer, 
@@ -242,7 +260,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. THE NORTH STAR: REASONING</h2>
+        <h2 id="sec-2">2. THE NORTH STAR: REASONING</h2>
         <!-- ============================================ -->
 
         <p>The primary goal is not knowledge coverage, not chat fluency, not benchmark scores. It is 
@@ -271,7 +289,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>3. THE JOURNEY SO FAR</h2>
+        <h2 id="sec-3">3. THE JOURNEY SO FAR</h2>
         <!-- ============================================ -->
 
         <h3>Roadmap</h3>
@@ -323,7 +341,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>4. PHASE 1: THE TOKENIZER &mdash; WHERE EVERYTHING BEGAN</h2>
+        <h2 id="sec-4">4. PHASE 1: THE TOKENIZER &mdash; WHERE EVERYTHING BEGAN</h2>
         <!-- ============================================ -->
 
         <p>What started as &ldquo;just build a tokenizer&rdquo; became a deep exploration of how language is represented 
@@ -385,7 +403,7 @@
         </p>
 
         <!-- ============================================ -->
-        <h2>5. THE DOOR THE TOKENIZER OPENED</h2>
+        <h2 id="sec-5">5. THE DOOR THE TOKENIZER OPENED</h2>
         <!-- ============================================ -->
 
         <p>The tokenizer phase gave us a working 64K Turkish BPE. But the deeper gift was something nobody expected: 
@@ -619,7 +637,7 @@
         models &mdash; each tiny, each accurate, each built with the same skills we are learning right now.</p>
 
         <!-- ============================================ -->
-        <h2>6. HOW IT ACTUALLY WORKS: STEP BY STEP, DOMAIN BY DOMAIN</h2>
+        <h2 id="sec-6">6. HOW IT ACTUALLY WORKS: STEP BY STEP, DOMAIN BY DOMAIN</h2>
         <!-- ============================================ -->
 
         <p>Section 5 claimed every domain is a language and every sequence can be tokenized. That might still feel abstract. 
@@ -862,7 +880,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. WHAT THE ARCHITECTURE TAUGHT US ABOUT REASONING</h2>
+        <h2 id="sec-7">7. WHAT THE ARCHITECTURE TAUGHT US ABOUT REASONING</h2>
         <!-- ============================================ -->
 
         <p>If Sections 5 and 6 showed us that the transformer is a universal sequence learner &mdash; same four steps, any domain &mdash; this section asks: 
@@ -983,7 +1001,7 @@
         <strong>small models can &ldquo;search&rdquo; well</strong> if given sufficient thinking budget (extended thinking = bigger search budget).</p>
 
         <!-- ============================================ -->
-        <h2>8. DESIGN PHILOSOPHY: LESS IS MORE</h2>
+        <h2 id="sec-8">8. DESIGN PHILOSOPHY: LESS IS MORE</h2>
         <!-- ============================================ -->
 
         <div class="stat-grid-3">
@@ -1009,7 +1027,7 @@
         positioned to build them.</p>
 
         <!-- ============================================ -->
-        <h2>9. IMPORTANT DECISIONS (LOCKED)</h2>
+        <h2 id="sec-9">9. IMPORTANT DECISIONS (LOCKED)</h2>
         <!-- ============================================ -->
 
         <table>
@@ -1025,7 +1043,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>10. DATA STRATEGY</h2>
+        <h2 id="sec-10">10. DATA STRATEGY</h2>
         <!-- ============================================ -->
 
         <p>This section focuses on data for our Turkish LLM. But through the lens of Section 5: everything described below 
@@ -1060,7 +1078,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>11. WHAT&rsquo;S NEXT</h2>
+        <h2 id="sec-11">11. WHAT&rsquo;S NEXT</h2>
         <!-- ============================================ -->
 
         <div class="timeline">
@@ -1109,7 +1127,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>12. REPO SNAPSHOT</h2>
+        <h2 id="sec-12">12. REPO SNAPSHOT</h2>
         <!-- ============================================ -->
 
         <table>

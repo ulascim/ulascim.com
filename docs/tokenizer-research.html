@@ -84,7 +84,7 @@
            ============================================ */
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -199,8 +199,28 @@
             ~149K Kumru tokens or ~352K GPT-4 tokens of Turkish text.
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Problem: The Language Tax</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Related Work</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Novel Finding: GPT-2 Regex Breaks Turkish</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Architecture Decisions</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Training Corpus: 3 Iterations</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Data &amp; Vocabulary Scaling Experiments</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Head-to-Head: 64K v3 vs Others</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Domain-Specific Analysis</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Morphological Analysis</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Diacritic Robustness</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Context Window: Compounding Advantage</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Practical Implications</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Project Status</a>
+                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Reproducibility</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. THE PROBLEM: THE LANGUAGE TAX</h2>
+        <h2 id="sec-1">1. THE PROBLEM: THE LANGUAGE TAX</h2>
         <!-- ============================================ -->
 
         <p>When Turkish text is processed by any major LLM, it passes through a tokenizer designed for English. 
@@ -220,7 +240,7 @@
         Turkish text; training runs process fewer sentences per batch. The tax compounds with length.</p>
 
         <!-- ============================================ -->
-        <h2>2. RELATED WORK</h2>
+        <h2 id="sec-2">2. RELATED WORK</h2>
         <!-- ============================================ -->
 
         <p>Several Turkish language models and tokenizers exist. Hamza (Acikgoz, &ldquo;Bridging the Bosphorus&rdquo;) provides 
@@ -236,7 +256,7 @@
         data saturation in tokenizer training, or (3) systematic comparison of 16K&ndash;64K vocabulary on the same corpus.</p>
 
         <!-- ============================================ -->
-        <h2>3. NOVEL FINDING: GPT-2 REGEX BREAKS TURKISH</h2>
+        <h2 id="sec-3">3. NOVEL FINDING: GPT-2 REGEX BREAKS TURKISH</h2>
         <!-- ============================================ -->
 
         <p>During development, it was discovered that the GPT-2 pre-tokenization regex &mdash; the same pattern used by GPT-4, GPT-4o, Llama 3, 
@@ -274,7 +294,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. ARCHITECTURE DECISIONS</h2>
+        <h2 id="sec-4">4. ARCHITECTURE DECISIONS</h2>
         <!-- ============================================ -->
 
         <table>
@@ -301,7 +321,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>5. TRAINING CORPUS: 3 ITERATIONS</h2>
+        <h2 id="sec-5">5. TRAINING CORPUS: 3 ITERATIONS</h2>
         <!-- ============================================ -->
 
         <p>The tokenizer was trained through three iterative rounds, each adding new data domains. 
@@ -351,7 +371,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6. DATA &amp; VOCABULARY SCALING EXPERIMENTS</h2>
+        <h2 id="sec-6">6. DATA &amp; VOCABULARY SCALING EXPERIMENTS</h2>
         <!-- ============================================ -->
 
         <p>Two systematic experiments were conducted: (1) scaling training data from 1.7GB to 22GB at fixed 48K vocabulary, 
@@ -419,7 +439,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. HEAD-TO-HEAD: 64K v3 vs TURKISH &amp; ENGLISH TOKENIZERS</h2>
+        <h2 id="sec-7">7. HEAD-TO-HEAD: 64K v3 vs TURKISH &amp; ENGLISH TOKENIZERS</h2>
         <!-- ============================================ -->
 
         <p>Comparison across tokenizers on 21 test sentences covering daily speech, formal language, 
@@ -503,7 +523,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>8. DOMAIN-SPECIFIC ANALYSIS</h2>
+        <h2 id="sec-8">8. DOMAIN-SPECIFIC ANALYSIS</h2>
         <!-- ============================================ -->
 
         <p>Domain-targeted training data produces measurable improvements in specialized vocabulary handling. 
@@ -559,7 +579,7 @@
         The extra vocabulary capacity allows 64K to capture these high-frequency institutional terms as atomic units.</p>
 
         <!-- ============================================ -->
-        <h2>9. MORPHOLOGICAL ANALYSIS</h2>
+        <h2 id="sec-9">9. MORPHOLOGICAL ANALYSIS</h2>
         <!-- ============================================ -->
 
         <p>The tokenizer learned Turkish morphology from pure statistics &mdash; no linguistic rules were programmed. 
@@ -597,7 +617,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>10. DIACRITIC ROBUSTNESS</h2>
+        <h2 id="sec-10">10. DIACRITIC ROBUSTNESS</h2>
         <!-- ============================================ -->
 
         <p>Turkish users sometimes type without diacritics (c instead of &ccedil;, s instead of &#351;, i instead of &#305;). 
@@ -620,7 +640,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>11. CONTEXT WINDOW: THE COMPOUNDING ADVANTAGE</h2>
+        <h2 id="sec-11">11. CONTEXT WINDOW: THE COMPOUNDING ADVANTAGE</h2>
         <!-- ============================================ -->
 
         <p>Tokenizer efficiency is not a fixed saving &mdash; it is a <strong>multiplier on context length</strong>. 
@@ -662,7 +682,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>12. PRACTICAL IMPLICATIONS</h2>
+        <h2 id="sec-12">12. PRACTICAL IMPLICATIONS</h2>
         <!-- ============================================ -->
 
         <div class="stat-grid">
@@ -691,7 +711,7 @@
         news, code, literary, reasoning, instructions), ensuring efficient tokenization regardless of subject matter.</p>
 
         <!-- ============================================ -->
-        <h2>13. PROJECT STATUS</h2>
+        <h2 id="sec-13">13. PROJECT STATUS</h2>
         <!-- ============================================ -->
 
         <table>
@@ -702,7 +722,7 @@
             <tr><td><strong>Phase 4: Fine-tuning</strong></td><td><span class="status next">NEXT</span></td><td>Instruction following, chat capability</td></tr>
         </table>
 
-        <h2>14. REPRODUCIBILITY</h2>
+        <h2 id="sec-14">14. REPRODUCIBILITY</h2>
         <p>Code, data sources, and trained tokenizers are available.</p>
         <ul>
             <li><strong>Training script:</strong> <code>train_tokenizer.py</code></li>

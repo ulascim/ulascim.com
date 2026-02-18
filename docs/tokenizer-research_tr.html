@@ -84,7 +84,7 @@
            ============================================ */
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -199,8 +199,28 @@
             Türkçe metin anlamına gelir.
         </div>
 
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">&#304;&Ccedil;&#304;NDEK&#304;LER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Sorun: Dil Vergisi</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> &#304;lgili &Ccedil;al&#305;&#351;malar</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Yeni Bulgu: GPT-2 Regex T&uuml;rk&ccedil;eyi Bozuyor</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Mimari Kararlar</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> E&#287;itim Derlemi: 3 Yineleme</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Veri ve Kelime Hacmi &Ouml;l&ccedil;ekleme</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Kar&#351;&#305;la&#351;t&#305;rma: 64K v3 vs Di&#287;erleri</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Alana &Ouml;zel Analiz</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Bi&ccedil;imbilimsel Analiz</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Diyakritik Dayan&#305;kl&#305;l&#305;&#287;&#305;</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Ba&#287;lam Penceresi: Biriken Avantaj</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Pratik Sonu&ccedil;lar&#305;</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Proje Durumu</a>
+                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Yeniden &Uuml;retilebilirlik</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. SORUN: DİL VERGİSİ</h2>
+        <h2 id="sec-1">1. SORUN: DİL VERGİSİ</h2>
         <!-- ============================================ -->
 
         <p>Türkçe metin büyük bir LLM'de işlendiğinde, İngilizce için tasarlanmış bir tokenizer'dan geçer. 
@@ -220,7 +240,7 @@
         Türkçe metin tutar; eğitim çalıştırmaları parti başına daha az cümle işler. Bu vergi metin uzadıkça katlanır.</p>
 
         <!-- ============================================ -->
-        <h2>2. İLGİLİ ÇALIŞMALAR</h2>
+        <h2 id="sec-2">2. İLGİLİ ÇALIŞMALAR</h2>
         <!-- ============================================ -->
 
         <p>Birçok Türkçe dil modeli ve tokenizer mevcuttur. Hamza (Acıkgöz, &ldquo;Bridging the Bosphorus&rdquo;) 124M ile 1,3B 
@@ -236,7 +256,7 @@
         16K&ndash;64K kelime hacminin sistematik karşılaştırmasını raporlayan önceki bir çalışma yoktur.</p>
 
         <!-- ============================================ -->
-        <h2>3. YENİ BULGU: GPT-2 REGEX TÜRKÇEYİ BOZUYOR</h2>
+        <h2 id="sec-3">3. YENİ BULGU: GPT-2 REGEX TÜRKÇEYİ BOZUYOR</h2>
         <!-- ============================================ -->
 
         <p>Geliştirme sırasında GPT-2 ön-tokenizasyon regex'inin &mdash; GPT-4, GPT-4o, Llama 3 ve Mistral tarafından kullanılan 
@@ -275,7 +295,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>4. MİMARİ KARARLAR</h2>
+        <h2 id="sec-4">4. MİMARİ KARARLAR</h2>
         <!-- ============================================ -->
 
         <table>
@@ -302,7 +322,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>5. EĞİTİM DERLEMİ: 3 YİNELEME</h2>
+        <h2 id="sec-5">5. EĞİTİM DERLEMİ: 3 YİNELEME</h2>
         <!-- ============================================ -->
 
         <p>Tokenizer üç yinelemeli turda eğitildi; her turda yeni veri alanları eklendi. 
@@ -352,7 +372,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6. VERİ VE KELİME HACMİ ÖLÇEKLEME DENEYLERİ</h2>
+        <h2 id="sec-6">6. VERİ VE KELİME HACMİ ÖLÇEKLEME DENEYLERİ</h2>
         <!-- ============================================ -->
 
         <p>İki sistematik deney yapıldı: (1) sabit 48K kelime hacminde eğitim verisini 1,7GB'dan 22GB'a ölçekleme, 
@@ -419,7 +439,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>7. KARŞILAŞTIRMA: 64K v3 vs TÜRKÇE VE İNGİLİZCE TOKENİZERLAR</h2>
+        <h2 id="sec-7">7. KARŞILAŞTIRMA: 64K v3 vs TÜRKÇE VE İNGİLİZCE TOKENİZERLAR</h2>
         <!-- ============================================ -->
 
         <p>Günlük konuşma, resmi dil, sondan eklemeli yapı, kod ve altı uzmanlık alanını kapsayan 21 test cümlesi üzerinde 
@@ -503,7 +523,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>8. ALANA ÖZEL ANALİZ</h2>
+        <h2 id="sec-8">8. ALANA ÖZEL ANALİZ</h2>
         <!-- ============================================ -->
 
         <p>Alana yönelik eğitim verisi, uzmanlık alanı sözcük dağarcığında ölçülebilir iyileşmeler sağlar. 
@@ -553,7 +573,7 @@
         <p><code>Cumhurba&#351;kanl&#305;&#287;&#305;</code> (Cumhurbaşkanlığı) ve <code>S&ouml;zc&uuml;s&uuml;</code> (Sözcüsü) 64K'da tek token. Kumru ve TabiBERT <code>S&ouml;zc&uuml;s&uuml;</code> 2 parçaya böler; Hamza 39 token. Ek kelime kapasitesi 64K'nın bu yüksek frekanslı kurumsal terimleri atomik birimler olarak yakalamasını sağlar.</p>
 
         <!-- ============================================ -->
-        <h2>9. BİÇİMBİLİMSEL ANALİZ</h2>
+        <h2 id="sec-9">9. BİÇİMBİLİMSEL ANALİZ</h2>
         <!-- ============================================ -->
 
         <p>Tokenizer Türkçe biçimbilimini salt istatistikten öğrendi &mdash; hiçbir dilbilimsel kural programlanmadı. 
@@ -591,7 +611,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>10. DİYAKRİTİK DAYANIKLILIĞI</h2>
+        <h2 id="sec-10">10. DİYAKRİTİK DAYANIKLILIĞI</h2>
         <!-- ============================================ -->
 
         <p>Türkçe kullanıcılar bazen vurgu işaretleri olmadan yazar (c yerine &ccedil;, s yerine &#351;, i yerine &#305;). 
@@ -614,7 +634,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>11. BAĞLAM PENCERESİ: BİRİKEN AVANTAJ</h2>
+        <h2 id="sec-11">11. BAĞLAM PENCERESİ: BİRİKEN AVANTAJ</h2>
         <!-- ============================================ -->
 
         <p>Tokenizer verimliliği sabit bir tasarruf değildir &mdash; <strong>bağlam uzunluğu üzerinde bir çarpan</strong>dır. 
@@ -654,7 +674,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>12. PRATİK SONUÇLARI</h2>
+        <h2 id="sec-12">12. PRATİK SONUÇLARI</h2>
         <!-- ============================================ -->
 
         <div class="stat-grid">
@@ -683,7 +703,7 @@
         konu ne olursa olsun verimli tokenizasyon sağlanır.</p>
 
         <!-- ============================================ -->
-        <h2>13. PROJE DURUMU</h2>
+        <h2 id="sec-13">13. PROJE DURUMU</h2>
         <!-- ============================================ -->
 
         <table>
@@ -694,7 +714,7 @@
             <tr><td><strong>Aşama 4: İnce ayar</strong></td><td><span class="status next">SIRADA</span></td><td>Talimat takibi, sohbet yeteneği</td></tr>
         </table>
 
-        <h2>14. YENİDEN ÜRETİLEBİLİRLİK</h2>
+        <h2 id="sec-14">14. YENİDEN ÜRETİLEBİLİRLİK</h2>
         <p>Kod, veri kaynakları ve eğitilmiş tokenizer'lar mevcuttur.</p>
         <ul>
             <li><strong>Eğitim betiği:</strong> <code>train_tokenizer.py</code></li>
