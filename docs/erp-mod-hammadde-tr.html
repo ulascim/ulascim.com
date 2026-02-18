@@ -1086,6 +1086,296 @@ registerPageButtons({
             <li>Fiyatlandırma, faturalama veya herhangi bir finansal takip <strong>yapmaz</strong></li>
         </ul>
 
+
+        <!-- ============================================= -->
+        <!--  6.3  HAMMADDE GİRİŞİ (Malzeme Girişi)       -->
+        <!-- ============================================= -->
+
+        <h2 id="malzeme-girisi">6.3 &mdash; Hammadde Giri&#351;i (Malzeme Giri&#351;i)</h2>
+
+        <h3>6.3.1 &mdash; Ama&ccedil; ve &#304;&#351; Ba&#287;lam&#305;</h3>
+        <p>Fiziksel ger&ccedil;ekli&#287;in dijital sistemle bulu&#351;tu&#287;u yer buras&#305;d&#305;r. Solen fabrikas&#305;na hammadde y&uuml;kl&uuml; bir kamyon geldi&#287;inde, depo operat&ouml;r&uuml; neyin geldi&#287;ini kaydetmek i&ccedil;in bu mod&uuml;l&uuml; kullan&#305;r. Her kilogram bak&#305;r, her varil plastik, her palet &mdash; hepsi sisteme bu tek sayfadan girer.</p>
+        <p>Mod&uuml;l yaln&#305;zca envanter kaydetmez; &uuml;&ccedil; ba&#351;ka sistem aras&#305;ndaki <strong>k&ouml;pr&uuml;d&uuml;r</strong>. Tedarik&ccedil;i Y&ouml;netimi&rsquo;nden veri t&uuml;ketir (kim teslim etti), teslimatlar&#305; Malzeme Sipari&#351;lerine ba&#287;lar (ne bekleniyordu), Hammaddeler Listesi&rsquo;nde g&ouml;r&uuml;nen QR kodlar&#305; ve veritaban&#305; kay&#305;tlar&#305;n&#305; &uuml;retir ve sipari&#351; durumunu ve teslim edilen miktarlar&#305; de&#287;i&#351;tirerek Projeksiyon&rsquo;u (stok projeksiyonu) dolayl&#305; olarak g&uuml;nceller.</p>
+        <p>Sayfa men&uuml;de <code>/hammadde/hammadde-girisi</code> alt&#305;nda yer al&#305;r, ancak frontend bile&#351;eni asl&#305;nda <code>Lab/MaterialEntry</code> konumundad&#305;r &mdash; malzeme giri&#351;inin bir laboratuvar/depo operasyonu oldu&#287;unu yans&#305;t&#305;r.</p>
+
+        <h3>6.3.2 &mdash; A&ccedil;&#305;l&#305;&#351; Sayfas&#305;: Sekiz Malzeme Kart&#305;</h3>
+        <p>Kullan&#305;c&#305; sayfay&#305; a&ccedil;t&#305;&#287;&#305;nda, fabrikan&#305;n i&#351;ledi&#287;i her hammadde t&uuml;r&uuml; i&ccedil;in birer tane olmak &uuml;zere <strong>8 t&#305;klanabilir kart</strong> g&ouml;r&uuml;r:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #fa8c16;">
+                <div class="stat-value" style="font-size: 1rem;">Bak&#305;r (A)</div>
+                <div class="stat-label">Filma&#351;in &mdash; bak&#305;r tel &ccedil;ubuk</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #13c2c2;">
+                <div class="stat-value" style="font-size: 1rem;">Kalay (B)</div>
+                <div class="stat-label">Tekli a&#287;&#305;rl&#305;k giri&#351;i</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #722ed1;">
+                <div class="stat-value" style="font-size: 1rem;">Plastik (C)</div>
+                <div class="stat-label">Plastik gran&uuml;l &mdash; lot bazl&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #eb2f96;">
+                <div class="stat-value" style="font-size: 1rem;">Kataliz&ouml;r (D)</div>
+                <div class="stat-label">Kataliz&ouml;r &mdash; lot bazl&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #f5222d;">
+                <div class="stat-value" style="font-size: 1rem;">Boya (E)</div>
+                <div class="stat-label">Boya &mdash; lot bazl&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #2f54eb;">
+                <div class="stat-value" style="font-size: 1rem;">Antirodent (F)</div>
+                <div class="stat-label">Kemirgen &ouml;nleyici &mdash; lot bazl&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #a0d911;">
+                <div class="stat-value" style="font-size: 1rem;">Palet (I)</div>
+                <div class="stat-label">Ah&#351;ap paletler &mdash; adet bazl&#305;</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #faad14;">
+                <div class="stat-value" style="font-size: 1rem;">Makara (H)</div>
+                <div class="stat-label">Kablo makaralar&#305; &mdash; adet bazl&#305;</div>
+            </div>
+        </div>
+        <p>Her kart, koyu/a&ccedil;&#305;k temaya uyum sa&#287;layan benzersiz bir arka plan rengine, b&uuml;y&uuml;k bir ikona ve malzeme ad&#305;na sahiptir. Parantez i&ccedil;indeki harf, o malzeme t&uuml;r&uuml;n&uuml;n QR kod &ouml;nekidir. Herhangi bir karta t&#305;klamak giri&#351; formunu <strong>do&#287;rudan a&ccedil;maz</strong> &mdash; &ouml;nce Sipari&#351; Se&ccedil;imi ak&#305;&#351;&#305;n&#305; tetikler.</p>
+
+        <h3>6.3.3 &mdash; &#304;ki Ad&#305;ml&#305; Giri&#351; Ak&#305;&#351;&#305;</h3>
+        <p>Bu kritik bir tasar&#305;m karar&#305;d&#305;r. Malzeme giri&#351;i iki ad&#305;ml&#305; bir s&uuml;re&ccedil; izler:</p>
+        <ol>
+            <li><strong>Ad&#305;m 1: Sipari&#351; Se&ccedil;im Modal&#305;</strong> &mdash; Kullan&#305;c&#305; bir malzeme kart&#305;na t&#305;klad&#305;&#287;&#305;nda, sistem o malzeme t&uuml;r&uuml; i&ccedil;in bekleyen sipari&#351;leri <code>GET /material-orders/pending-by-type/{type}</code> &uuml;zerinden an&#305;nda getirir. G&ouml;r&uuml;nen modal:
+                <ul>
+                    <li>Bekleyen sipari&#351; gruplar&#305;n&#305;n listesi &mdash; her biri tedarik&ccedil;i ad&#305;, g&ouml;nderimdeki malzeme adlar&#305;, toplam miktar ve beklenen tarihi g&ouml;sterir</li>
+                    <li>Altta &ldquo;Manuel Giri&#351;&rdquo; butonu &mdash; kar&#351;&#305;l&#305;k gelen sipari&#351;i olmayan teslimatlar i&ccedil;in</li>
+                </ul>
+            </li>
+            <li><strong>Ad&#305;m 2: Giri&#351; Formu</strong> &mdash; Kullan&#305;c&#305; ya bir sipari&#351; grubu se&ccedil;er (tedarik&ccedil;i, malzeme tipleri ve miktarlar&#305; otomatik doldurulur) ya da Manuel Giri&#351;&rsquo;e t&#305;klar (bo&#351; form a&ccedil;&#305;l&#305;r). Giri&#351; formu, malzeme t&uuml;r&uuml;ne g&ouml;re t&uuml;m yap&#305;s&#305;n&#305; de&#287;i&#351;tiren dinamik bir modald&#305;r.</li>
+        </ol>
+        <p>Bu iki ad&#305;ml&#305; ak&#305;&#351; kritik bir amaca hizmet eder: operat&ouml;rleri teslimatlar&#305; sipari&#351;lere ba&#287;lamaya te&#351;vik eder, bu da takip zincirini sa&#287;lam tutar. Sipari&#351;ler varsa belirgin &#351;ekilde g&ouml;sterilir. Manuel giri&#351; bir yedek olarak vard&#305;r, varsay&#305;lan de&#287;il.</p>
+
+        <h3>6.3.4 &mdash; Sipari&#351; &Ouml;n Doldurma Mant&#305;&#287;&#305;</h3>
+        <p>Kullan&#305;c&#305; Ad&#305;m 1&rsquo;de bir sipari&#351; grubu se&ccedil;ti&#287;inde, otomatik olarak &#351;unlar ger&ccedil;ekle&#351;ir:</p>
+        <ul>
+            <li><strong>Tedarik&ccedil;i</strong> alan&#305; otomatik doldurulur ve <strong>devre d&#305;&#351;&#305; b&#305;rak&#305;l&#305;r</strong> &mdash; bir sipari&#351;e kar&#351;&#305; giri&#351; yaparken tedarik&ccedil;iyi de&#287;i&#351;tiremezsiniz</li>
+            <li><strong>Lot bazl&#305; malzemeler</strong> (plastik, kataliz&ouml;r, boya, antirodent) i&ccedil;in: sistem her sipari&#351; kalemi ba&#351;&#305;na bir lot paneli &ouml;nceden olu&#351;turur, <code>material_type_id</code> (spesifik &uuml;r&uuml;n) sipari&#351;in <code>supplier_material_id</code> de&#287;erinden zaten se&ccedil;ilmi&#351; olarak</li>
+            <li><strong>Paletler ve makaralar</strong> i&ccedil;in: sistem her sipari&#351; kalemi ba&#351;&#305;na bir tip paneli &ouml;nceden olu&#351;turur, palet/makara tipi ve miktar sipari&#351;ten &ouml;n doldurulmu&#351; olarak</li>
+            <li><strong>Bak&#305;r ve kalay</strong> i&ccedil;in: tedarik&ccedil;i &ouml;n doldurulur; geri kalan&#305; (palet a&#287;&#305;rl&#305;klar&#305;, lot numaralar&#305;) manuel girilmelidir &ccedil;&uuml;nk&uuml; sipari&#351;ler toplam kg takip eder, palet ba&#351;&#305;na detay de&#287;il</li>
+        </ul>
+        <p>Sipari&#351; grubu ayr&#305;ca <code>order_ids</code> dizisini ta&#351;&#305;r, bu kaydetme s&#305;ras&#305;nda backend&rsquo;e g&ouml;nderilir b&ouml;ylece sistem hangi sipari&#351;leri teslim edildi olarak i&#351;aretleyece&#287;ini bilir.</p>
+
+        <h3>6.3.5 &mdash; D&ouml;rt Form Arketipi</h3>
+        <p>Giri&#351; formu tek bir form de&#287;ildir. Se&ccedil;ilen malzeme t&uuml;r&uuml;ne g&ouml;re ko&#351;ullu olarak render edilen <strong>d&ouml;rt tamamen farkl&#305; form yap&#305;s&#305;d&#305;r</strong>. Hepsi iki ortak alan&#305; (tedarik&ccedil;i ve teslim alan ki&#351;i) ve ortak bir foto&#287;raf b&ouml;l&uuml;m&uuml;n&uuml; payla&#351;&#305;r, ancak aradaki her &#351;ey benzersizdir.</p>
+
+        <h4>Arketip 1: Bak&#305;r (&Ccedil;oklu Palet)</h4>
+        <p>Bak&#305;r b&uuml;y&uuml;k paletler halinde gelir (Filma&#351;in &mdash; paletler &uuml;zerinde tel &ccedil;ubuk bobinleri). Tek bir teslimat birden fazla palet i&ccedil;erebilir, her birinin kendi a&#287;&#305;rl&#305;&#287;&#305; vard&#305;r. Form, dinamik bir <strong>a&ccedil;&#305;l&#305;r/kapan&#305;r palet panelleri</strong> listesi sunar:</p>
+        <ul>
+            <li>Her panel i&ccedil;erir: <strong>Lot Numaras&#305;</strong> (klavye ge&ccedil;i&#351;iyle), <strong>Form A&#287;&#305;rl&#305;&#287;&#305;</strong> (tedarik&ccedil;inin irsaliyesindeki a&#287;&#305;rl&#305;k), <strong>&Ouml;l&ccedil;&uuml;len A&#287;&#305;rl&#305;k</strong> (Solen&rsquo;de &ouml;l&ccedil;&uuml;len ger&ccedil;ek a&#287;&#305;rl&#305;k) ve <strong>Durum</strong> (teslim al&#305;nd&#305; veya reddedildi)</li>
+            <li>Kullan&#305;c&#305; &ldquo;+&rdquo; butonuyla daha fazla palet ekleyebilir ve sonuncu hari&ccedil; herhangi bir paneli kald&#305;rabilir</li>
+            <li>Form bir bo&#351; palet paneliyle ba&#351;lar</li>
+            <li>Kaydetmede backend <strong>palet ba&#351;&#305;na bir <code>raw_materials</code> sat&#305;r&#305;</strong> olu&#351;turur, her biri kendi QR koduyla (A1, A2, A3&hellip;)</li>
+            <li>Hem form_weight hem measured_weight saklan&#305;r &mdash; aradaki fark, tedarik&ccedil;inin iddia etti&#287;i ile ger&ccedil;ekte gelenin tutars&#305;zl&#305;klar&#305;n&#305; belirlemeye yard&#305;mc&#305; olur</li>
+            <li><code>remaining_weight</code> ba&#351;lang&#305;&ccedil;ta <code>measured_weight</code> olarak ayarlan&#305;r ve &uuml;retim taraf&#305;ndan sonra azalt&#305;l&#305;r</li>
+        </ul>
+
+        <h4>Arketip 2: Kalay (Tekli Giri&#351;)</h4>
+        <p>Kalay en basit giri&#351; t&uuml;r&uuml;d&uuml;r. Tek bir teslimat, tek bir a&#287;&#305;rl&#305;k &ouml;l&ccedil;&uuml;m&uuml;d&uuml;r:</p>
+        <ul>
+            <li>Form yaln&#305;zca iki alan g&ouml;sterir: <strong>Net A&#287;&#305;rl&#305;k (kg)</strong> ve <strong>Durum</strong></li>
+            <li><code>raw_materials</code>&rsquo;da bir sat&#305;r, bir QR kodu (B1, B2&hellip;)</li>
+            <li>Lot numaras&#305; otomatik olarak <code>TIN-{s&#305;ra}</code> &#351;eklinde &uuml;retilir</li>
+            <li><code>remaining_weight</code> girilen a&#287;&#305;rl&#305;&#287;a e&#351;it olarak ba&#351;lat&#305;l&#305;r</li>
+        </ul>
+
+        <h4>Arketip 3: Lot Bazl&#305; (Plastik, Kataliz&ouml;r, Boya, Antirodent)</h4>
+        <p>Bu d&ouml;rt malzeme t&uuml;r&uuml; ayn&#305; form yap&#305;s&#305;n&#305; payla&#351;&#305;r &ccedil;&uuml;nk&uuml; hepsi lotlar halinde gelir (tedarik&ccedil;ideki bir &uuml;retim serisinden partiler). Form, dinamik bir <strong>a&ccedil;&#305;l&#305;r/kapan&#305;r lot panelleri</strong> listesi sunar:</p>
+        <ul>
+            <li>Her panel i&ccedil;erir: <strong>Malzeme Tipi</strong> (tedarik&ccedil;inin katalo&#287;undan spesifik &uuml;r&uuml;nlerin a&ccedil;&#305;l&#305;r listesi, &ouml;rn. &ldquo;HFX-500P&rdquo;), <strong>Lot Numaras&#305;</strong> (klavye ge&ccedil;i&#351;iyle), <strong>Form A&#287;&#305;rl&#305;&#287;&#305;</strong>, <strong>&Ouml;l&ccedil;&uuml;len A&#287;&#305;rl&#305;k</strong>, <strong>Adet</strong> (bas&#305;lacak etiket say&#305;s&#305; &mdash; bu lottaki ka&ccedil; kap), <strong>Durum</strong> ve <strong>Test/Hasar Foto&#287;raflar&#305;</strong> (lot ba&#351;&#305;na, en fazla 3)</li>
+            <li>Malzeme Tipi a&ccedil;&#305;l&#305;r listesi <strong>ba&#287;lama duyarl&#305;d&#305;r</strong>: giri&#351; bir sipari&#351;e ba&#287;l&#305;ysa yaln&#305;zca o sipari&#351;in kalemlerindeki malzemeleri g&ouml;sterir. Manuelse, tedarik&ccedil;inin o t&uuml;rdeki t&uuml;m malzemelerini g&ouml;sterir</li>
+            <li>Kaydetmede backend <strong>lot ba&#351;&#305;na bir sat&#305;r</strong> olu&#351;turur, kendi QR koduyla (C1/D1/E1/F1&hellip;)</li>
+            <li>Backend spesifik <code>material_name</code>&rsquo;i <code>SupplierMaterial</code>&rsquo;dan &ccedil;&ouml;z&uuml;mler ve varsa <code>boyut</code>&rsquo;u ekler, &ldquo;HFX-500P - 2mm&rdquo; gibi isimler olu&#351;turur</li>
+        </ul>
+
+        <h4>Arketip 4: Adet Bazl&#305; (Palet, Makara)</h4>
+        <p>Paletler ve makaralar tart&#305;lmaz, say&#305;l&#305;r. Form <strong>a&ccedil;&#305;l&#305;r/kapan&#305;r tip panelleri</strong> sunar:</p>
+        <ul>
+            <li>Her panel i&ccedil;erir: <strong>Tip</strong> (tedarik&ccedil;i katalo&#287;undan a&ccedil;&#305;l&#305;r liste, &ouml;rn. &ldquo;Euro Palet - 120 cm&rdquo; veya &ldquo;500m Makara - 40 cm - Plastik&rdquo;), <strong>Adet</strong> (say&#305;), <strong>Durum</strong> ve <strong>Hasar Foto&#287;raflar&#305;</strong> (tip ba&#351;&#305;na, en fazla 3)</li>
+            <li>Tip a&ccedil;&#305;l&#305;r listesi tedarik&ccedil;inin <code>materials_provided</code> listesinden palet veya makara tipine g&ouml;re filtrelenerek doldurulur</li>
+            <li>Makaralar i&ccedil;in g&ouml;sterim <code>material_name - boyut cm - reel_type</code> &#351;eklinde tam &ouml;zelli&#287;i i&ccedil;erir</li>
+            <li>Kaydetmede backend <strong>tip ba&#351;&#305;na bir sat&#305;r</strong> olu&#351;turur, QR koduyla (I1/H1&hellip;). Lot numaras&#305; otomatik olarak <code>PALET-{s&#305;ra}</code> veya <code>REEL-{s&#305;ra}</code> &#351;eklinde &uuml;retilir</li>
+            <li><code>weight</code> alan&#305; miktar&#305; (say&#305;y&#305;) saklamak i&ccedil;in kullan&#305;l&#305;r ve <code>quantity</code> de say&#305;y&#305; saklar &mdash; geriye d&ouml;n&uuml;k uyumluluk i&ccedil;in &ccedil;ift ama&ccedil;l&#305; aland&#305;r</li>
+        </ul>
+
+        <h3>6.3.6 &mdash; Lot Numaras&#305; Klavye Ge&ccedil;i&#351;i</h3>
+        <p>K&uuml;&ccedil;&uuml;k ama &ouml;nemli bir UX &ouml;zelli&#287;idir. Lot numaralar&#305; tamamen say&#305;sal (&ouml;rn. &ldquo;24081901&rdquo;) veya alfan&uuml;merik (&ouml;rn. &ldquo;LOT-A24-081&rdquo;) olabilir. Mobil cihazlarda g&ouml;r&uuml;nen klavye <code>inputMode</code> &ouml;zelli&#287;ine ba&#287;l&#305;d&#305;r. Sistem varsay&#305;lan olarak <code>numeric</code> (say&#305; tu&#351;tak&#305;m&#305;) kullan&#305;r ancak giri&#351; alan&#305; i&ccedil;inde say&#305; tu&#351;tak&#305;m&#305; ile tam klavye aras&#305;nda ge&ccedil;i&#351; yapan bir buton sa&#287;lar. Her lot giri&#351;i kendi klavye modunu ba&#287;&#305;ms&#305;z olarak takip eder.</p>
+
+        <h3>6.3.7 &mdash; QR Kod Sistemi</h3>
+        <p>Her malzeme giri&#351;i benzersiz, deterministik bir QR kodu &uuml;retir. Sistem basit ama etkili bir &#351;ema kullan&#305;r: malzeme t&uuml;r&uuml;n&uuml; belirleyen bir <strong>harf &ouml;neki</strong>, ard&#305;ndan t&uuml;r ba&#351;&#305;na artan bir <strong>s&#305;ra numaras&#305;</strong>.</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">&Ouml;nek</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Malzeme</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">&Ouml;rnekler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>A</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Bak&#305;r</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">A1, A2, A3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>B</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalay</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">B1, B2, B3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>C</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Plastik</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">C1, C2, C3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>D</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kataliz&ouml;r</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">D1, D2, D3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>E</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Boya</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">E1, E2, E3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>F</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Antirodent</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">F1, F2, F3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>I</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Palet</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">I1, I2, I3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>H</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Makara</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">H1, H2, H3&hellip;</td></tr>
+            </tbody>
+        </table>
+        <p>S&#305;ra numaras&#305;, o malzeme t&uuml;r&uuml; i&ccedil;in mevcut en y&uuml;ksek <code>sequence_number</code> sorgulanarak ve bir art&#305;r&#305;larak belirlenir. Her malzeme t&uuml;r&uuml;n&uuml;n kendi sayac&#305; vard&#305;r &mdash; bak&#305;r A847&rsquo;de olabilirken kalay B23&rsquo;tedir. QR kodu <code>qr_code</code> s&uuml;tununda <strong>benzersiz k&#305;s&#305;tlama</strong> ile saklan&#305;r, &ccedil;ift olu&#351;mamas&#305;n&#305; garanti eder.</p>
+        <p>Birden fazla paletli bak&#305;r giri&#351;lerinde, backend ayn&#305; i&#351;lem i&ccedil;inde her palet i&ccedil;in s&#305;ray&#305; art&#305;r&#305;r (3 paletli bir giri&#351; i&ccedil;in A45, A46, A47).</p>
+
+        <h3>6.3.8 &mdash; Foto&#287;raf Mimarisi</h3>
+        <p>Foto&#287;raf sistemi iki katmana sahiptir:</p>
+        <ul>
+            <li><strong>Ortak teslimat foto&#287;raflar&#305; (&#304;rsaliye)</strong> &mdash; bunlar teslimat belgesinin (irsaliye) foto&#287;raflar&#305;d&#305;r. Bireysel kalemlere de&#287;il, t&uuml;m teslimat&#305;n geneline uygulan&#305;r. En fazla 3 foto&#287;raf, giri&#351;teki t&uuml;m malzemeler aras&#305;nda payla&#351;&#305;l&#305;r. T&uuml;m malzeme tipleri i&ccedil;in g&ouml;sterilir.</li>
+            <li><strong>Kalem ba&#351;&#305;na foto&#287;raflar (Test/Hasar)</strong> &mdash; bireysel kalemler i&ccedil;in test raporlar&#305; veya hasar dok&uuml;mantasyonu:
+                <ul>
+                    <li><strong>Bak&#305;r ve kalay</strong> i&ccedil;in: teslimat foto&#287;raflar&#305;n&#305;n yan&#305;nda ortak bir &ldquo;Test Raporu Foto&#287;raf&#305;&rdquo; b&ouml;l&uuml;m&uuml; (en fazla 3) g&ouml;r&uuml;n&uuml;r</li>
+                    <li><strong>Lot bazl&#305; malzemeler</strong> i&ccedil;in: her lot panelinin kendi &ldquo;Test/Hasar Foto&#287;raflar&#305;&rdquo; b&ouml;l&uuml;m&uuml; vard&#305;r (lot ba&#351;&#305;na en fazla 3)</li>
+                    <li><strong>Palet ve makara</strong> i&ccedil;in: her tip panelinin kendi &ldquo;Hasar Foto&#287;raflar&#305;&rdquo; b&ouml;l&uuml;m&uuml; vard&#305;r (tip ba&#351;&#305;na en fazla 3)</li>
+                </ul>
+            </li>
+        </ul>
+        <p>Foto&#287;raflar g&ouml;ndermeden &ouml;nce frontend&rsquo;de base64&rsquo;e d&ouml;n&uuml;&#351;t&uuml;r&uuml;l&uuml;r. Backend bunlar&#305; <code>material_photos</code> tablosunda (malzeme sat&#305;r&#305;nda de&#287;il) <code>photo_type</code> ay&#305;r&#305;c&#305;s&#305; (&ldquo;delivery&rdquo; veya &ldquo;test&rdquo;) ve <code>sequence</code> numaras&#305;yla saklar. Bu ayr&#305; tablo <strong>tembel y&uuml;klemeyi</strong> m&uuml;mk&uuml;n k&#305;lar &mdash; malzemeleri listelerken yaln&#305;zca foto&#287;raf ID&rsquo;leri d&ouml;ner; ger&ccedil;ek base64 verisi talep &uuml;zerine <code>GET /materials/photo/{id}</code> ile getirilir.</p>
+
+        <h3>6.3.9 &mdash; Sipari&#351; Ba&#287;lama ve Otomatik Teslimat G&uuml;ncellemeleri</h3>
+        <p>Malzeme Giri&#351;i&rsquo;nin Malzeme Sipari&#351;lerine ve oradan Projeksiyon sistemine geri ba&#287;land&#305;&#287;&#305; yer buras&#305;d&#305;r.</p>
+        <p>Bir teslimat sipari&#351;lere ba&#287;land&#305;&#287;&#305;nda, backend malzeme sat&#305;rlar&#305;n&#305; olu&#351;turduktan sonra &#351;u ek ad&#305;mlar&#305; ger&ccedil;ekle&#351;tirir:</p>
+        <ul>
+            <li><strong>Bak&#305;r/kalay</strong> i&ccedil;in: <code>material_order_ids</code>&rsquo;den ilk sipari&#351; ID&rsquo;si kullan&#305;l&#305;r. Toplam teslim edilen a&#287;&#305;rl&#305;k (bak&#305;r i&ccedil;in t&uuml;m palet a&#287;&#305;rl&#305;klar&#305;n&#305;n toplam&#305; veya kalay i&ccedil;in tekli a&#287;&#305;rl&#305;k) sipari&#351;in <code>delivered_quantity</code> de&#287;erine eklenir. Sipari&#351; durumu &ldquo;delivered&rdquo; yap&#305;l&#305;r ve <code>delivered_date</code> bug&uuml;nle damgalan&#305;r.</li>
+            <li><strong>Lot bazl&#305; malzemeler</strong> i&ccedil;in: sistem <code>supplier_material_id</code> ile anahtarlanm&#305;&#351; bir <code>order_map</code> olu&#351;turur. Her lot i&ccedil;in, lotun <code>material_type_id</code> de&#287;erinin haritada bir anahtarla e&#351;le&#351;ip e&#351;le&#351;medi&#287;ini kontrol eder ve e&#351;le&#351;irse o lotu ilgili sipari&#351;e ba&#287;lar. Her sipari&#351;in <code>delivered_quantity</code> de&#287;eri kendi lotlar&#305;n&#305;n a&#287;&#305;rl&#305;klar&#305;yla art&#305;r&#305;l&#305;r.</li>
+            <li><strong>Palet/makara</strong> i&ccedil;in: ayn&#305; order_map mant&#305;&#287;&#305;, ama palet/makara tip ID&rsquo;sini <code>supplier_material_id</code> ile e&#351;le&#351;tirmek i&ccedil;in kullan&#305;l&#305;r. Teslim edilen miktar kalem say&#305;s&#305;yla art&#305;r&#305;l&#305;r.</li>
+        </ul>
+        <p>Ba&#287;lanan her sipari&#351; <code>status = delivered</code>, <code>delivered_date = bug&uuml;n</code> ve <code>delivered_quantity += miktar</code> al&#305;r. Bu, B&ouml;l&uuml;m 6.2&rsquo;de tart&#305;&#351;&#305;lan otomatik durum ge&ccedil;i&#351;idir.</p>
+
+        <h3>6.3.10 &mdash; Ba&#351;ar&#305; Modal&#305; ve QR Yazd&#305;rma</h3>
+        <p>Ba&#351;ar&#305;l&#305; bir kaydetmeden sonra sistem formu basit&ccedil;e kapatmaz. &Uuml;retilen QR kodlar&#305;n&#305; listeleyen (&ouml;rn. &ldquo;A45, A46, A47&rdquo;) bir <strong>ba&#351;ar&#305; modal&#305;</strong> g&ouml;sterir:</p>
+        <ul>
+            <li>&Uuml;retilen QR kodlar&#305;yla bir onay mesaj&#305;</li>
+            <li>&#304;ki buton: <strong>OK</strong> (kapat ve d&ouml;n) ve <strong>Yazd&#305;r</strong> (QR etiket yazd&#305;rma ak&#305;&#351;&#305;n&#305; tetikler)</li>
+        </ul>
+        <p>Yazd&#305;r butonu <code>POST /materials/print/{material_id}</code>&rsquo;yi &ccedil;a&#287;&#305;r&#305;r ve yazd&#305;rma kuyruk sistemine y&ouml;nlendirir. Birden fazla lotlu lot bazl&#305; giri&#351;lerde sistem t&uuml;m olu&#351;turulan malzeme ID&rsquo;lerini dola&#351;&#305;r ve her birini s&#305;rayla yazd&#305;r&#305;r.</p>
+        <p>Kaydet buton metni ba&#287;lamsald&#305;r: palet ve makara giri&#351;leri i&ccedil;in &ldquo;Kaydet (QR Yok)&rdquo; yazar &ccedil;&uuml;nk&uuml; paletler ve makaralar bas&#305;l&#305; QR etiketleri yerine fiziksel tan&#305;mlama kullan&#305;r. Di&#287;er t&uuml;m tipler i&ccedil;in &ldquo;Kaydet ve QR Kod Olu&#351;tur&rdquo; yazar.</p>
+
+        <h3>6.3.11 &mdash; Tedarik&ccedil;i Filtreleme</h3>
+        <p>Bir malzeme kart&#305;na t&#305;klan&#305;p giri&#351; formu a&ccedil;&#305;ld&#305;&#287;&#305;nda, tedarik&ccedil;i a&ccedil;&#305;l&#305;r listesi t&uuml;m tedarik&ccedil;ileri g&ouml;stermez. Se&ccedil;ilen tipte <code>materials_provided</code> katalo&#287;unda aktif malzemeleri olan tedarik&ccedil;ileri g&ouml;sterecek &#351;ekilde filtrelenir. Bu filtreleme istemci taraf&#305;nda her tedarik&ccedil;inin malzeme dizisi kontrol edilerek ger&ccedil;ekle&#351;ir. Bir malzeme tipi i&ccedil;in tedarik&ccedil;i bulunamazsa, a&ccedil;&#305;l&#305;r liste yard&#305;mc&#305; bir mesaj g&ouml;sterir: &ldquo;Bu malzeme i&ccedil;in tedarik&ccedil;i bulunamad&#305;. &Ouml;nce tedarik&ccedil;i ekleyin.&rdquo;</p>
+
+        <h3>6.3.12 &mdash; &#304;zin Sistemi</h3>
+        <p>Malzeme Giri&#351;i, ultra-gran&uuml;ler izin sistemiyle <strong>13 sayfa d&uuml;zeyi butonu</strong> kaydeder:</p>
+        <ul>
+            <li><code>access_page</code> &mdash; sayfay&#305; g&ouml;rebilme yetene&#287;i</li>
+            <li><code>add_copper</code>, <code>add_tin</code>, <code>add_plastic</code>, <code>add_catalyst</code>, <code>add_dye</code>, <code>add_antirodent</code>, <code>add_palette</code>, <code>add_reel</code> &mdash; malzeme kart&#305; ba&#351;&#305;na bir izin</li>
+            <li><code>submit_form</code> &mdash; kaydet butonu</li>
+            <li><code>upload_delivery_photo</code>, <code>upload_test_photo</code> &mdash; foto&#287;raf y&uuml;kleme yetenekleri</li>
+            <li><code>print_qr_modal</code> &mdash; ba&#351;ar&#305; modalindeki yazd&#305;r butonu</li>
+        </ul>
+        <p>Backend ayr&#305;ca rol bazl&#305; eri&#351;im zorlar: yaln&#305;zca <code>lab_user</code> ve <code>super_admin</code> kullan&#305;c&#305; tipleri malzeme giri&#351;i olu&#351;turabilir. Di&#287;er kullan&#305;c&#305; tipleri 403 Forbidden yan&#305;t&#305; al&#305;r.</p>
+
+        <h3>6.3.13 &mdash; WebSocket Yay&#305;n&#305;</h3>
+        <p>Malzeme giri&#351;leri olu&#351;turulduktan sonra (bak&#305;r/kalay yolu), backend olu&#351;turulan her malzeme i&ccedil;in malzeme ID&rsquo;si, QR kodu ve tipiyle birlikte &ldquo;materials:create&rdquo; olay t&uuml;r&uuml;nde bir WebSocket g&uuml;ncellemesi yay&#305;nlar. Bu, ba&#351;ka bir oturumdan yeni malzemeler girildi&#287;inde Hammaddeler Listesi sayfas&#305;n&#305;n manuel yenileme olmadan ger&ccedil;ek zamanl&#305; g&uuml;ncellenmesini sa&#287;lar.</p>
+        <p>G&uuml;ncelleme ve kal&#305;c&#305; silme i&#351;lemleri de s&#305;ras&#305;yla &ldquo;materials:update&rdquo; ve &ldquo;materials:delete&rdquo; olaylar&#305;n&#305; yay&#305;nlar.</p>
+
+        <h3>6.3.14 &mdash; Malzeme G&uuml;ncelleme (Yaln&#305;zca S&uuml;per Admin)</h3>
+        <p>Mevcut bir malzeme kayd&#305; <code>PUT /materials/update/{id}</code> &uuml;zerinden g&uuml;ncellenebilir, ancak bu <strong>yaln&#305;zca super_admin</strong> ile s&#305;n&#305;rl&#305;d&#305;r. G&uuml;ncellenebilir alanlar: QR kodu (benzersizlik do&#287;rulamal&#305;), lot numaras&#305;, a&#287;&#305;rl&#305;k, form a&#287;&#305;rl&#305;&#287;&#305;, kalan a&#287;&#305;rl&#305;k, adet, durum, notlar ve foto&#287;raflar. Bu d&uuml;zeltmeler i&ccedil;in kullan&#305;l&#305;r &mdash; bir operat&ouml;r yanl&#305;&#351; a&#287;&#305;rl&#305;k girdiyse, s&uuml;per admin d&uuml;zeltebilir. QR kodu de&#287;i&#351;tirilebilir ama t&uuml;m malzemeler aras&#305;nda benzersiz kalmal&#305;d&#305;r.</p>
+
+        <h3>6.3.15 &mdash; Malzeme Silme</h3>
+        <p>Kal&#305;c&#305; silme <code>DELETE /materials/{id}/hard-delete</code> &uuml;zerinden yap&#305;labilir (yaln&#305;zca s&uuml;per admin). Silmeden &ouml;nce sistem kontrol eder:</p>
+        <ul>
+            <li>Malzeme durumu &ldquo;in_use&rdquo; ise silme <strong>engellenir</strong> &mdash; &uuml;retimde olan malzemeyi kald&#305;ramazs&#305;n&#305;z</li>
+            <li>&#304;lgili yazd&#305;rma i&#351;leri &ouml;nce silinir</li>
+            <li>&#304;lgili foto&#287;raflar silinir (CASCADE bunu halledebilir ama kod a&ccedil;&#305;k&ccedil;a yapar)</li>
+        </ul>
+        <p>Silme sonras&#305; bir WebSocket yay&#305;n&#305; t&uuml;m ba&#287;l&#305; istemcileri bilgilendirir.</p>
+
+        <h3>6.3.16 &mdash; Malzeme Durum Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
+        <p>Her malzeme kayd&#305;, fabrikadaki yolculu&#287;unu takip eden bir duruma sahiptir:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #1890ff;">
+                <div class="stat-value" style="font-size: 0.9rem;">received</div>
+                <div class="stat-label">Yeni geldi, sisteme girildi</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #52c41a;">
+                <div class="stat-value" style="font-size: 0.9rem;">approved</div>
+                <div class="stat-label">Kalite kontrolden ge&ccedil;ti</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #faad14;">
+                <div class="stat-value" style="font-size: 0.9rem;">in_use</div>
+                <div class="stat-label">&#350;u an &uuml;retimde</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #d9d9d9;">
+                <div class="stat-value" style="font-size: 0.9rem;">consumed</div>
+                <div class="stat-label">Tamamen t&uuml;ketildi</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #ff4d4f;">
+                <div class="stat-value" style="font-size: 0.9rem;">rejected</div>
+                <div class="stat-label">Kalitesiz, iade</div>
+            </div>
+        </div>
+        <p>Giri&#351; formu yaln&#305;zca iki ba&#351;lang&#305;&ccedil; durumu sunar: &ldquo;received&rdquo; (varsay&#305;lan) ve &ldquo;rejected&rdquo;. Di&#287;er durumlar (approved, in_use, consumed) alt sistemler taraf&#305;ndan ayarlan&#305;r &mdash; kalite kontrol ve &uuml;retim mod&uuml;lleri. Ayr&#305;ca malzemenin <code>is_active</code> bayra&#287;&#305;n&#305; ge&ccedil;i&#351; yapan bir <code>toggle-status</code> endpoint&rsquo;i de vard&#305;r.</p>
+
+        <h3>6.3.17 &mdash; API Endpoint&rsquo;leri</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Metot</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Endpoint</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Ama&ccedil;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Bak&#305;r (&ccedil;oklu palet) veya kalay (tekli) giri&#351;leri olu&#351;turur. QR kodlar&#305; &uuml;retir, foto&#287;raflar&#305; kaydeder, sipari&#351;leri ba&#287;lar, WebSocket yay&#305;nlar.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/lot-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot bazl&#305; giri&#351;ler (plastik, kataliz&ouml;r, boya, antirodent) olu&#351;turur. Lot ba&#351;&#305;na bir sat&#305;r, malzeme ad&#305; SupplierMaterial&rsquo;dan &ccedil;&ouml;z&uuml;mlenir. Lot ba&#351;&#305;na ba&#287;lama i&ccedil;in order_map olu&#351;turur.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/palette-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Palet giri&#351;leri olu&#351;turur. Palet tipi ba&#351;&#305;na bir sat&#305;r, I &ouml;nekli QR kodlar&#305;yla. PALET-{s&#305;ra} lot numaralar&#305;n&#305; otomatik &uuml;retir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/reel-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Makara giri&#351;leri olu&#351;turur. Makara tipi ba&#351;&#305;na bir sat&#305;r, H &ouml;nekli QR kodlar&#305;yla. Malzeme ad&#305; boyut ve reel_type i&ccedil;erir. REEL-{s&#305;ra} lot numaralar&#305;.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/list</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">T&uuml;m malzemeleri tedarik&ccedil;i adlar&#305;, foto&#287;raf ID&rsquo;leri (tembel) ve sipari&#351; grup kodlar&#305;yla d&ouml;ner. Hammaddeler Listesi taraf&#305;ndan kullan&#305;l&#305;r.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/photo/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Talep &uuml;zerine tekli foto&#287;raf base64 verisi d&ouml;ner (tembel y&uuml;kleme).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/update/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR kodu dahil malzeme alanlar&#305;n&#305; g&uuml;nceller (yaln&#305;zca s&uuml;per admin). G&uuml;ncellemede t&uuml;m foto&#287;raflar&#305; de&#287;i&#351;tirir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>DELETE</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/{id}/hard-delete</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kal&#305;c&#305; silme (s&uuml;per admin). in_use ise engeller. Foto&#287;raflar&#305; ve yazd&#305;rma i&#351;lerini temizler.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/{id}/toggle-status</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Yumu&#351;ak devre d&#305;&#351;&#305;/etkin i&ccedil;in is_active bayra&#287;&#305;n&#305; ge&ccedil;i&#351; yapar.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/preview/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Yazd&#305;rmadan &ouml;nce etiket &ouml;nizleme g&ouml;r&uuml;nt&uuml;s&uuml; (base64) &uuml;retir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR etiketini fiziksel yazd&#305;rma i&ccedil;in yazd&#305;rma kuyru&#287;una g&ouml;nderir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/update-printer-ip</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Yaz&#305;c&#305; IP/port g&uuml;nceller (s&uuml;per admin). G&uuml;ncellemeden sonra ba&#287;lant&#305;y&#305; test eder.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/test-connection</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Yaz&#305;c&#305; ba&#287;lant&#305;s&#305;n&#305; test eder (lab kullan&#305;c&#305; + s&uuml;per admin).</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.3.18 &mdash; Veritaban&#305; &#350;emas&#305;: raw_materials</h3>
+        <p>T&uuml;m 8 malzeme tipi tek bir tabloda saklan&#305;r. &Ouml;nemli alanlar:</p>
+        <ul>
+            <li><code>material_type</code> &mdash; ay&#305;r&#305;c&#305;: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</li>
+            <li><code>material_name</code> &mdash; SupplierMaterial&rsquo;dan &ccedil;&ouml;z&uuml;mlenen spesifik &uuml;r&uuml;n ad&#305; (&ouml;rn. &ldquo;HFX-500P - 2mm&rdquo;). Bak&#305;r ve kalay i&ccedil;in NULL.</li>
+            <li><code>sequence_number</code> &mdash; QR kod &uuml;retimi i&ccedil;in t&uuml;r ba&#351;&#305;na artan saya&ccedil;</li>
+            <li><code>qr_code</code> &mdash; benzersiz, deterministik tan&#305;mlay&#305;c&#305; (A1, B5, C23, vb.)</li>
+            <li><code>supplier_id</code> &rarr; <code>suppliers</code> tablosuna FK</li>
+            <li><code>material_order_id</code> &rarr; <code>material_orders</code> tablosuna nullable FK &mdash; sat&#305;n alma sipari&#351;ine geri izlenebilirlik ba&#287;lant&#305;s&#305;</li>
+            <li><code>lot_number</code> &mdash; bak&#305;r/lot bazl&#305; i&ccedil;in kullan&#305;c&#305; taraf&#305;ndan girilir, kalay/palet/makara i&ccedil;in otomatik &uuml;retilir</li>
+            <li><code>weight</code> &mdash; a&#287;&#305;rl&#305;k bazl&#305; malzemeler i&ccedil;in &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k, paletler/makaralar i&ccedil;in say&#305;</li>
+            <li><code>remaining_weight</code> &mdash; weight olarak ba&#351;lat&#305;l&#305;r, &uuml;retim t&uuml;ketimi taraf&#305;ndan azalt&#305;l&#305;r</li>
+            <li><code>form_weight</code> &mdash; tedarik&ccedil;inin irsaliyesindeki a&#287;&#305;rl&#305;k (yaln&#305;zca bak&#305;r ve lot bazl&#305;)</li>
+            <li><code>quantity</code> &mdash; lot bazl&#305; malzemeler i&ccedil;in kap/etiket say&#305;s&#305;, palet/makara i&ccedil;in adet</li>
+            <li><code>status</code> &mdash; received / approved / in_use / consumed / rejected</li>
+            <li><code>entered_by</code> &rarr; <code>users</code> tablosuna FK</li>
+        </ul>
+
+        <h3>6.3.19 &mdash; Malzeme Giri&#351;inin Her &#350;eyle Ba&#287;lant&#305;s&#305;</h3>
+        <p>Bu, Hammadde sistemindeki en &ccedil;ok ba&#287;lant&#305;l&#305; mod&uuml;ld&uuml;r. &#304;&#351;te her &uuml;st ve alt ak&#305;&#351; ba&#287;lant&#305;s&#305;:</p>
+        <ul>
+            <li><strong>Tedarik&ccedil;i Y&ouml;netimi (&uuml;st ak&#305;&#351;)</strong> &mdash; tedarik&ccedil;i listesini, malzeme kataloglar&#305;n&#305; ve &uuml;r&uuml;n adlar&#305;n&#305; sa&#287;lar. Giri&#351; formunun a&ccedil;&#305;l&#305;r listeleri tamamen tedarik&ccedil;i verisinden doldurulur.</li>
+            <li><strong>Malzeme Sipari&#351;leri (&uuml;st + alt ak&#305;&#351;)</strong> &mdash; Ad&#305;m 1 modal&#305; i&ccedil;in bekleyen sipari&#351;leri sa&#287;lar. Kaydetmede Malzeme Giri&#351;i sipari&#351;lere geri yazar: durumu teslim edildi yapar, tarihi damgalar, teslim edilen miktar&#305; art&#305;r&#305;r.</li>
+            <li><strong>Projeksiyon (dolayl&#305; alt ak&#305;&#351;)</strong> &mdash; sipari&#351; durumunu beklemedenden teslim edildi&rsquo;ye de&#287;i&#351;tirerek ve delivered_date/delivered_quantity ayarlayarak, Malzeme Giri&#351;i Projeksiyon&rsquo;u bu sipari&#351;ler i&ccedil;in planlanan veriden ger&ccedil;ek veriye kayd&#305;r&#305;r.</li>
+            <li><strong>Hammaddeler Listesi (alt ak&#305;&#351;)</strong> &mdash; burada olu&#351;turulan her sat&#305;r an&#305;nda malzeme listesinde g&ouml;r&uuml;n&uuml;r. Liste sayfas&#305; <code>/materials/list</code>&rsquo;i t&uuml;ketir ve t&uuml;m giri&#351;leri QR kodlar&#305;, a&#287;&#305;rl&#305;klar&#305;, durumlar&#305; ve foto&#287;raflar&#305;yla g&ouml;sterir.</li>
+            <li><strong>&Uuml;retim Sistemi (alt ak&#305;&#351;)</strong> &mdash; &uuml;retim mod&uuml;lleri malzemeleri QR kodlar&#305;na referans vererek t&uuml;ketir, <code>remaining_weight</code>&rsquo;i azalt&#305;r ve durumu in_use/consumed olarak de&#287;i&#351;tirir.</li>
+            <li><strong>Yazd&#305;rma Kuyru&#287;u (alt ak&#305;&#351;)</strong> &mdash; ba&#351;ar&#305; modal&#305; yazd&#305;rma kuyruk sistemi arac&#305;l&#305;&#287;&#305;yla etiket yazd&#305;rmay&#305; tetikler.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Form neden &#351;ekil de&#287;i&#351;tirir:</strong> Her malzeme t&uuml;r&uuml; temelden farkl&#305; fiziksel &ouml;zelliklere sahiptir. Bak&#305;r tek tek tart&#305;lmas&#305; gereken paletlerde gelir. Kalay tek bir bloktur. Plastikler bireysel takip gerektiren numaral&#305; lotlarda gelir. Paletler ve makaralar tart&#305;lmaz, say&#305;l&#305;r. Tek bir genel form ya &ccedil;ok karma&#351;&#305;k olurdu (alakas&#305;z alanlar g&ouml;stererek) ya da &ccedil;ok basit (gerekli verileri ka&ccedil;&#305;rarak). D&ouml;rt arketip yakla&#351;&#305;m&#305;, her malzemenin tam olarak ihtiya&ccedil; duydu&#287;u alanlar&#305; almas&#305;n&#305; sa&#287;lar &mdash; ne eksik ne fazla.</p>
+        </div>
+
     </main>
 </body>
 </html>

@@ -1086,6 +1086,296 @@ registerPageButtons({
             <li>It does <strong>not</strong> handle pricing, invoicing, or financial tracking of any kind</li>
         </ul>
 
+
+        <!-- ============================================= -->
+        <!--  6.3  HAMMADDE GİRİŞİ (Material Entry)       -->
+        <!-- ============================================= -->
+
+        <h2 id="material-entry">6.3 &mdash; Hammadde Giri&#351;i (Material Entry)</h2>
+
+        <h3>6.3.1 &mdash; Purpose and Business Context</h3>
+        <p>This is where physical reality meets the digital system. When a truck arrives at Solen&rsquo;s factory with raw materials, the warehouse operator uses this module to register what came in. Every kilogram of copper, every barrel of plastic, every pallet &mdash; it all enters the system through this single page.</p>
+        <p>The module does not just record inventory; it is the <strong>bridge</strong> between three other systems. It consumes data from Supplier Management (who delivered), links deliveries to Material Orders (what was expected), generates the QR codes and database records that appear in Hammaddeler Listesi (the inventory), and indirectly updates the Projeksiyon (stock projection) by changing order status and delivered quantities.</p>
+        <p>The page lives under <code>/hammadde/hammadde-girisi</code> in the menu, but its frontend component is actually located at <code>Lab/MaterialEntry</code> &mdash; reflecting that material entry is a lab/warehouse operation.</p>
+
+        <h3>6.3.2 &mdash; The Landing Page: Eight Material Cards</h3>
+        <p>When the user opens the page, they see a grid of <strong>8 clickable cards</strong>, one for each raw material type the factory handles:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #fa8c16;">
+                <div class="stat-value" style="font-size: 1rem;">Bak&#305;r (A)</div>
+                <div class="stat-label">Copper wire rod &mdash; Filma&#351;in</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #13c2c2;">
+                <div class="stat-value" style="font-size: 1rem;">Kalay (B)</div>
+                <div class="stat-label">Tin &mdash; single weight entry</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #722ed1;">
+                <div class="stat-value" style="font-size: 1rem;">Plastik (C)</div>
+                <div class="stat-label">Plastic granules &mdash; lot-based</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #eb2f96;">
+                <div class="stat-value" style="font-size: 1rem;">Kataliz&ouml;r (D)</div>
+                <div class="stat-label">Catalyst &mdash; lot-based</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #f5222d;">
+                <div class="stat-value" style="font-size: 1rem;">Boya (E)</div>
+                <div class="stat-label">Dye &mdash; lot-based</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #2f54eb;">
+                <div class="stat-value" style="font-size: 1rem;">Antirodent (F)</div>
+                <div class="stat-label">Rodent repellent &mdash; lot-based</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #a0d911;">
+                <div class="stat-value" style="font-size: 1rem;">Palet (I)</div>
+                <div class="stat-label">Wooden palettes &mdash; count-based</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #faad14;">
+                <div class="stat-value" style="font-size: 1rem;">Makara (H)</div>
+                <div class="stat-label">Cable reels &mdash; count-based</div>
+            </div>
+        </div>
+        <p>Each card has a unique background color that adapts to dark/light theme, a large icon, and the material name. The letter in parentheses is the QR code prefix for that material type. Clicking any card does <strong>not</strong> immediately open the entry form &mdash; it triggers the Order Selection flow first.</p>
+
+        <h3>6.3.3 &mdash; The Two-Step Entry Flow</h3>
+        <p>This is a critical design decision. Material entry follows a two-step process:</p>
+        <ol>
+            <li><strong>Step 1: Order Selection Modal</strong> &mdash; When the user clicks a material card, the system immediately fetches pending orders for that material type from <code>GET /material-orders/pending-by-type/{type}</code>. A modal appears showing:
+                <ul>
+                    <li>A list of pending order groups, each showing the supplier name, the material names in that shipment, the total quantity, and the expected date</li>
+                    <li>A &ldquo;Manuel Giri&#351;&rdquo; (Manual Entry) button at the bottom for deliveries that have no corresponding order</li>
+                </ul>
+            </li>
+            <li><strong>Step 2: Entry Form</strong> &mdash; The user either picks an order group (which pre-fills supplier, material types, and quantities) or clicks Manual Entry (which opens a blank form). The entry form is a dynamic modal that changes its entire structure based on the material type.</li>
+        </ol>
+        <p>This two-step flow serves a critical purpose: it encourages operators to link deliveries to orders, which keeps the tracking chain intact. If orders exist, they are displayed prominently. Manual entry exists as a fallback, not the default.</p>
+
+        <h3>6.3.4 &mdash; Order Pre-filling Logic</h3>
+        <p>When the user selects an order group in Step 1, the following happens automatically:</p>
+        <ul>
+            <li>The <strong>supplier</strong> field is auto-filled and <strong>disabled</strong> &mdash; you cannot change the supplier when entering against an order</li>
+            <li>For <strong>lot-based materials</strong> (plastic, catalyst, dye, antirodent): the system pre-creates one lot panel per order line item, with the <code>material_type_id</code> (specific product) already selected from the order&rsquo;s <code>supplier_material_id</code></li>
+            <li>For <strong>palettes and reels</strong>: the system pre-creates one type panel per order line item, with the palette/reel type and quantity pre-filled from the order</li>
+            <li>For <strong>copper and tin</strong>: the supplier is pre-filled; the rest (palette weights, lot numbers) must be entered manually since orders track total kg, not per-palette details</li>
+        </ul>
+        <p>The order group also carries the <code>order_ids</code> array, which is sent to the backend on save so the system knows which orders to mark as delivered.</p>
+
+        <h3>6.3.5 &mdash; Four Form Archetypes</h3>
+        <p>The entry form is not one form. It is <strong>four completely different form structures</strong> that render conditionally based on which material type was selected. They all share two common fields (supplier and received-by person) and a common photo section, but everything in between is unique.</p>
+
+        <h4>Archetype 1: Copper (Multi-Palette)</h4>
+        <p>Copper arrives in large palettes (Filma&#351;in &mdash; wire rod coils on palettes). A single delivery may contain multiple palettes, each with its own weight. The form presents a dynamic list of <strong>collapsible palette panels</strong>:</p>
+        <ul>
+            <li>Each panel contains: <strong>Lot Number</strong> (with keyboard toggle), <strong>Form Weight</strong> (weight on the supplier&rsquo;s delivery form), <strong>Measured Weight</strong> (actual weight measured at Solen), and <strong>Status</strong> (received or rejected)</li>
+            <li>The user can add more palettes with a &ldquo;+&rdquo; button and remove any panel except the last one</li>
+            <li>The form starts with one empty palette panel</li>
+            <li>On save, the backend creates <strong>one <code>raw_materials</code> row per palette</strong>, each with its own QR code (A1, A2, A3&hellip;)</li>
+            <li>Both form_weight and measured_weight are stored &mdash; the difference helps identify discrepancies between what the supplier claims and what actually arrived</li>
+            <li><code>remaining_weight</code> is initialized to <code>measured_weight</code> and is decremented by production later</li>
+        </ul>
+
+        <h4>Archetype 2: Tin (Single Entry)</h4>
+        <p>Tin is the simplest entry type. A single delivery is one weight measurement:</p>
+        <ul>
+            <li>The form shows just two fields: <strong>Net Weight (kg)</strong> and <strong>Status</strong></li>
+            <li>One row in <code>raw_materials</code>, one QR code (B1, B2&hellip;)</li>
+            <li>The lot number is auto-generated as <code>TIN-{sequence}</code></li>
+            <li><code>remaining_weight</code> is initialized to the entered weight</li>
+        </ul>
+
+        <h4>Archetype 3: Lot-Based (Plastic, Catalyst, Dye, Antirodent)</h4>
+        <p>These four material types share the same form structure because they all arrive in lots (batches from a production run at the supplier). The form presents a dynamic list of <strong>collapsible lot panels</strong>:</p>
+        <ul>
+            <li>Each panel contains: <strong>Material Type</strong> (dropdown of specific products from the supplier&rsquo;s catalog, e.g., &ldquo;HFX-500P&rdquo;), <strong>Lot Number</strong> (with keyboard toggle), <strong>Form Weight</strong>, <strong>Measured Weight</strong>, <strong>Quantity</strong> (number of labels to print &mdash; how many containers in this lot), <strong>Status</strong>, and <strong>Test/Damage Photos</strong> (per-lot, up to 3)</li>
+            <li>The Material Type dropdown is <strong>context-sensitive</strong>: if the entry is linked to an order, it only shows materials from that order&rsquo;s line items. If manual, it shows all of the supplier&rsquo;s materials for that type</li>
+            <li>On save, the backend creates <strong>one row per lot</strong> with its own QR code (C1/D1/E1/F1&hellip;)</li>
+            <li>The backend resolves the specific <code>material_name</code> from <code>SupplierMaterial</code> and appends the <code>boyut</code> (size) if present, creating names like &ldquo;HFX-500P - 2mm&rdquo;</li>
+        </ul>
+
+        <h4>Archetype 4: Count-Based (Palette, Reel)</h4>
+        <p>Palettes and reels are counted items, not weighed. The form presents <strong>collapsible type panels</strong>:</p>
+        <ul>
+            <li>Each panel contains: <strong>Type</strong> (dropdown from supplier&rsquo;s catalog, e.g., &ldquo;Euro Palet - 120 cm&rdquo; or &ldquo;500m Makara - 40 cm - Plastik&rdquo;), <strong>Quantity</strong> (count), <strong>Status</strong>, and <strong>Damage Photos</strong> (per-type, up to 3)</li>
+            <li>The type dropdown is populated from the supplier&rsquo;s <code>materials_provided</code> filtered by palette or reel type</li>
+            <li>For reels, the display includes <code>material_name - boyut cm - reel_type</code> to show the full specification</li>
+            <li>On save, the backend creates <strong>one row per type</strong> with QR code (I1/H1&hellip;). The lot number is auto-generated as <code>PALET-{seq}</code> or <code>REEL-{seq}</code></li>
+            <li>The <code>weight</code> field is used to store the quantity (count), and <code>quantity</code> also stores the count &mdash; this is a dual-purpose field for backward compatibility</li>
+        </ul>
+
+        <h3>6.3.6 &mdash; The Lot Number Keyboard Toggle</h3>
+        <p>This is a small but important UX feature. Lot numbers can be purely numeric (e.g., &ldquo;24081901&rdquo;) or alphanumeric (e.g., &ldquo;LOT-A24-081&rdquo;). On mobile devices, the input keyboard that appears depends on the <code>inputMode</code> attribute. The system defaults to <code>numeric</code> (number pad) but provides a toggle button inside the input field that switches between number pad and full keyboard. Each lot input tracks its own keyboard mode independently.</p>
+
+        <h3>6.3.7 &mdash; The QR Code System</h3>
+        <p>Every material entry generates a unique, deterministic QR code. The system uses a simple but effective scheme: a <strong>letter prefix</strong> identifying the material type, followed by a <strong>sequential number</strong> that increments per type.</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Prefix</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Material</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Examples</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>A</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Copper (Bak&#305;r)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">A1, A2, A3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>B</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tin (Kalay)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">B1, B2, B3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>C</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Plastic (Plastik)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">C1, C2, C3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>D</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Catalyst (Kataliz&ouml;r)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">D1, D2, D3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>E</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Dye (Boya)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">E1, E2, E3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>F</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Antirodent</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">F1, F2, F3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>I</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Palette (Palet)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">I1, I2, I3&hellip;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>H</strong></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Reel (Makara)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">H1, H2, H3&hellip;</td></tr>
+            </tbody>
+        </table>
+        <p>The sequence number is determined by querying the highest existing <code>sequence_number</code> for that material type and incrementing by one. Each material type has its own counter &mdash; copper can be at A847 while tin is at B23. The QR code is stored in the <code>qr_code</code> column with a <strong>unique constraint</strong>, ensuring no duplicates.</p>
+        <p>For copper entries with multiple palettes, the backend increments the sequence for each palette within the same transaction (A45, A46, A47 for a 3-palette entry).</p>
+
+        <h3>6.3.8 &mdash; Photo Architecture</h3>
+        <p>The photo system has two tiers:</p>
+        <ul>
+            <li><strong>Common delivery photos (&#304;rsaliye)</strong> &mdash; these are photos of the delivery document (waybill/invoice). They apply to the entire delivery, not individual items. Up to 3 photos, shared across all materials in the entry. Shown for all material types.</li>
+            <li><strong>Per-item photos (Test/Hasar)</strong> &mdash; these are test reports or damage documentation for individual items:
+                <ul>
+                    <li>For <strong>copper and tin</strong>: a common &ldquo;Test Report Photo&rdquo; section (up to 3) appears alongside the delivery photos</li>
+                    <li>For <strong>lot-based materials</strong>: each lot panel has its own &ldquo;Test/Hasar Foto&#287;raflar&#305;&rdquo; section (up to 3 per lot)</li>
+                    <li>For <strong>palette and reel</strong>: each type panel has its own &ldquo;Hasar Foto&#287;raflar&#305;&rdquo; section (up to 3 per type)</li>
+                </ul>
+            </li>
+        </ul>
+        <p>Photos are converted to base64 on the frontend before submission. The backend stores them in the <code>material_photos</code> table (not on the material row itself) with a <code>photo_type</code> discriminator (&ldquo;delivery&rdquo; or &ldquo;test&rdquo;) and a <code>sequence</code> number. This separate table enables <strong>lazy loading</strong> &mdash; when listing materials, only photo IDs are returned; the actual base64 data is fetched on demand via <code>GET /materials/photo/{id}</code>.</p>
+
+        <h3>6.3.9 &mdash; Order Linking and Automatic Delivery Updates</h3>
+        <p>This is where Material Entry connects back to Material Orders and, through that, to the Projeksiyon system.</p>
+        <p>When a delivery is linked to orders, the backend performs these additional steps after creating the material rows:</p>
+        <ul>
+            <li>For <strong>copper/tin</strong>: the first order ID from <code>material_order_ids</code> is used. The total delivered weight (sum of all palette weights for copper, or the single weight for tin) is added to the order&rsquo;s <code>delivered_quantity</code>. The order status is set to &ldquo;delivered&rdquo; and <code>delivered_date</code> is stamped with today.</li>
+            <li>For <strong>lot-based materials</strong>: the system builds an <code>order_map</code> keyed by <code>supplier_material_id</code>. For each lot, it checks if the lot&rsquo;s <code>material_type_id</code> matches a key in the map, and if so, links that lot to the corresponding order. Each order&rsquo;s <code>delivered_quantity</code> is incremented by its specific lots&rsquo; weights.</li>
+            <li>For <strong>palette/reel</strong>: same order_map logic, but using the palette/reel type ID to match against <code>supplier_material_id</code>. Delivered quantity increments by the item count.</li>
+        </ul>
+        <p>Every linked order gets <code>status = delivered</code>, <code>delivered_date = today</code>, and <code>delivered_quantity += amount</code>. This is the automatic status transition discussed in Section 6.2.</p>
+
+        <h3>6.3.10 &mdash; The Success Modal and QR Printing</h3>
+        <p>After a successful save, the system does not simply close the form. It shows a <strong>success modal</strong> that displays:</p>
+        <ul>
+            <li>A confirmation message with the generated QR codes listed (e.g., &ldquo;A45, A46, A47&rdquo;)</li>
+            <li>Two buttons: <strong>OK</strong> (close and return) and <strong>Yazd&#305;r</strong> (Print) which triggers the QR label printing flow</li>
+        </ul>
+        <p>The print button calls <code>POST /materials/print/{material_id}</code> which routes to the print queue system. For lot-based entries with multiple lots, the system iterates through all created material IDs and prints each one sequentially.</p>
+        <p>The save button text is contextual: for palette and reel entries it says &ldquo;Kaydet (QR Yok)&rdquo; (Save, no QR) because palettes and reels use physical identification rather than printed QR labels. For all other types it says &ldquo;Kaydet ve QR Kod Olu&#351;tur&rdquo; (Save and Generate QR Code).</p>
+
+        <h3>6.3.11 &mdash; Supplier Filtering</h3>
+        <p>When a material card is clicked and the entry form opens, the supplier dropdown does not show all suppliers. It is filtered to show only suppliers who have active materials of the selected type in their <code>materials_provided</code> catalog. This filtering happens client-side by checking each supplier&rsquo;s materials array. If no suppliers are found for a material type, the dropdown shows a helpful message: &ldquo;Bu malzeme i&ccedil;in tedarik&ccedil;i bulunamad&#305;. &Ouml;nce tedarik&ccedil;i ekleyin.&rdquo;</p>
+
+        <h3>6.3.12 &mdash; Permission System</h3>
+        <p>Material Entry registers <strong>13 page-level buttons</strong> with the ultra-granular permission system:</p>
+        <ul>
+            <li><code>access_page</code> &mdash; ability to see the page at all</li>
+            <li><code>add_copper</code>, <code>add_tin</code>, <code>add_plastic</code>, <code>add_catalyst</code>, <code>add_dye</code>, <code>add_antirodent</code>, <code>add_palette</code>, <code>add_reel</code> &mdash; one permission per material card</li>
+            <li><code>submit_form</code> &mdash; the save button</li>
+            <li><code>upload_delivery_photo</code>, <code>upload_test_photo</code> &mdash; photo upload capabilities</li>
+            <li><code>print_qr_modal</code> &mdash; the print button in the success modal</li>
+        </ul>
+        <p>The backend also enforces role-based access: only <code>lab_user</code> and <code>super_admin</code> user types can create material entries. Other user types receive a 403 Forbidden response.</p>
+
+        <h3>6.3.13 &mdash; WebSocket Broadcasting</h3>
+        <p>After creating material entries (copper/tin path), the backend broadcasts a WebSocket update for each created material with the event type &ldquo;materials:create&rdquo;, including the material ID, QR code, and type. This allows the Hammaddeler Listesi page to update in real-time without manual refresh when new materials are entered from another session.</p>
+        <p>The update and hard-delete operations also broadcast &ldquo;materials:update&rdquo; and &ldquo;materials:delete&rdquo; events respectively.</p>
+
+        <h3>6.3.14 &mdash; Material Update (Super Admin Only)</h3>
+        <p>An existing material record can be updated through <code>PUT /materials/update/{id}</code>, but this is restricted to <strong>super_admin only</strong>. The updatable fields include: QR code (with uniqueness validation), lot number, weight, form weight, remaining weight, quantity, status, notes, and photos. This is used for corrections &mdash; if an operator entered the wrong weight, a super admin can fix it. The QR code is changeable but must remain unique across all materials.</p>
+
+        <h3>6.3.15 &mdash; Material Deletion</h3>
+        <p>Hard deletion is available through <code>DELETE /materials/{id}/hard-delete</code> (super admin only). Before deleting, the system checks:</p>
+        <ul>
+            <li>If the material status is &ldquo;in_use&rdquo;, deletion is <strong>blocked</strong> &mdash; you cannot remove material that is currently in production</li>
+            <li>Related print jobs are deleted first</li>
+            <li>Related photos are deleted (CASCADE would handle this, but the code does it explicitly)</li>
+        </ul>
+        <p>After deletion, a WebSocket broadcast notifies all connected clients.</p>
+
+        <h3>6.3.16 &mdash; Material Status Lifecycle</h3>
+        <p>Each material record has a status that tracks its journey through the factory:</p>
+        <div class="stat-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="stat-card" style="border-left: 4px solid #1890ff;">
+                <div class="stat-value" style="font-size: 0.9rem;">received</div>
+                <div class="stat-label">Just arrived, entered in system</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #52c41a;">
+                <div class="stat-value" style="font-size: 0.9rem;">approved</div>
+                <div class="stat-label">Passed quality check</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #faad14;">
+                <div class="stat-value" style="font-size: 0.9rem;">in_use</div>
+                <div class="stat-label">Currently in production</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #d9d9d9;">
+                <div class="stat-value" style="font-size: 0.9rem;">consumed</div>
+                <div class="stat-label">Fully used up</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #ff4d4f;">
+                <div class="stat-value" style="font-size: 0.9rem;">rejected</div>
+                <div class="stat-label">Failed quality, returned</div>
+            </div>
+        </div>
+        <p>The entry form only offers two initial statuses: &ldquo;received&rdquo; (default) and &ldquo;rejected&rdquo;. The other statuses (approved, in_use, consumed) are set by downstream systems &mdash; quality control and production modules. There is also a <code>toggle-status</code> endpoint that flips the material&rsquo;s <code>is_active</code> flag for soft-disable.</p>
+
+        <h3>6.3.17 &mdash; API Endpoints</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <thead>
+                <tr style="background: var(--bg-secondary);">
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Method</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Endpoint</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Creates copper (multi-palette) or tin (single) entries. Generates QR codes, saves photos, links orders, broadcasts WebSocket.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/lot-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Creates lot-based entries (plastic, catalyst, dye, antirodent). One row per lot with material name resolved from SupplierMaterial. Builds order_map for per-lot linking.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/palette-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Creates palette entries. One row per palette type with I-prefix QR codes. Auto-generates PALET-{seq} lot numbers.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/reel-entry</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Creates reel entries. One row per reel type with H-prefix QR codes. Material name includes boyut and reel_type. Auto-generates REEL-{seq} lot numbers.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/list</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Returns all materials with supplier names, photo IDs (lazy), and order group codes. Used by Hammaddeler Listesi.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/photo/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Returns single photo base64 data on demand (lazy loading).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/update/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Updates material fields including QR code (super admin only). Replaces all photos on update.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>DELETE</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/{id}/hard-delete</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Permanent deletion (super admin). Blocks if in_use. Cleans up photos and print jobs.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PUT</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/{id}/toggle-status</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Toggles is_active flag for soft disable/enable.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/preview/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Generates label preview image (base64) before printing.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sends QR label to print queue for physical printing.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>POST</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/update-printer-ip</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Updates printer IP/port (super admin). Tests connection after update.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>GET</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>/materials/print/test-connection</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tests printer connectivity (lab user + super admin).</td></tr>
+            </tbody>
+        </table>
+
+        <h3>6.3.18 &mdash; Database Schema: raw_materials</h3>
+        <p>All 8 material types are stored in a single table. Key fields:</p>
+        <ul>
+            <li><code>material_type</code> &mdash; discriminator: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</li>
+            <li><code>material_name</code> &mdash; specific product name resolved from SupplierMaterial (e.g., &ldquo;HFX-500P - 2mm&rdquo;). NULL for copper and tin.</li>
+            <li><code>sequence_number</code> &mdash; per-type incrementing counter used for QR code generation</li>
+            <li><code>qr_code</code> &mdash; unique, deterministic identifier (A1, B5, C23, etc.)</li>
+            <li><code>supplier_id</code> &rarr; FK to <code>suppliers</code></li>
+            <li><code>material_order_id</code> &rarr; nullable FK to <code>material_orders</code> &mdash; the traceability link back to the purchase order</li>
+            <li><code>lot_number</code> &mdash; user-entered for copper/lot-based, auto-generated for tin/palette/reel</li>
+            <li><code>weight</code> &mdash; measured weight for weight-based materials, count for palettes/reels</li>
+            <li><code>remaining_weight</code> &mdash; initialized to weight, decremented by production consumption</li>
+            <li><code>form_weight</code> &mdash; weight on the supplier&rsquo;s delivery form (copper and lot-based only)</li>
+            <li><code>quantity</code> &mdash; number of containers/labels for lot-based materials, count for palette/reel</li>
+            <li><code>status</code> &mdash; received / approved / in_use / consumed / rejected</li>
+            <li><code>entered_by</code> &rarr; FK to <code>users</code></li>
+        </ul>
+
+        <h3>6.3.19 &mdash; How Material Entry Connects to Everything</h3>
+        <p>This is the most interconnected module in the Hammadde system. Here is every upstream and downstream connection:</p>
+        <ul>
+            <li><strong>Supplier Management (upstream)</strong> &mdash; provides the supplier list, material catalogs, and product names. The entry form&rsquo;s dropdowns are populated entirely from supplier data.</li>
+            <li><strong>Material Orders (upstream + downstream)</strong> &mdash; provides pending orders for the Step 1 modal. On save, Material Entry writes back to orders: setting status to delivered, stamping the date, incrementing delivered quantity.</li>
+            <li><strong>Projeksiyon (indirect downstream)</strong> &mdash; by changing order status from pending to delivered and setting delivered_date/delivered_quantity, Material Entry shifts the Projeksiyon from planned to actual data for those orders.</li>
+            <li><strong>Hammaddeler Listesi (downstream)</strong> &mdash; every row created here appears immediately in the materials list. The list page consumes <code>/materials/list</code> and displays all entries with their QR codes, weights, statuses, and photos.</li>
+            <li><strong>Production System (downstream)</strong> &mdash; production modules consume materials by referencing their QR codes, decrementing <code>remaining_weight</code>, and changing status to in_use/consumed.</li>
+            <li><strong>Print Queue (downstream)</strong> &mdash; the success modal triggers label printing through the print queue system.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why the form changes shape:</strong> Each material type has fundamentally different physical properties. Copper arrives on palettes that must be individually weighed. Tin is a single block. Plastics come in numbered lots that need individual tracking. Palettes and reels are counted, not weighed. A single generic form would either be too complex (showing irrelevant fields) or too simple (missing required data). The four-archetype approach ensures every material gets exactly the fields it needs &mdash; no more, no less.</p>
+        </div>
+
     </main>
 </body>
 </html>
