@@ -127,7 +127,7 @@
 
         <div class="stat-grid">
             <div class="stat-box">
-                <div class="value" style="color: var(--accent);">5</div>
+                <div class="value" style="color: var(--accent);">4</div>
                 <div class="label">ALT MOD&Uuml;L</div>
             </div>
             <div class="stat-box">
@@ -154,11 +154,10 @@
                 <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> &Ouml;ny&uuml;z</a>
                 <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
-                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Kimlik Do&gbreve;rulama</a>
-                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
-                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
-                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Yazd&inodot;rma &Idot;zleme</a>
-                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 AI Ayarlar&inodot;</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Yazd&inodot;rma &Idot;zleme</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 AI Ayarlar&inodot;</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
                 <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonu&ccedil;</a>
             </div>
         </div>
@@ -634,40 +633,10 @@
         <h2 id="sec-6">6. ALT MOD&Uuml;LLER</h2>
         <!-- ============================================ -->
 
-        <p>Admin mod&uuml;l&uuml; be&#351; alt mod&uuml;l olarak organize edilmi&#351;tir, ba&gbreve;&inodot;ml&inodot;l&inodot;k s&inodot;ras&inodot;na g&ouml;re: kullan&inodot;c&inodot;lar y&ouml;netilebilmeden &ouml;nce kimlik do&gbreve;rulama var olmal&inodot;, kullan&inodot;c&inodot;lar yaz&inodot;c&inodot;lar&inodot; kullanabilmeden &ouml;nce var olmal&inodot; ve kuyruk izlenebilmeden &ouml;nce yaz&inodot;c&inodot;lar var olmal&inodot;d&inodot;r.</p>
+        <p>Admin mod&uuml;l&uuml; d&ouml;rt alt mod&uuml;l olarak organize edilmi&#351;tir, operasyonel ak&inodot;&#351;a g&ouml;re: yazd&inodot;rma i&#351;leri izlenebilmeden &ouml;nce yaz&inodot;c&inodot;lar yap&inodot;land&inodot;r&inodot;lmal&inodot;, AI ayarlar&inodot; ba&gbreve;&inodot;ms&inodot;z durur ve kullan&inodot;c&inodot; y&ouml;netimi her &#351;eye eri&#351;imi y&ouml;netir.</p>
 
         <div class="submod-card">
             <div class="submod-num">6.1</div>
-            <div class="submod-body">
-                <h4>Kimlik Do&gbreve;rulama &amp; Oturum Y&ouml;netimi (Authentication &amp; Session Management)</h4>
-                <p>T&uuml;m sistemin giri&#351; kap&inodot;s&inodot;. Giri&#351;, JWT token verme, oturum takibi, token yenileme ve &ccedil;&inodot;k&inodot;&#351;. Fabrika zemini cihazlar&inodot; i&ccedil;in kiosk otomatik giri&#351; sistemini i&ccedil;erir.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">5 endpoints</span>
-                    <span class="submod-tag">user_sessions table</span>
-                    <span class="submod-tag">JWT HS256</span>
-                    <span class="submod-tag">bcrypt</span>
-                    <span class="submod-tag">6-month operator tokens</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">6.2</div>
-            <div class="submod-body">
-                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
-                <p>Kullan&inodot;c&inodot; hesaplar&inodot;n&inodot;n tam ya&#351;am d&ouml;ng&uuml;s&uuml; y&ouml;netimi: olu&#351;turma, d&uuml;zenleme, ask&inodot;ya alma, silme, &#351;ifre s&inodot;f&inodot;rlama ve gran&uuml;ler yetki edit&ouml;r&uuml;. Sistemde kimin var oldu&gbreve;unu ve ne yapabilece&gbreve;ini tan&inodot;mlar.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">9 endpoints</span>
-                    <span class="submod-tag">users + 3 extension tables</span>
-                    <span class="submod-tag">user_roles templates</span>
-                    <span class="submod-tag">activity_logs</span>
-                    <span class="submod-tag">hybrid permission model</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">6.3</div>
             <div class="submod-body">
                 <h4>Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h4>
                 <p>Fabrika zeminindeki a&gbreve; etiket yaz&inodot;c&inodot;lar&inodot;n&inodot;n kayd&inodot; ve yap&inodot;land&inodot;rmas&inodot;. IP/port yap&inodot;land&inodot;rmas&inodot;, malzeme tipi atamalar&inodot;, ba&gbreve;lant&inodot; testi ve durum izleme.</p>
@@ -681,7 +650,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6.4</div>
+            <div class="submod-num">6.2</div>
             <div class="submod-body">
                 <h4>Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h4>
                 <p>D&ouml;rt yaz&inodot;c&inodot; genelinde t&uuml;m etiket yazd&inodot;rma i&#351;lerini izleyen ger&ccedil;ek zamanl&inodot; pano. Kuyruk istatistikleri, i&#351; ge&ccedil;mi&#351;i, ba&#351;ar&inodot;s&inodot;zl&inodot;klar i&ccedil;in yeniden deneme ve kuyruktaki i&#351;ler i&ccedil;in iptal.</p>
@@ -695,7 +664,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6.5</div>
+            <div class="submod-num">6.3</div>
             <div class="submod-body">
                 <h4>AI Ayarlar&inodot; (AI Settings)</h4>
                 <p>ERP&rsquo;nin AI asistan&inodot; i&ccedil;in yap&inodot;land&inodot;rma aray&uuml;z&uuml;. &Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; API anahtar y&ouml;netimi, model se&ccedil;imi, parametre ayarlama, kullan&inodot;m istatistikleri ve her AI etkile&#351;iminin kapsaml&inodot; denetim g&uuml;nl&uuml;&gbreve;&uuml;.</p>
@@ -708,19 +677,34 @@
             </div>
         </div>
 
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
+                <p>Kullan&inodot;c&inodot; hesaplar&inodot;n&inodot;n tam ya&#351;am d&ouml;ng&uuml;s&uuml; y&ouml;netimi: olu&#351;turma, d&uuml;zenleme, ask&inodot;ya alma, silme, &#351;ifre s&inodot;f&inodot;rlama ve gran&uuml;ler yetki edit&ouml;r&uuml;. Sistemde kimin var oldu&gbreve;unu ve ne yapabilece&gbreve;ini tan&inodot;mlar.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">9 endpoints</span>
+                    <span class="submod-tag">users + 3 extension tables</span>
+                    <span class="submod-tag">user_roles templates</span>
+                    <span class="submod-tag">activity_logs</span>
+                    <span class="submod-tag">hybrid permission model</span>
+                </div>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <!-- 6.3  YAZICI YÖNETİMİ                         -->
+        <!-- 6.1  YAZICI YÖNETİMİ                         -->
         <!-- ============================================ -->
 
-        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
+        <h2 id="sec-6-1" style="margin-top: 48px;">6.1 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
 
-        <h3>6.3.1 Ama&ccedil; ve &Idot;&#351; Ba&gbreve;lam&inodot;</h3>
+        <h3>6.1.1 Ama&ccedil; ve &Idot;&#351; Ba&gbreve;lam&inodot;</h3>
 
         <p>Fabrikaya giren her hammadde, QR kodu, a&gbreve;&inodot;rl&inodot;k, tedarik&ccedil;i, lot numaras&inodot; ve giri&#351; tarihi i&ccedil;eren bas&inodot;l&inodot; bir A6 etiket al&inodot;r. Bu etiketler malzemenin fiziksel kimli&gbreve;idir &mdash; a&#351;a&gbreve;&inodot; ak&inodot;&#351;taki her istasyonda (lab testi, &uuml;retim, stok) taran&inodot;r. Etiket yaz&inodot;c&inodot;lar&inodot;, belirli konumlara yerle&#351;tirilmi&#351; end&uuml;striyel a&gbreve; cihazlar&inodot;d&inodot;r (TCP port 9100 / IPP port 631): laboratuvar ve &uuml;&ccedil; &uuml;retim hatt&inodot;. <strong>Yaz&inodot;c&inodot; Y&ouml;netimi</strong>, bu fiziksel cihazlar&inodot;n yap&inodot;land&inodot;r&inodot;ld&inodot;&gbreve;&inodot;, test edildi&gbreve;i ve malzeme t&uuml;rlerine atand&inodot;&gbreve;&inodot; kay&inodot;t defteridir.</p>
 
         <p>Bu alt mod&uuml;l olmadan sistem yazd&inodot;rma i&#351;lerini <em>nereye</em> g&ouml;nderece&gbreve;ini bilemez. D&ouml;rt soruyu yan&inodot;tlar: Hangi yaz&inodot;c&inodot;lar var? Neredeler? &Ccedil;evrimi&ccedil;iler mi? Her yaz&inodot;c&inodot; hangi malzeme t&uuml;rlerini idare edebilir?</p>
 
-        <h3>6.3.2 Veritaban&inodot; &#350;emas&inodot;</h3>
+        <h3>6.1.2 Veritaban&inodot; &#350;emas&inodot;</h3>
 
         <p>Tek tablo: <code>printers</code> (model dosyas&inodot;: 66 sat&inodot;r)</p>
 
@@ -756,7 +740,7 @@
             <tr><td>4</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 3</td><td>192.168.0.185</td><td>9100</td><td>&Uuml;retim - Hat 3</td><td>[] (yok)</td></tr>
         </table>
 
-        <h3>6.3.3 API S&ouml;zle&#351;mesi &mdash; 5 Endpoint</h3>
+        <h3>6.1.3 API S&ouml;zle&#351;mesi &mdash; 5 Endpoint</h3>
 
         <table>
             <tr><th>Metot</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
@@ -767,7 +751,7 @@
             <tr><td><code>DELETE</code></td><td><code>/api/printers/{id}</code></td><td>Yaln&inodot;zca super_admin</td><td>Yaz&inodot;c&inodot;y&inodot; siler. Bekleyen i&#351;ler (QUEUED veya PRINTING) varsa <strong>engellenir</strong>. Hata: &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var.&rdquo;</td></tr>
         </table>
 
-        <h3>6.3.4 CRUD Ak&inodot;&#351;&inodot;</h3>
+        <h3>6.1.4 CRUD Ak&inodot;&#351;&inodot;</h3>
 
         <p><strong>Olu&#351;tur:</strong></p>
         <ol>
@@ -816,7 +800,7 @@
             <li>Ba&#351;ar&inodot;s&inodot;zl&inodot;kta: uyar&inodot; mesaj&inodot; &rarr; tablo yenilenir (durum &ldquo;&Ccedil;evrimd&inodot;&#351;&inodot;&rdquo; k&inodot;rm&inodot;z&inodot; g&ouml;r&uuml;n&uuml;r)</li>
         </ol>
 
-        <h3>6.3.5 Yazd&inodot;rma Servisi &mdash; Etiket &Uuml;retim Motoru</h3>
+        <h3>6.1.5 Yazd&inodot;rma Servisi &mdash; Etiket &Uuml;retim Motoru</h3>
 
         <p>Dosya: <code>app/services/print_service.py</code> (576 sat&inodot;r). A6 etiketleri &uuml;reten ve yazd&inodot;ran &ccedil;ekirdek servis.</p>
 
@@ -859,7 +843,7 @@
         <h4>Font Geri D&ouml;n&uuml;&#351; Zinciri</h4>
         <p>Servis fontlar&inodot; platform s&inodot;ras&inodot;yla dener: macOS (<code>/System/Library/Fonts/</code>) &rarr; Linux (<code>/usr/share/fonts/</code>) &rarr; Windows (<code>C:/Windows/Fonts/</code>) &rarr; PIL varsay&inodot;lan. Bu, etiket &uuml;retiminin t&uuml;m geli&#351;tirme ve &uuml;retim ortamlar&inodot;nda &ccedil;al&inodot;&#351;mas&inodot;n&inodot; sa&gbreve;lar.</p>
 
-        <h3>6.3.6 Yazd&inodot;rma &Idot;&#351;&ccedil;isi &mdash; Arka Plan &Idot;&#351; &Idot;&#351;leme</h3>
+        <h3>6.1.6 Yazd&inodot;rma &Idot;&#351;&ccedil;isi &mdash; Arka Plan &Idot;&#351; &Idot;&#351;leme</h3>
 
         <p>Dosya: <code>app/services/print_worker.py</code> (292 sat&inodot;r). Her aktif yaz&inodot;c&inodot; kendine ait bir arka plan i&#351;&ccedil;i thread&rsquo;i al&inodot;r.</p>
 
@@ -891,7 +875,7 @@
 lpadmin -p Printer_192_168_0_182 -E -v ipp://192.168.0.182:631/ipp/print -m everywhere
 lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
-        <h3>6.3.7 Malzeme Atama Sistemi</h3>
+        <h3>6.1.7 Malzeme Atama Sistemi</h3>
 
         <p>Her yaz&inodot;c&inodot;ya <code>assigned_materials</code> JSON dizisi arac&inodot;l&inodot;&gbreve;&inodot;yla belirli malzeme t&uuml;rleri atanabilir. Alt&inodot; malzeme t&uuml;r&uuml; kodu, fabrikan&inodot;n QR kod harf sistemine kar&#351;&inodot;l&inodot;k gelir:</p>
 
@@ -907,7 +891,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
         <p>Lab yaz&inodot;c&inodot;s&inodot; (ID 1) t&uuml;m malzeme giri&#351;lerini idare etti&gbreve;i i&ccedil;in alt&inodot; t&uuml;re de atanm&inodot;&#351;t&inodot;r. &Uuml;retim yaz&inodot;c&inodot;lar&inodot;n&inodot;n bo&#351; atamalar&inodot; vard&inodot;r &mdash; &uuml;retim a&#351;amas&inodot; etiketleme i&ccedil;in kullan&inodot;l&inodot;rlar.</p>
 
-        <h3>6.3.8 Frontend Mimarisi</h3>
+        <h3>6.1.8 Frontend Mimarisi</h3>
 
         <p>Tek dosya: <code>src/pages/Admin/PrinterManagement/index.tsx</code> (527 sat&inodot;r). Rota: <code>/admin/printer-management</code>.</p>
 
@@ -937,7 +921,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
         <h4>WebSocket Entegrasyonu Yok</h4>
         <p>Di&gbreve;er mod&uuml;llerin aksine, Yaz&inodot;c&inodot; Y&ouml;netimi ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler i&ccedil;in WebSocket kullanmaz. Tablo yenilemeleri her mutasyondan (olu&#351;tur, g&uuml;ncelle, sil, test) sonra manuel <code>actionRef.current?.reload()</code> ile ger&ccedil;ekle&#351;ir.</p>
 
-        <h3>6.3.9 Yetki Modeli</h3>
+        <h3>6.1.9 Yetki Modeli</h3>
 
         <p>Sayfa ID: <code>admin.yazici_yonetimi</code></p>
 
@@ -954,11 +938,11 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
         <p>Backend rol tabanl&inodot; uygular: yaln&inodot;zca <code>super_admin</code> olu&#351;turabilir/g&uuml;ncelleyebilir/silebilir, <code>super_admin</code> + <code>lab_user</code> test edebilir. Frontend bu 7 gran&uuml;ler yetkiyi yetki edit&ouml;r&uuml;n&uuml;n ke&#351;fetmesi i&ccedil;in <code>buttonRegistry</code>&rsquo;ye kaydeder.</p>
 
-        <h3>6.3.10 Yaz&inodot;c&inodot; Y&ouml;netimi Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
+        <h3>6.1.10 Yaz&inodot;c&inodot; Y&ouml;netimi Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
 
         <div class="arch-grid">
             <div class="arch-box">
-                <h4>&rarr; Yazd&inodot;rma Kuyru&gbreve;u (6.4)</h4>
+                <h4>&rarr; Yazd&inodot;rma Kuyru&gbreve;u (6.2)</h4>
                 <p>Hammadde Giri&#351;i bir yazd&inodot;rma i&#351;i kuyru&gbreve;a ald&inodot;&gbreve;&inodot;nda, bir <code>printer_id</code> (1&ndash;4) belirtir. Yazd&inodot;rma kuyru&gbreve;u rotalar&inodot; bu ID&rsquo;yi yaz&inodot;c&inodot;lar tablosuna kar&#351;&inodot; do&gbreve;rular. Arka plan i&#351;&ccedil;ileri uygulama ba&#351;lang&inodot;c&inodot;nda yaz&inodot;c&inodot;lar tablosundan ba&#351;lat&inodot;l&inodot;r.</p>
             </div>
             <div class="arch-box">

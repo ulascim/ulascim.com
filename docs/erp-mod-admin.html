@@ -127,7 +127,7 @@
 
         <div class="stat-grid">
             <div class="stat-box">
-                <div class="value" style="color: var(--accent);">5</div>
+                <div class="value" style="color: var(--accent);">4</div>
                 <div class="label">SUBMODULES</div>
             </div>
             <div class="stat-box">
@@ -154,11 +154,10 @@
                 <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
                 <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
-                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Kimlik Do&gbreve;rulama</a>
-                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
-                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
-                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Yazd&inodot;rma &Idot;zleme</a>
-                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 AI Ayarlar&inodot;</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Yazd&inodot;rma &Idot;zleme</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 AI Ayarlar&inodot;</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
                 <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Conclusion</a>
             </div>
         </div>
@@ -634,40 +633,10 @@
         <h2 id="sec-6">6. THE SUBMODULES</h2>
         <!-- ============================================ -->
 
-        <p>The Admin module is organized into five submodules, ordered by dependency: authentication must exist before users can be managed, users must exist before they can use printers, and printers must exist before the queue can be monitored.</p>
+        <p>The Admin module is organized into four submodules, ordered by operational flow: printers must be configured before print jobs can be monitored, AI settings stand alone, and user management governs access to everything.</p>
 
         <div class="submod-card">
             <div class="submod-num">6.1</div>
-            <div class="submod-body">
-                <h4>Kimlik Do&gbreve;rulama &amp; Oturum Y&ouml;netimi (Authentication &amp; Session Management)</h4>
-                <p>The gateway to the entire system. Login, JWT token issuance, session tracking, token refresh, and logout. Includes the kiosk auto-login system for factory floor devices.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">5 endpoints</span>
-                    <span class="submod-tag">user_sessions table</span>
-                    <span class="submod-tag">JWT HS256</span>
-                    <span class="submod-tag">bcrypt</span>
-                    <span class="submod-tag">6-month operator tokens</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">6.2</div>
-            <div class="submod-body">
-                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
-                <p>Full lifecycle management of user accounts: creation, editing, suspension, deletion, password reset, and the granular permission editor. Defines who exists in the system and what they can do.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">9 endpoints</span>
-                    <span class="submod-tag">users + 3 extension tables</span>
-                    <span class="submod-tag">user_roles templates</span>
-                    <span class="submod-tag">activity_logs</span>
-                    <span class="submod-tag">hybrid permission model</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="submod-card">
-            <div class="submod-num">6.3</div>
             <div class="submod-body">
                 <h4>Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h4>
                 <p>Registry and configuration of network label printers on the factory floor. IP/port configuration, material type assignments, connection testing, and status monitoring.</p>
@@ -681,7 +650,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6.4</div>
+            <div class="submod-num">6.2</div>
             <div class="submod-body">
                 <h4>Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h4>
                 <p>Real-time dashboard monitoring all label print jobs across four printers. Queue statistics, job history, retry for failures, and cancel for queued jobs.</p>
@@ -695,7 +664,7 @@
         </div>
 
         <div class="submod-card">
-            <div class="submod-num">6.5</div>
+            <div class="submod-num">6.3</div>
             <div class="submod-body">
                 <h4>AI Ayarlar&inodot; (AI Settings)</h4>
                 <p>Configuration interface for the ERP&rsquo;s AI assistant. Multi-provider API key management, model selection, parameter tuning, usage statistics, and comprehensive audit logging of every AI interaction.</p>
@@ -708,19 +677,34 @@
             </div>
         </div>
 
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
+                <p>Full lifecycle management of user accounts: creation, editing, suspension, deletion, password reset, and the granular permission editor. Defines who exists in the system and what they can do.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">9 endpoints</span>
+                    <span class="submod-tag">users + 3 extension tables</span>
+                    <span class="submod-tag">user_roles templates</span>
+                    <span class="submod-tag">activity_logs</span>
+                    <span class="submod-tag">hybrid permission model</span>
+                </div>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <!-- 6.3  YAZICI YÖNETİMİ                         -->
+        <!-- 6.1  YAZICI YÖNETİMİ                         -->
         <!-- ============================================ -->
 
-        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
+        <h2 id="sec-6-1" style="margin-top: 48px;">6.1 Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h2>
 
-        <h3>6.3.1 Purpose and Business Context</h3>
+        <h3>6.1.1 Purpose and Business Context</h3>
 
         <p>Every raw material that enters the factory receives a printed A6 label with a QR code, weight, supplier, lot number, and entry date. These labels are the physical identity of the material &mdash; they&rsquo;re scanned at every downstream station (lab testing, production, stock). The label printers are industrial network devices (TCP port 9100 / IPP port 631) placed in specific locations: the laboratory and three production lines. <strong>Printer Management</strong> is the registry where these physical devices are configured, tested, and assigned to material types.</p>
 
         <p>Without this submodule, the system wouldn&rsquo;t know <em>where</em> to send print jobs. It answers four questions: What printers exist? Where are they? Are they online? What material types can each printer handle?</p>
 
-        <h3>6.3.2 Database Schema</h3>
+        <h3>6.1.2 Database Schema</h3>
 
         <p>Single table: <code>printers</code> (model file: 66 lines)</p>
 
@@ -756,7 +740,7 @@
             <tr><td>4</td><td>&Uuml;retim Yaz&inodot;c&inodot;s&inodot; 3</td><td>192.168.0.185</td><td>9100</td><td>&Uuml;retim - Hat 3</td><td>[] (none)</td></tr>
         </table>
 
-        <h3>6.3.3 API Contract &mdash; 5 Endpoints</h3>
+        <h3>6.1.3 API Contract &mdash; 5 Endpoints</h3>
 
         <table>
             <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
@@ -767,7 +751,7 @@
             <tr><td><code>DELETE</code></td><td><code>/api/printers/{id}</code></td><td>super_admin only</td><td>Delete printer. <strong>Blocked</strong> if printer has pending jobs (QUEUED or PRINTING). Error: &ldquo;Bu yaz&inodot;c&inodot;n&inodot;n {n} bekleyen i&#351;i var.&rdquo;</td></tr>
         </table>
 
-        <h3>6.3.4 CRUD Flow</h3>
+        <h3>6.1.4 CRUD Flow</h3>
 
         <p><strong>Create:</strong></p>
         <ol>
@@ -816,7 +800,7 @@
             <li>On failure: warning message &rarr; table reloads (status shows &ldquo;&Ccedil;evrimd&inodot;&#351;&inodot;&rdquo; in red)</li>
         </ol>
 
-        <h3>6.3.5 The Print Service &mdash; Label Generation Engine</h3>
+        <h3>6.1.5 The Print Service &mdash; Label Generation Engine</h3>
 
         <p>File: <code>app/services/print_service.py</code> (576 lines). This is the core service that generates and prints A6 labels.</p>
 
@@ -859,7 +843,7 @@
         <h4>Font Fallback Chain</h4>
         <p>The service tries fonts in platform order: macOS (<code>/System/Library/Fonts/</code>) &rarr; Linux (<code>/usr/share/fonts/</code>) &rarr; Windows (<code>C:/Windows/Fonts/</code>) &rarr; PIL default. This makes label generation work across all development and production environments.</p>
 
-        <h3>6.3.6 The Print Worker &mdash; Background Job Processing</h3>
+        <h3>6.1.6 The Print Worker &mdash; Background Job Processing</h3>
 
         <p>File: <code>app/services/print_worker.py</code> (292 lines). Each active printer gets a dedicated background worker thread.</p>
 
@@ -891,7 +875,7 @@
 lpadmin -p Printer_192_168_0_182 -E -v ipp://192.168.0.182:631/ipp/print -m everywhere
 lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
-        <h3>6.3.7 Material Assignment System</h3>
+        <h3>6.1.7 Material Assignment System</h3>
 
         <p>Each printer can be assigned specific material types via the <code>assigned_materials</code> JSON array. The six material type codes map to the factory&rsquo;s QR code letter system:</p>
 
@@ -907,7 +891,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
         <p>The Lab printer (ID 1) is assigned all six types since it handles all material entries. Production printers have empty assignments &mdash; they are used for production-stage labeling.</p>
 
-        <h3>6.3.8 Frontend Architecture</h3>
+        <h3>6.1.8 Frontend Architecture</h3>
 
         <p>Single file: <code>src/pages/Admin/PrinterManagement/index.tsx</code> (527 lines). Route: <code>/admin/printer-management</code>.</p>
 
@@ -937,7 +921,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
         <h4>No WebSocket Integration</h4>
         <p>Unlike other modules, Printer Management does not use WebSocket for real-time updates. Table refreshes happen via manual <code>actionRef.current?.reload()</code> after each mutation (create, update, delete, test).</p>
 
-        <h3>6.3.9 Permission Model</h3>
+        <h3>6.1.9 Permission Model</h3>
 
         <p>Page ID: <code>admin.yazici_yonetimi</code></p>
 
@@ -954,11 +938,11 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
         <p>Backend enforces role-based: only <code>super_admin</code> can create/update/delete, <code>super_admin</code> + <code>lab_user</code> can test. Frontend registers these 7 granular permissions in <code>buttonRegistry</code> for the permission editor to discover.</p>
 
-        <h3>6.3.10 How Printer Management Connects to the Rest of the System</h3>
+        <h3>6.1.10 How Printer Management Connects to the Rest of the System</h3>
 
         <div class="arch-grid">
             <div class="arch-box">
-                <h4>&rarr; Print Queue (6.4)</h4>
+                <h4>&rarr; Print Queue (6.2)</h4>
                 <p>When Material Entry queues a print job, it specifies a <code>printer_id</code> (1&ndash;4). The print queue routes validate this ID against the printers table. The background workers are initialized from the printers table at application startup.</p>
             </div>
             <div class="arch-box">
