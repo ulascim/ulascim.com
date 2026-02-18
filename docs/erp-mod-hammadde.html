@@ -632,7 +632,46 @@
             <tr><td>DELETE</td><td>/api/suppliers/{id}/hard-delete</td><td>hard_delete_supplier</td><td>Smart: super_admin OR hard_delete_supplier</td></tr>
         </table>
 
-        <h3>6.1.3 The Conditional Form Logic</h3>
+        <h3>6.1.3 CRUD Flow</h3>
+
+        <p><strong>Create:</strong></p>
+        <ol>
+            <li>Click &ldquo;Yeni Tedarik&ccedil;i&rdquo; button in the toolbar</li>
+            <li>Modal opens with company name field + dynamic materials section (initially one empty material card)</li>
+            <li>Select material type &rarr; conditional fields appear (density for plastic, boyut for palette, boyut+reel_type for reel, nothing for copper/tin)</li>
+            <li>Click &ldquo;+&rdquo; to add more materials under the same supplier</li>
+            <li>On submit: frontend strips <code>undefined</code> values &rarr; <code>POST /api/suppliers/create</code></li>
+            <li>On success: toast &ldquo;Tedarik&ccedil;i ba&#351;ar&#305;yla olu&#351;turuldu&rdquo; &rarr; modal closes &rarr; WebSocket broadcasts to all clients &rarr; table refreshes</li>
+        </ol>
+
+        <p><strong>Edit:</strong></p>
+        <ol>
+            <li>Click edit icon in the Actions column</li>
+            <li>Modal opens pre-filled with current company name and all material cards</li>
+            <li>User can modify name, add/remove/change materials</li>
+            <li>On submit: <code>PUT /api/suppliers/{id}</code> &rarr; backend uses <strong>delete-and-recreate</strong> strategy for materials (deletes ALL existing supplier_materials, creates fresh ones)</li>
+            <li>On success: toast &ldquo;Tedarik&ccedil;i ba&#351;ar&#305;yla g&uuml;ncellendi&rdquo; &rarr; modal closes &rarr; WebSocket broadcast &rarr; table refreshes</li>
+        </ol>
+
+        <p><strong>Soft Delete (Deactivate):</strong></p>
+        <ol>
+            <li>Click status toggle icon in the Actions column</li>
+            <li>Popconfirm: &ldquo;Bu tedarik&ccedil;iyi devre d&#305;&#351;&#305; b&#305;rakmak istedi&#287;inize emin misiniz?&rdquo;</li>
+            <li>On confirm: <code>PUT /api/suppliers/{id}/toggle-status</code></li>
+            <li>Supplier row changes to &ldquo;inactive&rdquo; &mdash; still visible in table but greyed out. Can be reactivated the same way.</li>
+        </ol>
+
+        <p><strong>Hard Delete (Permanent):</strong></p>
+        <ol>
+            <li>Click delete icon in the Actions column (requires <code>hard_delete_supplier</code> permission)</li>
+            <li>Popconfirm with strong warning text</li>
+            <li>On confirm: <code>DELETE /api/suppliers/{id}/hard-delete</code></li>
+            <li>Backend checks for dependent <code>raw_materials</code> rows &mdash; if any exist, deletion is <strong>blocked</strong> with error: &ldquo;Bu tedarik&ccedil;iye ait {n} hammadde kayd&#305; var. &Ouml;nce hammaddeleri silin.&rdquo;</li>
+            <li>If no dependencies: deletes supplier_materials first (cascade), then the supplier &rarr; WebSocket broadcast &rarr; table refreshes</li>
+        </ol>
+
+        <h3>6.1.4 The Conditional Form Logic</h3>
+
         <p>The create/edit modal contains a dynamic materials section. Each material card shows <strong>different fields based on the selected material type</strong>:</p>
 
         <table>
@@ -662,7 +701,7 @@
 
         <p>Users can add unlimited materials (via &ldquo;Malzeme Ekle&rdquo; dashed button) and remove any except the last one (minimum 1 material required). New materials default to <code>copper</code> for the first, <code>plastic</code> for subsequent additions.</p>
 
-        <h3>6.1.4 Backend Validation Chain</h3>
+        <h3>6.1.5 Backend Validation Chain</h3>
         <p>Three Pydantic validators fire before data reaches the database:</p>
 
         <h4>Name Validator</h4>
@@ -697,7 +736,7 @@
             <p style="margin-bottom: 0;"><strong>Duplicate protection:</strong> Before creating, the backend checks <code>Supplier.name == supplier_data.name.upper()</code>. Since names are always stored uppercase, &ldquo;ormetsan&rdquo;, &ldquo;ORMETSAN&rdquo;, and &ldquo;Ormetsan&rdquo; are all treated as the same supplier. Returns 400: &ldquo;Bu tedarik&ccedil;i zaten kay&#305;tl&#305;&rdquo;.</p>
         </div>
 
-        <h3>6.1.5 The Update Strategy: Delete-and-Recreate</h3>
+        <h3>6.1.6 The Update Strategy: Delete-and-Recreate</h3>
         <p>When updating a supplier&rsquo;s materials, the backend does <strong>not</strong> patch individual records. Instead, it deletes ALL existing <code>supplier_materials</code> rows and creates fresh ones:</p>
 
         <pre><span class="comment"># Update materials if provided</span>
@@ -724,7 +763,7 @@
             <p style="margin-bottom: 0;"><strong>Why delete-and-recreate?</strong> This simplifies the logic enormously. The alternative &mdash; diffing existing records, updating changed ones, deleting removed ones, inserting new ones &mdash; would require tracking material IDs on the frontend and handling complex merge logic. Since supplier_materials has no inbound foreign keys from other tables (material_orders links to supplier_material_id, but orders reference a specific material entry), this approach is safe and deterministic.</p>
         </div>
 
-        <h3>6.1.6 Hard Delete with FK Protection</h3>
+        <h3>6.1.7 Hard Delete with FK Protection</h3>
         <p>Before permanently deleting a supplier, the backend checks for dependent raw materials:</p>
 
         <pre><span class="comment"># Check if supplier has raw materials (would block due to FK)</span>
@@ -740,7 +779,7 @@ has_materials = db.query(RawMaterial).filter(
 
         <p>If the check passes, deletion order is: <code>supplier_materials</code> first (cascade), then the <code>supplier</code> itself. A WebSocket broadcast follows immediately.</p>
 
-        <h3>6.1.7 Client-Side Search with Turkish Mappings</h3>
+        <h3>6.1.8 Client-Side Search with Turkish Mappings</h3>
         <p>The search bar filters across <strong>all fields</strong> including nested materials, with Turkish translations:</p>
 
         <pre><span class="keyword">const</span> materialTurkish: Record&lt;string, string&gt; = {
@@ -756,7 +795,7 @@ has_materials = db.query(RawMaterial).filter(
 
         <p>Typing &ldquo;bak&#305;r&rdquo; finds all suppliers providing copper. Typing &ldquo;HF-500&rdquo; finds the supplier who provides that specific plastic. Typing &ldquo;pasif&rdquo; shows only deactivated suppliers.</p>
 
-        <h3>6.1.8 Materials Column: Grouping and Tooltips</h3>
+        <h3>6.1.9 Materials Column: Grouping and Tooltips</h3>
         <p>The table&rsquo;s &ldquo;Malzemeler&rdquo; column groups materials by type and shows counts:</p>
         <ul>
             <li>If a supplier provides 1 plastic &rarr; shows <code>Plastik</code> tag</li>
@@ -765,10 +804,10 @@ has_materials = db.query(RawMaterial).filter(
             <li>Each material type gets a consistent color: copper=orange, tin=blue, plastic=purple, catalyst=green, dye=magenta, antirodent=cyan, palette=lime, reel=gold</li>
         </ul>
 
-        <h3>6.1.9 The Unique Specs Endpoint</h3>
+        <h3>6.1.10 The Unique Specs Endpoint</h3>
         <p>The <code>GET /suppliers/materials-list</code> endpoint serves a special purpose: it returns <strong>deduplicated material specifications</strong> across all suppliers. If 3 different suppliers all provide &ldquo;HF-500&rdquo; plastic at 1.42 g/cm&sup3;, the endpoint returns it once. Deduplication key: <code>material_name|boyut|reel_type</code>. This is used by other pages (Material Entry, Material Orders) to show dropdown options without duplicates.</p>
 
-        <h3>6.1.10 Permission Architecture</h3>
+        <h3>6.1.11 Permission Architecture</h3>
         <p>The page uses a hybrid permission model with 8 registered buttons:</p>
 
         <pre><span class="comment">// Frontend registers ALL available actions</span>
@@ -788,7 +827,7 @@ registerPageButtons({
 
         <p>The backend uses <code>check_permission_smart()</code> which checks three layers in order: (1) super_admin always passes, (2) old role-based check (user_type in required list), (3) new ultra-granular page.button permission. If any layer passes, the action is allowed. This ensures backward compatibility during the transition from role-based to button-level permissions.</p>
 
-        <h3>6.1.11 Real-Time Updates</h3>
+        <h3>6.1.12 Real-Time Updates</h3>
         <p>Three supplier operations broadcast WebSocket events:</p>
         <ul>
             <li><code>broadcast_update("suppliers", "create", {id, name})</code> &mdash; after successful creation</li>
@@ -797,7 +836,7 @@ registerPageButtons({
         </ul>
         <p>The frontend subscribes to rooms <code>['suppliers', 'all']</code> and calls <code>actionRef.current?.reload()</code> on any event, triggering a full table refresh.</p>
 
-        <h3>6.1.12 Eager Loading for Performance</h3>
+        <h3>6.1.13 Eager Loading for Performance</h3>
         <p>The list endpoint uses SQLAlchemy&rsquo;s <code>joinedload</code> to fetch suppliers with their materials in a single query:</p>
 
         <pre>query = db.query(Supplier).options(
@@ -806,7 +845,7 @@ registerPageButtons({
 
         <p>Without this, listing 50 suppliers would trigger 50 additional queries to fetch each supplier&rsquo;s materials (the N+1 problem). With eager loading, it&rsquo;s a single JOIN query.</p>
 
-        <h3>6.1.13 Data Cleaning Before Submit</h3>
+        <h3>6.1.14 Data Cleaning Before Submit</h3>
         <p>The frontend cleans the materials array before sending to the backend, stripping <code>undefined</code> values that Pydantic would reject:</p>
 
         <pre><span class="keyword">const</span> cleanedMaterials = materials.map(mat =&gt; {
@@ -826,7 +865,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Why this matters:</strong> Without cleaning, a copper material would be sent as <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code>. Pydantic would accept these as <code>None</code>, but JSON.stringify drops <code>undefined</code> values entirely. The explicit check ensures only meaningful data is sent, keeping the API payload clean and predictable.</p>
         </div>
 
-        <h3>6.1.14 How Supplier Data Is Used Across the System</h3>
+        <h3>6.1.15 How Supplier Data Is Used Across the System</h3>
         <p>Tedarik&ccedil;i Y&ouml;netimi is not a standalone page. The data it creates is consumed by <strong>every other submodule</strong> in Hammadde and beyond. Here is the complete map of where supplier data flows:</p>
 
         <h4>Material Entry (Hammadde Giri&#351;i) &mdash; Supplier Selection</h4>
@@ -883,7 +922,47 @@ registerPageButtons({
         <p>This is <strong>not</strong> an official purchase order system. It is an <em>internal tracking tool</em> that lets Solen record what raw materials they have ordered from which supplier, when they expect delivery, and what actually arrived. Its purpose is to give the purchasing and warehouse teams a clear picture of what is coming, what is late, and how well each supplier is performing.</p>
         <p>The module sits between Supplier Management (where suppliers and their product catalogs are defined) and Material Entry (where physical deliveries are received). Orders created here become &ldquo;linkable targets&rdquo; for Material Entry &mdash; when a truck arrives, the operator can connect the incoming material to its corresponding order, which automatically increments the delivered quantity and provides full traceability.</p>
 
-        <h3>6.2.2 &mdash; Order Lifecycle</h3>
+        <h3>6.2.2 &mdash; CRUD Flow</h3>
+
+        <p><strong>Create (Multi-Item):</strong></p>
+        <ol>
+            <li>Click &ldquo;Yeni Sipari&#351;&rdquo; button in the toolbar</li>
+            <li>Modal opens with cascading selection: Material Type &rarr; Supplier (filtered by type) &rarr; Product panels</li>
+            <li>Select material type &rarr; supplier dropdown shows only suppliers who carry that type</li>
+            <li>Select supplier &rarr; product catalog appears as collapsible panels. Pick product, enter quantity (kg or adet)</li>
+            <li>Click &ldquo;+&rdquo; to add more products from the same supplier in the same shipment</li>
+            <li>Set order date (defaults to today) and expected delivery date. Add optional notes</li>
+            <li>On submit: <code>POST /api/material-orders/create</code> &rarr; backend generates one group code (R1, R2&hellip;) and creates one DB row per item, all sharing that code. Single transaction &mdash; all or nothing</li>
+            <li>On success: toast confirmation &rarr; modal closes &rarr; table refreshes showing the new order group</li>
+        </ol>
+
+        <p><strong>Edit (Single Row):</strong></p>
+        <ol>
+            <li>Click edit icon on a specific order row (not the group &mdash; you edit individual line items)</li>
+            <li>Modal opens pre-filled with current values: supplier, material, quantity, dates, notes</li>
+            <li>The multi-item &ldquo;+&rdquo; functionality is <strong>not</strong> available in edit mode</li>
+            <li><strong>Critical behavior:</strong> if the expected delivery date is changed, the date picker stays open and a <strong>side panel</strong> appears requiring a mandatory reason (Tedarik&ccedil;i kaynakl&#305; / Solen kaynakl&#305; / Di&gbreve;er). This creates an audit record in <code>material_order_date_changes</code></li>
+            <li>On submit: <code>PUT /api/material-orders/{id}</code> &rarr; order updated + date change logged if applicable</li>
+            <li>On success: toast &rarr; modal closes &rarr; table refreshes</li>
+        </ol>
+
+        <p><strong>Delete:</strong></p>
+        <ol>
+            <li>Click delete icon on a specific order row</li>
+            <li>Popconfirm with warning</li>
+            <li>On confirm: <code>DELETE /api/material-orders/{id}</code></li>
+            <li>Cascade: associated <code>material_order_date_changes</code> records are deleted with the order</li>
+            <li>Table refreshes. If this was the last item in a group, the group code disappears</li>
+        </ol>
+
+        <p><strong>Read (Date History):</strong></p>
+        <ol>
+            <li>Click the clock icon (Tarih Ge&ccedil;mi&#351;i) on any order row</li>
+            <li>Modal opens showing a vertical timeline of all date changes: old date (struck through) &rarr; new date, colored reason tag, detail text, who changed it and when</li>
+            <li>Read-only &mdash; history cannot be edited or deleted independently</li>
+        </ol>
+
+        <h3>6.2.3 &mdash; Order Lifecycle</h3>
         <p>Every order follows a four-state lifecycle:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #fa8c16;">
@@ -905,13 +984,13 @@ registerPageButtons({
         </div>
         <p>Status transitions can happen two ways. First, the status column in the table is an inline dropdown selector &mdash; the user clicks the current status tag and picks a new one. Second, and more importantly, <strong>status is automatically set to &ldquo;Delivered&rdquo; by the Material Entry module</strong> when incoming materials are linked to an order. When a delivery is saved through Material Entry, the backend automatically updates the order&rsquo;s status to delivered, stamps today&rsquo;s date as the delivery date, and increments the delivered quantity. This means the most common status transition (pending &rarr; delivered) happens automatically as part of the material receiving workflow, not through manual interaction on this page.</p>
 
-        <h3>6.2.3 &mdash; Order Group Codes (Shipment Grouping)</h3>
+        <h3>6.2.4 &mdash; Order Group Codes (Shipment Grouping)</h3>
         <p>A single shipment from a supplier often contains multiple distinct materials. For example, one truck from Supplier X might carry 5 tons of HF-500 plastic granules <em>and</em> 2 tons of catalyst. Instead of treating these as completely separate orders, the system groups them under a shared <strong>Order Group Code</strong>.</p>
         <p>Group codes follow the pattern <strong>R1, R2, R3, R4&hellip;</strong> (the &ldquo;R&rdquo; prefix followed by a sequential number). When a user creates a new order with multiple line items, the backend generates one group code and assigns it to every order row in that batch. Even a single-item order gets a group code, ensuring consistency.</p>
         <p>The generation logic finds the highest existing R-number in the database and increments by one. This is a simple sequential counter, not a UUID &mdash; the codes are meant to be human-readable and easy to communicate verbally (&ldquo;Shipment R47 is arriving tomorrow&rdquo;).</p>
         <p>In the table, the group code appears as the first column (fixed left), displayed as a blue tag. It serves as a visual grouping mechanism &mdash; when users see multiple rows with &ldquo;R12&rdquo;, they immediately understand these items are from the same shipment.</p>
 
-        <h3>6.2.4 &mdash; Creating an Order (The Multi-Step Form Flow)</h3>
+        <h3>6.2.5 &mdash; Creating an Order (The Multi-Step Form Flow)</h3>
         <p>The order creation follows a cascading selection flow that mirrors the supplier data hierarchy:</p>
         <ol>
             <li><strong>Select Material Type</strong> &mdash; the user picks from 8 types (copper, tin, plastic, catalyst, dye, antirodent, palette, reel). This is the first filter.</li>
@@ -923,11 +1002,11 @@ registerPageButtons({
         </ol>
         <p>On save, the frontend sends all items in a single API call. The backend generates one group code and creates one database row per item, all sharing that code. This is a single transaction &mdash; either all items are created or none are.</p>
 
-        <h3>6.2.5 &mdash; Editing an Order</h3>
+        <h3>6.2.6 &mdash; Editing an Order</h3>
         <p>Edit mode works differently from creation. When editing, the user operates on a <strong>single order row</strong>, not a group. The form loads with the existing values, and the user can change the supplier, material, quantity, dates, and notes. The multi-item &ldquo;+&rdquo; functionality is not available in edit mode &mdash; you edit one row at a time.</p>
         <p>The most important behavior in edit mode is <strong>date change tracking</strong>, covered in detail below.</p>
 
-        <h3>6.2.6 &mdash; The Date Change Tracking System</h3>
+        <h3>6.2.7 &mdash; The Date Change Tracking System</h3>
         <p>This is one of the most sophisticated features in the module. In real-world procurement, expected delivery dates shift constantly &mdash; suppliers delay, Solen requests postponement, logistics issues arise. The system does not just silently overwrite the date; it requires the user to explain <em>why</em> the date changed and stores a complete audit trail.</p>
 
         <h4>How It Works</h4>
@@ -959,7 +1038,7 @@ registerPageButtons({
         </ul>
         <p>Timestamps in this modal are converted to Turkey timezone (Europe/Istanbul) for accurate local display.</p>
 
-        <h3>6.2.7 &mdash; Delivery Tracking (Ordered vs. Delivered)</h3>
+        <h3>6.2.8 &mdash; Delivery Tracking (Ordered vs. Delivered)</h3>
         <p>Each order tracks two quantities: <strong>ordered quantity</strong> (what was requested) and <strong>delivered quantity</strong> (what actually arrived). The delivered quantity is <em>not</em> manually updated on this page. It is incremented automatically by the Material Entry module when incoming materials are linked to an order.</p>
         <p>In the table, both quantities are displayed side by side. The delivered column uses color coding to communicate status at a glance:</p>
         <ul>
@@ -968,7 +1047,7 @@ registerPageButtons({
             <li><strong>Green</strong> &mdash; fully delivered (delivered &ge; ordered)</li>
         </ul>
 
-        <h3>6.2.8 &mdash; The Rating System</h3>
+        <h3>6.2.9 &mdash; The Rating System</h3>
         <p>Once an order reaches &ldquo;Delivered&rdquo; status, a star icon appears in the actions column. This enables a <strong>supplier delivery rating</strong> system. The user can rate the delivery on a 0.5&ndash;5 star scale (half-star increments) and optionally add a text note explaining the rating.</p>
         <p>The rating modal shows the order context (group code, supplier name, material, delivered quantity) so the user knows exactly what they are rating. The rating and note are stored directly on the order record.</p>
         <p>This rating data contributes to supplier performance tracking &mdash; over time, Solen can see which suppliers consistently deliver on time and in good condition, and which ones have recurring issues.</p>
@@ -977,7 +1056,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Business logic:</strong> The rating button only appears for &ldquo;delivered&rdquo; orders. You cannot rate a pending order because there is nothing to evaluate yet. If the order already has a rating, the star icon appears filled and yellow, showing the existing score in a tooltip on hover.</p>
         </div>
 
-        <h3>6.2.9 &mdash; Client-Side Search and Localization</h3>
+        <h3>6.2.10 &mdash; Client-Side Search and Localization</h3>
         <p>The table includes a search bar that filters orders across <em>all visible columns</em> using client-side filtering. What makes this non-trivial is that the data is stored in English (e.g., &ldquo;copper&rdquo;, &ldquo;pending&rdquo;) but the users search in Turkish. The search system maintains two translation maps:</p>
         <ul>
             <li><strong>Material types:</strong> copper&rarr;bak&#305;r, tin&rarr;kalay, plastic&rarr;plastik, catalyst&rarr;kataliz&ouml;r, dye&rarr;boya, palette&rarr;palet, reel&rarr;makara</li>
@@ -985,7 +1064,7 @@ registerPageButtons({
         </ul>
         <p>When the user types &ldquo;bak&#305;r&rdquo;, the filter matches any row where <code>material_type === 'copper'</code>. It also searches dates in DD.MM.YYYY format (not ISO), so searching &ldquo;15.03&rdquo; finds orders expected on March 15. The search covers: group code, supplier name, material name, material type (both EN and TR), status (both EN and TR), quantities, dates (both raw and formatted), and notes.</p>
 
-        <h3>6.2.10 &mdash; Table Layout and Columns</h3>
+        <h3>6.2.11 &mdash; Table Layout and Columns</h3>
         <p>The ProTable displays 11 columns with a scrollable layout:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1011,7 +1090,7 @@ registerPageButtons({
         </table>
         <p>The expected date column deserves special attention: it compares the date against today and renders it in <strong>red</strong> if the date is in the past. This gives instant visual feedback about overdue orders without any manual flagging.</p>
 
-        <h3>6.2.11 &mdash; API Endpoints</h3>
+        <h3>6.2.12 &mdash; API Endpoints</h3>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
@@ -1031,7 +1110,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.2.12 &mdash; Database Schema</h3>
+        <h3>6.2.13 &mdash; Database Schema</h3>
         <p>The module uses two tables:</p>
         <p><strong><code>material_orders</code></strong> &mdash; the main order tracking table. Each row represents one material line in a purchase order. Key fields:</p>
         <ul>
@@ -1055,7 +1134,7 @@ registerPageButtons({
             <li><code>changed_by</code> &rarr; FK to <code>users</code></li>
         </ul>
 
-        <h3>6.2.13 &mdash; How Material Orders Connect to Material Entry</h3>
+        <h3>6.2.14 &mdash; How Material Orders Connect to Material Entry</h3>
         <p>This is the most critical downstream connection. The <code>pending-by-type</code> endpoint exists specifically for Material Entry. When an operator starts entering a delivery of, say, copper wire, the Material Entry page calls this endpoint with <code>material_type=copper</code>. The response comes back as groups organized by supplier + expected date, showing each pending order line with its product name and quantity.</p>
         <p>The operator selects the matching order group, and the system builds an internal <code>order_map</code> keyed by <code>supplier_material_id</code>. As each lot is entered, it is automatically linked to the correct order line. This link is stored in the <code>raw_materials.material_order_id</code> field.</p>
         <p>When a material entry is saved with an order link, the backend increments the order&rsquo;s <code>delivered_quantity</code>. This happens in the material entry routes, not in the order routes &mdash; the order module is passive in this regard. It creates the tracking records; the entry module updates them on delivery.</p>
@@ -1064,7 +1143,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>The default sort order tells a story:</strong> orders are sorted by <code>expected_date ASC</code> &mdash; the soonest deliveries appear first. Combined with the red overdue highlighting, the table naturally pushes the most urgent items to the top. A warehouse manager opening this page immediately sees what is late and what is coming next.</p>
         </div>
 
-        <h3>6.2.14 &mdash; How Material Orders Feed the Stock Projection System (Projeksiyon)</h3>
+        <h3>6.2.15 &mdash; How Material Orders Feed the Stock Projection System (Projeksiyon)</h3>
         <p>This is arguably the most important downstream consumer of Material Orders data, and it operates at a completely different abstraction level than the order page itself.</p>
         <p>The <strong>Projeksiyon</strong> (Stock Projection) system provides a weekly forecast of raw material availability across the entire factory. It answers the question: &ldquo;Week by week, will we have enough of each material, or will we run short?&rdquo; To answer this, it needs two data streams:</p>
         <ul>
@@ -1091,10 +1170,10 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>The dual role of Material Orders:</strong> On the surface, this module is a simple tracking table. But underneath, it is one of the two foundational data sources for the factory&rsquo;s stock projection system. Every order, every date change, every quantity update ripples through the weekly projection and affects shortage detection across the entire planning horizon. This is why accurate order entry and diligent date change tracking are not administrative overhead &mdash; they are critical inputs to the factory&rsquo;s production planning accuracy.</p>
         </div>
 
-        <h3>6.2.15 &mdash; Delete Behavior</h3>
+        <h3>6.2.16 &mdash; Delete Behavior</h3>
         <p>Orders can be hard-deleted through a confirmation dialog. There is no soft-delete / archive mechanism. The CASCADE relationship on <code>material_order_date_changes</code> ensures that deleting an order also removes its date change history. However, if a <code>raw_material</code> entry is already linked to this order via <code>material_order_id</code>, that link will become a dangling reference (the foreign key on raw_materials is nullable, so it will not cause a constraint violation, but the traceability chain is broken).</p>
 
-        <h3>6.2.16 &mdash; What This Module Does NOT Do</h3>
+        <h3>6.2.17 &mdash; What This Module Does NOT Do</h3>
         <ul>
             <li>It does <strong>not</strong> generate official purchase orders or invoices</li>
             <li>It does <strong>not</strong> manage pricing or costs &mdash; there are no price fields</li>
@@ -1116,7 +1195,40 @@ registerPageButtons({
         <p>The module does not just record inventory; it is the <strong>bridge</strong> between three other systems. It consumes data from Supplier Management (who delivered), links deliveries to Material Orders (what was expected), generates the QR codes and database records that appear in Hammaddeler Listesi (the inventory), and indirectly updates the Projeksiyon (stock projection) by changing order status and delivered quantities.</p>
         <p>The page lives under <code>/hammadde/hammadde-girisi</code> in the menu, but its frontend component is actually located at <code>Lab/MaterialEntry</code> &mdash; reflecting that material entry is a lab/warehouse operation.</p>
 
-        <h3>6.3.2 &mdash; The Landing Page: Eight Material Cards</h3>
+        <h3>6.3.2 &mdash; CRUD Flow</h3>
+
+        <p><strong>Create (The Primary Operation):</strong></p>
+        <ol>
+            <li>Click one of the 8 material type cards on the landing page (Bak&#305;r, Kalay, Plastik, Kataliz&ouml;r, Boya, Antirodent, Palet, Makara)</li>
+            <li><strong>Step 1 &mdash; Order Selection:</strong> Modal appears showing pending orders for that material type, fetched from <code>GET /material-orders/pending-by-type/{type}</code>. User selects an order group (pre-fills supplier + materials) or clicks &ldquo;Manuel Giri&#351;&rdquo; (blank form)</li>
+            <li><strong>Step 2 &mdash; Entry Form:</strong> Dynamic form opens based on material type archetype:
+                <ul>
+                    <li><em>Copper:</em> collapsible palette panels (lot number + form weight + measured weight + status per palette) &rarr; &ldquo;+&rdquo; for more palettes</li>
+                    <li><em>Tin:</em> single form (net weight + status)</li>
+                    <li><em>Lot-based:</em> collapsible lot panels (material type dropdown + lot number + weights + quantity + photos per lot) &rarr; &ldquo;+&rdquo; for more lots</li>
+                    <li><em>Count-based:</em> collapsible type panels (type dropdown + quantity + photos per type) &rarr; &ldquo;+&rdquo; for more types</li>
+                </ul>
+            </li>
+            <li>Upload delivery photos (irsaliye) and optional test/damage photos (per-lot for lot-based)</li>
+            <li>On submit: type-specific endpoint called (<code>POST /api/materials/copper-entry</code>, <code>/tin-entry</code>, <code>/lot-entry</code>, <code>/palette-entry</code>, or <code>/reel-entry</code>)</li>
+            <li>Backend creates one <code>raw_materials</code> row per palette/lot/type with deterministic QR code (A1, B1, C1&hellip;). If linked to an order: automatically updates <code>delivered_quantity</code>, <code>status</code>=DELIVERED, and <code>delivered_date</code>=today on the order</li>
+            <li>On success: <strong>success modal</strong> appears showing all generated QR codes with a &ldquo;Yazd&#305;r&rdquo; (Print) button per QR. WebSocket broadcasts to <code>materials</code> and <code>all</code> rooms</li>
+        </ol>
+
+        <p><strong>Update (Super Admin Only):</strong></p>
+        <ol>
+            <li>Not available on this page directly &mdash; updates happen through the Hammaddeler Listesi (6.4) edit modal</li>
+            <li>Backend endpoint exists: <code>PUT /api/materials/{id}</code> with <code>check_permission_smart</code> requiring super_admin or <code>edit_material</code> permission</li>
+        </ol>
+
+        <p><strong>Delete (Super Admin Only):</strong></p>
+        <ol>
+            <li>Not available on this page directly &mdash; deletion happens through Hammaddeler Listesi (6.4)</li>
+            <li>Backend endpoints: <code>DELETE /api/materials/{id}</code> (soft) and <code>DELETE /api/materials/{id}/hard</code> (permanent)</li>
+            <li>Hard delete also removes associated <code>material_photos</code> records</li>
+        </ol>
+
+        <h3>6.3.3 &mdash; The Landing Page: Eight Material Cards</h3>
         <p>When the user opens the page, they see a grid of <strong>8 clickable cards</strong>, one for each raw material type the factory handles:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #fa8c16;">
@@ -1154,7 +1266,7 @@ registerPageButtons({
         </div>
         <p>Each card has a unique background color that adapts to dark/light theme, a large icon, and the material name. The letter in parentheses is the QR code prefix for that material type. Clicking any card does <strong>not</strong> immediately open the entry form &mdash; it triggers the Order Selection flow first.</p>
 
-        <h3>6.3.3 &mdash; The Two-Step Entry Flow</h3>
+        <h3>6.3.4 &mdash; The Two-Step Entry Flow</h3>
         <p>This is a critical design decision. Material entry follows a two-step process:</p>
         <ol>
             <li><strong>Step 1: Order Selection Modal</strong> &mdash; When the user clicks a material card, the system immediately fetches pending orders for that material type from <code>GET /material-orders/pending-by-type/{type}</code>. A modal appears showing:
@@ -1167,7 +1279,7 @@ registerPageButtons({
         </ol>
         <p>This two-step flow serves a critical purpose: it encourages operators to link deliveries to orders, which keeps the tracking chain intact. If orders exist, they are displayed prominently. Manual entry exists as a fallback, not the default.</p>
 
-        <h3>6.3.4 &mdash; Order Pre-filling Logic</h3>
+        <h3>6.3.5 &mdash; Order Pre-filling Logic</h3>
         <p>When the user selects an order group in Step 1, the following happens automatically:</p>
         <ul>
             <li>The <strong>supplier</strong> field is auto-filled and <strong>disabled</strong> &mdash; you cannot change the supplier when entering against an order</li>
@@ -1177,7 +1289,7 @@ registerPageButtons({
         </ul>
         <p>The order group also carries the <code>order_ids</code> array, which is sent to the backend on save so the system knows which orders to mark as delivered.</p>
 
-        <h3>6.3.5 &mdash; Four Form Archetypes</h3>
+        <h3>6.3.6 &mdash; Four Form Archetypes</h3>
         <p>The entry form is not one form. It is <strong>four completely different form structures</strong> that render conditionally based on which material type was selected. They all share two common fields (supplier and received-by person) and a common photo section, but everything in between is unique.</p>
 
         <h4>Archetype 1: Copper (Multi-Palette)</h4>
@@ -1219,10 +1331,10 @@ registerPageButtons({
             <li>The <code>weight</code> field is used to store the quantity (count), and <code>quantity</code> also stores the count &mdash; this is a dual-purpose field for backward compatibility</li>
         </ul>
 
-        <h3>6.3.6 &mdash; The Lot Number Keyboard Toggle</h3>
+        <h3>6.3.7 &mdash; The Lot Number Keyboard Toggle</h3>
         <p>This is a small but important UX feature. Lot numbers can be purely numeric (e.g., &ldquo;24081901&rdquo;) or alphanumeric (e.g., &ldquo;LOT-A24-081&rdquo;). On mobile devices, the input keyboard that appears depends on the <code>inputMode</code> attribute. The system defaults to <code>numeric</code> (number pad) but provides a toggle button inside the input field that switches between number pad and full keyboard. Each lot input tracks its own keyboard mode independently.</p>
 
-        <h3>6.3.7 &mdash; The QR Code System</h3>
+        <h3>6.3.8 &mdash; The QR Code System</h3>
         <p>Every material entry generates a unique, deterministic QR code. The system uses a simple but effective scheme: a <strong>letter prefix</strong> identifying the material type, followed by a <strong>sequential number</strong> that increments per type.</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1246,7 +1358,7 @@ registerPageButtons({
         <p>The sequence number is determined by querying the highest existing <code>sequence_number</code> for that material type and incrementing by one. Each material type has its own counter &mdash; copper can be at A847 while tin is at B23. The QR code is stored in the <code>qr_code</code> column with a <strong>unique constraint</strong>, ensuring no duplicates.</p>
         <p>For copper entries with multiple palettes, the backend increments the sequence for each palette within the same transaction (A45, A46, A47 for a 3-palette entry).</p>
 
-        <h3>6.3.8 &mdash; Photo Architecture</h3>
+        <h3>6.3.9 &mdash; Photo Architecture</h3>
         <p>The photo system has two tiers:</p>
         <ul>
             <li><strong>Common delivery photos (&#304;rsaliye)</strong> &mdash; these are photos of the delivery document (waybill/invoice). They apply to the entire delivery, not individual items. Up to 3 photos, shared across all materials in the entry. Shown for all material types.</li>
@@ -1260,7 +1372,7 @@ registerPageButtons({
         </ul>
         <p>Photos are converted to base64 on the frontend before submission. The backend stores them in the <code>material_photos</code> table (not on the material row itself) with a <code>photo_type</code> discriminator (&ldquo;delivery&rdquo; or &ldquo;test&rdquo;) and a <code>sequence</code> number. This separate table enables <strong>lazy loading</strong> &mdash; when listing materials, only photo IDs are returned; the actual base64 data is fetched on demand via <code>GET /materials/photo/{id}</code>.</p>
 
-        <h3>6.3.9 &mdash; Order Linking and Automatic Delivery Updates</h3>
+        <h3>6.3.10 &mdash; Order Linking and Automatic Delivery Updates</h3>
         <p>This is where Material Entry connects back to Material Orders and, through that, to the Projeksiyon system.</p>
         <p>When a delivery is linked to orders, the backend performs these additional steps after creating the material rows:</p>
         <ul>
@@ -1270,7 +1382,7 @@ registerPageButtons({
         </ul>
         <p>Every linked order gets <code>status = delivered</code>, <code>delivered_date = today</code>, and <code>delivered_quantity += amount</code>. This is the automatic status transition discussed in Section 6.2.</p>
 
-        <h3>6.3.10 &mdash; The Success Modal and QR Printing</h3>
+        <h3>6.3.11 &mdash; The Success Modal and QR Printing</h3>
         <p>After a successful save, the system does not simply close the form. It shows a <strong>success modal</strong> that displays:</p>
         <ul>
             <li>A confirmation message with the generated QR codes listed (e.g., &ldquo;A45, A46, A47&rdquo;)</li>
@@ -1279,10 +1391,10 @@ registerPageButtons({
         <p>The print button calls <code>POST /materials/print/{material_id}</code> which routes to the print queue system. For lot-based entries with multiple lots, the system iterates through all created material IDs and prints each one sequentially.</p>
         <p>The save button text is contextual: for palette and reel entries it says &ldquo;Kaydet (QR Yok)&rdquo; (Save, no QR) because palettes and reels use physical identification rather than printed QR labels. For all other types it says &ldquo;Kaydet ve QR Kod Olu&#351;tur&rdquo; (Save and Generate QR Code).</p>
 
-        <h3>6.3.11 &mdash; Supplier Filtering</h3>
+        <h3>6.3.12 &mdash; Supplier Filtering</h3>
         <p>When a material card is clicked and the entry form opens, the supplier dropdown does not show all suppliers. It is filtered to show only suppliers who have active materials of the selected type in their <code>materials_provided</code> catalog. This filtering happens client-side by checking each supplier&rsquo;s materials array. If no suppliers are found for a material type, the dropdown shows a helpful message: &ldquo;Bu malzeme i&ccedil;in tedarik&ccedil;i bulunamad&#305;. &Ouml;nce tedarik&ccedil;i ekleyin.&rdquo;</p>
 
-        <h3>6.3.12 &mdash; Permission System</h3>
+        <h3>6.3.13 &mdash; Permission System</h3>
         <p>Material Entry registers <strong>13 page-level buttons</strong> with the ultra-granular permission system:</p>
         <ul>
             <li><code>access_page</code> &mdash; ability to see the page at all</li>
@@ -1293,14 +1405,14 @@ registerPageButtons({
         </ul>
         <p>The backend also enforces role-based access: only <code>lab_user</code> and <code>super_admin</code> user types can create material entries. Other user types receive a 403 Forbidden response.</p>
 
-        <h3>6.3.13 &mdash; WebSocket Broadcasting</h3>
+        <h3>6.3.14 &mdash; WebSocket Broadcasting</h3>
         <p>After creating material entries (copper/tin path), the backend broadcasts a WebSocket update for each created material with the event type &ldquo;materials:create&rdquo;, including the material ID, QR code, and type. This allows the Hammaddeler Listesi page to update in real-time without manual refresh when new materials are entered from another session.</p>
         <p>The update and hard-delete operations also broadcast &ldquo;materials:update&rdquo; and &ldquo;materials:delete&rdquo; events respectively.</p>
 
-        <h3>6.3.14 &mdash; Material Update (Super Admin Only)</h3>
+        <h3>6.3.15 &mdash; Material Update (Super Admin Only)</h3>
         <p>An existing material record can be updated through <code>PUT /materials/update/{id}</code>, but this is restricted to <strong>super_admin only</strong>. The updatable fields include: QR code (with uniqueness validation), lot number, weight, form weight, remaining weight, quantity, status, notes, and photos. This is used for corrections &mdash; if an operator entered the wrong weight, a super admin can fix it. The QR code is changeable but must remain unique across all materials.</p>
 
-        <h3>6.3.15 &mdash; Material Deletion</h3>
+        <h3>6.3.16 &mdash; Material Deletion</h3>
         <p>Hard deletion is available through <code>DELETE /materials/{id}/hard-delete</code> (super admin only). Before deleting, the system checks:</p>
         <ul>
             <li>If the material status is &ldquo;in_use&rdquo;, deletion is <strong>blocked</strong> &mdash; you cannot remove material that is currently in production</li>
@@ -1309,7 +1421,7 @@ registerPageButtons({
         </ul>
         <p>After deletion, a WebSocket broadcast notifies all connected clients.</p>
 
-        <h3>6.3.16 &mdash; Material Status Lifecycle</h3>
+        <h3>6.3.17 &mdash; Material Status Lifecycle</h3>
         <p>Each material record has a status that tracks its journey through the factory:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(5, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #1890ff;">
@@ -1335,7 +1447,7 @@ registerPageButtons({
         </div>
         <p>The entry form only offers two initial statuses: &ldquo;received&rdquo; (default) and &ldquo;rejected&rdquo;. The other statuses (approved, in_use, consumed) are set by downstream systems &mdash; quality control and production modules. There is also a <code>toggle-status</code> endpoint that flips the material&rsquo;s <code>is_active</code> flag for soft-disable.</p>
 
-        <h3>6.3.17 &mdash; API Endpoints</h3>
+        <h3>6.3.18 &mdash; API Endpoints</h3>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
@@ -1361,7 +1473,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.3.18 &mdash; Database Schema: raw_materials</h3>
+        <h3>6.3.19 &mdash; Database Schema: raw_materials</h3>
         <p>All 8 material types are stored in a single table. Key fields:</p>
         <ul>
             <li><code>material_type</code> &mdash; discriminator: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</li>
@@ -1379,7 +1491,7 @@ registerPageButtons({
             <li><code>entered_by</code> &rarr; FK to <code>users</code></li>
         </ul>
 
-        <h3>6.3.19 &mdash; How Material Entry Connects to Everything</h3>
+        <h3>6.3.20 &mdash; How Material Entry Connects to Everything</h3>
         <p>This is the most interconnected module in the Hammadde system. Here is every upstream and downstream connection:</p>
         <ul>
             <li><strong>Supplier Management (upstream)</strong> &mdash; provides the supplier list, material catalogs, and product names. The entry form&rsquo;s dropdowns are populated entirely from supplier data.</li>
@@ -1405,10 +1517,53 @@ registerPageButtons({
         <p>This is the <strong>inventory view</strong> of every raw material that has ever entered the factory. While Material Entry is about recording arrivals, this module is about seeing, searching, managing, and acting on the inventory. It is a read-heavy module &mdash; the primary use case is looking up materials by QR code, checking remaining weights, viewing photos, and reprinting labels. But it also provides editing and deletion capabilities for super admins.</p>
         <p>The page consumes the output of Material Entry: every row created through any of the four entry archetypes shows up here. It is the single source of truth for &ldquo;what raw materials do we have, and what state are they in?&rdquo;</p>
 
-        <h3>6.4.2 &mdash; Real-Time Updates via WebSocket</h3>
+        <h3>6.4.2 &mdash; CRUD Flow</h3>
+
+        <p><strong>Read (Primary Operation):</strong></p>
+        <ol>
+            <li>Page loads &rarr; <code>GET /api/materials/list</code> fetches all materials (photo IDs only, not base64 data)</li>
+            <li>Table renders 14 columns. Thumbnail photos lazy-load via <code>GET /api/materials/{id}/photos/first</code></li>
+            <li>Click photo thumbnail &rarr; preview modal opens, remaining photos fetched on demand via <code>GET /api/materials/{id}/photos</code></li>
+            <li>Search bar filters client-side across QR code, material type, supplier, lot number, status (includes Turkish translations)</li>
+            <li>WebSocket connection keeps table in sync &mdash; new materials from Hammadde Giri&#351;i appear automatically</li>
+        </ol>
+
+        <p><strong>Edit (Three Form Variants):</strong></p>
+        <ol>
+            <li>Click edit icon on a material row (requires <code>edit_material</code> permission)</li>
+            <li>Edit modal opens with fields <strong>adapted to the material type</strong>:
+                <ul>
+                    <li><em>Copper/Tin:</em> QR code, lot number, form weight, measured weight, remaining weight (editable), status (received/available/in_use/consumed), photos, notes</li>
+                    <li><em>Lot-based:</em> QR code, lot number, form weight, measured weight, quantity (label count), status (received/rejected), photos, notes</li>
+                    <li><em>Palette/Reel:</em> QR code, quantity (adet), status (received/rejected) &mdash; simplest variant</li>
+                </ul>
+            </li>
+            <li>QR code field shows warning: &ldquo;Dikkat: QR kodunu de&#287;i&#351;tirmek sistemdeki kay&#305;tlar&#305; etkileyebilir&rdquo;</li>
+            <li>Existing photos lazy-load into the modal; user can add new or remove existing photos</li>
+            <li>On submit: <code>PUT /api/materials/{id}</code> &rarr; toast &ldquo;Hammadde ba&#351;ar&#305;yla g&uuml;ncellendi&rdquo; &rarr; modal closes &rarr; WebSocket broadcast &rarr; table refreshes</li>
+        </ol>
+
+        <p><strong>Print (Label Reprint):</strong></p>
+        <ol>
+            <li>Click print icon on a material row (requires <code>print_qr</code> permission; disabled for palette/reel with tooltip)</li>
+            <li>Printer selection modal opens showing QR code, label count, and dropdown of active printers with locations</li>
+            <li>Select printer &rarr; <code>POST /print-queue/queue/{material_id}?printer_id={id}</code></li>
+            <li>Job enters Admin&rsquo;s print queue as QUEUED status</li>
+        </ol>
+
+        <p><strong>Delete:</strong></p>
+        <ol>
+            <li>Click delete icon (requires <code>delete_material</code> permission)</li>
+            <li>Popconfirm with warning</li>
+            <li>On confirm: <code>DELETE /api/materials/{id}</code> (soft delete &mdash; marks as inactive)</li>
+            <li>For permanent removal: <code>DELETE /api/materials/{id}/hard</code> (requires <code>hard_delete_material</code> permission, flagged as <em>critical</em>). Also removes associated <code>material_photos</code> records</li>
+            <li>WebSocket broadcast &rarr; table refreshes</li>
+        </ol>
+
+        <h3>6.4.3 &mdash; Real-Time Updates via WebSocket</h3>
         <p>Unlike Material Orders (which refreshes on user actions), this page subscribes to WebSocket rooms <code>materials</code> and <code>all</code>. When any user creates, updates, or deletes a material from any device or session, the table automatically reloads. This means if an operator enters a delivery through Material Entry on a tablet in the warehouse, a manager viewing the list on their desktop sees the new rows appear instantly without pressing refresh.</p>
 
-        <h3>6.4.3 &mdash; The Table: 14 Columns</h3>
+        <h3>6.4.4 &mdash; The Table: 14 Columns</h3>
         <p>The ProTable displays a comprehensive view of every material record:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1436,7 +1591,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.4.4 &mdash; The &ldquo;Kalan&rdquo; (Remaining Weight) Column</h3>
+        <h3>6.4.5 &mdash; The &ldquo;Kalan&rdquo; (Remaining Weight) Column</h3>
         <p>This is one of the most operationally important columns. It shows how much of the original material is still available after production has consumed portions of it. The color coding provides instant visual feedback:</p>
         <ul>
             <li><strong>No color</strong> &mdash; the remaining weight is close to the original (within 5% tolerance)</li>
@@ -1446,7 +1601,7 @@ registerPageButtons({
         <p>For palette and reel materials, this column shows &ldquo;&mdash;&rdquo; because counted items do not have a remaining weight concept &mdash; they are either available or consumed as whole units.</p>
         <p>If <code>remaining_weight</code> is not set (older records), the system falls back to the original <code>weight</code> value for backward compatibility.</p>
 
-        <h3>6.4.5 &mdash; Lazy Photo Loading System</h3>
+        <h3>6.4.6 &mdash; Lazy Photo Loading System</h3>
         <p>The photo columns are the most technically interesting part of this page. With potentially thousands of materials and up to 6 photos each (3 delivery + 3 test), loading all photo data with the table would be catastrophically slow. The system uses a <strong>two-tier lazy loading</strong> approach:</p>
         <ol>
             <li><strong>Table load:</strong> the <code>/materials/list</code> endpoint returns only photo <em>IDs</em> (small integers), not photo data. This keeps the API response fast.</li>
@@ -1455,11 +1610,11 @@ registerPageButtons({
         </ol>
         <p>The thumbnail shows as a 40x40 pixel image with rounded corners. If there are multiple photos, a blue badge appears at the bottom-right showing &ldquo;+N&rdquo; (e.g., &ldquo;+2&rdquo; for 3 photos). Clicking opens the full-size preview with left/right navigation and a page counter.</p>
 
-        <h3>6.4.6 &mdash; Client-Side Search</h3>
+        <h3>6.4.7 &mdash; Client-Side Search</h3>
         <p>The search bar filters across all loaded data on the client side. Like the Material Orders search, it supports bilingual matching with EN&rarr;TR translation maps for both material types and statuses. Searchable fields include: QR code, material name, material type (raw_copper&rarr;bak&#305;r, etc.), supplier name, lot number, order group code, status (received&rarr;teslim al&#305;nd&#305;, etc.), and all weight/quantity values as strings.</p>
         <p>The search is implemented as a <code>useMemo</code> that recomputes on every keystroke against the full <code>allMaterials</code> array. The table renders the filtered result via <code>dataSource={filteredData}</code>.</p>
 
-        <h3>6.4.7 &mdash; The Edit Modal: Three Form Variants</h3>
+        <h3>6.4.8 &mdash; The Edit Modal: Three Form Variants</h3>
         <p>The edit modal adapts its fields based on the material type being edited, using three variants:</p>
         <ul>
             <li><strong>Copper/Tin:</strong> QR code, lot number, form weight, measured weight, <strong>remaining weight</strong> (editable for corrections, with helper text explaining its purpose), status (4 options: received, available, in_use, consumed), photos, notes</li>
@@ -1469,7 +1624,7 @@ registerPageButtons({
         <p>Every variant includes the QR code field with a warning: &ldquo;Dikkat: QR kodunu de&#287;i&#351;tirmek sistemdeki kay&#305;tlar&#305; etkileyebilir&rdquo; (Changing the QR code may affect system records).</p>
         <p>When opening the edit modal, photos are lazy-loaded: the system fetches each photo by ID from the API and converts them into Ant Design <code>UploadFile</code> objects for the upload component. This means the modal shows the existing photos and allows adding new ones or removing existing ones.</p>
 
-        <h3>6.4.8 &mdash; Print with Printer Selection</h3>
+        <h3>6.4.9 &mdash; Print with Printer Selection</h3>
         <p>The print button in the actions column opens a <strong>printer selection modal</strong> before printing. This modal shows:</p>
         <ul>
             <li>The material&rsquo;s QR code for confirmation</li>
@@ -1478,7 +1633,7 @@ registerPageButtons({
         </ul>
         <p>The print job is submitted to <code>POST /print-queue/queue/{material_id}?printer_id={id}</code>. The print button is <strong>disabled</strong> for palette and reel materials (they don&rsquo;t use QR labels), with a tooltip explaining why.</p>
 
-        <h3>6.4.9 &mdash; Permission System</h3>
+        <h3>6.4.10 &mdash; Permission System</h3>
         <p>The page registers <strong>12 page-level buttons</strong>:</p>
         <ul>
             <li><code>access_page</code>, <code>view_table</code>, <code>view_photos</code>, <code>search_filter</code> &mdash; read capabilities</li>
@@ -1489,10 +1644,10 @@ registerPageButtons({
         </ul>
         <p>The &ldquo;hard_delete_material&rdquo; permission is flagged as <code>critical: true</code>, signaling to administrators that this is a destructive, irreversible action.</p>
 
-        <h3>6.4.10 &mdash; Table Localization</h3>
+        <h3>6.4.11 &mdash; Table Localization</h3>
         <p>The ProTable toolbar buttons (reload, density, column settings) are localized to Turkish through a custom <code>ProConfigProvider</code> that maps internal message IDs to Turkish strings. This includes: &ldquo;Yenile&rdquo; (Reload), &ldquo;Sat&#305;r Yo&#287;unlu&#287;u&rdquo; (Row Density), &ldquo;Tablo Ayarlar&#305;&rdquo; (Table Settings), &ldquo;S&uuml;tun G&ouml;r&uuml;n&uuml;m&uuml;&rdquo; (Column Display), pin directions, and more. The Ant Design locale is also set to <code>trTR</code> for date/number formatting.</p>
 
-        <h3>6.4.11 &mdash; How This Module Connects to the System</h3>
+        <h3>6.4.12 &mdash; How This Module Connects to the System</h3>
         <ul>
             <li><strong>Material Entry (upstream)</strong> &mdash; the sole data source. Every row in this table was created by one of the four entry endpoints.</li>
             <li><strong>Material Orders (indirect)</strong> &mdash; the &ldquo;Sipari&#351; No&rdquo; column shows the order group code, providing visual traceability from inventory back to the purchase order.</li>

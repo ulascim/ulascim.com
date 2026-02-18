@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Module | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-admin-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-admin.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
+        <h1>ADMIN &mdash; SYSTEM ADMINISTRATION</h1>
+        <p class="subtitle">The control center of the entire ERP. User identities, permissions, authentication, printer hardware, print queue monitoring, AI assistant configuration, and activity auditing &mdash; everything that keeps the system secure, configured, and observable.</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Admin is the gatekeeper and the control room.</strong> Before any operator can scan a QR code, before any lab user can approve a test, before any engineer can design a cable &mdash; they must first exist as a user in this module with the right permissions. Admin defines <em>who</em> can access the system, <em>what</em> they can do once inside, <em>how</em> they authenticate, and <em>which hardware</em> the system can talk to. It manages a hybrid permission system that combines role-based access (super_admin, lab_user, operator) with ultra-granular page-and-button-level permissions stored as JSON. It controls the factory&rsquo;s label printers, monitors the print queue in real-time, and provides a full configuration interface for the AI assistant. Every action taken by every user is logged to an audit trail. Without this module, nobody can log in, no labels can print, and no permissions can be enforced.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">5</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~36</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">3500+</div>
+                <div class="label">LINES OF CODE</div>
+            </div>
+        </div>
+
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> What Admin Does</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Data Flow</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Database Layer</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Kimlik Do&gbreve;rulama</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Yazd&inodot;rma &Idot;zleme</a>
+                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 AI Ayarlar&inodot;</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Conclusion</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. WHAT ADMIN DOES</h2>
+        <!-- ============================================ -->
+
+        <p>The Admin module answers six questions that the entire ERP system depends on:</p>
+
+        <table>
+            <tr><th>Question</th><th>Who Answers It</th><th>How</th></tr>
+            <tr><td>Who is allowed to use the system?</td><td>User Management</td><td>Create/edit/suspend/delete user accounts with role assignment</td></tr>
+            <tr><td>What can each user do?</td><td>Permission System</td><td>Hybrid role-based + granular page.button JSON permissions</td></tr>
+            <tr><td>How do users prove their identity?</td><td>Authentication</td><td>Username/password &rarr; JWT access + refresh tokens with session tracking</td></tr>
+            <tr><td>Which printers exist and where?</td><td>Printer Management</td><td>Network printer registry with IP, port, material assignments, connection testing</td></tr>
+            <tr><td>What&rsquo;s happening in the print queue?</td><td>Print Job Monitor</td><td>Real-time dashboard of all print jobs across 4 printers with retry/cancel</td></tr>
+            <tr><td>How is the AI assistant configured?</td><td>AI Settings</td><td>Multi-provider API key management, model selection, audit logging</td></tr>
+        </table>
+
+        <h3>1.1 The Three User Types</h3>
+
+        <p>The system recognizes three fundamental user types, each with a different scope of access and a different physical context of use:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Super Admin</h4>
+                <p>Full system access. Can manage users, configure printers, adjust AI settings, view activity logs, and access every module. This is the factory manager or IT administrator. Typically operates from a desktop in the office.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Lab User</h4>
+                <p>Lab dashboard, test management, quality control, alert management, and test reports. Can also test printer connections and retry failed print jobs. This is the quality engineer working in the laboratory. Typically operates from a dedicated lab workstation.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Operator</h4>
+                <p>Machine operation, production forms, material scanning, basic dashboard, and work order viewing. This is the factory floor worker. Typically operates from a <strong>kiosk phone</strong> mounted near the production line &mdash; which is why operator accounts receive 6-month JWT tokens instead of the standard 12-hour expiry.</p>
+            </div>
+        </div>
+
+        <h3>1.2 The Hybrid Permission Model</h3>
+
+        <p>The permission system operates at two layers simultaneously:</p>
+
+        <div class="finding">
+            <p style="margin-bottom: 8px;"><strong>Layer 1 &mdash; Role-Based (Legacy):</strong> The <code>user_type</code> field on the user record. Checked by <code>is_permitted_user(user, ["super_admin", "lab_user"])</code>. This is the coarse filter: &ldquo;are you at least a lab user?&rdquo;</p>
+            <p style="margin-bottom: 0;"><strong>Layer 2 &mdash; Granular (Modern):</strong> The <code>permissions</code> JSON field on the user record. Checked by <code>check_user_permission(user, page_id, button_id)</code>. This is the fine filter: &ldquo;on the Materials List page, can you click the Delete button?&rdquo;</p>
+        </div>
+
+        <p>Both layers coexist through a backward-compatible function called <code>check_permission_smart</code>. It first checks the legacy role-based system, then falls back to the granular JSON system. Super admins bypass both &mdash; they always pass.</p>
+
+        <h3>1.3 Beyond User Management</h3>
+
+        <p>Admin is not just about users. It is the only module that manages <strong>physical hardware</strong> (network printers on the factory floor), provides <strong>real-time operational monitoring</strong> (print queue dashboard), and controls the <strong>AI assistant</strong> that other users interact with. It is also the only module that writes to the <code>user_activity_logs</code> table, creating an audit trail of every administrative action taken in the system.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <p>Admin&rsquo;s data flows are fundamentally different from production modules like Hammadde or Teknik. Those modules have a linear pipeline (supplier &rarr; order &rarr; entry &rarr; inventory). Admin has a <strong>hub-and-spoke</strong> pattern: it sits at the center and every other module depends on it.</p>
+
+        <h3>2.1 Authentication Flow</h3>
+
+        <div class="flow">
+            <div class="flow-box">User opens app</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /auth/login</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">bcrypt verify</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">JWT tokens issued</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Session recorded</div>
+        </div>
+
+        <p>Every subsequent API call across the <em>entire system</em> carries the JWT access token in the <code>Authorization: Bearer</code> header. The token contains the user&rsquo;s ID, username, user_type, and permissions &mdash; meaning every route in every module can verify identity and check permissions without an extra database query.</p>
+
+        <h3>2.2 Permission Enforcement Flow</h3>
+
+        <div class="flow">
+            <div class="flow-box">API request arrives</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">JWT decoded</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">check_permission_smart()</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Role check OR page.button check</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Allow / 403 Forbidden</div>
+        </div>
+
+        <p>On the frontend, the same check runs proactively: routes are hidden from the menu, buttons are disabled or invisible, and entire pages redirect to the user&rsquo;s allowed dashboard if they attempt direct URL access.</p>
+
+        <h3>2.3 Print Job Flow</h3>
+
+        <div class="flow">
+            <div class="flow-box">Material Entry / Materials List</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /print-queue/queue/{id}</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Job &rarr; QUEUED</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Printer processes</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">COMPLETED / FAILED</div>
+        </div>
+
+        <p>Print jobs are created by other modules (Material Entry prints QR labels after recording a delivery, Materials List reprints labels on demand) but the queue itself lives in Admin. The Print Job Monitor gives super admins a real-time view of all jobs across all four factory printers, with the ability to retry failed jobs or cancel queued ones.</p>
+
+        <h3>2.4 AI Interaction Flow</h3>
+
+        <div class="flow">
+            <div class="flow-box">User asks AI question</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /api/ai/chat</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">AI processes query</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Response returned</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Audit log written</div>
+        </div>
+
+        <p>Every AI interaction is comprehensively logged: the user&rsquo;s query, detected language, AI model used, reasoning steps, tool calls, API responses, timing metrics, and security flags. This creates a complete forensic trail of what the AI did and why.</p>
+
+        <h3>2.5 The Hub-and-Spoke Dependency</h3>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Every module in the system is a spoke; Admin is the hub.</strong> Hammadde needs Admin for user authentication on every API call, for printer access when printing QR labels, and for permission checks on every button click. Teknik needs Admin for operator records and user identity. Production, Lab, Orders &mdash; all of them call <code>get_current_user_dependency</code> on every request, which decodes the JWT token that Admin issued. If Admin is down, the entire system is locked out.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. THE DATABASE LAYER</h2>
+        <!-- ============================================ -->
+
+        <p>The Admin module owns <strong>10 database tables</strong>, more than any other module. These tables fall into four groups: identity, sessions, hardware, and auditing.</p>
+
+        <h3>3.1 Identity Tables</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Columns</th><th>Relationships</th></tr>
+            <tr>
+                <td><code>users</code></td>
+                <td>Core identity for every person in the system</td>
+                <td>id, username (unique), email (unique), hashed_password, user_type, status, is_active, is_superuser, permissions (JSON text), force_password_change, last_login, preferred_interface, device_info</td>
+                <td>1&mdash;N user_sessions, 0..1 super_admins, 0..1 lab_users, 0..1 operators</td>
+            </tr>
+            <tr>
+                <td><code>super_admins</code></td>
+                <td>Extension data for super admin users</td>
+                <td>id, user_id (FK, unique), admin_level, permissions (JSON), access_logs (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>lab_users</code></td>
+                <td>Extension data for laboratory users</td>
+                <td>id, user_id (FK, unique), lab_department, certifications (JSON), test_specializations (JSON), shift_schedule (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>operators</code></td>
+                <td>Extension data for factory floor operators</td>
+                <td>id, user_id (FK, unique), assigned_machines (JSON), shift_schedule (JSON), skill_level, certifications (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>user_roles</code></td>
+                <td>Reusable permission templates</td>
+                <td>id, name (unique), description, permissions (JSON text), is_system (prevents deletion)</td>
+                <td>Standalone (template store)</td>
+            </tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>The Inheritance Pattern:</strong> Rather than using single-table inheritance with nullable columns, the system uses a <strong>joined-table pattern</strong>. The <code>users</code> table holds common fields (login credentials, status, permissions). The extension tables (<code>super_admins</code>, <code>lab_users</code>, <code>operators</code>) hold type-specific fields via a unique FK to <code>users.id</code>. This keeps the core <code>users</code> table lean while allowing each user type to store specialized data (e.g., operators have <code>assigned_machines</code>, lab users have <code>certifications</code>).</p>
+        </div>
+
+        <h3>3.2 Session Table</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Columns</th><th>Relationships</th></tr>
+            <tr>
+                <td><code>user_sessions</code></td>
+                <td>Active and historical login sessions</td>
+                <td>id, user_id (FK), session_token (unique, indexed), refresh_token (unique, indexed), login_time, logout_time, expires_at, ip_address (IPv6-ready, 45 chars), user_agent, device_type, status</td>
+                <td>N&mdash;1 users (cascade delete)</td>
+            </tr>
+        </table>
+
+        <p>Sessions are not just for token validation. They provide a complete login history: which device was used, from which IP, when they logged in, when they logged out (or if the session expired). The cascade delete on the <code>users</code> relationship means deleting a user automatically purges all their sessions.</p>
+
+        <h3>3.3 Hardware Tables</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Columns</th><th>Relationships</th></tr>
+            <tr>
+                <td><code>printers</code></td>
+                <td>Network label printers on the factory floor</td>
+                <td>id, name, description, ip_address, port (default 9100), status (ONLINE/OFFLINE/ERROR/MAINTENANCE), is_active, assigned_materials (JSON array), location, last_checked</td>
+                <td>Standalone</td>
+            </tr>
+            <tr>
+                <td><code>print_jobs</code></td>
+                <td>Label print job queue and history</td>
+                <td>id, material_id (FK &rarr; raw_materials), qr_code, printer_id (1&ndash;4), copies, status (QUEUED/PRINTING/COMPLETED/FAILED/CANCELLED), retry_count, error_message, requested_by (FK &rarr; users), requested_at, started_at, completed_at, material_type, lot_number, supplier_name</td>
+                <td>N&mdash;1 raw_materials, N&mdash;1 users</td>
+            </tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Denormalized for display:</strong> The <code>print_jobs</code> table stores <code>material_type</code>, <code>lot_number</code>, and <code>supplier_name</code> as denormalized copies from the material record. This means the Print Job Monitor can display job history without joining to <code>raw_materials</code> or <code>suppliers</code> &mdash; critical for a real-time monitoring dashboard that refreshes frequently.</p>
+        </div>
+
+        <h3>3.4 Audit Tables</h3>
+
+        <table>
+            <tr><th>Table</th><th>Purpose</th><th>Key Columns</th><th>Relationships</th></tr>
+            <tr>
+                <td><code>user_activity_logs</code></td>
+                <td>Audit trail of all admin actions</td>
+                <td>id, user_id (FK, indexed), username (denormalized), action, module, target_type, target_id, details (JSON), ip_address, user_agent, created_at (indexed)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>ai_audit_logs</code></td>
+                <td>Comprehensive AI interaction forensics</td>
+                <td>id, user_id, username, user_type, session_id, ip_address, device_type, browser, os, original_query, query_language, ai_model, ai_reasoning, ai_confidence, selected_tool, tool_params, api_endpoint, api_response_status, success, error_type, total_duration_ms, ai_processing_ms, security_flags, was_blocked, block_reason, created_at</td>
+                <td>Standalone (47 columns)</td>
+            </tr>
+        </table>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>The AI audit table is the most wide table in the entire system</strong> &mdash; 47 columns. This is deliberate. Each AI interaction is a multi-step pipeline (query parsing &rarr; tool selection &rarr; API call &rarr; response generation) and every step produces data that may be needed for debugging or security review. The table has composite indexes on (user_id, created_at), (selected_tool, created_at), (success, created_at), and (ip_address, created_at) to support analytics queries without full table scans.</p>
+        </div>
+
+        <h3>3.5 Entity-Relationship Summary</h3>
+
+        <table>
+            <tr><th>Relationship</th><th>Type</th><th>Cascade</th></tr>
+            <tr><td>users &rarr; user_sessions</td><td>1&mdash;N</td><td>Delete (user deletion purges sessions)</td></tr>
+            <tr><td>users &rarr; super_admins</td><td>1&mdash;0..1</td><td>None (extension table)</td></tr>
+            <tr><td>users &rarr; lab_users</td><td>1&mdash;0..1</td><td>None (extension table)</td></tr>
+            <tr><td>users &rarr; operators</td><td>1&mdash;0..1</td><td>None (extension table)</td></tr>
+            <tr><td>users &rarr; user_activity_logs</td><td>1&mdash;N</td><td>None (logs survive user deletion)</td></tr>
+            <tr><td>users &rarr; print_jobs (requested_by)</td><td>1&mdash;N</td><td>None</td></tr>
+            <tr><td>raw_materials &rarr; print_jobs (material_id)</td><td>1&mdash;N</td><td>None (cross-module FK)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. THE BACKEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <p>The Admin backend is organized into five route groups, one core service, one security module, and a permission utility layer. Unlike production modules that have a single route file, Admin spans multiple files because its concerns are fundamentally different from each other.</p>
+
+        <h3>4.1 Route Groups</h3>
+
+        <table>
+            <tr><th>Route Group</th><th>Prefix</th><th>Endpoints</th><th>Auth Required</th><th>Min. Role</th></tr>
+            <tr><td>Authentication</td><td><code>/api/auth</code></td><td>5</td><td>Mixed (login is public)</td><td>None / Any</td></tr>
+            <tr><td>User Management</td><td><code>/api/user-management</code></td><td>9</td><td>Yes</td><td>Super Admin (most), Any (operators list)</td></tr>
+            <tr><td>Printers</td><td><code>/api/printers</code></td><td>5</td><td>Yes</td><td>Super Admin (CRUD), Lab User (test)</td></tr>
+            <tr><td>Print Queue</td><td><code>/api/print-queue</code></td><td>5</td><td>Yes</td><td>Any (queue), Super Admin (manage)</td></tr>
+            <tr><td>AI</td><td><code>/api/ai</code></td><td>12</td><td>Yes</td><td>Any (chat), Super Admin (config)</td></tr>
+        </table>
+
+        <h3>4.2 Authentication Endpoints (5)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Purpose</th><th>Key Behavior</th></tr>
+            <tr><td>POST</td><td>/auth/login</td><td>User login</td><td>Accepts username/password + device_type + remember_me. Returns access_token, refresh_token, expires_in, user object. Creates session record.</td></tr>
+            <tr><td>POST</td><td>/auth/logout</td><td>End session</td><td>Sets session status to &ldquo;terminated&rdquo;, stamps logout_time.</td></tr>
+            <tr><td>POST</td><td>/auth/refresh</td><td>Renew access token</td><td>Validates refresh_token, generates new access_token. Does not rotate the refresh token.</td></tr>
+            <tr><td>GET</td><td>/auth/me</td><td>Current user info</td><td>Decodes JWT, returns full user object with parsed permissions.</td></tr>
+            <tr><td>GET</td><td>/auth/health</td><td>Health check</td><td>Returns status + database connectivity check.</td></tr>
+        </table>
+
+        <h3>4.3 User Management Endpoints (9)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Purpose</th><th>Key Behavior</th></tr>
+            <tr><td>GET</td><td>/user-management/users/list</td><td>List all users</td><td>Supports status_filter and user_type query params. Parses permissions from JSON string to object.</td></tr>
+            <tr><td>GET</td><td>/user-management/operators</td><td>List operators</td><td>Returns only active operators. Available to all authenticated users (needed by production modules).</td></tr>
+            <tr><td>POST</td><td>/user-management/users/create</td><td>Create user</td><td>Auto-generates password if not provided. Sets force_password_change. Logs activity.</td></tr>
+            <tr><td>PUT</td><td>/user-management/users/{id}</td><td>Update user</td><td>Partial update: username, email, full_name, user_type, status, is_active, permissions, password.</td></tr>
+            <tr><td>POST</td><td>/user-management/users/{id}/suspend</td><td>Toggle suspend</td><td>Flips between &ldquo;active&rdquo; and &ldquo;suspended&rdquo; status. Logs activity.</td></tr>
+            <tr><td>DELETE</td><td>/user-management/users/{id}</td><td>Delete user permanently</td><td>Hard delete. Prevents self-deletion (cannot delete your own account).</td></tr>
+            <tr><td>POST</td><td>/user-management/users/{id}/reset-password</td><td>Force password reset</td><td>Generates secure 12-char random password (letters + digits + symbols). Sets force_password_change=True.</td></tr>
+            <tr><td>GET</td><td>/user-management/roles/list</td><td>List role templates</td><td>Returns all UserRole records for use in permission template assignment.</td></tr>
+            <tr><td>GET</td><td>/user-management/activity-logs</td><td>Activity log viewer</td><td>Supports filtering by user_id, module, action. Default limit 200.</td></tr>
+        </table>
+
+        <h3>4.4 Printer &amp; Print Queue Endpoints (10)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Purpose</th><th>Key Behavior</th></tr>
+            <tr><td>GET</td><td>/printers/list</td><td>List printers</td><td>Optional active_only filter.</td></tr>
+            <tr><td>POST</td><td>/printers/create</td><td>Add printer</td><td>Name, IP, port (default 9100), location, assigned_materials (JSON array).</td></tr>
+            <tr><td>PUT</td><td>/printers/update/{id}</td><td>Edit printer</td><td>All fields updatable.</td></tr>
+            <tr><td>POST</td><td>/printers/{id}/test</td><td>Test connection</td><td>Attempts network connection to printer IP:port. Updates status to ONLINE or OFFLINE.</td></tr>
+            <tr><td>DELETE</td><td>/printers/{id}</td><td>Remove printer</td><td>Checks for pending print jobs before allowing deletion.</td></tr>
+            <tr><td>POST</td><td>/print-queue/queue/{material_id}</td><td>Queue label print</td><td>Creates QUEUED job linked to material and requesting user. Printer selected by query param (1&ndash;4).</td></tr>
+            <tr><td>GET</td><td>/print-queue/jobs</td><td>Job history</td><td>Filterable by status, printer_id. Max 500 results.</td></tr>
+            <tr><td>POST</td><td>/print-queue/jobs/{id}/retry</td><td>Retry failed job</td><td>Resets status to QUEUED, increments retry_count.</td></tr>
+            <tr><td>DELETE</td><td>/print-queue/jobs/{id}</td><td>Cancel job</td><td>Only QUEUED jobs can be cancelled (not PRINTING).</td></tr>
+            <tr><td>GET</td><td>/print-queue/stats</td><td>Queue statistics</td><td>Returns counts: queued, printing, completed, failed.</td></tr>
+        </table>
+
+        <h3>4.5 AI Endpoints (12)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Purpose</th><th>Key Behavior</th></tr>
+            <tr><td>POST</td><td>/api/ai/chat</td><td>Send AI query</td><td>Main chat endpoint. Processes query, calls tools, returns response.</td></tr>
+            <tr><td>GET</td><td>/api/ai/status</td><td>Service status</td><td>Returns AI service health and configuration state.</td></tr>
+            <tr><td>GET</td><td>/api/ai/models</td><td>Available models</td><td>Lists all supported AI models across providers.</td></tr>
+            <tr><td>POST</td><td>/api/ai/reset</td><td>Reset AI agent</td><td>Clears conversation context and resets agent state.</td></tr>
+            <tr><td>GET</td><td>/api/ai/config</td><td>Get configuration</td><td>Returns current: enabled flag, model_name, max_tokens, temperature.</td></tr>
+            <tr><td>POST</td><td>/api/ai/config</td><td>Save configuration</td><td>Updates AI settings. Super admin only.</td></tr>
+            <tr><td>GET</td><td>/api/ai/stats</td><td>Usage statistics</td><td>Query counts, success rates, average response times.</td></tr>
+            <tr><td>GET</td><td>/api/ai/audit-logs</td><td>Audit log viewer</td><td>Paginated (limit + offset). Returns full interaction forensics.</td></tr>
+            <tr><td>GET</td><td>/api/ai/api-keys/status</td><td>API key status</td><td>Returns masked key status for each provider (e.g., &ldquo;sk-***...abc&rdquo;).</td></tr>
+            <tr><td>POST</td><td>/api/ai/api-keys/save</td><td>Store API key</td><td>Writes to .env file. Supports Gemini, OpenAI, Anthropic. Masks in response.</td></tr>
+            <tr><td>DELETE</td><td>/api/ai/api-keys/{provider}</td><td>Remove API key</td><td>Removes key from .env file.</td></tr>
+            <tr><td>POST</td><td>/api/ai/api-keys/test/{provider}</td><td>Test API key</td><td>Makes a lightweight API call to validate the key works.</td></tr>
+        </table>
+
+        <h3>4.6 Core Services</h3>
+
+        <h4>AuthenticationService</h4>
+        <p>The central authentication engine. Handles five operations:</p>
+        <ul>
+            <li><strong>authenticate_user</strong> &mdash; Finds user by username or email, verifies password with bcrypt, updates <code>last_login</code> timestamp.</li>
+            <li><strong>create_user_session</strong> &mdash; Generates JWT access and refresh tokens. <em>Critical detail:</em> operator accounts get 6-month token expiry (for kiosk phones that shouldn&rsquo;t require re-login), while all other accounts get the standard 12-hour expiry.</li>
+            <li><strong>get_user_by_token</strong> &mdash; Decodes JWT, validates expiry, checks that user still exists and is active.</li>
+            <li><strong>logout_user</strong> &mdash; Terminates session record, stamps logout time.</li>
+            <li><strong>refresh_token</strong> &mdash; Validates refresh token, issues new access token without creating a new session.</li>
+        </ul>
+
+        <h4>SecurityManager</h4>
+        <p>Low-level cryptographic operations: bcrypt password hashing and verification, JWT creation with configurable expiry, JWT decoding with signature verification, and token expiry validation. Uses HS256 algorithm with a configurable secret key.</p>
+
+        <h4>Permission Utilities</h4>
+        <p>Four functions that form the permission checking backbone used by every module in the system:</p>
+        <ul>
+            <li><code>is_permitted_user(user, required_types)</code> &mdash; Legacy role check. Super admin always passes.</li>
+            <li><code>check_user_permission(user, page_id, button_id)</code> &mdash; Granular JSON permission check. Parses the user&rsquo;s <code>permissions</code> field, navigates to <code>pages[page_id].buttons[button_id]</code>.</li>
+            <li><code>has_special_permission(user, permission)</code> &mdash; Checks special flags like <code>hard_delete</code> or <code>manage_users</code>.</li>
+            <li><code>check_permission_smart(user, required_types, page_id, button_id)</code> &mdash; The unified entry point. Tries role-based first, then granular. This is what most routes actually call.</li>
+        </ul>
+
+        <h3>4.7 FastAPI Dependencies</h3>
+
+        <p>Admin defines four injectable dependencies that every module in the system imports:</p>
+
+        <table>
+            <tr><th>Dependency</th><th>What It Does</th><th>Used By</th></tr>
+            <tr><td><code>get_current_user_dependency</code></td><td>Extracts and validates user from JWT token in Authorization header</td><td>Every authenticated endpoint in the system</td></tr>
+            <tr><td><code>require_super_admin</code></td><td>Raises 403 unless user_type is &ldquo;super_admin&rdquo;</td><td>Admin CRUD operations, system configuration</td></tr>
+            <tr><td><code>require_lab_user</code></td><td>Raises 403 unless user_type is &ldquo;lab_user&rdquo; or &ldquo;super_admin&rdquo;</td><td>Lab test routes, quality control</td></tr>
+            <tr><td><code>require_operator</code></td><td>Raises 403 unless user_type is &ldquo;operator&rdquo; or above</td><td>Production routes, material scanning</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Admin exports its security layer as importable dependencies.</strong> This is the architectural mechanism that makes Admin the hub: other modules don&rsquo;t implement their own authentication &mdash; they import <code>get_current_user_dependency</code> from Admin and use it as a FastAPI <code>Depends()</code> parameter. One source of truth, zero duplication.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. THE FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <p>The Admin frontend consists of five distinct pages plus a cross-cutting permission layer that affects every page in the entire application.</p>
+
+        <h3>5.1 Page Inventory</h3>
+
+        <table>
+            <tr><th>Page</th><th>Route</th><th>Component</th><th>Access</th></tr>
+            <tr><td>Login</td><td>/user/login</td><td>src/pages/user/login/index.tsx</td><td>Public (unauthenticated)</td></tr>
+            <tr><td>User Management</td><td>/admin/user-management</td><td>src/pages/Admin/UserManagement/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>Printer Management</td><td>/admin/printer-management</td><td>src/pages/Admin/PrinterManagement/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>Print Job Monitor</td><td>/admin/print-monitor</td><td>src/pages/Admin/PrintJobMonitor/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>AI Settings</td><td>/admin/ai-settings</td><td>src/pages/Admin/AISettings/index.tsx</td><td>canAdmin</td></tr>
+        </table>
+
+        <p>All four admin pages sit under the <code>/admin</code> route prefix and share the <code>canAdmin</code> access guard, which restricts visibility to super admin users. The Login page is the only public page in the entire application.</p>
+
+        <h3>5.2 The Permission Layer (Cross-Cutting)</h3>
+
+        <p>Admin&rsquo;s most impactful frontend contribution isn&rsquo;t its own pages &mdash; it&rsquo;s the permission infrastructure that every other page uses. This lives in three files:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>access.ts</h4>
+                <p>Defines dynamic access functions: <code>canAdmin</code>, <code>canLab</code>, <code>canProduction</code>, etc. These are referenced in route config as access guards. Also provides <code>canAccessPage(pageId)</code> and module-level checks that read from the user&rsquo;s parsed permission JSON.</p>
+            </div>
+            <div class="arch-box">
+                <h4>permissionManifest.ts</h4>
+                <p>The static registry of every page and every button in the system. Defines page IDs (e.g., <code>admin.kullanici_yonetimi</code>), button IDs (e.g., <code>create_user</code>, <code>delete_user</code>), labels, descriptions, and <code>critical</code> flags. Used by User Management to render the permission editor.</p>
+            </div>
+            <div class="arch-box">
+                <h4>buttonRegistry.ts</h4>
+                <p>A dynamic counterpart to the static manifest. Components register their buttons at mount time into a global registry. This allows the User Management permission editor to discover buttons that exist in the running application, even if the manifest hasn&rsquo;t been updated.</p>
+            </div>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>The Hybrid Discovery Pattern:</strong> The permission system uses <em>both</em> a static manifest (hardcoded list of all pages and buttons) <em>and</em> a dynamic registry (components self-register at runtime). The User Management permission editor reads from the manifest for the structured tree view but can also discover dynamically registered buttons. This means new buttons added to any page in the system become available for permission assignment without manually updating a central config file.</p>
+        </div>
+
+        <h3>5.3 Login Page</h3>
+
+        <p>The login page handles three scenarios:</p>
+        <ol>
+            <li><strong>Standard login:</strong> Username/password form with &ldquo;Remember me&rdquo; checkbox. Stores JWT tokens and user data in <code>localStorage</code> (<code>solen_auth_token</code>, <code>solen_refresh_token</code>, <code>solen_current_user</code>).</li>
+            <li><strong>Kiosk auto-login:</strong> Detects the Fully Kiosk Browser via user agent string. When detected, automatically logs in as the operator account and redirects to <code>/production</code>. No human interaction required.</li>
+            <li><strong>Secret URL token:</strong> Accepts <code>?kiosk=SOLEN_FACTORY_2024_KIOSK_SECRET</code> as a URL parameter to trigger auto-login from any browser. This is a factory-floor convenience for mounting new kiosk devices.</li>
+        </ol>
+
+        <h3>5.4 User Management Page</h3>
+
+        <p>The most complex page in the Admin module. It provides a full CRUD interface for user accounts with a three-tab modal:</p>
+
+        <ul>
+            <li><strong>Tab 1 &mdash; Temel Bilgiler (Basic Info):</strong> Username, email, full name, user type (dropdown with super_admin, lab_user, operator, teknik_user, bakim_user, and custom types), status, password (for new users), force_password_change toggle.</li>
+            <li><strong>Tab 2 &mdash; Yetkiler (Permissions):</strong> The granular permission editor. Renders the full permission manifest as a tree: each page is a switch (access on/off), and under each page, individual buttons are checkboxes. Includes four quick-fill templates: Full, Empty, Operator Default, Lab User Default.</li>
+            <li><strong>Tab 3 &mdash; &Ouml;nizleme (Preview):</strong> Shows a read-only summary of what the user will be able to access after saving &mdash; which modules, which pages, which buttons.</li>
+        </ul>
+
+        <p>Beyond the modal, the page provides: search across username/email/full_name, filter by user_type and status, password reset (generates and displays new password), suspend/activate toggle, delete with confirmation, and last login display with Turkey/Istanbul timezone conversion.</p>
+
+        <h3>5.5 Printer Management Page</h3>
+
+        <p>CRUD interface for factory label printers. Each printer has: name, description, IP address, port, location, status, and assigned materials (multi-select from material types: raw_copper, raw_tin, raw_plastic, etc.). Includes a &ldquo;Test Connection&rdquo; button that hits the backend&rsquo;s <code>/printers/{id}/test</code> endpoint to verify the printer is reachable on the network.</p>
+
+        <h3>5.6 Print Job Monitor Page</h3>
+
+        <p>Real-time monitoring dashboard. Top section shows four statistics cards: Queued (blue), Printing (orange), Completed (green), Failed (red). Below is a ProTable showing all print jobs with columns: QR code, material type, lot number, supplier, printer, status, requested by, requested at, completed at, error message. Supports retry (requeues failed jobs) and cancel (removes queued jobs). All timestamps are Turkey/Istanbul timezone.</p>
+
+        <h3>5.7 AI Settings Page</h3>
+
+        <p>Four-tab configuration interface:</p>
+        <ul>
+            <li><strong>Overview:</strong> AI status (active/inactive), today&rsquo;s query count, total queries, average response time, success rate visualization, and a connection test button.</li>
+            <li><strong>API Keys:</strong> Save, test, and delete API keys for three providers (Gemini, OpenAI, Anthropic). Keys are masked in the UI and stored in the server&rsquo;s .env file.</li>
+            <li><strong>Model Settings:</strong> Enable/disable AI, select model (cascader grouped by provider: Gemini 3 Flash/Pro, GPT-5.2/Mini, Claude Sonnet/Opus/Haiku), configure max tokens (1024&ndash;8192) and temperature (0.1&ndash;0.9).</li>
+            <li><strong>Audit Log:</strong> Full history of AI interactions. ProTable with expandable rows showing the original query and AI response. Filterable by user, tool, status, IP address. Includes response time metrics.</li>
+        </ul>
+
+        <h3>5.8 Common Frontend Patterns</h3>
+
+        <table>
+            <tr><th>Pattern</th><th>Usage</th></tr>
+            <tr><td>ProTable (Ant Design Pro)</td><td>Every list page uses ProTable with built-in search, filtering, pagination, and toolbar customization.</td></tr>
+            <tr><td>ProConfigProvider with trTR locale</td><td>All tables and forms display Turkish text for column headers, toolbar buttons, and empty states.</td></tr>
+            <tr><td>PageContainer</td><td>Consistent page headers with breadcrumbs and title.</td></tr>
+            <tr><td>Modal forms</td><td>Create/Edit operations use centered modals with form validation.</td></tr>
+            <tr><td>Status Tags</td><td>Color-coded Ant Design Tags for status display (green=active, red=suspended, blue=queued, etc.).</td></tr>
+            <tr><td>Turkey/Istanbul timezone</td><td>All timestamp displays convert to <code>Europe/Istanbul</code> using <code>toLocaleString()</code>.</td></tr>
+            <tr><td>message.success / message.error</td><td>Ant Design notifications for operation feedback, all in Turkish.</td></tr>
+        </table>
+
+        <h3>5.9 The API Layer</h3>
+
+        <p>The frontend communicates with the backend through a centralized API utility (<code>src/utils/api.ts</code>) that dynamically resolves the backend URL based on the deployment context:</p>
+
+        <ul>
+            <li><strong>HTTPS mode:</strong> Uses <code>/api</code> proxy (reverse proxy handles routing).</li>
+            <li><strong>HTTP localhost:</strong> <code>http://localhost:8000/api</code> (development).</li>
+            <li><strong>HTTP local network:</strong> <code>http://{hostname}:8000/api</code> (factory LAN access).</li>
+            <li><strong>Custom override:</strong> <code>window.BACKEND_URL</code> for special deployments.</li>
+        </ul>
+
+        <p>Every API call includes the <code>Authorization: Bearer {token}</code> header, retrieved from <code>localStorage</code>. The authentication service (<code>src/services/realAuth.ts</code>) provides <code>login()</code>, <code>logout()</code>, <code>getCurrentUser()</code>, and <code>getToken()</code> functions that all pages import.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. THE SUBMODULES</h2>
+        <!-- ============================================ -->
+
+        <p>The Admin module is organized into five submodules, ordered by dependency: authentication must exist before users can be managed, users must exist before they can use printers, and printers must exist before the queue can be monitored.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Kimlik Do&gbreve;rulama &amp; Oturum Y&ouml;netimi (Authentication &amp; Session Management)</h4>
+                <p>The gateway to the entire system. Login, JWT token issuance, session tracking, token refresh, and logout. Includes the kiosk auto-login system for factory floor devices.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">user_sessions table</span>
+                    <span class="submod-tag">JWT HS256</span>
+                    <span class="submod-tag">bcrypt</span>
+                    <span class="submod-tag">6-month operator tokens</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
+                <p>Full lifecycle management of user accounts: creation, editing, suspension, deletion, password reset, and the granular permission editor. Defines who exists in the system and what they can do.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">9 endpoints</span>
+                    <span class="submod-tag">users + 3 extension tables</span>
+                    <span class="submod-tag">user_roles templates</span>
+                    <span class="submod-tag">activity_logs</span>
+                    <span class="submod-tag">hybrid permission model</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h4>
+                <p>Registry and configuration of network label printers on the factory floor. IP/port configuration, material type assignments, connection testing, and status monitoring.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">printers table</span>
+                    <span class="submod-tag">TCP port 9100</span>
+                    <span class="submod-tag">material assignments</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h4>
+                <p>Real-time dashboard monitoring all label print jobs across four printers. Queue statistics, job history, retry for failures, and cancel for queued jobs.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">print_jobs table</span>
+                    <span class="submod-tag">real-time stats</span>
+                    <span class="submod-tag">retry mechanism</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.5</div>
+            <div class="submod-body">
+                <h4>AI Ayarlar&inodot; (AI Settings)</h4>
+                <p>Configuration interface for the ERP&rsquo;s AI assistant. Multi-provider API key management, model selection, parameter tuning, usage statistics, and comprehensive audit logging of every AI interaction.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">12 endpoints</span>
+                    <span class="submod-tag">ai_audit_logs (47 columns)</span>
+                    <span class="submod-tag">3 AI providers</span>
+                    <span class="submod-tag">.env key storage</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Mod&uuml;l&uuml; | Kablo Fabrikas&inodot; ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-admin-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-admin.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Mod&uuml;llere D&ouml;n</a>
+        <h1>ADMIN &mdash; S&Idot;STEM Y&Ouml;NET&Idot;M&Idot;</h1>
+        <p class="subtitle">T&uuml;m ERP&rsquo;nin kontrol merkezi. Kullan&inodot;c&inodot; kimlikleri, yetkiler, kimlik do&gbreve;rulama, yaz&inodot;c&inodot; donan&inodot;m&inodot;, yazd&inodot;rma kuyru&gbreve;u izleme, AI asistan yap&inodot;land&inodot;rmas&inodot; ve aktivite denetimi &mdash; sistemi g&uuml;venli, yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; ve g&ouml;zlemlenebilir tutan her &#351;ey.</p>
+        <p class="authors">&#350;ubat 2026 &bull; Solen Kablo &bull; Ya&#351;ayan Dok&uuml;man</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Admin, kap&inodot; bekçisi ve kontrol odas&inodot;d&inodot;r.</strong> Herhangi bir operat&ouml;r QR kod tarayabilmeden, herhangi bir lab kullan&inodot;c&inodot;s&inodot; bir testi onaylayabilmeden, herhangi bir m&uuml;hendis kablo tasarlayabilmeden &ouml;nce &mdash; bu mod&uuml;lde do&gbreve;ru yetkilerle bir kullan&inodot;c&inodot; olarak var olmalar&inodot; gerekir. Admin, sisteme <em>kimin</em> eri&#351;ebilece&gbreve;ini, içeri girdikten sonra <em>ne</em> yapabileceklerini, <em>nas&inodot;l</em> kimlik do&gbreve;rulamas&inodot; yapacaklar&inodot;n&inodot; ve sistemin <em>hangi donan&inodot;mla</em> konu&#351;aca&gbreve;&inodot;n&inodot; tan&inodot;mlar. Rol tabanl&inodot; eri&#351;imi (super_admin, lab_user, operator) JSON olarak saklanan ultra-gran&uuml;ler sayfa-ve-buton d&uuml;zeyinde yetkilerle birle&#351;tiren hibrit bir yetki sistemi y&ouml;netir. Fabrikan&inodot;n etiket yaz&inodot;c&inodot;lar&inodot;n&inodot; kontrol eder, yazd&inodot;rma kuyru&gbreve;unu ger&ccedil;ek zamanl&inodot; izler ve AI asistan i&ccedil;in tam bir yap&inodot;land&inodot;rma aray&uuml;z&uuml; sa&gbreve;lar. Her kullan&inodot;c&inodot;n&inodot;n her eylemi bir denetim izine kaydedilir. Bu mod&uuml;l olmadan kimse giri&#351; yapamaz, hi&ccedil;bir etiket yazd&inodot;r&inodot;lamaz ve hi&ccedil;bir yetki uygulanamaz.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">5</div>
+                <div class="label">ALT MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~36</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10</div>
+                <div class="label">VER&Idot;TABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">3500+</div>
+                <div class="label">SATIR KOD</div>
+            </div>
+        </div>
+
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Admin Ne Yapar</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Ak&inodot;&#351;&inodot;</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Veritaban&inodot; Katman&inodot;</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> &Ouml;ny&uuml;z</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Kimlik Do&gbreve;rulama</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Kullan&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Yaz&inodot;c&inodot; Y&ouml;netimi</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Yazd&inodot;rma &Idot;zleme</a>
+                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 AI Ayarlar&inodot;</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonu&ccedil;</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. ADMIN NE YAPAR</h2>
+        <!-- ============================================ -->
+
+        <p>Admin mod&uuml;l&uuml;, t&uuml;m ERP sisteminin ba&gbreve;l&inodot; oldu&gbreve;u alt&inodot; soruyu yan&inodot;tlar:</p>
+
+        <table>
+            <tr><th>Soru</th><th>Kim Yan&inodot;tlar</th><th>Nas&inodot;l</th></tr>
+            <tr><td>Sistemi kim kullanabilir?</td><td>Kullan&inodot;c&inodot; Y&ouml;netimi</td><td>Rol atamas&inodot;yla kullan&inodot;c&inodot; hesaplar&inodot; olu&#351;tur/d&uuml;zenle/ask&inodot;ya al/sil</td></tr>
+            <tr><td>Her kullan&inodot;c&inodot; ne yapabilir?</td><td>Yetki Sistemi</td><td>Hibrit rol tabanl&inodot; + gran&uuml;ler sayfa.buton JSON yetkileri</td></tr>
+            <tr><td>Kullan&inodot;c&inodot;lar kimliklerini nas&inodot;l kan&inodot;tlar?</td><td>Kimlik Do&gbreve;rulama</td><td>Kullan&inodot;c&inodot; ad&inodot;/&#351;ifre &rarr; JWT eri&#351;im + yenileme token&rsquo;lar&inodot; ve oturum takibi</td></tr>
+            <tr><td>Hangi yaz&inodot;c&inodot;lar var ve nerede?</td><td>Yaz&inodot;c&inodot; Y&ouml;netimi</td><td>IP, port, malzeme atamalar&inodot;, ba&gbreve;lant&inodot; testi ile a&gbreve; yaz&inodot;c&inodot; kayd&inodot;</td></tr>
+            <tr><td>Yazd&inodot;rma kuyru&gbreve;unda ne oluyor?</td><td>Yazd&inodot;rma &Idot;zleme</td><td>4 yaz&inodot;c&inodot; genelinde t&uuml;m yazd&inodot;rma i&#351;lerinin ger&ccedil;ek zamanl&inodot; panosu, yeniden deneme/iptal</td></tr>
+            <tr><td>AI asistan nas&inodot;l yap&inodot;land&inodot;r&inodot;l&inodot;r?</td><td>AI Ayarlar&inodot;</td><td>&Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; API anahtar y&ouml;netimi, model se&ccedil;imi, denetim g&uuml;nl&uuml;&gbreve;&uuml;</td></tr>
+        </table>
+
+        <h3>1.1 &Uuml;&ccedil; Kullan&inodot;c&inodot; Tipi</h3>
+
+        <p>Sistem, her biri farkl&inodot; eri&#351;im kapsam&inodot;na ve farkl&inodot; fiziksel kullan&inodot;m ba&gbreve;lam&inodot;na sahip &uuml;&ccedil; temel kullan&inodot;c&inodot; tipi tan&inodot;r:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Super Admin</h4>
+                <p>Tam sistem eri&#351;imi. Kullan&inodot;c&inodot;lar&inodot; y&ouml;netebilir, yaz&inodot;c&inodot;lar&inodot; yap&inodot;land&inodot;rabilir, AI ayarlar&inodot;n&inodot; de&gbreve;i&#351;tirebilir, aktivite g&uuml;nl&uuml;klerini g&ouml;r&uuml;nt&uuml;leyebilir ve her mod&uuml;le eri&#351;ebilir. Bu, fabrika m&uuml;d&uuml;r&uuml; veya IT y&ouml;neticisidir. Genellikle ofiste masa&uuml;st&uuml; bilgisayardan &ccedil;al&inodot;&#351;&inodot;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Lab Kullan&inodot;c&inodot;s&inodot;</h4>
+                <p>Lab panosu, test y&ouml;netimi, kalite kontrol, uyar&inodot; y&ouml;netimi ve test raporlar&inodot;. Ayr&inodot;ca yaz&inodot;c&inodot; ba&gbreve;lant&inodot;lar&inodot;n&inodot; test edebilir ve ba&#351;ar&inodot;s&inodot;z yazd&inodot;rma i&#351;lerini yeniden deneyebilir. Bu, laboratuvarda &ccedil;al&inodot;&#351;an kalite m&uuml;hendisidir. Genellikle lab&rsquo;a &ouml;zel bir i&#351; istasyonundan &ccedil;al&inodot;&#351;&inodot;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Operat&ouml;r</h4>
+                <p>Makine operasyonu, &uuml;retim formlar&inodot;, malzeme tarama, temel pano ve i&#351; emri g&ouml;r&uuml;nt&uuml;leme. Bu, fabrika zemininde &ccedil;al&inodot;&#351;an i&#351;&ccedil;idir. Genellikle &uuml;retim hatt&inodot;n&inodot;n yan&inodot;na monte edilmi&#351; bir <strong>kiosk telefondan</strong> &ccedil;al&inodot;&#351;&inodot;r &mdash; bu y&uuml;zden operat&ouml;r hesaplar&inodot; standart 12 saatlik s&uuml;re yerine 6 ayl&inodot;k JWT token al&inodot;r.</p>
+            </div>
+        </div>
+
+        <h3>1.2 Hibrit Yetki Modeli</h3>
+
+        <p>Yetki sistemi ayn&inodot; anda iki katmanda &ccedil;al&inodot;&#351;&inodot;r:</p>
+
+        <div class="finding">
+            <p style="margin-bottom: 8px;"><strong>Katman 1 &mdash; Rol Tabanl&inodot; (Eski):</strong> Kullan&inodot;c&inodot; kayd&inodot;ndaki <code>user_type</code> alan&inodot;. <code>is_permitted_user(user, ["super_admin", "lab_user"])</code> ile kontrol edilir. Bu kaba filtredir: &ldquo;en az&inodot;ndan lab kullan&inodot;c&inodot;s&inodot; m&inodot;s&inodot;n?&rdquo;</p>
+            <p style="margin-bottom: 0;"><strong>Katman 2 &mdash; Gran&uuml;ler (Modern):</strong> Kullan&inodot;c&inodot; kayd&inodot;ndaki <code>permissions</code> JSON alan&inodot;. <code>check_user_permission(user, page_id, button_id)</code> ile kontrol edilir. Bu ince filtredir: &ldquo;Hammaddeler Listesi sayfas&inodot;nda Sil butonuna t&inodot;klayabilir misin?&rdquo;</p>
+        </div>
+
+        <p>Her iki katman, <code>check_permission_smart</code> ad&inodot;nda geriye uyumlu bir fonksiyon arac&inodot;l&inodot;&gbreve;&inodot;yla bir arada bulunur. &Ouml;nce eski rol tabanl&inodot; sistemi kontrol eder, sonra gran&uuml;ler JSON sistemine d&uuml;&#351;er. Super admin&rsquo;ler her ikisini de atlar &mdash; her zaman ge&ccedil;erler.</p>
+
+        <h3>1.3 Kullan&inodot;c&inodot; Y&ouml;netiminin &Ouml;tesinde</h3>
+
+        <p>Admin sadece kullan&inodot;c&inodot;larla ilgili de&gbreve;ildir. <strong>Fiziksel donan&inodot;m&inodot;</strong> (fabrika zeminindeki a&gbreve; yaz&inodot;c&inodot;lar&inodot;) y&ouml;neten, <strong>ger&ccedil;ek zamanl&inodot; operasyonel izleme</strong> (yazd&inodot;rma kuyru&gbreve;u panosu) sa&gbreve;layan ve di&gbreve;er kullan&inodot;c&inodot;lar&inodot;n etkile&#351;imde bulundu&gbreve;u <strong>AI asistan&inodot;</strong> kontrol eden tek mod&uuml;ld&uuml;r. Ayr&inodot;ca <code>user_activity_logs</code> tablosuna yazan tek mod&uuml;ld&uuml;r ve sistemde al&inodot;nan her y&ouml;netimsel eylemin denetim izini olu&#351;turur.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. VER&Idot; AKI&#350;I</h2>
+        <!-- ============================================ -->
+
+        <p>Admin&rsquo;in veri ak&inodot;&#351;lar&inodot;, Hammadde veya Teknik gibi &uuml;retim mod&uuml;llerinden temelden farkl&inodot;d&inodot;r. Bu mod&uuml;llerin do&gbreve;rusal bir hatt&inodot; vard&inodot;r (tedarik&ccedil;i &rarr; sipari&#351; &rarr; giri&#351; &rarr; envanter). Admin ise bir <strong>g&ouml;bek-ve-kol (hub-and-spoke)</strong> desenine sahiptir: merkezde oturur ve di&gbreve;er her mod&uuml;l ona ba&gbreve;l&inodot;d&inodot;r.</p>
+
+        <h3>2.1 Kimlik Do&gbreve;rulama Ak&inodot;&#351;&inodot;</h3>
+
+        <div class="flow">
+            <div class="flow-box">User opens app</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /auth/login</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">bcrypt verify</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">JWT tokens issued</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Session recorded</div>
+        </div>
+
+        <p>Bundan sonraki <em>t&uuml;m sistemdeki</em> her API &ccedil;a&gbreve;r&inodot;s&inodot;, <code>Authorization: Bearer</code> ba&#351;l&inodot;&gbreve;&inodot;nda JWT eri&#351;im token&rsquo;&inodot;n&inodot; ta&#351;&inodot;r. Token, kullan&inodot;c&inodot;n&inodot;n ID&rsquo;sini, kullan&inodot;c&inodot; ad&inodot;n&inodot;, user_type&rsquo;&inodot;n&inodot; ve yetkilerini i&ccedil;erir &mdash; bu da her mod&uuml;ldeki her route&rsquo;un ek bir veritaban&inodot; sorgusu olmadan kimli&gbreve;i do&gbreve;rulayabilece&gbreve;i ve yetkileri kontrol edebilece&gbreve;i anlam&inodot;na gelir.</p>
+
+        <h3>2.2 Yetki Uygulama Ak&inodot;&#351;&inodot;</h3>
+
+        <div class="flow">
+            <div class="flow-box">API request arrives</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">JWT decoded</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">check_permission_smart()</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Role check OR page.button check</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Allow / 403 Forbidden</div>
+        </div>
+
+        <p>&Ouml;ny&uuml;zde ayn&inodot; kontrol proaktif olarak &ccedil;al&inodot;&#351;&inodot;r: route&rsquo;lar men&uuml;den gizlenir, butonlar devre d&inodot;&#351;&inodot; b&inodot;rak&inodot;l&inodot;r veya g&ouml;r&uuml;nmez yap&inodot;l&inodot;r ve do&gbreve;rudan URL eri&#351;imi denenirse t&uuml;m sayfalar kullan&inodot;c&inodot;n&inodot;n izin verilen panosuna y&ouml;nlendirilir.</p>
+
+        <h3>2.3 Yazd&inodot;rma &Idot;&#351;i Ak&inodot;&#351;&inodot;</h3>
+
+        <div class="flow">
+            <div class="flow-box">Material Entry / Materials List</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /print-queue/queue/{id}</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Job &rarr; QUEUED</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Printer processes</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">COMPLETED / FAILED</div>
+        </div>
+
+        <p>Yazd&inodot;rma i&#351;leri di&gbreve;er mod&uuml;ller taraf&inodot;ndan olu&#351;turulur (Hammadde Giri&#351;i teslimat kaydettikten sonra QR etiketleri yazd&inodot;r&inodot;r, Hammaddeler Listesi talep &uuml;zerine etiket yeniden yazd&inodot;r&inodot;r) ancak kuyru&gbreve;un kendisi Admin&rsquo;de ya&#351;ar. Yazd&inodot;rma &Idot;zleme, super admin&rsquo;lere d&ouml;rt fabrika yaz&inodot;c&inodot;s&inodot;ndaki t&uuml;m i&#351;lerin ger&ccedil;ek zamanl&inodot; g&ouml;r&uuml;n&uuml;m&uuml;n&uuml;, ba&#351;ar&inodot;s&inodot;z i&#351;leri yeniden deneme ve kuyruktakileri iptal etme yetene&gbreve;iyle sa&gbreve;lar.</p>
+
+        <h3>2.4 AI Etkile&#351;im Ak&inodot;&#351;&inodot;</h3>
+
+        <div class="flow">
+            <div class="flow-box">User asks AI question</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">POST /api/ai/chat</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">AI processes query</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box">Response returned</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Audit log written</div>
+        </div>
+
+        <p>Her AI etkile&#351;imi kapsaml&inodot; olarak g&uuml;nl&uuml;&gbreve;e kaydedilir: kullan&inodot;c&inodot;n&inodot;n sorgusu, alg&inodot;lanan dil, kullan&inodot;lan AI modeli, ak&inodot;l y&uuml;r&uuml;tme ad&inodot;mlar&inodot;, ara&ccedil; &ccedil;a&gbreve;r&inodot;lar&inodot;, API yan&inodot;tlar&inodot;, zamanlama metrikleri ve g&uuml;venlik bayraklar&inodot;. Bu, AI&rsquo;n&inodot;n ne yapt&inodot;&gbreve;&inodot;n&inodot;n ve nedeninin tam bir adli izini olu&#351;turur.</p>
+
+        <h3>2.5 G&ouml;bek-ve-Kol Ba&gbreve;&inodot;ml&inodot;l&inodot;&gbreve;&inodot;</h3>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Sistemdeki her mod&uuml;l bir koldur; Admin g&ouml;bektir.</strong> Hammadde, her API &ccedil;a&gbreve;r&inodot;s&inodot;nda kullan&inodot;c&inodot; kimlik do&gbreve;rulamas&inodot; i&ccedil;in, QR etiketleri yazd&inodot;r&inodot;rken yaz&inodot;c&inodot; eri&#351;imi i&ccedil;in ve her buton t&inodot;klamas&inodot;nda yetki kontrol&uuml; i&ccedil;in Admin&rsquo;e ihtiya&ccedil; duyar. Teknik, operat&ouml;r kay&inodot;tlar&inodot; ve kullan&inodot;c&inodot; kimli&gbreve;i i&ccedil;in Admin&rsquo;e ihtiya&ccedil; duyar. &Uuml;retim, Lab, Sipari&#351;ler &mdash; hepsi her istekte <code>get_current_user_dependency</code>&rsquo;yi &ccedil;a&gbreve;&inodot;r&inodot;r ve bu, Admin&rsquo;in verdi&gbreve;i JWT token&rsquo;&inodot;n&inodot; &ccedil;&ouml;zer. Admin &ccedil;&ouml;kerse, t&uuml;m sistem kilitlenir.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. VER&Idot;TABANI KATMANI</h2>
+        <!-- ============================================ -->
+
+        <p>Admin mod&uuml;l&uuml; <strong>10 veritaban&inodot; tablosuna</strong> sahiptir, bu di&gbreve;er t&uuml;m mod&uuml;llerden fazlad&inodot;r. Bu tablolar d&ouml;rt gruba ayr&inodot;l&inodot;r: kimlik, oturumlar, donan&inodot;m ve denetim.</p>
+
+        <h3>3.1 Kimlik Tablolar&inodot;</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar S&uuml;tunlar</th><th>&Idot;li&#351;kiler</th></tr>
+            <tr>
+                <td><code>users</code></td>
+                <td>Sistemdeki her ki&#351;inin temel kimli&gbreve;i</td>
+                <td>id, username (unique), email (unique), hashed_password, user_type, status, is_active, is_superuser, permissions (JSON text), force_password_change, last_login, preferred_interface, device_info</td>
+                <td>1&mdash;N user_sessions, 0..1 super_admins, 0..1 lab_users, 0..1 operators</td>
+            </tr>
+            <tr>
+                <td><code>super_admins</code></td>
+                <td>Super admin kullan&inodot;c&inodot;lar i&ccedil;in ek veriler</td>
+                <td>id, user_id (FK, unique), admin_level, permissions (JSON), access_logs (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>lab_users</code></td>
+                <td>Laboratuvar kullan&inodot;c&inodot;lar&inodot; i&ccedil;in ek veriler</td>
+                <td>id, user_id (FK, unique), lab_department, certifications (JSON), test_specializations (JSON), shift_schedule (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>operators</code></td>
+                <td>Fabrika zemini operat&ouml;rleri i&ccedil;in ek veriler</td>
+                <td>id, user_id (FK, unique), assigned_machines (JSON), shift_schedule (JSON), skill_level, certifications (JSON)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>user_roles</code></td>
+                <td>Yeniden kullan&inodot;labilir yetki &#351;ablonlar&inodot;</td>
+                <td>id, name (unique), description, permissions (JSON text), is_system (silmeyi engeller)</td>
+                <td>Ba&gbreve;&inodot;ms&inodot;z (&#351;ablon deposu)</td>
+            </tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Kal&inodot;t&inodot;m Deseni:</strong> Sistem, nullable s&uuml;tunlu tek tablo kal&inodot;t&inodot;m&inodot; yerine bir <strong>birle&#351;ik tablo deseni</strong> kullan&inodot;r. <code>users</code> tablosu ortak alanlar&inodot; (giri&#351; bilgileri, durum, yetkiler) tutar. Uzant&inodot; tablolar&inodot; (<code>super_admins</code>, <code>lab_users</code>, <code>operators</code>), <code>users.id</code>&rsquo;ye unique FK arac&inodot;l&inodot;&gbreve;&inodot;yla tipe &ouml;zel alanlar&inodot; tutar. Bu, temel <code>users</code> tablosunu yalın tutarken her kullan&inodot;c&inodot; tipinin &ouml;zel veri depolamas&inodot;na izin verir (&ouml;rn. operat&ouml;rlerin <code>assigned_machines</code>&rsquo;i, lab kullan&inodot;c&inodot;lar&inodot;n&inodot;n <code>certifications</code>&rsquo;&inodot; vard&inodot;r).</p>
+        </div>
+
+        <h3>3.2 Oturum Tablosu</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar S&uuml;tunlar</th><th>&Idot;li&#351;kiler</th></tr>
+            <tr>
+                <td><code>user_sessions</code></td>
+                <td>Aktif ve ge&ccedil;mi&#351; giri&#351; oturumlar&inodot;</td>
+                <td>id, user_id (FK), session_token (unique, indexed), refresh_token (unique, indexed), login_time, logout_time, expires_at, ip_address (IPv6-ready, 45 chars), user_agent, device_type, status</td>
+                <td>N&mdash;1 users (cascade delete)</td>
+            </tr>
+        </table>
+
+        <p>Oturumlar sadece token do&gbreve;rulama i&ccedil;in de&gbreve;ildir. Tam bir giri&#351; ge&ccedil;mi&#351;i sa&gbreve;larlar: hangi cihaz kullan&inodot;ld&inodot;, hangi IP&rsquo;den, ne zaman giri&#351; yap&inodot;ld&inodot;, ne zaman &ccedil;&inodot;k&inodot;&#351; yap&inodot;ld&inodot; (veya oturum s&uuml;resi doldu mu). <code>users</code> ili&#351;kisindeki cascade delete, bir kullan&inodot;c&inodot;y&inodot; silmenin t&uuml;m oturumlar&inodot;n&inodot; otomatik olarak temizlemesi anlam&inodot;na gelir.</p>
+
+        <h3>3.3 Donan&inodot;m Tablolar&inodot;</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar S&uuml;tunlar</th><th>&Idot;li&#351;kiler</th></tr>
+            <tr>
+                <td><code>printers</code></td>
+                <td>Fabrika zeminindeki a&gbreve; etiket yaz&inodot;c&inodot;lar&inodot;</td>
+                <td>id, name, description, ip_address, port (default 9100), status (ONLINE/OFFLINE/ERROR/MAINTENANCE), is_active, assigned_materials (JSON array), location, last_checked</td>
+                <td>Standalone</td>
+            </tr>
+            <tr>
+                <td><code>print_jobs</code></td>
+                <td>Etiket yazd&inodot;rma i&#351; kuyru&gbreve;u ve ge&ccedil;mi&#351;i</td>
+                <td>id, material_id (FK &rarr; raw_materials), qr_code, printer_id (1&ndash;4), copies, status (QUEUED/PRINTING/COMPLETED/FAILED/CANCELLED), retry_count, error_message, requested_by (FK &rarr; users), requested_at, started_at, completed_at, material_type, lot_number, supplier_name</td>
+                <td>N&mdash;1 raw_materials, N&mdash;1 users</td>
+            </tr>
+        </table>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>G&ouml;r&uuml;nt&uuml;leme i&ccedil;in denormalize:</strong> <code>print_jobs</code> tablosu, <code>material_type</code>, <code>lot_number</code> ve <code>supplier_name</code>&rsquo;i malzeme kayd&inodot;ndan denormalize kopyalar olarak saklar. Bu, Yazd&inodot;rma &Idot;zleme&rsquo;nin <code>raw_materials</code> veya <code>suppliers</code>&rsquo;a join yapmadan i&#351; ge&ccedil;mi&#351;ini g&ouml;r&uuml;nt&uuml;leyebilmesi anlam&inodot;na gelir &mdash; s&inodot;k yenilenen ger&ccedil;ek zamanl&inodot; bir izleme panosu i&ccedil;in kritiktir.</p>
+        </div>
+
+        <h3>3.4 Denetim Tablolar&inodot;</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Ama&ccedil;</th><th>Anahtar S&uuml;tunlar</th><th>&Idot;li&#351;kiler</th></tr>
+            <tr>
+                <td><code>user_activity_logs</code></td>
+                <td>T&uuml;m admin eylemlerinin denetim izi</td>
+                <td>id, user_id (FK, indexed), username (denormalized), action, module, target_type, target_id, details (JSON), ip_address, user_agent, created_at (indexed)</td>
+                <td>N&mdash;1 users</td>
+            </tr>
+            <tr>
+                <td><code>ai_audit_logs</code></td>
+                <td>Kapsaml&inodot; AI etkile&#351;im adli analizi</td>
+                <td>id, user_id, username, user_type, session_id, ip_address, device_type, browser, os, original_query, query_language, ai_model, ai_reasoning, ai_confidence, selected_tool, tool_params, api_endpoint, api_response_status, success, error_type, total_duration_ms, ai_processing_ms, security_flags, was_blocked, block_reason, created_at</td>
+                <td>Standalone (47 columns)</td>
+            </tr>
+        </table>
+
+        <div class="philosophy">
+            <p style="margin-bottom: 0;"><strong>AI denetim tablosu t&uuml;m sistemdeki en geni&#351; tablodur</strong> &mdash; 47 s&uuml;tun. Bu kas&inodot;tl&inodot;d&inodot;r. Her AI etkile&#351;imi &ccedil;ok ad&inodot;ml&inodot; bir hatt&inodot;r (sorgu ayr&inodot;&#351;t&inodot;rma &rarr; ara&ccedil; se&ccedil;imi &rarr; API &ccedil;a&gbreve;r&inodot;s&inodot; &rarr; yan&inodot;t &uuml;retimi) ve her ad&inodot;m hata ay&inodot;klama veya g&uuml;venlik incelemesi i&ccedil;in gerekebilecek veri &uuml;retir. Tablo, tam tablo taramas&inodot; olmadan analitik sorgular&inodot; desteklemek i&ccedil;in (user_id, created_at), (selected_tool, created_at), (success, created_at) ve (ip_address, created_at) &uuml;zerinde bile&#351;ik indekslere sahiptir.</p>
+        </div>
+
+        <h3>3.5 Varl&inodot;k-&Idot;li&#351;ki &Ouml;zeti</h3>
+
+        <table>
+            <tr><th>&Idot;li&#351;ki</th><th>Tip</th><th>Kademeli Silme</th></tr>
+            <tr><td>users &rarr; user_sessions</td><td>1&mdash;N</td><td>Delete (kullan&inodot;c&inodot; silinince oturumlar temizlenir)</td></tr>
+            <tr><td>users &rarr; super_admins</td><td>1&mdash;0..1</td><td>Yok (uzant&inodot; tablosu)</td></tr>
+            <tr><td>users &rarr; lab_users</td><td>1&mdash;0..1</td><td>Yok (uzant&inodot; tablosu)</td></tr>
+            <tr><td>users &rarr; operators</td><td>1&mdash;0..1</td><td>Yok (uzant&inodot; tablosu)</td></tr>
+            <tr><td>users &rarr; user_activity_logs</td><td>1&mdash;N</td><td>Yok (loglar kullan&inodot;c&inodot; silinse de kal&inodot;r)</td></tr>
+            <tr><td>users &rarr; print_jobs (requested_by)</td><td>1&mdash;N</td><td>Yok</td></tr>
+            <tr><td>raw_materials &rarr; print_jobs (material_id)</td><td>1&mdash;N</td><td>Yok (&ccedil;apraz mod&uuml;l FK)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. BACKEND M&Idot;MAR&Idot;S&Idot;</h2>
+        <!-- ============================================ -->
+
+        <p>Admin backend&rsquo;i be&#351; route grubu, bir temel servis, bir g&uuml;venlik mod&uuml;l&uuml; ve bir yetki yard&inodot;mc&inodot; katman&inodot; olarak organize edilmi&#351;tir. Tek bir route dosyas&inodot;na sahip &uuml;retim mod&uuml;llerinin aksine, Admin birden fazla dosyaya yay&inodot;l&inodot;r &ccedil;&uuml;nk&uuml; sorumluluklar&inodot; birbirinden temelden farkl&inodot;d&inodot;r.</p>
+
+        <h3>4.1 Route Gruplar&inodot;</h3>
+
+        <table>
+            <tr><th>Route Grubu</th><th>&Ouml;nek</th><th>Endpoint</th><th>Auth Gerekli</th><th>Min. Rol</th></tr>
+            <tr><td>Kimlik Do&gbreve;rulama</td><td><code>/api/auth</code></td><td>5</td><td>Kar&inodot;&#351;&inodot;k (login herkese a&ccedil;&inodot;k)</td><td>Yok / Herhangi</td></tr>
+            <tr><td>Kullan&inodot;c&inodot; Y&ouml;netimi</td><td><code>/api/user-management</code></td><td>9</td><td>Evet</td><td>Super Admin (&ccedil;o&gbreve;u), Herhangi (operat&ouml;r listesi)</td></tr>
+            <tr><td>Yaz&inodot;c&inodot;lar</td><td><code>/api/printers</code></td><td>5</td><td>Evet</td><td>Super Admin (CRUD), Lab User (test)</td></tr>
+            <tr><td>Yazd&inodot;rma Kuyru&gbreve;u</td><td><code>/api/print-queue</code></td><td>5</td><td>Evet</td><td>Herhangi (kuyruk), Super Admin (y&ouml;netim)</td></tr>
+            <tr><td>AI</td><td><code>/api/ai</code></td><td>12</td><td>Evet</td><td>Herhangi (sohbet), Super Admin (yap&inodot;land&inodot;rma)</td></tr>
+        </table>
+
+        <h3>4.2 Kimlik Do&gbreve;rulama Endpoint&rsquo;leri (5)</h3>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ama&ccedil;</th><th>Temel Davran&inodot;&#351;</th></tr>
+            <tr><td>POST</td><td>/auth/login</td><td>Kullan&inodot;c&inodot; giri&#351;i</td><td>Kullan&inodot;c&inodot; ad&inodot;/&#351;ifre + device_type + remember_me kabul eder. access_token, refresh_token, expires_in, user objesi d&ouml;nd&uuml;r&uuml;r. Oturum kayd&inodot; olu&#351;turur.</td></tr>
+            <tr><td>POST</td><td>/auth/logout</td><td>Oturumu sonland&inodot;r</td><td>Oturum durumunu &ldquo;terminated&rdquo; yapar, logout_time damgalar.</td></tr>
+            <tr><td>POST</td><td>/auth/refresh</td><td>Eri&#351;im token&rsquo;&inodot; yenile</td><td>refresh_token&rsquo;&inodot; do&gbreve;rular, yeni access_token &uuml;retir. Refresh token&rsquo;&inodot; d&ouml;nd&uuml;rmez.</td></tr>
+            <tr><td>GET</td><td>/auth/me</td><td>Mevcut kullan&inodot;c&inodot; bilgisi</td><td>JWT&rsquo;yi &ccedil;&ouml;zer, ayr&inodot;&#351;t&inodot;r&inodot;lm&inodot;&#351; yetkilerle tam kullan&inodot;c&inodot; objesi d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td>GET</td><td>/auth/health</td><td>Sa&gbreve;l&inodot;k kontrolü</td><td>Durum + veritaban&inodot; ba&gbreve;lant&inodot; kontrol&uuml; d&ouml;nd&uuml;r&uuml;r.</td></tr>
+        </table>
+
+        <h3>4.3 Kullan&inodot;c&inodot; Y&ouml;netimi Endpoint&rsquo;leri (9)</h3>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ama&ccedil;</th><th>Temel Davran&inodot;&#351;</th></tr>
+            <tr><td>GET</td><td>/user-management/users/list</td><td>T&uuml;m kullan&inodot;c&inodot;lar&inodot; listele</td><td>status_filter ve user_type sorgu parametrelerini destekler. Yetkileri JSON string&rsquo;den objeye ayr&inodot;&#351;t&inodot;r&inodot;r.</td></tr>
+            <tr><td>GET</td><td>/user-management/operators</td><td>Operat&ouml;rleri listele</td><td>Sadece aktif operat&ouml;rleri d&ouml;nd&uuml;r&uuml;r. T&uuml;m kimli&gbreve;i do&gbreve;rulanm&inodot;&#351; kullan&inodot;c&inodot;lara a&ccedil;&inodot;kt&inodot;r (&uuml;retim mod&uuml;lleri i&ccedil;in gerekli).</td></tr>
+            <tr><td>POST</td><td>/user-management/users/create</td><td>Kullan&inodot;c&inodot; olu&#351;tur</td><td>Sa&gbreve;lanmazsa &#351;ifreyi otomatik &uuml;retir. force_password_change ayarlar. Aktivite g&uuml;nl&uuml;&gbreve;&uuml;ne kaydeder.</td></tr>
+            <tr><td>PUT</td><td>/user-management/users/{id}</td><td>Kullan&inodot;c&inodot; g&uuml;ncelle</td><td>K&inodot;smi g&uuml;ncelleme: username, email, full_name, user_type, status, is_active, permissions, password.</td></tr>
+            <tr><td>POST</td><td>/user-management/users/{id}/suspend</td><td>Ask&inodot;ya al/a&ccedil;</td><td>&ldquo;active&rdquo; ve &ldquo;suspended&rdquo; durumlar&inodot; aras&inodot;nda ge&ccedil;i&#351; yapar. Aktivite g&uuml;nl&uuml;&gbreve;&uuml;ne kaydeder.</td></tr>
+            <tr><td>DELETE</td><td>/user-management/users/{id}</td><td>Kullan&inodot;c&inodot;y&inodot; kal&inodot;c&inodot; sil</td><td>Kal&inodot;c&inodot; silme. Kendini silmeyi engeller (kendi hesab&inodot;n&inodot;z&inodot; silemezsiniz).</td></tr>
+            <tr><td>POST</td><td>/user-management/users/{id}/reset-password</td><td>&#350;ifre s&inodot;f&inodot;rlamay&inodot; zorla</td><td>G&uuml;venli 12 karakterli rastgele &#351;ifre &uuml;retir (harf + rakam + sembol). force_password_change=True ayarlar.</td></tr>
+            <tr><td>GET</td><td>/user-management/roles/list</td><td>Rol &#351;ablonlar&inodot;n&inodot; listele</td><td>Yetki &#351;ablonu atamas&inodot;nda kullan&inodot;lmak &uuml;zere t&uuml;m UserRole kay&inodot;tlar&inodot;n&inodot; d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td>GET</td><td>/user-management/activity-logs</td><td>Aktivite g&uuml;nl&uuml;&gbreve;&uuml; g&ouml;r&uuml;nt&uuml;leyici</td><td>user_id, module, action&rsquo;a g&ouml;re filtrelemeyi destekler. Varsay&inodot;lan limit 200.</td></tr>
+        </table>
+
+        <h3>4.4 Yaz&inodot;c&inodot; &amp; Yazd&inodot;rma Kuyru&gbreve;u Endpoint&rsquo;leri (10)</h3>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ama&ccedil;</th><th>Temel Davran&inodot;&#351;</th></tr>
+            <tr><td>GET</td><td>/printers/list</td><td>Yaz&inodot;c&inodot;lar&inodot; listele</td><td>Opsiyonel active_only filtresi.</td></tr>
+            <tr><td>POST</td><td>/printers/create</td><td>Yaz&inodot;c&inodot; ekle</td><td>Ad, IP, port (varsay&inodot;lan 9100), konum, assigned_materials (JSON dizisi).</td></tr>
+            <tr><td>PUT</td><td>/printers/update/{id}</td><td>Yaz&inodot;c&inodot; d&uuml;zenle</td><td>T&uuml;m alanlar g&uuml;ncellenebilir.</td></tr>
+            <tr><td>POST</td><td>/printers/{id}/test</td><td>Ba&gbreve;lant&inodot; testi</td><td>Yaz&inodot;c&inodot; IP:port&rsquo;a a&gbreve; ba&gbreve;lant&inodot;s&inodot; dener. Durumu ONLINE veya OFFLINE olarak g&uuml;nceller.</td></tr>
+            <tr><td>DELETE</td><td>/printers/{id}</td><td>Yaz&inodot;c&inodot; kald&inodot;r</td><td>Silmeye izin vermeden &ouml;nce bekleyen yazd&inodot;rma i&#351;lerini kontrol eder.</td></tr>
+            <tr><td>POST</td><td>/print-queue/queue/{material_id}</td><td>Etiket yazd&inodot;rmay&inodot; kuyru&gbreve;a ekle</td><td>Malzeme ve talep eden kullan&inodot;c&inodot;ya ba&gbreve;l&inodot; QUEUED i&#351; olu&#351;turur. Yaz&inodot;c&inodot; sorgu parametresiyle se&ccedil;ilir (1&ndash;4).</td></tr>
+            <tr><td>GET</td><td>/print-queue/jobs</td><td>&Idot;&#351; ge&ccedil;mi&#351;i</td><td>status, printer_id&rsquo;ye g&ouml;re filtrelenebilir. Maksimum 500 sonu&ccedil;.</td></tr>
+            <tr><td>POST</td><td>/print-queue/jobs/{id}/retry</td><td>Ba&#351;ar&inodot;s&inodot;z i&#351;i yeniden dene</td><td>Durumu QUEUED&rsquo;a s&inodot;f&inodot;rlar, retry_count&rsquo;u art&inodot;r&inodot;r.</td></tr>
+            <tr><td>DELETE</td><td>/print-queue/jobs/{id}</td><td>&Idot;&#351;i iptal et</td><td>Sadece QUEUED i&#351;ler iptal edilebilir (PRINTING de&gbreve;il).</td></tr>
+            <tr><td>GET</td><td>/print-queue/stats</td><td>Kuyruk istatistikleri</td><td>Say&inodot;lar&inodot; d&ouml;nd&uuml;r&uuml;r: queued, printing, completed, failed.</td></tr>
+        </table>
+
+        <h3>4.5 AI Endpoint&rsquo;leri (12)</h3>
+
+        <table>
+            <tr><th>Metod</th><th>Yol</th><th>Ama&ccedil;</th><th>Temel Davran&inodot;&#351;</th></tr>
+            <tr><td>POST</td><td>/api/ai/chat</td><td>AI sorgusu g&ouml;nder</td><td>Ana sohbet endpoint&rsquo;i. Sorguyu i&#351;ler, ara&ccedil;lar&inodot; &ccedil;a&gbreve;&inodot;r&inodot;r, yan&inodot;t d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td>GET</td><td>/api/ai/status</td><td>Servis durumu</td><td>AI servis sa&gbreve;l&inodot;&gbreve;&inodot; ve yap&inodot;land&inodot;rma durumunu d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td>GET</td><td>/api/ai/models</td><td>Mevcut modeller</td><td>Sa&gbreve;lay&inodot;c&inodot;lar genelinde desteklenen t&uuml;m AI modellerini listeler.</td></tr>
+            <tr><td>POST</td><td>/api/ai/reset</td><td>AI ajan&inodot;n&inodot; s&inodot;f&inodot;rla</td><td>Konu&#351;ma ba&gbreve;lam&inodot;n&inodot; temizler ve ajan durumunu s&inodot;f&inodot;rlar.</td></tr>
+            <tr><td>GET</td><td>/api/ai/config</td><td>Yap&inodot;land&inodot;rmay&inodot; getir</td><td>Mevcut de&gbreve;erleri d&ouml;nd&uuml;r&uuml;r: enabled bayra&gbreve;&inodot;, model_name, max_tokens, temperature.</td></tr>
+            <tr><td>POST</td><td>/api/ai/config</td><td>Yap&inodot;land&inodot;rmay&inodot; kaydet</td><td>AI ayarlar&inodot;n&inodot; g&uuml;nceller. Sadece super admin.</td></tr>
+            <tr><td>GET</td><td>/api/ai/stats</td><td>Kullan&inodot;m istatistikleri</td><td>Sorgu say&inodot;lar&inodot;, ba&#351;ar&inodot; oranlar&inodot;, ortalama yan&inodot;t s&uuml;releri.</td></tr>
+            <tr><td>GET</td><td>/api/ai/audit-logs</td><td>Denetim g&uuml;nl&uuml;&gbreve;&uuml; g&ouml;r&uuml;nt&uuml;leyici</td><td>Sayfalanm&inodot;&#351; (limit + offset). Tam etkile&#351;im adli analizini d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td>GET</td><td>/api/ai/api-keys/status</td><td>API anahtar durumu</td><td>Her sa&gbreve;lay&inodot;c&inodot; i&ccedil;in maskeli anahtar durumunu d&ouml;nd&uuml;r&uuml;r (&ouml;rn. &ldquo;sk-***...abc&rdquo;).</td></tr>
+            <tr><td>POST</td><td>/api/ai/api-keys/save</td><td>API anahtar&inodot; sakla</td><td>.env dosyas&inodot;na yazar. Gemini, OpenAI, Anthropic destekler. Yan&inodot;tta maskeler.</td></tr>
+            <tr><td>DELETE</td><td>/api/ai/api-keys/{provider}</td><td>API anahtar&inodot; kald&inodot;r</td><td>.env dosyas&inodot;ndan anahtar&inodot; kald&inodot;r&inodot;r.</td></tr>
+            <tr><td>POST</td><td>/api/ai/api-keys/test/{provider}</td><td>API anahtar&inodot;n&inodot; test et</td><td>Anahtar&inodot;n &ccedil;al&inodot;&#351;t&inodot;&gbreve;&inodot;n&inodot; do&gbreve;rulamak i&ccedil;in hafif bir API &ccedil;a&gbreve;r&inodot;s&inodot; yapar.</td></tr>
+        </table>
+
+        <h3>4.6 Temel Servisler</h3>
+
+        <h4>AuthenticationService</h4>
+        <p>Merkezi kimlik do&gbreve;rulama motoru. Be&#351; operasyon y&uuml;r&uuml;t&uuml;r:</p>
+        <ul>
+            <li><strong>authenticate_user</strong> &mdash; Kullan&inodot;c&inodot;y&inodot; kullan&inodot;c&inodot; ad&inodot; veya e-posta ile bulur, &#351;ifreyi bcrypt ile do&gbreve;rular, <code>last_login</code> zaman damgas&inodot;n&inodot; g&uuml;nceller.</li>
+            <li><strong>create_user_session</strong> &mdash; JWT eri&#351;im ve yenileme token&rsquo;lar&inodot; &uuml;retir. <em>Kritik detay:</em> operat&ouml;r hesaplar&inodot; 6 ayl&inodot;k token s&uuml;resi al&inodot;r (yeniden giri&#351; gerektirmemesi gereken kiosk telefonlar i&ccedil;in), di&gbreve;er t&uuml;m hesaplar standart 12 saatlik s&uuml;re al&inodot;r.</li>
+            <li><strong>get_user_by_token</strong> &mdash; JWT&rsquo;yi &ccedil;&ouml;zer, s&uuml;re dolumunu do&gbreve;rular, kullan&inodot;c&inodot;n&inodot;n hala var olup olmad&inodot;&gbreve;&inodot;n&inodot; ve aktif olup olmad&inodot;&gbreve;&inodot;n&inodot; kontrol eder.</li>
+            <li><strong>logout_user</strong> &mdash; Oturum kayd&inodot;n&inodot; sonland&inodot;r&inodot;r, &ccedil;&inodot;k&inodot;&#351; zaman&inodot;n&inodot; damgalar.</li>
+            <li><strong>refresh_token</strong> &mdash; Yenileme token&rsquo;&inodot;n&inodot; do&gbreve;rular, yeni bir oturum olu&#351;turmadan yeni eri&#351;im token&rsquo;&inodot; verir.</li>
+        </ul>
+
+        <h4>SecurityManager</h4>
+        <p>D&uuml;&#351;&uuml;k seviye kriptografik operasyonlar: bcrypt &#351;ifre hashleme ve do&gbreve;rulama, yap&inodot;land&inodot;r&inodot;labilir s&uuml;reli JWT olu&#351;turma, imza do&gbreve;rulamal&inodot; JWT &ccedil;&ouml;zme ve token s&uuml;re dolumu do&gbreve;rulama. Yap&inodot;land&inodot;r&inodot;labilir gizli anahtar ile HS256 algoritmas&inodot; kullan&inodot;r.</p>
+
+        <h4>Yetki Yard&inodot;mc&inodot;lar&inodot;</h4>
+        <p>Sistemdeki her mod&uuml;l taraf&inodot;ndan kullan&inodot;lan yetki kontrol omurgas&inodot;n&inodot; olu&#351;turan d&ouml;rt fonksiyon:</p>
+        <ul>
+            <li><code>is_permitted_user(user, required_types)</code> &mdash; Eski rol kontrol&uuml;. Super admin her zaman ge&ccedil;er.</li>
+            <li><code>check_user_permission(user, page_id, button_id)</code> &mdash; Gran&uuml;ler JSON yetki kontrol&uuml;. Kullan&inodot;c&inodot;n&inodot;n <code>permissions</code> alan&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;r, <code>pages[page_id].buttons[button_id]</code>&rsquo;ye gider.</li>
+            <li><code>has_special_permission(user, permission)</code> &mdash; <code>hard_delete</code> veya <code>manage_users</code> gibi &ouml;zel bayraklar&inodot; kontrol eder.</li>
+            <li><code>check_permission_smart(user, required_types, page_id, button_id)</code> &mdash; Birle&#351;ik giri&#351; noktas&inodot;. &Ouml;nce rol tabanl&inodot;y&inodot; dener, sonra gran&uuml;lere d&uuml;&#351;er. &Ccedil;o&gbreve;u route&rsquo;un ger&ccedil;ekte &ccedil;a&gbreve;&inodot;rd&inodot;&gbreve;&inodot; budur.</li>
+        </ul>
+
+        <h3>4.7 FastAPI Ba&gbreve;&inodot;ml&inodot;l&inodot;klar&inodot;</h3>
+
+        <p>Admin, sistemdeki her mod&uuml;l&uuml;n i&ccedil;e aktard&inodot;&gbreve;&inodot; d&ouml;rt enjekte edilebilir ba&gbreve;&inodot;ml&inodot;l&inodot;k tan&inodot;mlar:</p>
+
+        <table>
+            <tr><th>Ba&gbreve;&inodot;ml&inodot;l&inodot;k</th><th>Ne Yapar</th><th>Kullanan</th></tr>
+            <tr><td><code>get_current_user_dependency</code></td><td>Authorization ba&#351;l&inodot;&gbreve;&inodot;ndaki JWT token&rsquo;dan kullan&inodot;c&inodot;y&inodot; &ccedil;&inodot;kar&inodot;r ve do&gbreve;rular</td><td>Sistemdeki her kimli&gbreve;i do&gbreve;rulanm&inodot;&#351; endpoint</td></tr>
+            <tr><td><code>require_super_admin</code></td><td>user_type &ldquo;super_admin&rdquo; de&gbreve;ilse 403 f&inodot;rlat&inodot;r</td><td>Admin CRUD operasyonlar&inodot;, sistem yap&inodot;land&inodot;rmas&inodot;</td></tr>
+            <tr><td><code>require_lab_user</code></td><td>user_type &ldquo;lab_user&rdquo; veya &ldquo;super_admin&rdquo; de&gbreve;ilse 403 f&inodot;rlat&inodot;r</td><td>Lab test route&rsquo;lar&inodot;, kalite kontrol</td></tr>
+            <tr><td><code>require_operator</code></td><td>user_type &ldquo;operator&rdquo; veya &uuml;st&uuml; de&gbreve;ilse 403 f&inodot;rlat&inodot;r</td><td>&Uuml;retim route&rsquo;lar&inodot;, malzeme tarama</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Admin, g&uuml;venlik katman&inodot;n&inodot; i&ccedil;e aktar&inodot;labilir ba&gbreve;&inodot;ml&inodot;l&inodot;klar olarak d&inodot;&#351;a aktar&inodot;r.</strong> Bu, Admin&rsquo;i g&ouml;bek yapan mimari mekanizmad&inodot;r: di&gbreve;er mod&uuml;ller kendi kimlik do&gbreve;rulamalar&inodot;n&inodot; uygulamaz &mdash; Admin&rsquo;den <code>get_current_user_dependency</code>&rsquo;yi i&ccedil;e aktar&inodot;r ve FastAPI <code>Depends()</code> parametresi olarak kullan&inodot;rlar. Tek do&gbreve;ruluk kayna&gbreve;&inodot;, s&inodot;f&inodot;r tekrar.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. &Ouml;NY&Uuml;Z</h2>
+        <!-- ============================================ -->
+
+        <p>Admin &ouml;ny&uuml;z&uuml;, be&#351; ayr&inodot; sayfa ile t&uuml;m uygulamadaki her sayfay&inodot; etkileyen kesmesel bir yetki katman&inodot;ndan olu&#351;ur.</p>
+
+        <h3>5.1 Sayfa Envanteri</h3>
+
+        <table>
+            <tr><th>Sayfa</th><th>Route</th><th>Bile&#351;en</th><th>Eri&#351;im</th></tr>
+            <tr><td>Giri&#351;</td><td>/user/login</td><td>src/pages/user/login/index.tsx</td><td>Herkese a&ccedil;&inodot;k (kimlik do&gbreve;rulamas&inodot;z)</td></tr>
+            <tr><td>Kullan&inodot;c&inodot; Y&ouml;netimi</td><td>/admin/user-management</td><td>src/pages/Admin/UserManagement/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>Yaz&inodot;c&inodot; Y&ouml;netimi</td><td>/admin/printer-management</td><td>src/pages/Admin/PrinterManagement/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>Yazd&inodot;rma &Idot;zleme</td><td>/admin/print-monitor</td><td>src/pages/Admin/PrintJobMonitor/index.tsx</td><td>canAdmin</td></tr>
+            <tr><td>AI Ayarlar&inodot;</td><td>/admin/ai-settings</td><td>src/pages/Admin/AISettings/index.tsx</td><td>canAdmin</td></tr>
+        </table>
+
+        <p>D&ouml;rt admin sayfas&inodot;n&inodot;n t&uuml;m&uuml; <code>/admin</code> route &ouml;neki alt&inodot;nda oturur ve g&ouml;r&uuml;n&uuml;rl&uuml;&gbreve;&uuml; super admin kullan&inodot;c&inodot;larla s&inodot;n&inodot;rlayan <code>canAdmin</code> eri&#351;im korumas&inodot;n&inodot; payla&#351;&inodot;r. Giri&#351; sayfas&inodot;, t&uuml;m uygulamadaki tek herkese a&ccedil;&inodot;k sayfad&inodot;r.</p>
+
+        <h3>5.2 Yetki Katman&inodot; (Kesmesel)</h3>
+
+        <p>Admin&rsquo;in &ouml;ny&uuml;ze en etkili katk&inodot;s&inodot; kendi sayfalar&inodot; de&gbreve;ildir &mdash; di&gbreve;er her sayfan&inodot;n kulland&inodot;&gbreve;&inodot; yetki altyap&inodot;s&inodot;d&inodot;r. Bu &uuml;&ccedil; dosyada ya&#351;ar:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>access.ts</h4>
+                <p>Dinamik eri&#351;im fonksiyonlar&inodot;n&inodot; tan&inodot;mlar: <code>canAdmin</code>, <code>canLab</code>, <code>canProduction</code>, vb. Route yap&inodot;land&inodot;rmas&inodot;nda eri&#351;im korumalar&inodot; olarak referans verilir. Ayr&inodot;ca kullan&inodot;c&inodot;n&inodot;n ayr&inodot;&#351;t&inodot;r&inodot;lm&inodot;&#351; yetki JSON&rsquo;&inodot;ndan okuyan <code>canAccessPage(pageId)</code> ve mod&uuml;l d&uuml;zeyinde kontroller sa&gbreve;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>permissionManifest.ts</h4>
+                <p>Sistemdeki her sayfan&inodot;n ve her butonun statik kayd&inodot;. Sayfa kimliklerini (&ouml;rn. <code>admin.kullanici_yonetimi</code>), buton kimliklerini (&ouml;rn. <code>create_user</code>, <code>delete_user</code>), etiketleri, a&ccedil;&inodot;klamalar&inodot; ve <code>critical</code> bayraklar&inodot;n&inodot; tan&inodot;mlar. Kullan&inodot;c&inodot; Y&ouml;netimi taraf&inodot;ndan yetki edit&ouml;r&uuml;n&uuml; &ccedil;izmek i&ccedil;in kullan&inodot;l&inodot;r.</p>
+            </div>
+            <div class="arch-box">
+                <h4>buttonRegistry.ts</h4>
+                <p>Statik manifestin dinamik kar&#351;&inodot;l&inodot;&gbreve;&inodot;. Bile&#351;enler, mount s&inodot;ras&inodot;nda butonlar&inodot;n&inodot; global bir kay&inodot;t defterine kaydeder. Bu, Kullan&inodot;c&inodot; Y&ouml;netimi yetki edit&ouml;r&uuml;n&uuml;n, manifest g&uuml;ncellenmemi&#351; olsa bile &ccedil;al&inodot;&#351;an uygulamada var olan butonlar&inodot; ke&#351;fetmesine olanak tan&inodot;r.</p>
+            </div>
+        </div>
+
+        <div class="finding">
+            <p style="margin-bottom: 0;"><strong>Hibrit Ke&#351;if Deseni:</strong> Yetki sistemi <em>hem</em> statik bir manifest (t&uuml;m sayfalar&inodot;n ve butonlar&inodot;n sabit kodlanm&inodot;&#351; listesi) <em>hem de</em> dinamik bir kay&inodot;t defteri (bile&#351;enler &ccedil;al&inodot;&#351;ma zaman&inodot;nda kendilerini kaydeder) kullan&inodot;r. Kullan&inodot;c&inodot; Y&ouml;netimi yetki edit&ouml;r&uuml;, yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; a&gbreve;a&ccedil; g&ouml;r&uuml;n&uuml;m&uuml; i&ccedil;in manifestten okur ancak dinamik olarak kaydedilmi&#351; butonlar&inodot; da ke&#351;fedebilir. Bu, sistemdeki herhangi bir sayfaya eklenen yeni butonlar&inodot;n, merkezi bir yap&inodot;land&inodot;rma dosyas&inodot;n&inodot; manuel olarak g&uuml;ncellemeden yetki atamas&inodot; i&ccedil;in kullan&inodot;labilir hale gelmesi anlam&inodot;na gelir.</p>
+        </div>
+
+        <h3>5.3 Giri&#351; Sayfas&inodot;</h3>
+
+        <p>Giri&#351; sayfas&inodot; &uuml;&ccedil; senaryoyu y&ouml;netir:</p>
+        <ol>
+            <li><strong>Standart giri&#351;:</strong> &ldquo;Beni hat&inodot;rla&rdquo; onay kutusuyla kullan&inodot;c&inodot; ad&inodot;/&#351;ifre formu. JWT token&rsquo;lar&inodot;n&inodot; ve kullan&inodot;c&inodot; verilerini <code>localStorage</code>&rsquo;da saklar (<code>solen_auth_token</code>, <code>solen_refresh_token</code>, <code>solen_current_user</code>).</li>
+            <li><strong>Kiosk otomatik giri&#351;:</strong> Fully Kiosk Browser&rsquo;&inodot; user agent string&rsquo;i &uuml;zerinden alg&inodot;lar. Alg&inodot;land&inodot;&gbreve;&inodot;nda, otomatik olarak operat&ouml;r hesab&inodot;yla giri&#351; yapar ve <code>/production</code>&rsquo;a y&ouml;nlendirir. &Idot;nsan etkile&#351;imi gerekmez.</li>
+            <li><strong>Gizli URL token&rsquo;&inodot;:</strong> Herhangi bir taray&inodot;c&inodot;dan otomatik giri&#351;i tetiklemek i&ccedil;in URL parametresi olarak <code>?kiosk=SOLEN_FACTORY_2024_KIOSK_SECRET</code> kabul eder. Bu, yeni kiosk cihazlar&inodot;n&inodot;n montaj&inodot; i&ccedil;in fabrika zemine &ouml;zel bir kolayl&inodot;kt&inodot;r.</li>
+        </ol>
+
+        <h3>5.4 Kullan&inodot;c&inodot; Y&ouml;netimi Sayfas&inodot;</h3>
+
+        <p>Admin mod&uuml;l&uuml;ndeki en karma&#351;&inodot;k sayfa. &Uuml;&ccedil; sekmeli modal ile kullan&inodot;c&inodot; hesaplar&inodot; i&ccedil;in tam bir CRUD aray&uuml;z&uuml; sa&gbreve;lar:</p>
+
+        <ul>
+            <li><strong>Sekme 1 &mdash; Temel Bilgiler:</strong> Kullan&inodot;c&inodot; ad&inodot;, e-posta, tam ad, kullan&inodot;c&inodot; tipi (super_admin, lab_user, operator, teknik_user, bakim_user ve &ouml;zel tiplerle dropdown), durum, &#351;ifre (yeni kullan&inodot;c&inodot;lar i&ccedil;in), &#351;ifre de&gbreve;i&#351;tirmeyi zorla toggle&rsquo;&inodot;.</li>
+            <li><strong>Sekme 2 &mdash; Yetkiler:</strong> Gran&uuml;ler yetki edit&ouml;r&uuml;. Tam yetki manifestini bir a&gbreve;a&ccedil; olarak &ccedil;izer: her sayfa bir switch (eri&#351;im a&ccedil;&inodot;k/kapal&inodot;) ve her sayfa alt&inodot;nda bireysel butonlar onay kutular&inodot;d&inodot;r. D&ouml;rt h&inodot;zl&inodot; doldurma &#351;ablonu i&ccedil;erir: Tam, Bo&#351;, Operat&ouml;r Varsay&inodot;lan, Lab Kullan&inodot;c&inodot; Varsay&inodot;lan.</li>
+            <li><strong>Sekme 3 &mdash; &Ouml;nizleme:</strong> Kaydettikten sonra kullan&inodot;c&inodot;n&inodot;n neye eri&#351;ebilece&gbreve;inin salt okunur &ouml;zetini g&ouml;sterir &mdash; hangi mod&uuml;ller, hangi sayfalar, hangi butonlar.</li>
+        </ul>
+
+        <p>Modal&inodot;n &ouml;tesinde sayfa &#351;unlar&inodot; sa&gbreve;lar: kullan&inodot;c&inodot; ad&inodot;/e-posta/tam ad &uuml;zerinden arama, user_type ve duruma g&ouml;re filtreleme, &#351;ifre s&inodot;f&inodot;rlama (yeni &#351;ifreyi &uuml;retir ve g&ouml;r&uuml;nt&uuml;ler), ask&inodot;ya al/etkinle&#351;tir toggle&rsquo;&inodot;, onaylamal&inodot; silme ve Turkey/Istanbul saat dilimi d&ouml;n&uuml;&#351;t&uuml;rmesiyle son giri&#351; g&ouml;r&uuml;nt&uuml;leme.</p>
+
+        <h3>5.5 Yaz&inodot;c&inodot; Y&ouml;netimi Sayfas&inodot;</h3>
+
+        <p>Fabrika etiket yaz&inodot;c&inodot;lar&inodot; i&ccedil;in CRUD aray&uuml;z&uuml;. Her yaz&inodot;c&inodot;n&inodot;n: ad, a&ccedil;&inodot;klama, IP adresi, port, konum, durum ve atanm&inodot;&#351; malzemeleri (malzeme tiplerinden &ccedil;oklu se&ccedil;im: raw_copper, raw_tin, raw_plastic, vb.) vard&inodot;r. Yaz&inodot;c&inodot;n&inodot;n a&gbreve;da eri&#351;ilebilir oldu&gbreve;unu do&gbreve;rulamak i&ccedil;in backend&rsquo;in <code>/printers/{id}/test</code> endpoint&rsquo;ine ula&#351;an bir &ldquo;Ba&gbreve;lant&inodot; Testi&rdquo; butonu i&ccedil;erir.</p>
+
+        <h3>5.6 Yazd&inodot;rma &Idot;zleme Sayfas&inodot;</h3>
+
+        <p>Ger&ccedil;ek zamanl&inodot; izleme panosu. &Uuml;st b&ouml;l&uuml;m d&ouml;rt istatistik kart&inodot; g&ouml;sterir: Bekleyen (mavi), Yazd&inodot;r&inodot;lan (turuncu), Tamamlanan (ye&#351;il), Ba&#351;ar&inodot;s&inodot;z (k&inodot;rm&inodot;z&inodot;). Alt&inodot;nda s&uuml;tunlarla t&uuml;m yazd&inodot;rma i&#351;lerini g&ouml;steren bir ProTable vard&inodot;r: QR kod, malzeme tipi, lot numaras&inodot;, tedarik&ccedil;i, yaz&inodot;c&inodot;, durum, talep eden, talep tarihi, tamamlanma tarihi, hata mesaj&inodot;. Yeniden deneme (ba&#351;ar&inodot;s&inodot;z i&#351;leri yeniden kuyru&gbreve;a ekler) ve iptal (kuyruktaki i&#351;leri kald&inodot;r&inodot;r) destekler. T&uuml;m zaman damgalar&inodot; Turkey/Istanbul saat dilimindedir.</p>
+
+        <h3>5.7 AI Ayarlar&inodot; Sayfas&inodot;</h3>
+
+        <p>D&ouml;rt sekmeli yap&inodot;land&inodot;rma aray&uuml;z&uuml;:</p>
+        <ul>
+            <li><strong>Genel Bak&inodot;&#351;:</strong> AI durumu (aktif/inaktif), bug&uuml;nk&uuml; sorgu say&inodot;s&inodot;, toplam sorgular, ortalama yan&inodot;t s&uuml;resi, ba&#351;ar&inodot; oran&inodot; g&ouml;rselle&#351;tirmesi ve ba&gbreve;lant&inodot; testi butonu.</li>
+            <li><strong>API Anahtarlar&inodot;:</strong> &Uuml;&ccedil; sa&gbreve;lay&inodot;c&inodot; i&ccedil;in (Gemini, OpenAI, Anthropic) API anahtarlar&inodot;n&inodot; kaydet, test et ve sil. Anahtarlar aray&uuml;zde maskelenir ve sunucunun .env dosyas&inodot;nda saklan&inodot;r.</li>
+            <li><strong>Model Ayarlar&inodot;:</strong> AI&rsquo;y&inodot; etkinle&#351;tir/devre d&inodot;&#351;&inodot; b&inodot;rak, model se&ccedil; (sa&gbreve;lay&inodot;c&inodot;ya g&ouml;re grupland&inodot;r&inodot;lm&inodot;&#351; cascader: Gemini 3 Flash/Pro, GPT-5.2/Mini, Claude Sonnet/Opus/Haiku), maks token (1024&ndash;8192) ve s&inodot;cakl&inodot;k (0.1&ndash;0.9) yap&inodot;land&inodot;r.</li>
+            <li><strong>Denetim G&uuml;nl&uuml;&gbreve;&uuml;:</strong> AI etkile&#351;imlerinin tam ge&ccedil;mi&#351;i. Orijinal sorguyu ve AI yan&inodot;t&inodot;n&inodot; g&ouml;steren geni&#351;letilebilir sat&inodot;rl&inodot; ProTable. Kullan&inodot;c&inodot;, ara&ccedil;, durum, IP adresine g&ouml;re filtrelenebilir. Yan&inodot;t s&uuml;resi metrikleri i&ccedil;erir.</li>
+        </ul>
+
+        <h3>5.8 Ortak &Ouml;ny&uuml;z Desenleri</h3>
+
+        <table>
+            <tr><th>Desen</th><th>Kullan&inodot;m</th></tr>
+            <tr><td>ProTable (Ant Design Pro)</td><td>Her liste sayfas&inodot;, yerle&#351;ik arama, filtreleme, sayfalama ve ara&ccedil; &ccedil;ubu&gbreve;u &ouml;zelle&#351;tirmesiyle ProTable kullan&inodot;r.</td></tr>
+            <tr><td>ProConfigProvider trTR locale ile</td><td>T&uuml;m tablolar ve formlar s&uuml;tun ba&#351;l&inodot;klar&inodot;, ara&ccedil; &ccedil;ubu&gbreve;u butonlar&inodot; ve bo&#351; durumlar i&ccedil;in T&uuml;rk&ccedil;e metin g&ouml;sterir.</td></tr>
+            <tr><td>PageContainer</td><td>Breadcrumb ve ba&#351;l&inodot;kl&inodot; tutarl&inodot; sayfa &uuml;st bilgileri.</td></tr>
+            <tr><td>Modal formlar</td><td>Olu&#351;turma/D&uuml;zenleme operasyonlar&inodot; form do&gbreve;rulamas&inodot;yla ortalanm&inodot;&#351; modal kullan&inodot;r.</td></tr>
+            <tr><td>Durum Etiketleri</td><td>Durum g&ouml;r&uuml;nt&uuml;leme i&ccedil;in renk kodlu Ant Design Tag&rsquo;lar&inodot; (ye&#351;il=aktif, k&inodot;rm&inodot;z&inodot;=ask&inodot;da, mavi=bekleyen, vb.).</td></tr>
+            <tr><td>Turkey/Istanbul saat dilimi</td><td>T&uuml;m zaman damgas&inodot; g&ouml;r&uuml;nt&uuml;lemeleri <code>toLocaleString()</code> kullanarak <code>Europe/Istanbul</code>&rsquo;a d&ouml;n&uuml;&#351;t&uuml;r&uuml;l&uuml;r.</td></tr>
+            <tr><td>message.success / message.error</td><td>Operasyon geri bildirimi i&ccedil;in Ant Design bildirimleri, tamam&inodot; T&uuml;rk&ccedil;e.</td></tr>
+        </table>
+
+        <h3>5.9 API Katman&inodot;</h3>
+
+        <p>&Ouml;ny&uuml;z, da&gbreve;&inodot;t&inodot;m ba&gbreve;lam&inodot;na g&ouml;re backend URL&rsquo;sini dinamik olarak &ccedil;&ouml;zen merkezi bir API yard&inodot;mc&inodot;s&inodot; (<code>src/utils/api.ts</code>) arac&inodot;l&inodot;&gbreve;&inodot;yla backend ile ileti&#351;im kurar:</p>
+
+        <ul>
+            <li><strong>HTTPS modu:</strong> <code>/api</code> proxy kullan&inodot;r (reverse proxy y&ouml;nlendirmeyi y&ouml;netir).</li>
+            <li><strong>HTTP localhost:</strong> <code>http://localhost:8000/api</code> (geli&#351;tirme).</li>
+            <li><strong>HTTP yerel a&gbreve;:</strong> <code>http://{hostname}:8000/api</code> (fabrika LAN eri&#351;imi).</li>
+            <li><strong>&Ouml;zel ge&ccedil;ersizleme:</strong> &Ouml;zel da&gbreve;&inodot;t&inodot;mlar i&ccedil;in <code>window.BACKEND_URL</code>.</li>
+        </ul>
+
+        <p>Her API &ccedil;a&gbreve;r&inodot;s&inodot;, <code>localStorage</code>&rsquo;dan al&inodot;nan <code>Authorization: Bearer {token}</code> ba&#351;l&inodot;&gbreve;&inodot;n&inodot; i&ccedil;erir. Kimlik do&gbreve;rulama servisi (<code>src/services/realAuth.ts</code>), t&uuml;m sayfalar&inodot;n i&ccedil;e aktard&inodot;&gbreve;&inodot; <code>login()</code>, <code>logout()</code>, <code>getCurrentUser()</code> ve <code>getToken()</code> fonksiyonlar&inodot;n&inodot; sa&gbreve;lar.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. ALT MOD&Uuml;LLER</h2>
+        <!-- ============================================ -->
+
+        <p>Admin mod&uuml;l&uuml; be&#351; alt mod&uuml;l olarak organize edilmi&#351;tir, ba&gbreve;&inodot;ml&inodot;l&inodot;k s&inodot;ras&inodot;na g&ouml;re: kullan&inodot;c&inodot;lar y&ouml;netilebilmeden &ouml;nce kimlik do&gbreve;rulama var olmal&inodot;, kullan&inodot;c&inodot;lar yaz&inodot;c&inodot;lar&inodot; kullanabilmeden &ouml;nce var olmal&inodot; ve kuyruk izlenebilmeden &ouml;nce yaz&inodot;c&inodot;lar var olmal&inodot;d&inodot;r.</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Kimlik Do&gbreve;rulama &amp; Oturum Y&ouml;netimi (Authentication &amp; Session Management)</h4>
+                <p>T&uuml;m sistemin giri&#351; kap&inodot;s&inodot;. Giri&#351;, JWT token verme, oturum takibi, token yenileme ve &ccedil;&inodot;k&inodot;&#351;. Fabrika zemini cihazlar&inodot; i&ccedil;in kiosk otomatik giri&#351; sistemini i&ccedil;erir.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">user_sessions table</span>
+                    <span class="submod-tag">JWT HS256</span>
+                    <span class="submod-tag">bcrypt</span>
+                    <span class="submod-tag">6-month operator tokens</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h4>
+                <p>Kullan&inodot;c&inodot; hesaplar&inodot;n&inodot;n tam ya&#351;am d&ouml;ng&uuml;s&uuml; y&ouml;netimi: olu&#351;turma, d&uuml;zenleme, ask&inodot;ya alma, silme, &#351;ifre s&inodot;f&inodot;rlama ve gran&uuml;ler yetki edit&ouml;r&uuml;. Sistemde kimin var oldu&gbreve;unu ve ne yapabilece&gbreve;ini tan&inodot;mlar.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">9 endpoints</span>
+                    <span class="submod-tag">users + 3 extension tables</span>
+                    <span class="submod-tag">user_roles templates</span>
+                    <span class="submod-tag">activity_logs</span>
+                    <span class="submod-tag">hybrid permission model</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Yaz&inodot;c&inodot; Y&ouml;netimi (Printer Management)</h4>
+                <p>Fabrika zeminindeki a&gbreve; etiket yaz&inodot;c&inodot;lar&inodot;n&inodot;n kayd&inodot; ve yap&inodot;land&inodot;rmas&inodot;. IP/port yap&inodot;land&inodot;rmas&inodot;, malzeme tipi atamalar&inodot;, ba&gbreve;lant&inodot; testi ve durum izleme.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">printers table</span>
+                    <span class="submod-tag">TCP port 9100</span>
+                    <span class="submod-tag">material assignments</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.4</div>
+            <div class="submod-body">
+                <h4>Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h4>
+                <p>D&ouml;rt yaz&inodot;c&inodot; genelinde t&uuml;m etiket yazd&inodot;rma i&#351;lerini izleyen ger&ccedil;ek zamanl&inodot; pano. Kuyruk istatistikleri, i&#351; ge&ccedil;mi&#351;i, ba&#351;ar&inodot;s&inodot;zl&inodot;klar i&ccedil;in yeniden deneme ve kuyruktaki i&#351;ler i&ccedil;in iptal.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">5 endpoints</span>
+                    <span class="submod-tag">print_jobs table</span>
+                    <span class="submod-tag">real-time stats</span>
+                    <span class="submod-tag">retry mechanism</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.5</div>
+            <div class="submod-body">
+                <h4>AI Ayarlar&inodot; (AI Settings)</h4>
+                <p>ERP&rsquo;nin AI asistan&inodot; i&ccedil;in yap&inodot;land&inodot;rma aray&uuml;z&uuml;. &Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; API anahtar y&ouml;netimi, model se&ccedil;imi, parametre ayarlama, kullan&inodot;m istatistikleri ve her AI etkile&#351;iminin kapsaml&inodot; denetim g&uuml;nl&uuml;&gbreve;&uuml;.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">12 endpoints</span>
+                    <span class="submod-tag">ai_audit_logs (47 columns)</span>
+                    <span class="submod-tag">3 AI providers</span>
+                    <span class="submod-tag">.env key storage</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

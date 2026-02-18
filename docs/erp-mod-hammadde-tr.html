@@ -632,7 +632,45 @@
             <tr><td>DELETE</td><td>/api/suppliers/{id}/hard-delete</td><td>hard_delete_supplier</td><td>Akıllı: super_admin VEYA hard_delete_supplier</td></tr>
         </table>
 
-        <h3>6.1.3 Koşullu Form Mantığı</h3>
+        <h3>6.1.3 CRUD Akışı</h3>
+
+        <p><strong>Oluşturma:</strong></p>
+        <ol>
+            <li>Araç çubuğundaki &ldquo;Yeni Tedarikçi&rdquo; butonuna tıkla</li>
+            <li>Modal açılır: firma adı + dinamik malzeme bölümü (başlangıçta bir boş malzeme kartı)</li>
+            <li>Malzeme tipi seç &rarr; koşullu alanlar belirir (plastik için yoğunluk, palet için boyut, makara için boyut+reel_type, bakır/kalay için ek alan yok)</li>
+            <li>Aynı tedarikçiye daha fazla malzeme eklemek için &ldquo;+&rdquo; tıkla</li>
+            <li>Gönderimde: önyüz <code>undefined</code> değerleri temizler &rarr; <code>POST /api/suppliers/create</code></li>
+            <li>Başarılı: toast &ldquo;Tedarikçi başarıyla oluşturuldu&rdquo; &rarr; modal kapanır &rarr; WebSocket tüm istemcilere yayın yapar &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Düzenleme:</strong></p>
+        <ol>
+            <li>Eylemler sütunundaki düzenle ikonuna tıkla</li>
+            <li>Modal, mevcut firma adı ve tüm malzeme kartlarıyla önceden dolu açılır</li>
+            <li>Kullanıcı adı değiştirebilir, malzeme ekleyebilir/kaldırabilir/değiştirebilir</li>
+            <li>Gönderimde: <code>PUT /api/suppliers/{id}</code> &rarr; backend malzemeler için <strong>sil-ve-yeniden-oluştur</strong> stratejisi kullanır (mevcut TÜM supplier_materials silinir, sıfırdan yenileri oluşturulur)</li>
+            <li>Başarılı: toast &ldquo;Tedarikçi başarıyla güncellendi&rdquo; &rarr; modal kapanır &rarr; WebSocket yayını &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Pasif Silme (Devre Dışı Bırakma):</strong></p>
+        <ol>
+            <li>Eylemler sütunundaki durum değiştir ikonuna tıkla</li>
+            <li>Popconfirm: &ldquo;Bu tedarikçiyi devre dışı bırakmak istediğinize emin misiniz?&rdquo;</li>
+            <li>Onayda: <code>PUT /api/suppliers/{id}/toggle-status</code></li>
+            <li>Tedarikçi satırı &ldquo;inactive&rdquo; olur &mdash; tabloda hala görünür ama grileştirilmiş. Aynı yolla yeniden etkinleştirilebilir.</li>
+        </ol>
+
+        <p><strong>Kalıcı Silme:</strong></p>
+        <ol>
+            <li>Eylemler sütunundaki sil ikonuna tıkla (<code>hard_delete_supplier</code> yetkisi gerekir)</li>
+            <li>Güçlü uyarı metinli Popconfirm</li>
+            <li>Onayda: <code>DELETE /api/suppliers/{id}/hard-delete</code></li>
+            <li>Backend bağımlı <code>raw_materials</code> satırlarını kontrol eder &mdash; varsa silme <strong>engellenir</strong>: &ldquo;Bu tedarikçiye ait {n} hammadde kaydı var. Önce hammaddeleri silin.&rdquo;</li>
+            <li>Bağımlılık yoksa: önce supplier_materials silinir (cascade), sonra supplier &rarr; WebSocket yayını &rarr; tablo yenilenir</li>
+        </ol>
+
+        <h3>6.1.4 Koşullu Form Mantığı</h3>
         <p>Oluştur/düzenle modalı dinamik bir malzemeler bölümü içerir. Her malzeme kartı <strong>seçilen malzeme türüne göre farklı alanlar</strong> gösterir:</p>
 
         <table>
@@ -662,7 +700,7 @@
 
         <p>Kullanıcılar sınırsız malzeme ekleyebilir (&ldquo;Malzeme Ekle&rdquo; kesikli butonu ile) ve sonuncusu hariç herhangi birini kaldırabilir (minimum 1 malzeme gereklidir). Yeni malzemeler ilki için <code>copper</code>, sonrakiler için <code>plastic</code> varsayılanıyla eklenir.</p>
 
-        <h3>6.1.4 Backend Doğrulama Zinciri</h3>
+        <h3>6.1.5 Backend Doğrulama Zinciri</h3>
         <p>Veri veritabanına ulaşmadan önce üç Pydantic doğrulayıcısı tetiklenir:</p>
 
         <h4>İsim Doğrulayıcı</h4>
@@ -697,7 +735,7 @@
             <p style="margin-bottom: 0;"><strong>Duplikasyon koruması:</strong> Oluşturmadan önce backend <code>Supplier.name == supplier_data.name.upper()</code> kontrolü yapar. İsimler her zaman büyük harf olarak saklandığından, &ldquo;ormetsan&rdquo;, &ldquo;ORMETSAN&rdquo; ve &ldquo;Ormetsan&rdquo; hepsi aynı tedarikçi olarak değerlendirilir. 400 döner: &ldquo;Bu tedarikçi zaten kayıtlı&rdquo;.</p>
         </div>
 
-        <h3>6.1.5 Güncelleme Stratejisi: Sil-ve-Yeniden Oluştur</h3>
+        <h3>6.1.6 Güncelleme Stratejisi: Sil-ve-Yeniden Oluştur</h3>
         <p>Bir tedarikçinin malzemeleri güncellenirken, backend bireysel kayıtları <strong>yamamamaz</strong>. Bunun yerine TÜM mevcut <code>supplier_materials</code> satırlarını siler ve yenilerini oluşturur:</p>
 
         <pre><span class="comment"># Malzemeler sağlandıysa güncelle</span>
@@ -724,7 +762,7 @@
             <p style="margin-bottom: 0;"><strong>Neden sil-ve-yeniden oluştur?</strong> Bu, mantığı muazzam ölçüde basitleştirir. Alternatif &mdash; mevcut kayıtları karşılaştırmak, değişenleri güncellemek, kaldırılanları silmek, yenilerini eklemek &mdash; frontend&rsquo;de malzeme ID&rsquo;lerini takip etmeyi ve karmaşık birleştirme mantığını yönetmeyi gerektirir. supplier_materials&rsquo;ın diğer tablolardan gelen yabancı anahtarı olmadığından (material_orders supplier_material_id&rsquo;ye bağlanır ama siparişler belirli bir malzeme girişine referans verir), bu yaklaşım güvenli ve deterministiktir.</p>
         </div>
 
-        <h3>6.1.6 FK Korumasıyla Kalıcı Silme</h3>
+        <h3>6.1.7 FK Korumasıyla Kalıcı Silme</h3>
         <p>Bir tedarikçiyi kalıcı olarak silmeden önce, backend bağımlı hammaddeleri kontrol eder:</p>
 
         <pre><span class="comment"># Tedarikçinin hammaddeleri var mı kontrol et (FK nedeniyle engellenir)</span>
@@ -740,7 +778,7 @@ has_materials = db.query(RawMaterial).filter(
 
         <p>Kontrol geçerse, silme sırası: önce <code>supplier_materials</code> (cascade), sonra <code>supplier</code> kendisi. Hemen ardından bir WebSocket yayını gelir.</p>
 
-        <h3>6.1.7 Türkçe Eşleştirmeli İstemci Taraflı Arama</h3>
+        <h3>6.1.8 Türkçe Eşleştirmeli İstemci Taraflı Arama</h3>
         <p>Arama çubuğu, iç içe malzemeler dahil <strong>tüm alanlarda</strong> Türkçe çevirilerle filtreleme yapar:</p>
 
         <pre><span class="keyword">const</span> materialTurkish: Record&lt;string, string&gt; = {
@@ -756,7 +794,7 @@ has_materials = db.query(RawMaterial).filter(
 
         <p>&ldquo;bakır&rdquo; yazmak bakır sağlayan tüm tedarikçileri bulur. &ldquo;HF-500&rdquo; yazmak o spesifik plastiği sağlayan tedarikçiyi bulur. &ldquo;pasif&rdquo; yazmak sadece devre dışı bırakılmış tedarikçileri gösterir.</p>
 
-        <h3>6.1.8 Malzemeler Kolonu: Gruplama ve İpuçları</h3>
+        <h3>6.1.9 Malzemeler Kolonu: Gruplama ve İpuçları</h3>
         <p>Tablonun &ldquo;Malzemeler&rdquo; kolonu malzemeleri türe göre gruplar ve sayıları gösterir:</p>
         <ul>
             <li>Bir tedarikçi 1 plastik sağlıyorsa &rarr; <code>Plastik</code> etiketi gösterir</li>
@@ -765,10 +803,10 @@ has_materials = db.query(RawMaterial).filter(
             <li>Her malzeme türü tutarlı bir renk alır: bakır=turuncu, kalay=mavi, plastik=mor, katalizör=yeşil, boya=magenta, antirodent=camgöbeği, palet=yeşil sarı, makara=altın</li>
         </ul>
 
-        <h3>6.1.9 Benzersiz Özellikler Endpoint&rsquo;i</h3>
+        <h3>6.1.10 Benzersiz Özellikler Endpoint&rsquo;i</h3>
         <p><code>GET /suppliers/materials-list</code> endpoint&rsquo;i özel bir amaca hizmet eder: tüm tedarikçiler arasında <strong>tekilleştirilmiş malzeme özelliklerini</strong> döner. 3 farklı tedarikçi hepsi 1.42 g/cm&sup3; yoğunlukta &ldquo;HF-500&rdquo; plastik sağlıyorsa, endpoint bunu bir kez döner. Tekilleştirme anahtarı: <code>material_name|boyut|reel_type</code>. Bu, diğer sayfalar (Malzeme Girişi, Malzeme Siparişleri) tarafından duplikasız açılır menü seçenekleri göstermek için kullanılır.</p>
 
-        <h3>6.1.10 Yetki Mimarisi</h3>
+        <h3>6.1.11 Yetki Mimarisi</h3>
         <p>Sayfa 8 kayıtlı butonla hibrit bir yetki modeli kullanır:</p>
 
         <pre><span class="comment">// Frontend mevcut TÜM eylemleri kaydeder</span>
@@ -788,7 +826,7 @@ registerPageButtons({
 
         <p>Backend, sırasıyla üç katmanı kontrol eden <code>check_permission_smart()</code> kullanır: (1) super_admin her zaman geçer, (2) eski rol bazlı kontrol (user_type gerekli listede), (3) yeni ultra-granüler sayfa.buton yetkisi. Herhangi bir katman geçerse eylem izin verilir. Bu, rol bazlıdan buton düzeyine geçiş sırasında geriye uyumluluğu sağlar.</p>
 
-        <h3>6.1.11 Gerçek Zamanlı Güncellemeler</h3>
+        <h3>6.1.12 Gerçek Zamanlı Güncellemeler</h3>
         <p>Üç tedarikçi işlemi WebSocket olayları yayınlar:</p>
         <ul>
             <li><code>broadcast_update("suppliers", "create", {id, name})</code> &mdash; başarılı oluşturma sonrası</li>
@@ -797,7 +835,7 @@ registerPageButtons({
         </ul>
         <p>Frontend <code>['suppliers', 'all']</code> odalarına abone olur ve herhangi bir olayda tam tablo yenilemesini tetikleyen <code>actionRef.current?.reload()</code> çağırır.</p>
 
-        <h3>6.1.12 Performans İçin Eager Loading</h3>
+        <h3>6.1.13 Performans İçin Eager Loading</h3>
         <p>Liste endpoint&rsquo;i, tedarikçileri malzemeleriyle birlikte tek bir sorguda çekmek için SQLAlchemy&rsquo;nin <code>joinedload</code> kullanır:</p>
 
         <pre>query = db.query(Supplier).options(
@@ -806,7 +844,7 @@ registerPageButtons({
 
         <p>Bu olmadan, 50 tedarikçi listelemek her birinin malzemelerini çekmek için 50 ek sorgu tetiklerdi (N+1 problemi). Eager loading ile tek bir JOIN sorgusudur.</p>
 
-        <h3>6.1.13 Gönderim Öncesi Veri Temizleme</h3>
+        <h3>6.1.14 Gönderim Öncesi Veri Temizleme</h3>
         <p>Frontend, Pydantic&rsquo;in reddedeceği <code>undefined</code> değerleri sıyırarak malzeme dizisini backend&rsquo;e göndermeden önce temizler:</p>
 
         <pre><span class="keyword">const</span> cleanedMaterials = materials.map(mat =&gt; {
@@ -826,7 +864,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Bu neden önemli:</strong> Temizleme olmadan, bir bakır malzemesi <code>{"material_type": "copper", "material_name": undefined, "density": undefined, "boyut": undefined, "reel_type": undefined}</code> olarak gönderilirdi. Pydantic bunları <code>None</code> olarak kabul ederdi, ancak JSON.stringify <code>undefined</code> değerlerini tamamen düşürür. Açık kontrol yalnızca anlamlı verilerin gönderilmesini sağlayarak API yükünü temiz ve öngörülebilir tutar.</p>
         </div>
 
-        <h3>6.1.14 Tedarikçi Verisi Sistemde Nasıl Kullanılır</h3>
+        <h3>6.1.15 Tedarikçi Verisi Sistemde Nasıl Kullanılır</h3>
         <p>Tedarikçi Yönetimi bağımsız bir sayfa değildir. Oluşturduğu veri, Hammadde&rsquo;deki <strong>diğer tüm alt modüller</strong> ve ötesi tarafından tüketilir. Tedarikçi verisinin aktığı yerlerin tam haritası:</p>
 
         <h4>Malzeme Girişi (Hammadde Girişi) &mdash; Tedarikçi Seçimi</h4>
@@ -883,7 +921,47 @@ registerPageButtons({
         <p>Bu resmi bir sat&#305;n alma sipari&#351;i sistemi <strong>de&#287;ildir</strong>. Solen&rsquo;in hangi hammaddeleri hangi tedarik&ccedil;iden sipari&#351; etti&#287;ini, teslimat&#305; ne zaman bekledi&#287;ini ve ger&ccedil;ekte neyin geldi&#287;ini kaydeden bir <em>dahili takip arac&#305;d&#305;r</em>. Amac&#305;, sat&#305;n alma ve depo ekiplerine neyin gelece&#287;i, neyin gecikti&#287;i ve her tedarik&ccedil;inin ne kadar iyi performans g&ouml;sterdi&#287;i konusunda net bir tablo sunmakt&#305;r.</p>
         <p>Mod&uuml;l, Tedarik&ccedil;i Y&ouml;netimi (tedarik&ccedil;ilerin ve &uuml;r&uuml;n kataloglar&#305;n&#305;n tan&#305;mland&#305;&#287;&#305; yer) ile Hammadde Giri&#351;i (fiziksel teslimatlar&#305;n al&#305;nd&#305;&#287;&#305; yer) aras&#305;nda konumlan&#305;r. Burada olu&#351;turulan sipari&#351;ler, Hammadde Giri&#351;i i&ccedil;in &ldquo;ba&#287;lanabilir hedefler&rdquo; haline gelir &mdash; bir kamyon geldi&#287;inde operat&ouml;r gelen malzemeyi ilgili sipari&#351;e ba&#287;layabilir, bu da teslim edilen miktar&#305; otomatik art&#305;r&#305;r ve tam izlenebilirlik sa&#287;lar.</p>
 
-        <h3>6.2.2 &mdash; Sipari&#351; Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
+        <h3>6.2.2 &mdash; CRUD Akışı</h3>
+
+        <p><strong>Oluşturma (Çoklu Öğe):</strong></p>
+        <ol>
+            <li>Araç çubuğundaki &ldquo;Yeni Sipariş&rdquo; butonuna tıkla</li>
+            <li>Modal, kademeli seçimle açılır: Malzeme Tipi &rarr; Tedarikçi (tipe göre filtrelenir) &rarr; Ürün panelleri</li>
+            <li>Malzeme tipi seç &rarr; tedarikçi dropdown&rsquo;u sadece o tipi taşıyan tedarikçileri gösterir</li>
+            <li>Tedarikçi seç &rarr; ürün kataloğu katlanabilir paneller olarak belirir. Ürün seç, miktar gir (kg veya adet)</li>
+            <li>Aynı sevkiyattaki aynı tedarikçiden daha fazla ürün eklemek için &ldquo;+&rdquo; tıkla</li>
+            <li>Sipariş tarihi (varsayılan bugün) ve beklenen teslim tarihi ayarla. İsteğe bağlı notlar ekle</li>
+            <li>Gönderimde: <code>POST /api/material-orders/create</code> &rarr; backend bir grup kodu üretir (R1, R2&hellip;) ve öğe başına bir DB satırı oluşturur, hepsi bu kodu paylaşır. Tek işlem &mdash; ya hepsi ya hiçbiri</li>
+            <li>Başarılı: toast onayı &rarr; modal kapanır &rarr; tablo yeni sipariş grubunu göstererek yenilenir</li>
+        </ol>
+
+        <p><strong>Düzenleme (Tekli Satır):</strong></p>
+        <ol>
+            <li>Belirli bir sipariş satırında düzenle ikonuna tıkla (grup değil &mdash; bireysel satırları düzenlersiniz)</li>
+            <li>Modal mevcut değerlerle önceden dolu açılır: tedarikçi, malzeme, miktar, tarihler, notlar</li>
+            <li>Çoklu öğe &ldquo;+&rdquo; işlevi düzenleme modunda <strong>mevcut değildir</strong></li>
+            <li><strong>Kritik davranış:</strong> beklenen teslim tarihi değiştirilirse, tarih seçici açık kalır ve zorunlu neden gerektiren bir <strong>yan panel</strong> belirir (Tedarikçi kaynaklı / Solen kaynaklı / Diğer). Bu, <code>material_order_date_changes</code>&rsquo;da bir denetim kaydı oluşturur</li>
+            <li>Gönderimde: <code>PUT /api/material-orders/{id}</code> &rarr; sipariş güncellenir + varsa tarih değişikliği günlüğe kaydedilir</li>
+            <li>Başarılı: toast &rarr; modal kapanır &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Silme:</strong></p>
+        <ol>
+            <li>Belirli bir sipariş satırında sil ikonuna tıkla</li>
+            <li>Uyarılı Popconfirm</li>
+            <li>Onayda: <code>DELETE /api/material-orders/{id}</code></li>
+            <li>Kademeli: ilişkili <code>material_order_date_changes</code> kayıtları siparişle birlikte silinir</li>
+            <li>Tablo yenilenir. Bu gruptaki son öğeyse, grup kodu kaybolur</li>
+        </ol>
+
+        <p><strong>Okuma (Tarih Geçmişi):</strong></p>
+        <ol>
+            <li>Herhangi bir sipariş satırındaki saat ikonuna (Tarih Geçmişi) tıkla</li>
+            <li>Modal, tüm tarih değişikliklerinin dikey zaman çizelgesini göstererek açılır: eski tarih (üstü çizili) &rarr; yeni tarih, renkli neden etiketi, detay metni, kim değiştirdi ve ne zaman</li>
+            <li>Salt okunur &mdash; geçmiş bağımsız olarak düzenlenemez veya silinemez</li>
+        </ol>
+
+        <h3>6.2.3 &mdash; Sipari&#351; Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
         <p>Her sipari&#351; d&ouml;rt durumlu bir ya&#351;am d&ouml;ng&uuml;s&uuml; izler:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #fa8c16;">
@@ -905,13 +983,13 @@ registerPageButtons({
         </div>
         <p>Durum ge&ccedil;i&#351;leri iki &#351;ekilde ger&ccedil;ekle&#351;ebilir. Birincisi, tablodaki durum s&uuml;tunu sat&#305;r i&ccedil;i bir a&ccedil;&#305;l&#305;r se&ccedil;icidir &mdash; kullan&#305;c&#305; mevcut durum etiketine t&#305;klar ve yenisini se&ccedil;er. &#304;kincisi ve daha &ouml;nemlisi, <strong>durum, gelen malzemeler bir sipari&#351;e ba&#287;land&#305;&#287;&#305;nda Hammadde Giri&#351;i mod&uuml;l&uuml; taraf&#305;ndan otomatik olarak &ldquo;Teslim Al&#305;nd&#305;&rdquo; yap&#305;l&#305;r</strong>. Hammadde Giri&#351;i &uuml;zerinden bir teslimat kaydedildi&#287;inde, backend sipari&#351;in durumunu otomatik olarak teslim edilmi&#351; yapar, bug&uuml;n&uuml;n tarihini teslimat tarihi olarak damgalar ve teslim edilen miktar&#305; art&#305;r&#305;r. Bu, en yayg&#305;n durum ge&ccedil;i&#351;inin (beklemede &rarr; teslim al&#305;nd&#305;) bu sayfadaki manuel etkile&#351;imle de&#287;il, malzeme alma i&#351; ak&#305;&#351;&#305;n&#305;n par&ccedil;as&#305; olarak otomatik ger&ccedil;ekle&#351;ti&#287;i anlam&#305;na gelir.</p>
 
-        <h3>6.2.3 &mdash; Sipari&#351; Grup Kodlar&#305; (G&ouml;nderim Gruplama)</h3>
+        <h3>6.2.4 &mdash; Sipari&#351; Grup Kodlar&#305; (G&ouml;nderim Gruplama)</h3>
         <p>Bir tedarik&ccedil;iden gelen tek bir g&ouml;nderim genellikle birden fazla farkl&#305; malzeme i&ccedil;erir. &Ouml;rne&#287;in, Tedarik&ccedil;i X&rsquo;ten gelen bir kamyon 5 ton HF-500 plastik gran&uuml;l <em>ve</em> 2 ton kataliz&ouml;r ta&#351;&#305;yor olabilir. Bunlar&#305; tamamen ayr&#305; sipari&#351;ler olarak ele almak yerine, sistem onlar&#305; payla&#351;&#305;lan bir <strong>Sipari&#351; Grup Kodu</strong> alt&#305;nda gruplar.</p>
         <p>Grup kodlar&#305; <strong>R1, R2, R3, R4&hellip;</strong> kal&#305;b&#305;n&#305; izler (&ldquo;R&rdquo; &ouml;neki ard&#305;ndan s&#305;ral&#305; numara). Kullan&#305;c&#305; birden fazla kalem i&ccedil;eren yeni bir sipari&#351; olu&#351;turdu&#287;unda, backend tek bir grup kodu &uuml;retir ve o partideki her sipari&#351; sat&#305;r&#305;na atar. Tek kalemli sipari&#351;ler bile tutarl&#305;l&#305;k i&ccedil;in grup kodu al&#305;r.</p>
         <p>&Uuml;retim mant&#305;&#287;&#305; veritaban&#305;ndaki en y&uuml;ksek R-numaras&#305;n&#305; bulup bir art&#305;r&#305;r. Bu basit bir s&#305;ral&#305; saya&ccedil;t&#305;r, UUID de&#287;il &mdash; kodlar insanlar taraf&#305;ndan okunabilir ve s&ouml;zl&uuml; ileti&#351;imde kolay kullan&#305;labilir olacak &#351;ekilde tasarlanm&#305;&#351;t&#305;r (&ldquo;R47 g&ouml;nderimi yar&#305;n geliyor&rdquo;).</p>
         <p>Tabloda grup kodu ilk s&uuml;tun olarak (sola sabitlenmi&#351;) g&ouml;r&uuml;n&uuml;r ve mavi etiket olarak g&ouml;sterilir. G&ouml;rsel gruplama mekanizmas&#305; olarak hizmet eder &mdash; kullan&#305;c&#305;lar birden fazla sat&#305;rda &ldquo;R12&rdquo; g&ouml;rd&uuml;&#287;&uuml;nde, bu kalemlerin ayn&#305; g&ouml;nderimden oldu&#287;unu hemen anlarlar.</p>
 
-        <h3>6.2.4 &mdash; Sipari&#351; Olu&#351;turma (&#199;ok Ad&#305;ml&#305; Form Ak&#305;&#351;&#305;)</h3>
+        <h3>6.2.5 &mdash; Sipari&#351; Olu&#351;turma (&#199;ok Ad&#305;ml&#305; Form Ak&#305;&#351;&#305;)</h3>
         <p>Sipari&#351; olu&#351;turma, tedarik&ccedil;i veri hiyerar&#351;isini yans&#305;tan kademeli bir se&ccedil;im ak&#305;&#351;&#305; izler:</p>
         <ol>
             <li><strong>Malzeme Tipi Se&ccedil;</strong> &mdash; kullan&#305;c&#305; 8 tip aras&#305;ndan se&ccedil;er (bak&#305;r, kalay, plastik, kataliz&ouml;r, boya, antirodent, palet, makara). Bu ilk filtredir.</li>
@@ -923,11 +1001,11 @@ registerPageButtons({
         </ol>
         <p>Kaydetme s&#305;ras&#305;nda frontend t&uuml;m kalemleri tek bir API &ccedil;a&#287;r&#305;s&#305;nda g&ouml;nderir. Backend tek bir grup kodu &uuml;retir ve her kalem i&ccedil;in o kodu payla&#351;an bir veritaban&#305; sat&#305;r&#305; olu&#351;turur. Bu tek bir i&#351;lemdir &mdash; ya t&uuml;m kalemler olu&#351;turulur ya da hi&ccedil;biri.</p>
 
-        <h3>6.2.5 &mdash; Sipari&#351; D&uuml;zenleme</h3>
+        <h3>6.2.6 &mdash; Sipari&#351; D&uuml;zenleme</h3>
         <p>D&uuml;zenleme modu, olu&#351;turmadan farkl&#305; &ccedil;al&#305;&#351;&#305;r. D&uuml;zenlerken kullan&#305;c&#305; bir grup &uuml;zerinde de&#287;il, <strong>tek bir sipari&#351; sat&#305;r&#305;</strong> &uuml;zerinde &ccedil;al&#305;&#351;&#305;r. Form mevcut de&#287;erlerle y&uuml;klenir ve kullan&#305;c&#305; tedarik&ccedil;i, malzeme, miktar, tarih ve notlar&#305; de&#287;i&#351;tirebilir. &Ccedil;oklu kalem &ldquo;+&rdquo; i&#351;levselli&#287;i d&uuml;zenleme modunda mevcut de&#287;ildir &mdash; bir seferde bir sat&#305;r d&uuml;zenlenir.</p>
         <p>D&uuml;zenleme modundaki en &ouml;nemli davran&#305;&#351; a&#351;a&#287;&#305;da ayr&#305;nt&#305;l&#305; olarak ele al&#305;nan <strong>tarih de&#287;i&#351;ikli&#287;i takibidir</strong>.</p>
 
-        <h3>6.2.6 &mdash; Tarih De&#287;i&#351;ikli&#287;i Takip Sistemi</h3>
+        <h3>6.2.7 &mdash; Tarih De&#287;i&#351;ikli&#287;i Takip Sistemi</h3>
         <p>Bu, mod&uuml;l&uuml;n en sofistike &ouml;zelliklerinden biridir. Ger&ccedil;ek d&uuml;nyada sat&#305;n alma s&uuml;re&ccedil;lerinde beklenen teslim tarihleri s&uuml;rekli de&#287;i&#351;ir &mdash; tedarik&ccedil;iler gecikir, Solen erteleme talep eder, lojistik sorunlar olu&#351;ur. Sistem tarihi sessizce &uuml;zerine yazmaz; kullan&#305;c&#305;dan tarihin <em>neden</em> de&#287;i&#351;ti&#287;ini a&ccedil;&#305;klamas&#305;n&#305; ister ve eksiksiz bir denetim izi saklar.</p>
 
         <h4>Nas&#305;l &Ccedil;al&#305;&#351;&#305;r</h4>
@@ -959,7 +1037,7 @@ registerPageButtons({
         </ul>
         <p>Bu modaldaki zaman damgalar&#305; do&#287;ru yerel g&ouml;sterim i&ccedil;in T&uuml;rkiye saat dilimine (Europe/Istanbul) d&ouml;n&uuml;&#351;t&uuml;r&uuml;l&uuml;r.</p>
 
-        <h3>6.2.7 &mdash; Teslimat Takibi (Sipari&#351; ve Gelen Miktar)</h3>
+        <h3>6.2.8 &mdash; Teslimat Takibi (Sipari&#351; ve Gelen Miktar)</h3>
         <p>Her sipari&#351; iki miktar takip eder: <strong>sipari&#351; miktar&#305;</strong> (talep edilen) ve <strong>gelen miktar</strong> (ger&ccedil;ekte teslim al&#305;nan). Gelen miktar bu sayfadan <em>manuel olarak g&uuml;ncellenmez</em>. Hammadde Giri&#351;i mod&uuml;l&uuml;nde gelen malzemeler bir sipari&#351;e ba&#287;land&#305;&#287;&#305;nda otomatik olarak art&#305;r&#305;l&#305;r.</p>
         <p>Tabloda her iki miktar yan yana g&ouml;sterilir. Gelen s&uuml;tunu durumu bir bak&#305;&#351;ta iletmek i&ccedil;in renk kodlamas&#305; kullan&#305;r:</p>
         <ul>
@@ -968,7 +1046,7 @@ registerPageButtons({
             <li><strong>Ye&#351;il</strong> &mdash; tamamen teslim edildi (gelen &ge; sipari&#351;)</li>
         </ul>
 
-        <h3>6.2.8 &mdash; De&#287;erlendirme Sistemi</h3>
+        <h3>6.2.9 &mdash; De&#287;erlendirme Sistemi</h3>
         <p>Bir sipari&#351; &ldquo;Teslim Al&#305;nd&#305;&rdquo; durumuna ula&#351;t&#305;&#287;&#305;nda, i&#351;lemler s&uuml;tununda bir y&#305;ld&#305;z ikonu g&ouml;r&uuml;n&uuml;r. Bu, <strong>tedarik&ccedil;i teslimat de&#287;erlendirmesi</strong> sistemini etkinle&#351;tirir. Kullan&#305;c&#305; teslimat&#305; 0,5&ndash;5 y&#305;ld&#305;z &ouml;l&ccedil;e&#287;inde (yar&#305;m y&#305;ld&#305;z art&#305;&#351;lar&#305;yla) puanlayabilir ve iste&#287;e ba&#287;l&#305; olarak de&#287;erlendirmeyi a&ccedil;&#305;klayan bir not ekleyebilir.</p>
         <p>De&#287;erlendirme modal&#305; sipari&#351; ba&#287;lam&#305;n&#305; g&ouml;sterir (grup kodu, tedarik&ccedil;i ad&#305;, malzeme, teslim edilen miktar) b&ouml;ylece kullan&#305;c&#305; tam olarak neyi de&#287;erlendirdi&#287;ini bilir. Puan ve not do&#287;rudan sipari&#351; kayd&#305;nda saklan&#305;r.</p>
         <p>Bu de&#287;erlendirme verileri tedarik&ccedil;i performans takibine katk&#305;da bulunur &mdash; zamanla Solen, hangi tedarik&ccedil;ilerin s&uuml;rekli zaman&#305;nda ve iyi durumda teslim etti&#287;ini, hangilerinin tekrarlayan sorunlar&#305; oldu&#287;unu g&ouml;rebilir.</p>
@@ -977,7 +1055,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>&#304;&#351; mant&#305;&#287;&#305;:</strong> De&#287;erlendirme butonu yaln&#305;zca &ldquo;teslim al&#305;nd&#305;&rdquo; sipari&#351;leri i&ccedil;in g&ouml;r&uuml;n&uuml;r. Bekleyen bir sipari&#351;i de&#287;erlendiremezsiniz &ccedil;&uuml;nk&uuml; de&#287;erlendirilecek bir &#351;ey yoktur. Sipari&#351;in zaten bir de&#287;erlendirmesi varsa, y&#305;ld&#305;z ikonu dolu ve sar&#305; g&ouml;r&uuml;n&uuml;r ve &uuml;zerine gelindiğinde mevcut puanı tooltip olarak gösterir.</p>
         </div>
 
-        <h3>6.2.9 &mdash; &#304;stemci Taraf&#305; Arama ve Yerelleştirme</h3>
+        <h3>6.2.10 &mdash; &#304;stemci Taraf&#305; Arama ve Yerelleştirme</h3>
         <p>Tablo, <em>tüm görünür sütunlar</em> üzerinde istemci tarafı filtreleme kullanarak siparişleri filtreleyen bir arama çubuğu içerir. Bunu önemsiz kılmayan şey, verilerin İngilizce saklanması (örn. &ldquo;copper&rdquo;, &ldquo;pending&rdquo;) ancak kullanıcıların Türkçe aramasıdır. Arama sistemi iki çeviri haritası tutar:</p>
         <ul>
             <li><strong>Malzeme tipleri:</strong> copper&rarr;bakır, tin&rarr;kalay, plastic&rarr;plastik, catalyst&rarr;katalizör, dye&rarr;boya, palette&rarr;palet, reel&rarr;makara</li>
@@ -985,7 +1063,7 @@ registerPageButtons({
         </ul>
         <p>Kullanıcı &ldquo;bakır&rdquo; yazdığında, filtre <code>material_type === 'copper'</code> olan her satırı eşleştirir. Ayrıca tarihleri DD.MM.YYYY formatında arar (ISO değil), dolayısıyla &ldquo;15.03&rdquo; araması 15 Mart beklenen siparişleri bulur. Arama şunları kapsar: grup kodu, tedarikçi adı, malzeme adı, malzeme tipi (hem EN hem TR), durum (hem EN hem TR), miktarlar, tarihler (hem ham hem formatlanmış) ve notlar.</p>
 
-        <h3>6.2.10 &mdash; Tablo Düzeni ve Sütunlar</h3>
+        <h3>6.2.11 &mdash; Tablo Düzeni ve Sütunlar</h3>
         <p>ProTable, kaydırılabilir düzende 11 sütun gösterir:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1011,7 +1089,7 @@ registerPageButtons({
         </table>
         <p>Beklenen tarih sütunu özel ilgiyi hak eder: tarihi bugünle karşılaştırır ve geçmişte ise <strong>kırmızı</strong> olarak gösterir. Bu, herhangi bir manuel işaretleme olmadan gecikmiş siparişler hakkında anında görsel geri bildirim sağlar.</p>
 
-        <h3>6.2.11 &mdash; API Endpoint&rsquo;leri</h3>
+        <h3>6.2.12 &mdash; API Endpoint&rsquo;leri</h3>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
@@ -1031,7 +1109,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.2.12 &mdash; Veritabanı Şeması</h3>
+        <h3>6.2.13 &mdash; Veritabanı Şeması</h3>
         <p>Modül iki tablo kullanır:</p>
         <p><strong><code>material_orders</code></strong> &mdash; ana sipariş takip tablosu. Her satır bir satın alma siparişindeki bir malzeme kalemini temsil eder. Önemli alanlar:</p>
         <ul>
@@ -1055,7 +1133,7 @@ registerPageButtons({
             <li><code>changed_by</code> &rarr; <code>users</code> tablosuna FK</li>
         </ul>
 
-        <h3>6.2.13 &mdash; Malzeme Siparişlerinin Hammadde Girişiyle Bağlantısı</h3>
+        <h3>6.2.14 &mdash; Malzeme Siparişlerinin Hammadde Girişiyle Bağlantısı</h3>
         <p>Bu en kritik alt akış bağlantısıdır. <code>pending-by-type</code> endpoint&rsquo;i özellikle Hammadde Girişi için mevcuttur. Bir operatör örneğin bakır tel teslimatı girmeye başladığında, Hammadde Girişi sayfası bu endpoint&rsquo;i <code>material_type=copper</code> ile çağırır. Yanıt, tedarikçi + beklenen tarih bazında organize edilmiş gruplar halinde, her bekleyen sipariş satırının ürün adı ve miktarıyla birlikte döner.</p>
         <p>Operatör eşleşen sipariş grubunu seçer ve sistem <code>supplier_material_id</code> ile anahtarlanmış dahili bir <code>order_map</code> oluşturur. Her lot girildiğinde, otomatik olarak ilgili sipariş satırına bağlanır. Bu bağlantı <code>raw_materials.material_order_id</code> alanında saklanır.</p>
         <p>Bir malzeme girişi sipariş bağlantısıyla kaydedildiğinde, backend siparişin <code>delivered_quantity</code> değerini artırır. Bu, sipariş rotalarında değil malzeme giriş rotalarında gerçekleşir &mdash; sipariş modülü bu açıdan pasiftir. Takip kayıtlarını oluşturur; giriş modülü teslimat sırasında onları günceller.</p>
@@ -1064,7 +1142,7 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Varsayılan sıralama bir hikaye anlatır:</strong> siparişler <code>expected_date ASC</code> ile sıralanır &mdash; en yakın teslimatlar en üstte görünür. Kırmızı gecikme vurgulamasıyla birleşince, tablo doğal olarak en acil kalemleri en üste iter. Depo müdürü bu sayfayı açtığında neyin geciktiğini ve sırada neyin olduğunu anında görür.</p>
         </div>
 
-        <h3>6.2.14 &mdash; Malzeme Sipari&#351;lerinin Stok Projeksiyon Sistemini (Projeksiyon) Beslemesi</h3>
+        <h3>6.2.15 &mdash; Malzeme Sipari&#351;lerinin Stok Projeksiyon Sistemini (Projeksiyon) Beslemesi</h3>
         <p>Bu, Malzeme Sipari&#351;leri verisinin muhtemelen en &ouml;nemli alt ak&#305;&#351; t&uuml;keticisidir ve sipari&#351; sayfas&#305;n&#305;n kendisinden tamamen farkl&#305; bir soyutlama seviyesinde &ccedil;al&#305;&#351;&#305;r.</p>
         <p><strong>Projeksiyon</strong> (Stok Projeksiyon) sistemi, t&uuml;m fabrika genelinde hammadde kullan&#305;labilirli&#287;inin haftal&#305;k tahminini sa&#287;lar. Şu soruyu cevaplar: &ldquo;Hafta hafta, her malzemeden yeterince olacak m&#305;, yoksa eksik mi kalaca&#287;&#305;z?&rdquo; Bunu cevaplamak i&ccedil;in iki veri ak&#305;&#351;&#305;na ihtiyac&#305; vard&#305;r:</p>
         <ul>
@@ -1091,10 +1169,10 @@ registerPageButtons({
             <p style="margin-bottom: 0;"><strong>Malzeme Sipari&#351;lerinin ikili rol&uuml;:</strong> Y&uuml;zeysel olarak bu mod&uuml;l basit bir takip tablosudur. Ama alt&#305;nda, fabrikan&#305;n stok projeksiyon sisteminin iki temel veri kayna&#287;&#305;ndan biridir. Her sipari&#351;, her tarih de&#287;i&#351;ikli&#287;i, her miktar g&uuml;ncellemesi haftal&#305;k projeksiyona yay&#305;l&#305;r ve t&uuml;m planlama ufku boyunca eksiklik tespitini etkiler. Bu y&uuml;zden do&#287;ru sipari&#351; giri&#351;i ve &ouml;zenli tarih de&#287;i&#351;ikli&#287;i takibi idari y&uuml;k de&#287;il &mdash; fabrikan&#305;n &uuml;retim planlama do&#287;rulu&#287;u i&ccedil;in kritik girdilerdir.</p>
         </div>
 
-        <h3>6.2.15 &mdash; Silme Davranışı</h3>
+        <h3>6.2.16 &mdash; Silme Davranışı</h3>
         <p>Siparişler bir onay diyalogu aracılığıyla kalıcı olarak silinebilir. Yumuşak silme / arşivleme mekanizması yoktur. <code>material_order_date_changes</code> üzerindeki CASCADE ilişkisi, bir siparişin silinmesinin tarih değişikliği geçmişini de kaldırmasını sağlar. Ancak, bir <code>raw_material</code> girişi bu siparişe <code>material_order_id</code> aracılığıyla zaten bağlıysa, bu bağlantı asılı bir referans olur (raw_materials üzerindeki foreign key nullable olduğu için kısıtlama ihlali yaratmaz, ancak izlenebilirlik zinciri kırılır).</p>
 
-        <h3>6.2.16 &mdash; Bu Modülün YAPMADIĞI Şeyler</h3>
+        <h3>6.2.17 &mdash; Bu Modülün YAPMADIĞI Şeyler</h3>
         <ul>
             <li>Resmi satın alma siparişleri veya faturalar <strong>üretmez</strong></li>
             <li>Fiyatlandırma veya maliyet <strong>yönetmez</strong> &mdash; fiyat alanları yoktur</li>
@@ -1116,7 +1194,40 @@ registerPageButtons({
         <p>Mod&uuml;l yaln&#305;zca envanter kaydetmez; &uuml;&ccedil; ba&#351;ka sistem aras&#305;ndaki <strong>k&ouml;pr&uuml;d&uuml;r</strong>. Tedarik&ccedil;i Y&ouml;netimi&rsquo;nden veri t&uuml;ketir (kim teslim etti), teslimatlar&#305; Malzeme Sipari&#351;lerine ba&#287;lar (ne bekleniyordu), Hammaddeler Listesi&rsquo;nde g&ouml;r&uuml;nen QR kodlar&#305; ve veritaban&#305; kay&#305;tlar&#305;n&#305; &uuml;retir ve sipari&#351; durumunu ve teslim edilen miktarlar&#305; de&#287;i&#351;tirerek Projeksiyon&rsquo;u (stok projeksiyonu) dolayl&#305; olarak g&uuml;nceller.</p>
         <p>Sayfa men&uuml;de <code>/hammadde/hammadde-girisi</code> alt&#305;nda yer al&#305;r, ancak frontend bile&#351;eni asl&#305;nda <code>Lab/MaterialEntry</code> konumundad&#305;r &mdash; malzeme giri&#351;inin bir laboratuvar/depo operasyonu oldu&#287;unu yans&#305;t&#305;r.</p>
 
-        <h3>6.3.2 &mdash; A&ccedil;&#305;l&#305;&#351; Sayfas&#305;: Sekiz Malzeme Kart&#305;</h3>
+        <h3>6.3.2 &mdash; CRUD Akışı</h3>
+
+        <p><strong>Oluşturma (Birincil Operasyon):</strong></p>
+        <ol>
+            <li>Açılış sayfasındaki 8 malzeme tipi kartından birine tıkla (Bakır, Kalay, Plastik, Katalizör, Boya, Antirodent, Palet, Makara)</li>
+            <li><strong>Adım 1 &mdash; Sipariş Seçimi:</strong> O malzeme tipi için bekleyen siparişleri gösteren modal belirir, <code>GET /material-orders/pending-by-type/{type}</code> ile getirilir. Kullanıcı bir sipariş grubu seçer (tedarikçi + malzemeleri önceden doldurur) veya &ldquo;Manuel Giriş&rdquo;e tıklar (boş form)</li>
+            <li><strong>Adım 2 &mdash; Giriş Formu:</strong> Malzeme tipi arketipine göre dinamik form açılır:
+                <ul>
+                    <li><em>Bakır:</em> katlanabilir palet panelleri (lot no + form ağırlık + ölçülen ağırlık + durum/palet) &rarr; daha fazla palet için &ldquo;+&rdquo;</li>
+                    <li><em>Kalay:</em> tekli form (net ağırlık + durum)</li>
+                    <li><em>Lot bazlı:</em> katlanabilir lot panelleri (malzeme tipi dropdown + lot no + ağırlıklar + miktar + fotoğraflar/lot) &rarr; daha fazla lot için &ldquo;+&rdquo;</li>
+                    <li><em>Sayı bazlı:</em> katlanabilir tip panelleri (tip dropdown + miktar + fotoğraflar/tip) &rarr; daha fazla tip için &ldquo;+&rdquo;</li>
+                </ul>
+            </li>
+            <li>İrsaliye fotoğrafları ve isteğe bağlı test/hasar fotoğrafları yükle (lot bazlılar için lot başına)</li>
+            <li>Gönderimde: tipe özel endpoint çağrılır (<code>POST /api/materials/copper-entry</code>, <code>/tin-entry</code>, <code>/lot-entry</code>, <code>/palette-entry</code> veya <code>/reel-entry</code>)</li>
+            <li>Backend, deterministik QR koduyla (A1, B1, C1&hellip;) palet/lot/tip başına bir <code>raw_materials</code> satırı oluşturur. Siparişe bağlıysa: siparişte otomatik olarak <code>delivered_quantity</code>, <code>status</code>=DELIVERED ve <code>delivered_date</code>=bugün günceller</li>
+            <li>Başarılı: tüm üretilen QR kodlarını gösteren <strong>başarı modalı</strong> belirir, QR başına &ldquo;Yazdır&rdquo; butonu ile. WebSocket <code>materials</code> ve <code>all</code> odalarına yayın yapar</li>
+        </ol>
+
+        <p><strong>Güncelleme (Sadece Super Admin):</strong></p>
+        <ol>
+            <li>Bu sayfada doğrudan mevcut değil &mdash; güncellemeler Hammaddeler Listesi (6.4) düzenleme modalı üzerinden yapılır</li>
+            <li>Backend endpoint mevcut: <code>PUT /api/materials/{id}</code>, super_admin veya <code>edit_material</code> yetkisi gerektiren <code>check_permission_smart</code> ile</li>
+        </ol>
+
+        <p><strong>Silme (Sadece Super Admin):</strong></p>
+        <ol>
+            <li>Bu sayfada doğrudan mevcut değil &mdash; silme Hammaddeler Listesi (6.4) üzerinden yapılır</li>
+            <li>Backend endpoint&rsquo;leri: <code>DELETE /api/materials/{id}</code> (pasif) ve <code>DELETE /api/materials/{id}/hard</code> (kalıcı)</li>
+            <li>Kalıcı silme ayrıca ilişkili <code>material_photos</code> kayıtlarını da kaldırır</li>
+        </ol>
+
+        <h3>6.3.3 &mdash; A&ccedil;&#305;l&#305;&#351; Sayfas&#305;: Sekiz Malzeme Kart&#305;</h3>
         <p>Kullan&#305;c&#305; sayfay&#305; a&ccedil;t&#305;&#287;&#305;nda, fabrikan&#305;n i&#351;ledi&#287;i her hammadde t&uuml;r&uuml; i&ccedil;in birer tane olmak &uuml;zere <strong>8 t&#305;klanabilir kart</strong> g&ouml;r&uuml;r:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #fa8c16;">
@@ -1154,7 +1265,7 @@ registerPageButtons({
         </div>
         <p>Her kart, koyu/a&ccedil;&#305;k temaya uyum sa&#287;layan benzersiz bir arka plan rengine, b&uuml;y&uuml;k bir ikona ve malzeme ad&#305;na sahiptir. Parantez i&ccedil;indeki harf, o malzeme t&uuml;r&uuml;n&uuml;n QR kod &ouml;nekidir. Herhangi bir karta t&#305;klamak giri&#351; formunu <strong>do&#287;rudan a&ccedil;maz</strong> &mdash; &ouml;nce Sipari&#351; Se&ccedil;imi ak&#305;&#351;&#305;n&#305; tetikler.</p>
 
-        <h3>6.3.3 &mdash; &#304;ki Ad&#305;ml&#305; Giri&#351; Ak&#305;&#351;&#305;</h3>
+        <h3>6.3.4 &mdash; &#304;ki Ad&#305;ml&#305; Giri&#351; Ak&#305;&#351;&#305;</h3>
         <p>Bu kritik bir tasar&#305;m karar&#305;d&#305;r. Malzeme giri&#351;i iki ad&#305;ml&#305; bir s&uuml;re&ccedil; izler:</p>
         <ol>
             <li><strong>Ad&#305;m 1: Sipari&#351; Se&ccedil;im Modal&#305;</strong> &mdash; Kullan&#305;c&#305; bir malzeme kart&#305;na t&#305;klad&#305;&#287;&#305;nda, sistem o malzeme t&uuml;r&uuml; i&ccedil;in bekleyen sipari&#351;leri <code>GET /material-orders/pending-by-type/{type}</code> &uuml;zerinden an&#305;nda getirir. G&ouml;r&uuml;nen modal:
@@ -1167,7 +1278,7 @@ registerPageButtons({
         </ol>
         <p>Bu iki ad&#305;ml&#305; ak&#305;&#351; kritik bir amaca hizmet eder: operat&ouml;rleri teslimatlar&#305; sipari&#351;lere ba&#287;lamaya te&#351;vik eder, bu da takip zincirini sa&#287;lam tutar. Sipari&#351;ler varsa belirgin &#351;ekilde g&ouml;sterilir. Manuel giri&#351; bir yedek olarak vard&#305;r, varsay&#305;lan de&#287;il.</p>
 
-        <h3>6.3.4 &mdash; Sipari&#351; &Ouml;n Doldurma Mant&#305;&#287;&#305;</h3>
+        <h3>6.3.5 &mdash; Sipari&#351; &Ouml;n Doldurma Mant&#305;&#287;&#305;</h3>
         <p>Kullan&#305;c&#305; Ad&#305;m 1&rsquo;de bir sipari&#351; grubu se&ccedil;ti&#287;inde, otomatik olarak &#351;unlar ger&ccedil;ekle&#351;ir:</p>
         <ul>
             <li><strong>Tedarik&ccedil;i</strong> alan&#305; otomatik doldurulur ve <strong>devre d&#305;&#351;&#305; b&#305;rak&#305;l&#305;r</strong> &mdash; bir sipari&#351;e kar&#351;&#305; giri&#351; yaparken tedarik&ccedil;iyi de&#287;i&#351;tiremezsiniz</li>
@@ -1177,7 +1288,7 @@ registerPageButtons({
         </ul>
         <p>Sipari&#351; grubu ayr&#305;ca <code>order_ids</code> dizisini ta&#351;&#305;r, bu kaydetme s&#305;ras&#305;nda backend&rsquo;e g&ouml;nderilir b&ouml;ylece sistem hangi sipari&#351;leri teslim edildi olarak i&#351;aretleyece&#287;ini bilir.</p>
 
-        <h3>6.3.5 &mdash; D&ouml;rt Form Arketipi</h3>
+        <h3>6.3.6 &mdash; D&ouml;rt Form Arketipi</h3>
         <p>Giri&#351; formu tek bir form de&#287;ildir. Se&ccedil;ilen malzeme t&uuml;r&uuml;ne g&ouml;re ko&#351;ullu olarak render edilen <strong>d&ouml;rt tamamen farkl&#305; form yap&#305;s&#305;d&#305;r</strong>. Hepsi iki ortak alan&#305; (tedarik&ccedil;i ve teslim alan ki&#351;i) ve ortak bir foto&#287;raf b&ouml;l&uuml;m&uuml;n&uuml; payla&#351;&#305;r, ancak aradaki her &#351;ey benzersizdir.</p>
 
         <h4>Arketip 1: Bak&#305;r (&Ccedil;oklu Palet)</h4>
@@ -1219,10 +1330,10 @@ registerPageButtons({
             <li><code>weight</code> alan&#305; miktar&#305; (say&#305;y&#305;) saklamak i&ccedil;in kullan&#305;l&#305;r ve <code>quantity</code> de say&#305;y&#305; saklar &mdash; geriye d&ouml;n&uuml;k uyumluluk i&ccedil;in &ccedil;ift ama&ccedil;l&#305; aland&#305;r</li>
         </ul>
 
-        <h3>6.3.6 &mdash; Lot Numaras&#305; Klavye Ge&ccedil;i&#351;i</h3>
+        <h3>6.3.7 &mdash; Lot Numaras&#305; Klavye Ge&ccedil;i&#351;i</h3>
         <p>K&uuml;&ccedil;&uuml;k ama &ouml;nemli bir UX &ouml;zelli&#287;idir. Lot numaralar&#305; tamamen say&#305;sal (&ouml;rn. &ldquo;24081901&rdquo;) veya alfan&uuml;merik (&ouml;rn. &ldquo;LOT-A24-081&rdquo;) olabilir. Mobil cihazlarda g&ouml;r&uuml;nen klavye <code>inputMode</code> &ouml;zelli&#287;ine ba&#287;l&#305;d&#305;r. Sistem varsay&#305;lan olarak <code>numeric</code> (say&#305; tu&#351;tak&#305;m&#305;) kullan&#305;r ancak giri&#351; alan&#305; i&ccedil;inde say&#305; tu&#351;tak&#305;m&#305; ile tam klavye aras&#305;nda ge&ccedil;i&#351; yapan bir buton sa&#287;lar. Her lot giri&#351;i kendi klavye modunu ba&#287;&#305;ms&#305;z olarak takip eder.</p>
 
-        <h3>6.3.7 &mdash; QR Kod Sistemi</h3>
+        <h3>6.3.8 &mdash; QR Kod Sistemi</h3>
         <p>Her malzeme giri&#351;i benzersiz, deterministik bir QR kodu &uuml;retir. Sistem basit ama etkili bir &#351;ema kullan&#305;r: malzeme t&uuml;r&uuml;n&uuml; belirleyen bir <strong>harf &ouml;neki</strong>, ard&#305;ndan t&uuml;r ba&#351;&#305;na artan bir <strong>s&#305;ra numaras&#305;</strong>.</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1246,7 +1357,7 @@ registerPageButtons({
         <p>S&#305;ra numaras&#305;, o malzeme t&uuml;r&uuml; i&ccedil;in mevcut en y&uuml;ksek <code>sequence_number</code> sorgulanarak ve bir art&#305;r&#305;larak belirlenir. Her malzeme t&uuml;r&uuml;n&uuml;n kendi sayac&#305; vard&#305;r &mdash; bak&#305;r A847&rsquo;de olabilirken kalay B23&rsquo;tedir. QR kodu <code>qr_code</code> s&uuml;tununda <strong>benzersiz k&#305;s&#305;tlama</strong> ile saklan&#305;r, &ccedil;ift olu&#351;mamas&#305;n&#305; garanti eder.</p>
         <p>Birden fazla paletli bak&#305;r giri&#351;lerinde, backend ayn&#305; i&#351;lem i&ccedil;inde her palet i&ccedil;in s&#305;ray&#305; art&#305;r&#305;r (3 paletli bir giri&#351; i&ccedil;in A45, A46, A47).</p>
 
-        <h3>6.3.8 &mdash; Foto&#287;raf Mimarisi</h3>
+        <h3>6.3.9 &mdash; Foto&#287;raf Mimarisi</h3>
         <p>Foto&#287;raf sistemi iki katmana sahiptir:</p>
         <ul>
             <li><strong>Ortak teslimat foto&#287;raflar&#305; (&#304;rsaliye)</strong> &mdash; bunlar teslimat belgesinin (irsaliye) foto&#287;raflar&#305;d&#305;r. Bireysel kalemlere de&#287;il, t&uuml;m teslimat&#305;n geneline uygulan&#305;r. En fazla 3 foto&#287;raf, giri&#351;teki t&uuml;m malzemeler aras&#305;nda payla&#351;&#305;l&#305;r. T&uuml;m malzeme tipleri i&ccedil;in g&ouml;sterilir.</li>
@@ -1260,7 +1371,7 @@ registerPageButtons({
         </ul>
         <p>Foto&#287;raflar g&ouml;ndermeden &ouml;nce frontend&rsquo;de base64&rsquo;e d&ouml;n&uuml;&#351;t&uuml;r&uuml;l&uuml;r. Backend bunlar&#305; <code>material_photos</code> tablosunda (malzeme sat&#305;r&#305;nda de&#287;il) <code>photo_type</code> ay&#305;r&#305;c&#305;s&#305; (&ldquo;delivery&rdquo; veya &ldquo;test&rdquo;) ve <code>sequence</code> numaras&#305;yla saklar. Bu ayr&#305; tablo <strong>tembel y&uuml;klemeyi</strong> m&uuml;mk&uuml;n k&#305;lar &mdash; malzemeleri listelerken yaln&#305;zca foto&#287;raf ID&rsquo;leri d&ouml;ner; ger&ccedil;ek base64 verisi talep &uuml;zerine <code>GET /materials/photo/{id}</code> ile getirilir.</p>
 
-        <h3>6.3.9 &mdash; Sipari&#351; Ba&#287;lama ve Otomatik Teslimat G&uuml;ncellemeleri</h3>
+        <h3>6.3.10 &mdash; Sipari&#351; Ba&#287;lama ve Otomatik Teslimat G&uuml;ncellemeleri</h3>
         <p>Malzeme Giri&#351;i&rsquo;nin Malzeme Sipari&#351;lerine ve oradan Projeksiyon sistemine geri ba&#287;land&#305;&#287;&#305; yer buras&#305;d&#305;r.</p>
         <p>Bir teslimat sipari&#351;lere ba&#287;land&#305;&#287;&#305;nda, backend malzeme sat&#305;rlar&#305;n&#305; olu&#351;turduktan sonra &#351;u ek ad&#305;mlar&#305; ger&ccedil;ekle&#351;tirir:</p>
         <ul>
@@ -1270,7 +1381,7 @@ registerPageButtons({
         </ul>
         <p>Ba&#287;lanan her sipari&#351; <code>status = delivered</code>, <code>delivered_date = bug&uuml;n</code> ve <code>delivered_quantity += miktar</code> al&#305;r. Bu, B&ouml;l&uuml;m 6.2&rsquo;de tart&#305;&#351;&#305;lan otomatik durum ge&ccedil;i&#351;idir.</p>
 
-        <h3>6.3.10 &mdash; Ba&#351;ar&#305; Modal&#305; ve QR Yazd&#305;rma</h3>
+        <h3>6.3.11 &mdash; Ba&#351;ar&#305; Modal&#305; ve QR Yazd&#305;rma</h3>
         <p>Ba&#351;ar&#305;l&#305; bir kaydetmeden sonra sistem formu basit&ccedil;e kapatmaz. &Uuml;retilen QR kodlar&#305;n&#305; listeleyen (&ouml;rn. &ldquo;A45, A46, A47&rdquo;) bir <strong>ba&#351;ar&#305; modal&#305;</strong> g&ouml;sterir:</p>
         <ul>
             <li>&Uuml;retilen QR kodlar&#305;yla bir onay mesaj&#305;</li>
@@ -1279,10 +1390,10 @@ registerPageButtons({
         <p>Yazd&#305;r butonu <code>POST /materials/print/{material_id}</code>&rsquo;yi &ccedil;a&#287;&#305;r&#305;r ve yazd&#305;rma kuyruk sistemine y&ouml;nlendirir. Birden fazla lotlu lot bazl&#305; giri&#351;lerde sistem t&uuml;m olu&#351;turulan malzeme ID&rsquo;lerini dola&#351;&#305;r ve her birini s&#305;rayla yazd&#305;r&#305;r.</p>
         <p>Kaydet buton metni ba&#287;lamsald&#305;r: palet ve makara giri&#351;leri i&ccedil;in &ldquo;Kaydet (QR Yok)&rdquo; yazar &ccedil;&uuml;nk&uuml; paletler ve makaralar bas&#305;l&#305; QR etiketleri yerine fiziksel tan&#305;mlama kullan&#305;r. Di&#287;er t&uuml;m tipler i&ccedil;in &ldquo;Kaydet ve QR Kod Olu&#351;tur&rdquo; yazar.</p>
 
-        <h3>6.3.11 &mdash; Tedarik&ccedil;i Filtreleme</h3>
+        <h3>6.3.12 &mdash; Tedarik&ccedil;i Filtreleme</h3>
         <p>Bir malzeme kart&#305;na t&#305;klan&#305;p giri&#351; formu a&ccedil;&#305;ld&#305;&#287;&#305;nda, tedarik&ccedil;i a&ccedil;&#305;l&#305;r listesi t&uuml;m tedarik&ccedil;ileri g&ouml;stermez. Se&ccedil;ilen tipte <code>materials_provided</code> katalo&#287;unda aktif malzemeleri olan tedarik&ccedil;ileri g&ouml;sterecek &#351;ekilde filtrelenir. Bu filtreleme istemci taraf&#305;nda her tedarik&ccedil;inin malzeme dizisi kontrol edilerek ger&ccedil;ekle&#351;ir. Bir malzeme tipi i&ccedil;in tedarik&ccedil;i bulunamazsa, a&ccedil;&#305;l&#305;r liste yard&#305;mc&#305; bir mesaj g&ouml;sterir: &ldquo;Bu malzeme i&ccedil;in tedarik&ccedil;i bulunamad&#305;. &Ouml;nce tedarik&ccedil;i ekleyin.&rdquo;</p>
 
-        <h3>6.3.12 &mdash; &#304;zin Sistemi</h3>
+        <h3>6.3.13 &mdash; &#304;zin Sistemi</h3>
         <p>Malzeme Giri&#351;i, ultra-gran&uuml;ler izin sistemiyle <strong>13 sayfa d&uuml;zeyi butonu</strong> kaydeder:</p>
         <ul>
             <li><code>access_page</code> &mdash; sayfay&#305; g&ouml;rebilme yetene&#287;i</li>
@@ -1293,14 +1404,14 @@ registerPageButtons({
         </ul>
         <p>Backend ayr&#305;ca rol bazl&#305; eri&#351;im zorlar: yaln&#305;zca <code>lab_user</code> ve <code>super_admin</code> kullan&#305;c&#305; tipleri malzeme giri&#351;i olu&#351;turabilir. Di&#287;er kullan&#305;c&#305; tipleri 403 Forbidden yan&#305;t&#305; al&#305;r.</p>
 
-        <h3>6.3.13 &mdash; WebSocket Yay&#305;n&#305;</h3>
+        <h3>6.3.14 &mdash; WebSocket Yay&#305;n&#305;</h3>
         <p>Malzeme giri&#351;leri olu&#351;turulduktan sonra (bak&#305;r/kalay yolu), backend olu&#351;turulan her malzeme i&ccedil;in malzeme ID&rsquo;si, QR kodu ve tipiyle birlikte &ldquo;materials:create&rdquo; olay t&uuml;r&uuml;nde bir WebSocket g&uuml;ncellemesi yay&#305;nlar. Bu, ba&#351;ka bir oturumdan yeni malzemeler girildi&#287;inde Hammaddeler Listesi sayfas&#305;n&#305;n manuel yenileme olmadan ger&ccedil;ek zamanl&#305; g&uuml;ncellenmesini sa&#287;lar.</p>
         <p>G&uuml;ncelleme ve kal&#305;c&#305; silme i&#351;lemleri de s&#305;ras&#305;yla &ldquo;materials:update&rdquo; ve &ldquo;materials:delete&rdquo; olaylar&#305;n&#305; yay&#305;nlar.</p>
 
-        <h3>6.3.14 &mdash; Malzeme G&uuml;ncelleme (Yaln&#305;zca S&uuml;per Admin)</h3>
+        <h3>6.3.15 &mdash; Malzeme G&uuml;ncelleme (Yaln&#305;zca S&uuml;per Admin)</h3>
         <p>Mevcut bir malzeme kayd&#305; <code>PUT /materials/update/{id}</code> &uuml;zerinden g&uuml;ncellenebilir, ancak bu <strong>yaln&#305;zca super_admin</strong> ile s&#305;n&#305;rl&#305;d&#305;r. G&uuml;ncellenebilir alanlar: QR kodu (benzersizlik do&#287;rulamal&#305;), lot numaras&#305;, a&#287;&#305;rl&#305;k, form a&#287;&#305;rl&#305;&#287;&#305;, kalan a&#287;&#305;rl&#305;k, adet, durum, notlar ve foto&#287;raflar. Bu d&uuml;zeltmeler i&ccedil;in kullan&#305;l&#305;r &mdash; bir operat&ouml;r yanl&#305;&#351; a&#287;&#305;rl&#305;k girdiyse, s&uuml;per admin d&uuml;zeltebilir. QR kodu de&#287;i&#351;tirilebilir ama t&uuml;m malzemeler aras&#305;nda benzersiz kalmal&#305;d&#305;r.</p>
 
-        <h3>6.3.15 &mdash; Malzeme Silme</h3>
+        <h3>6.3.16 &mdash; Malzeme Silme</h3>
         <p>Kal&#305;c&#305; silme <code>DELETE /materials/{id}/hard-delete</code> &uuml;zerinden yap&#305;labilir (yaln&#305;zca s&uuml;per admin). Silmeden &ouml;nce sistem kontrol eder:</p>
         <ul>
             <li>Malzeme durumu &ldquo;in_use&rdquo; ise silme <strong>engellenir</strong> &mdash; &uuml;retimde olan malzemeyi kald&#305;ramazs&#305;n&#305;z</li>
@@ -1309,7 +1420,7 @@ registerPageButtons({
         </ul>
         <p>Silme sonras&#305; bir WebSocket yay&#305;n&#305; t&uuml;m ba&#287;l&#305; istemcileri bilgilendirir.</p>
 
-        <h3>6.3.16 &mdash; Malzeme Durum Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
+        <h3>6.3.17 &mdash; Malzeme Durum Ya&#351;am D&ouml;ng&uuml;s&uuml;</h3>
         <p>Her malzeme kayd&#305;, fabrikadaki yolculu&#287;unu takip eden bir duruma sahiptir:</p>
         <div class="stat-grid" style="grid-template-columns: repeat(5, 1fr);">
             <div class="stat-card" style="border-left: 4px solid #1890ff;">
@@ -1335,7 +1446,7 @@ registerPageButtons({
         </div>
         <p>Giri&#351; formu yaln&#305;zca iki ba&#351;lang&#305;&ccedil; durumu sunar: &ldquo;received&rdquo; (varsay&#305;lan) ve &ldquo;rejected&rdquo;. Di&#287;er durumlar (approved, in_use, consumed) alt sistemler taraf&#305;ndan ayarlan&#305;r &mdash; kalite kontrol ve &uuml;retim mod&uuml;lleri. Ayr&#305;ca malzemenin <code>is_active</code> bayra&#287;&#305;n&#305; ge&ccedil;i&#351; yapan bir <code>toggle-status</code> endpoint&rsquo;i de vard&#305;r.</p>
 
-        <h3>6.3.17 &mdash; API Endpoint&rsquo;leri</h3>
+        <h3>6.3.18 &mdash; API Endpoint&rsquo;leri</h3>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
@@ -1361,7 +1472,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.3.18 &mdash; Veritaban&#305; &#350;emas&#305;: raw_materials</h3>
+        <h3>6.3.19 &mdash; Veritaban&#305; &#350;emas&#305;: raw_materials</h3>
         <p>T&uuml;m 8 malzeme tipi tek bir tabloda saklan&#305;r. &Ouml;nemli alanlar:</p>
         <ul>
             <li><code>material_type</code> &mdash; ay&#305;r&#305;c&#305;: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel</li>
@@ -1379,7 +1490,7 @@ registerPageButtons({
             <li><code>entered_by</code> &rarr; <code>users</code> tablosuna FK</li>
         </ul>
 
-        <h3>6.3.19 &mdash; Malzeme Giri&#351;inin Her &#350;eyle Ba&#287;lant&#305;s&#305;</h3>
+        <h3>6.3.20 &mdash; Malzeme Giri&#351;inin Her &#350;eyle Ba&#287;lant&#305;s&#305;</h3>
         <p>Bu, Hammadde sistemindeki en &ccedil;ok ba&#287;lant&#305;l&#305; mod&uuml;ld&uuml;r. &#304;&#351;te her &uuml;st ve alt ak&#305;&#351; ba&#287;lant&#305;s&#305;:</p>
         <ul>
             <li><strong>Tedarik&ccedil;i Y&ouml;netimi (&uuml;st ak&#305;&#351;)</strong> &mdash; tedarik&ccedil;i listesini, malzeme kataloglar&#305;n&#305; ve &uuml;r&uuml;n adlar&#305;n&#305; sa&#287;lar. Giri&#351; formunun a&ccedil;&#305;l&#305;r listeleri tamamen tedarik&ccedil;i verisinden doldurulur.</li>
@@ -1405,10 +1516,53 @@ registerPageButtons({
         <p>Bu mod&uuml;l, fabrikaya giren <strong>her hammaddenin envanter g&ouml;r&uuml;n&uuml;m&uuml;d&uuml;r</strong>. Hammadde Giri&#351;i teslimatlar&#305; kaydetmekle ilgiliyken, bu mod&uuml;l envanterin g&ouml;r&uuml;nt&uuml;lenmesi, aranmas&#305;, y&ouml;netilmesi ve &uuml;zerinde i&#351;lem yap&#305;lmas&#305;yla ilgilidir. Okuma a&#287;&#305;rl&#305;kl&#305; bir mod&uuml;ld&uuml;r &mdash; birincil kullan&#305;m senaryosu malzemelerin QR koduna g&ouml;re aranmas&#305;, kalan a&#287;&#305;rl&#305;klar&#305;n kontrol edilmesi, foto&#287;raflar&#305;n g&ouml;r&uuml;nt&uuml;lenmesi ve etiket yeniden yazd&#305;r&#305;lmas&#305;d&#305;r. Ancak s&uuml;per adminler i&ccedil;in d&uuml;zenleme ve silme yetenekleri de sa&#287;lar.</p>
         <p>Sayfa, Hammadde Giri&#351;inin &ccedil;&#305;kt&#305;s&#305;n&#305; t&uuml;ketir: d&ouml;rt giri&#351; arketipinden herhangi biri arac&#305;l&#305;&#287;&#305;yla olu&#351;turulan her sat&#305;r burada g&ouml;r&uuml;n&uuml;r. &ldquo;Hangi hammaddelerimiz var ve ne durumda?&rdquo; sorusunun tek do&#287;ruluk kayna&#287;&#305;d&#305;r.</p>
 
-        <h3>6.4.2 &mdash; WebSocket ile Ger&ccedil;ek Zamanl&#305; G&uuml;ncellemeler</h3>
+        <h3>6.4.2 &mdash; CRUD Akışı</h3>
+
+        <p><strong>Okuma (Birincil Operasyon):</strong></p>
+        <ol>
+            <li>Sayfa yüklenir &rarr; <code>GET /api/materials/list</code> tüm malzemeleri getirir (sadece fotoğraf ID&rsquo;leri, base64 verisi değil)</li>
+            <li>Tablo 14 sütunla render edilir. Küçük resim fotoğrafları <code>GET /api/materials/{id}/photos/first</code> ile tembel yüklenir</li>
+            <li>Fotoğraf küçük resmine tıkla &rarr; önizleme modalı açılır, kalan fotoğraflar <code>GET /api/materials/{id}/photos</code> ile talep üzerine getirilir</li>
+            <li>Arama çubuğu, QR kod, malzeme tipi, tedarikçi, lot numarası, durum genelinde istemci tarafında filtreler (Türkçe çevirileri dahil)</li>
+            <li>WebSocket bağlantısı tabloyu senkronize tutar &mdash; Hammadde Girişi&rsquo;nden yeni malzemeler otomatik olarak belirir</li>
+        </ol>
+
+        <p><strong>Düzenleme (Üç Form Varyantı):</strong></p>
+        <ol>
+            <li>Malzeme satırında düzenle ikonuna tıkla (<code>edit_material</code> yetkisi gerekir)</li>
+            <li>Düzenleme modalı, <strong>malzeme tipine uyarlanmış</strong> alanlarla açılır:
+                <ul>
+                    <li><em>Bakır/Kalay:</em> QR kod, lot no, form ağırlık, ölçülen ağırlık, kalan ağırlık (düzenlenebilir), durum (received/available/in_use/consumed), fotoğraflar, notlar</li>
+                    <li><em>Lot bazlı:</em> QR kod, lot no, form ağırlık, ölçülen ağırlık, miktar (etiket sayısı), durum (received/rejected), fotoğraflar, notlar</li>
+                    <li><em>Palet/Makara:</em> QR kod, miktar (adet), durum (received/rejected) &mdash; en basit varyant</li>
+                </ul>
+            </li>
+            <li>QR kod alanı uyarı gösterir: &ldquo;Dikkat: QR kodunu değiştirmek sistemdeki kayıtları etkileyebilir&rdquo;</li>
+            <li>Mevcut fotoğraflar modala tembel yüklenir; kullanıcı yeni ekleyebilir veya mevcutları kaldırabilir</li>
+            <li>Gönderimde: <code>PUT /api/materials/{id}</code> &rarr; toast &ldquo;Hammadde başarıyla güncellendi&rdquo; &rarr; modal kapanır &rarr; WebSocket yayını &rarr; tablo yenilenir</li>
+        </ol>
+
+        <p><strong>Yazdırma (Etiket Tekrar Yazdırma):</strong></p>
+        <ol>
+            <li>Malzeme satırında yazdır ikonuna tıkla (<code>print_qr</code> yetkisi gerekir; palet/makara için tooltip ile devre dışı)</li>
+            <li>QR kodu, etiket sayısı ve konumlarıyla aktif yazıcı dropdown&rsquo;u gösteren yazıcı seçim modalı açılır</li>
+            <li>Yazıcı seç &rarr; <code>POST /print-queue/queue/{material_id}?printer_id={id}</code></li>
+            <li>İş, Admin&rsquo;in yazdırma kuyruğuna QUEUED durumunda girer</li>
+        </ol>
+
+        <p><strong>Silme:</strong></p>
+        <ol>
+            <li>Sil ikonuna tıkla (<code>delete_material</code> yetkisi gerekir)</li>
+            <li>Uyarılı Popconfirm</li>
+            <li>Onayda: <code>DELETE /api/materials/{id}</code> (pasif silme &mdash; inactive olarak işaretler)</li>
+            <li>Kalıcı kaldırma için: <code>DELETE /api/materials/{id}/hard</code> (<code>hard_delete_material</code> yetkisi gerekir, <em>kritik</em> olarak işaretli). İlişkili <code>material_photos</code> kayıtlarını da kaldırır</li>
+            <li>WebSocket yayını &rarr; tablo yenilenir</li>
+        </ol>
+
+        <h3>6.4.3 &mdash; WebSocket ile Ger&ccedil;ek Zamanl&#305; G&uuml;ncellemeler</h3>
         <p>Hammadde Sipari&#351;lerinin aksine (kullan&#305;c&#305; eylemlerinde yenilenen), bu sayfa <code>materials</code> ve <code>all</code> WebSocket odalar&#305;na abone olur. Herhangi bir kullan&#305;c&#305; herhangi bir cihaz veya oturumdan bir malzeme olu&#351;turdu&#287;unda, g&uuml;ncelledi&#287;inde veya sildi&#287;inde tablo otomatik olarak yenilenir. Bu, depodan tablet &uuml;zerinden Hammadde Giri&#351;i yapan bir operat&ouml;r oldu&#287;unda, masa&uuml;st&uuml;nde listeyi g&ouml;r&uuml;nt&uuml;leyen y&ouml;neticinin yeni sat&#305;rlar&#305; yenilemek d&uuml;&#287;mesine basmadan an&#305;nda g&ouml;rmesi anlam&#305;na gelir.</p>
 
-        <h3>6.4.3 &mdash; Tablo: 14 S&uuml;tun</h3>
+        <h3>6.4.4 &mdash; Tablo: 14 S&uuml;tun</h3>
         <p>ProTable, her malzeme kayd&#305;n&#305;n kapsaml&#305; bir g&ouml;r&uuml;n&uuml;m&uuml;n&uuml; sunar:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
@@ -1436,7 +1590,7 @@ registerPageButtons({
             </tbody>
         </table>
 
-        <h3>6.4.4 &mdash; &ldquo;Kalan&rdquo; (Kalan A&#287;&#305;rl&#305;k) S&uuml;tunu</h3>
+        <h3>6.4.5 &mdash; &ldquo;Kalan&rdquo; (Kalan A&#287;&#305;rl&#305;k) S&uuml;tunu</h3>
         <p>Bu, operasyonel olarak en &ouml;nemli s&uuml;tunlardan biridir. &Uuml;retim malzemenin bir k&#305;sm&#305;n&#305; t&uuml;kettikten sonra orijinal malzemeden ne kadar kald&#305;&#287;&#305;n&#305; g&ouml;sterir. Renk kodlamas&#305; anl&#305;k g&ouml;rsel geri bildirim sa&#287;lar:</p>
         <ul>
             <li><strong>Renk yok</strong> &mdash; kalan a&#287;&#305;rl&#305;k orijinale yak&#305;n (%5 tolerans i&ccedil;inde)</li>
@@ -1446,7 +1600,7 @@ registerPageButtons({
         <p>Palet ve makara malzemeler i&ccedil;in bu s&uuml;tun &ldquo;&mdash;&rdquo; g&ouml;sterir &ccedil;&uuml;nk&uuml; say&#305;lan &ouml;&#287;eler kalan a&#287;&#305;rl&#305;k kavram&#305;na sahip de&#287;ildir &mdash; b&uuml;t&uuml;n birim olarak ya mevcuttur ya da t&uuml;kenmi&#351;tir.</p>
         <p>E&#287;er <code>remaining_weight</code> ayarlanmam&#305;&#351;sa (eski kay&#305;tlar), sistem geriye d&ouml;n&uuml;k uyumluluk i&ccedil;in orijinal <code>weight</code> de&#287;erine d&ouml;ner.</p>
 
-        <h3>6.4.5 &mdash; Lazy Photo Y&uuml;kleme Sistemi</h3>
+        <h3>6.4.6 &mdash; Lazy Photo Y&uuml;kleme Sistemi</h3>
         <p>Foto&#287;raf s&uuml;tunlar&#305; bu sayfan&#305;n teknik olarak en ilgin&ccedil; k&#305;sm&#305;d&#305;r. Potansiyel olarak binlerce malzeme ve her biri i&ccedil;in 6&rsquo;ya kadar foto&#287;raf (3 irsaliye + 3 test) ile, t&uuml;m foto&#287;raf verilerini tabloyla birlikte y&uuml;klemek felaket olurdu. Sistem <strong>iki katmanl&#305; lazy loading</strong> yakla&#351;&#305;m&#305; kullan&#305;r:</p>
         <ol>
             <li><strong>Tablo y&uuml;kleme:</strong> <code>/materials/list</code> endpoint&rsquo;i yaln&#305;zca foto&#287;raf <em>ID&rsquo;lerini</em> (k&uuml;&ccedil;&uuml;k tamsay&#305;lar) d&ouml;nd&uuml;r&uuml;r, foto&#287;raf verisini de&#287;il. Bu, API yan&#305;t&#305;n&#305; h&#305;zl&#305; tutar.</li>
@@ -1455,11 +1609,11 @@ registerPageButtons({
         </ol>
         <p>K&uuml;&ccedil;&uuml;k resim 40x40 piksel, yuvarlatilm&#305;&#351; k&ouml;&#351;elerle g&ouml;sterilir. Birden fazla foto&#287;raf varsa, sa&#287; altta &ldquo;+N&rdquo; g&ouml;steren mavi bir rozet belirir (3 foto&#287;raf i&ccedil;in &ldquo;+2&rdquo;). T&#305;klama, sol/sa&#287; gezinme ve sayfa say&#305;c&#305;s&#305;yla tam boyutlu &ouml;nizlemeyi a&ccedil;ar.</p>
 
-        <h3>6.4.6 &mdash; &#304;stemci Taraf&#305; Arama</h3>
+        <h3>6.4.7 &mdash; &#304;stemci Taraf&#305; Arama</h3>
         <p>Arama &ccedil;ubu&#287;u y&uuml;klenen t&uuml;m verileri istemci taraf&#305;nda filtreler. Hammadde Sipari&#351;leri aramas&#305; gibi, hem malzeme t&uuml;rleri hem de durumlar i&ccedil;in EN&rarr;TR &ccedil;eviri haritalar&#305;yla iki dilli e&#351;le&#351;meyi destekler. Aranabilir alanlar: QR kod, malzeme ad&#305;, malzeme t&uuml;r&uuml; (raw_copper&rarr;bak&#305;r, vb.), tedarik&ccedil;i ad&#305;, lot numaras&#305;, sipari&#351; grup kodu, durum (received&rarr;teslim al&#305;nd&#305;, vb.) ve t&uuml;m a&#287;&#305;rl&#305;k/miktar de&#287;erleri metin olarak.</p>
         <p>Arama, t&uuml;m <code>allMaterials</code> dizisine kar&#351;&#305; her tu&#351; vurusunda yeniden hesaplanan bir <code>useMemo</code> olarak uygulanm&#305;&#351;t&#305;r. Tablo filtrelenmi&#351; sonu&ccedil;lar&#305; <code>dataSource={filteredData}</code> arac&#305;l&#305;&#287;&#305;yla g&ouml;sterir.</p>
 
-        <h3>6.4.7 &mdash; D&uuml;zenleme Modal&#305;: &Uuml;&ccedil; Form Varyant&#305;</h3>
+        <h3>6.4.8 &mdash; D&uuml;zenleme Modal&#305;: &Uuml;&ccedil; Form Varyant&#305;</h3>
         <p>D&uuml;zenleme modal&#305;, d&uuml;zenlenen malzeme t&uuml;r&uuml;ne g&ouml;re alanlar&#305;n&#305; uyarlar ve &uuml;&ccedil; varyant kullan&#305;r:</p>
         <ul>
             <li><strong>Bak&#305;r/Kalay:</strong> QR kod, lot numaras&#305;, form a&#287;&#305;rl&#305;k, &ouml;l&ccedil;&uuml;len a&#287;&#305;rl&#305;k, <strong>kalan a&#287;&#305;rl&#305;k</strong> (d&uuml;zeltmeler i&ccedil;in d&uuml;zenlenebilir, amac&#305;n&#305; a&ccedil;&#305;klayan yard&#305;mc&#305; metinle), durum (4 se&ccedil;enek: teslim al&#305;nd&#305;, mevcut, kullan&#305;mda, t&uuml;kendi), foto&#287;raflar, notlar</li>
@@ -1469,7 +1623,7 @@ registerPageButtons({
         <p>Her varyant, bir uyar&#305; i&ccedil;eren QR kod alan&#305;n&#305; i&ccedil;erir: &ldquo;Dikkat: QR kodunu de&#287;i&#351;tirmek sistemdeki kay&#305;tlar&#305; etkileyebilir.&rdquo;</p>
         <p>D&uuml;zenleme modal&#305; a&ccedil;&#305;l&#305;rken foto&#287;raflar lazy-load edilir: sistem API&rsquo;den her foto&#287;raf&#305; ID ile getirir ve upload bile&#351;eni i&ccedil;in Ant Design <code>UploadFile</code> nesnelerine d&ouml;n&uuml;&#351;t&uuml;r&uuml;r. Bu, modal&#305;n mevcut foto&#287;raflar&#305; g&ouml;stermesini ve yenilerinin eklenmesini veya mevcutlar&#305;n kald&#305;r&#305;lmas&#305;n&#305; sa&#287;lar.</p>
 
-        <h3>6.4.8 &mdash; Yaz&#305;c&#305; Se&ccedil;imli Yazd&#305;rma</h3>
+        <h3>6.4.9 &mdash; Yaz&#305;c&#305; Se&ccedil;imli Yazd&#305;rma</h3>
         <p>&#304;&#351;lemler s&uuml;tunundaki yazd&#305;r d&uuml;&#287;mesi, yazd&#305;rmadan &ouml;nce bir <strong>yaz&#305;c&#305; se&ccedil;im modal&#305;</strong> a&ccedil;ar. Bu modal &#351;unlar&#305; g&ouml;sterir:</p>
         <ul>
             <li>Onay i&ccedil;in malzemenin QR kodu</li>
@@ -1478,7 +1632,7 @@ registerPageButtons({
         </ul>
         <p>Yazd&#305;rma i&#351;i <code>POST /print-queue/queue/{material_id}?printer_id={id}</code>&rsquo;ye g&ouml;nderilir. Yazd&#305;r d&uuml;&#287;mesi palet ve makara malzemeleri i&ccedil;in <strong>devre d&#305;&#351;&#305;d&#305;r</strong> (&ccedil;&uuml;nk&uuml; QR etiket kullanmazlar), nedenini a&ccedil;&#305;klayan bir tooltip ile.</p>
 
-        <h3>6.4.9 &mdash; Yetki Sistemi</h3>
+        <h3>6.4.10 &mdash; Yetki Sistemi</h3>
         <p>Sayfa <strong>12 sayfa d&uuml;zeyi d&uuml;&#287;mesi</strong> kaydeder:</p>
         <ul>
             <li><code>access_page</code>, <code>view_table</code>, <code>view_photos</code>, <code>search_filter</code> &mdash; okuma yetenekleri</li>
@@ -1489,10 +1643,10 @@ registerPageButtons({
         </ul>
         <p>&ldquo;hard_delete_material&rdquo; yetkisi <code>critical: true</code> olarak i&#351;aretlenmi&#351;tir, bu y&ouml;neticilere bunun y&#305;k&#305;c&#305; ve geri d&ouml;n&uuml;&#351;&uuml; olmayan bir eylem oldu&#287;unu bildirir.</p>
 
-        <h3>6.4.10 &mdash; Tablo Yerelle&#351;tirmesi</h3>
+        <h3>6.4.11 &mdash; Tablo Yerelle&#351;tirmesi</h3>
         <p>ProTable ara&ccedil; &ccedil;ubu&#287;u d&uuml;&#287;meleri (yenile, yo&#287;unluk, s&uuml;tun ayarlar&#305;) dahili mesaj ID&rsquo;lerini T&uuml;rk&ccedil;e dizelere e&#351;leyen &ouml;zel bir <code>ProConfigProvider</code> arac&#305;l&#305;&#287;&#305;yla T&uuml;rk&ccedil;e&rsquo;ye yerellendirilmi&#351;tir. Buna &ldquo;Yenile&rdquo;, &ldquo;Sat&#305;r Yo&#287;unlu&#287;u&rdquo;, &ldquo;Tablo Ayarlar&#305;&rdquo;, &ldquo;S&uuml;tun G&ouml;r&uuml;n&uuml;m&uuml;&rdquo;, sabitleme y&ouml;nleri ve daha fazlas&#305; dahildir. Ant Design dili de tarih/say&#305; bi&ccedil;imlendirmesi i&ccedil;in <code>trTR</code> olarak ayarlanm&#305;&#351;t&#305;r.</p>
 
-        <h3>6.4.11 &mdash; Bu Mod&uuml;l&uuml;n Sisteme Ba&#287;lant&#305;s&#305;</h3>
+        <h3>6.4.12 &mdash; Bu Mod&uuml;l&uuml;n Sisteme Ba&#287;lant&#305;s&#305;</h3>
         <ul>
             <li><strong>Hammadde Giri&#351;i (&uuml;st ak&#305;&#351;)</strong> &mdash; tek veri kayna&#287;&#305;. Bu tablodaki her sat&#305;r, d&ouml;rt giri&#351; endpoint&rsquo;inden biri taraf&#305;ndan olu&#351;turulmu&#351;tur.</li>
             <li><strong>Hammadde Sipari&#351;leri (dolayl&#305;)</strong> &mdash; &ldquo;Sipari&#351; No&rdquo; s&uuml;tunu sipari&#351; grup kodunu g&ouml;stererek, envanterden sat&#305;n alma sipari&#351;ine g&ouml;rsel izlenebilirlik sa&#287;lar.</li>
