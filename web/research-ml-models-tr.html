@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -112,12 +112,29 @@
             Bu, verilerde öğrenilebilir desenlerin var olduğunu gösteriyor.
         </div>
 
-        <h2>1. SORU</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Soru</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Seti</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Başarısız: Büyük Dil Modelleri</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Başarısız: Pekiştirmeli Öğrenme</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> İşe Yarayan: Gradient Boosting</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Sonuçları Anlamak</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> TFT: Sinir Ağı Denemesi</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Teknik Zorluklar</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Final Durum</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Sırada: Rejim Tespiti</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Ön Sonuç</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. SORU</h2>
         <p>Bölüm 3'ün Omega Sistemi elle kodlanmış sinyal agregasyon kuralları kullandı. Sonuçlar etkileyiciydi: 2021 backtestlerinde %9,868 getiri. Ancak bu kurallar piyasalar hakkında insan varsayımlarını kodluyor.</p>
         <p><strong>Ya makine öğrenmesinin desenleri bulmasına izin verilirse?</strong></p>
         <p>Hedef: aynı 171 özellik üzerinde (feature engineering ile ~16,000'e genişletilmiş) modeller eğitmek ve fiyat yönünü tahmin edip edemeyeceklerini görmek. Elle kodlanmış kural yok. Sadece veri.</p>
 
-        <h2>2. VERİ SETİ</h2>
+        <h2 id="sec-2">2. VERİ SETİ</h2>
         <table>
             <tr><th>Parametre</th><th>Değer</th></tr>
             <tr><td><strong>Varlıklar</strong></td><td><strong>94 kripto para</strong></td></tr>
@@ -130,7 +147,7 @@
         </table>
         <p>Feature engineering, 171 temel metriği rolling window'lar, lag'ler, etkileşimler ve çapraz varlık ilişkileri aracılığıyla ~16,000'e genişletti. Eğitim verimliliği için, varyansa göre en iyi 500-1000 özellik seçildi.</p>
 
-        <h2>3. BAŞARISIZ DENEY: BÜYÜK DİL MODELLERİ</h2>
+        <h2 id="sec-3">3. BAŞARISIZ DENEY: BÜYÜK DİL MODELLERİ</h2>
         <p>İlk yaklaşım iddialıydı: <strong>fiyatları tahmin etmek için bir Large Language Model (Qwen 3 4B) eğitmek.</strong></p>
         <p>Mantık sağlam görünüyordu—LLM'ler desen tanımada olağanüstü yetenekler gösterdi ve finansal veriler sonuçta sıralı bilgilerdir.</p>
 
@@ -154,7 +171,7 @@
             Claude Opus 4.5 model çıktılarını yorumlayacak ve final trading kararlarını verecek. LLM'lerin iyi olduğu şey bu.
         </div>
 
-        <h2>4. BAŞARISIZ DENEY: PEKİŞTİRMELİ ÖĞRENME (PPO)</h2>
+        <h2 id="sec-4">4. BAŞARISIZ DENEY: PEKİŞTİRMELİ ÖĞRENME (PPO)</h2>
         <p>İkinci yaklaşım: <strong>trading yapmak için bir Proximal Policy Optimization (PPO) ajanı eğitmek.</strong></p>
         <p>Supervised learning'den (yukarı/aşağı tahmin et) farklı olarak, RL ajanları etkileşim yoluyla öğrenir. Ajan aksiyonlar alır (AL/SAT/TUT), ödüller alır (kâr/zarar) ve bir policy öğrenir.</p>
 
@@ -181,7 +198,7 @@
             <li><strong>Keşif çöküşü:</strong> Entropy düştü, yani ajan alternatifleri keşfetmeyi bıraktı</li>
         </ul>
 
-        <h2>5. İŞE YARAYAN: GRADIENT BOOSTING</h2>
+        <h2 id="sec-5">5. İŞE YARAYAN: GRADIENT BOOSTING</h2>
         <p>LLM ve RL başarısızlıklarından sonra, odak tabular veriler için kanıtlanmış yaklaşımlara kaydı: <strong>Gradient Boosting Decision Trees (GBDT)</strong>.</p>
         <p>Üç model seçildi: XGBoost, CatBoost ve LightGBM. Her biri biraz farklı algoritmalara sahip, ensemble çeşitliliği sağlıyor.</p>
 
@@ -220,7 +237,7 @@
             <tr class="highlight"><td><strong>En İyi AUC</strong></td><td class="good"><strong>0.566</strong></td></tr>
         </table>
 
-        <h2>6. SONUÇLARI ANLAMAK</h2>
+        <h2 id="sec-6">6. SONUÇLARI ANLAMAK</h2>
 
         <h3>AUC 0.566 Ne Anlama Geliyor?</h3>
         <p>AUC (Area Under ROC Curve) bir modelin sınıfları ne kadar iyi ayırt ettiğini ölçer:</p>
@@ -247,7 +264,7 @@
             <tr><td>XGBoost</td><td class="good"><strong>0.566</strong></td><td>BELİRLENECEK</td><td>—</td></tr>
         </table>
 
-        <h2>7. TFT: SİNİR AĞI DENEMESİ</h2>
+        <h2 id="sec-7">7. TFT: SİNİR AĞI DENEMESİ</h2>
         <p><strong>Temporal Fusion Transformer (TFT)</strong> zaman serisi tahmini için tasarlanmış bir sinir ağı mimarisidir.</p>
 
         <div class="finding">
@@ -256,7 +273,7 @@
             <em>classification</em> (yukarı/aşağı tahmin) için değil. Fiyat büyüklüğü tahmini için tekrar ziyaret edilebilir.
         </div>
 
-        <h2>8. TEKNİK ZORLUKLAR</h2>
+        <h2 id="sec-8">8. TEKNİK ZORLUKLAR</h2>
         <p>197K satır × 16K özellik üzerinde eğitim mühendislik zorlukları sundu:</p>
 
         <h3>Bellek Yönetimi</h3>
@@ -281,7 +298,7 @@
             <li>Üzerine yazmaları önlemek için zaman damgalı yedeklemeler eklendi</li>
         </ul>
 
-        <h2>9. FİNAL DURUM</h2>
+        <h2 id="sec-9">9. FİNAL DURUM</h2>
         <table>
             <tr><th>Model</th><th>Durum</th><th>Sonuç</th></tr>
             <tr class="highlight"><td><strong>XGBoost</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td class="good">AUC 0.566 — En iyi performans</td></tr>
@@ -292,7 +309,7 @@
             <tr><td>Qwen LLM</td><td><span class="status abandoned">TERK EDİLDİ</span></td><td>Sayısal veri için yanlış mimari</td></tr>
         </table>
 
-        <h2>10. SIRADA: REJİM TESPİTİ (BÖLÜM 5)</h2>
+        <h2 id="sec-10">10. SIRADA: REJİM TESPİTİ (BÖLÜM 5)</h2>
         <p>Fiyat tahmin modelleri tamamlanmış olarak, sonraki aşama <strong>rejim tespiti</strong>—piyasa koşullarını Boğa, Ayı veya Yatay olarak sınıflandırmak için özel modeller.</p>
         <p>Bu modeller fiyatları tahmin etmiyor. <em>Bağlam</em> sağlıyorlar. Ensemble "ayı piyasasındayız" bildiğinde, sinyalleri ağırlıklandırabilir ve risk parametrelerini ayarlayabilir.</p>
 
@@ -306,7 +323,7 @@
             <strong>Etiketler:</strong> %100 hindsight-doğru (YUKARI/AŞAĞI/AYNI, BOĞA/AYI/YATAY)
         </div>
 
-        <h2>11. ÖN SONUÇ</h2>
+        <h2 id="sec-11">11. ÖN SONUÇ</h2>
         <p>LLM'lerden gradient boosting'e yolculuk, makine öğrenmesinde temel bir gerçeği yansıtır: <strong>mimariyi probleme eşleştir</strong>.</p>
         <ul>
             <li>LLM'ler dilde mükemmel, sayılarda değil</li>

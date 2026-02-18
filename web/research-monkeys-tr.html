@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; text-align: justify; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -164,7 +164,22 @@
             <strong>Özet.</strong> Bu, çok bölümlü bir araştırma serisinin <strong>Bölüm 1</strong>'idir. Burada 12 saçma trading stratejisi—yazı-tura, zar atma ve NASA kalitesinde gezegen yerçekimi kuvvetleri—al-ve-tut'a (HODL) karşı test edilerek bir referans noktası belirleniyor. 38.778 backtest ve titiz istatistiksel testlerden sonra, aptal stratejilerin HODL'u yenebildiği, ancak <strong>HODL'u yenmenin önemsiz derecede düşük bir çıta olduğu</strong> bulundu. Çıkış mekanizması olan herhangi bir strateji çöküşlerde daha iyi performans gösterir. Asıl soru—<strong>maymunlar gerçek profesyonel trading stratejilerini yenebilir mi?</strong>—aynı aptal stratejilerin 171 metrikli tam Omega Sistemi ile karşılaştırıldığı <strong>Bölüm 7</strong>'de cevaplanacak.
         </div>
 
-        <h2>1. METODOLOJİ</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Metodoloji</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Stratejiler</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Sonuçlar</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Coin Bazlı Analiz</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Burç Neden Çalışıyor</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Temel Bulgular (Bölüm 1)</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> İstatistiksel Titizlik Analizi</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Sonuçlar</a>
+                <a href="#sec-appendix" style="text-decoration: none; color: var(--fg); display: block;"><strong>A.</strong> Ek: Strateji Kodu</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. METODOLOJİ</h2>
         
         <h3>1.1 Veri Toplama</h3>
         <p>Tarihsel OHLCV verileri, piyasa değerine göre ilk 100 kripto para için yfinance API aracılığıyla Yahoo Finance'ten toplandı. Veriler Eylül 2014'ten (BTC'nin borsada başlangıcı) Ocak 2026'ya kadar uzanıyor.</p>
@@ -210,7 +225,7 @@
             <li><strong>5-Katlı Çapraz Doğrulama:</strong> Veri dilimleri arasında kararlılık</li>
         </ul>
 
-        <h2>2. STRATEJİLER</h2>
+        <h2 id="sec-2">2. STRATEJİLER</h2>
         
         <table>
             <tr><th>Strateji</th><th>Mantık</th><th>Ort. İşlem/Yıl</th></tr>
@@ -228,7 +243,7 @@
             <tr class="highlight"><td><strong>Burç GüneşHariç</strong></td><td>Aynı ama Güneş kuvveti hariç</td><td>22</td></tr>
         </table>
 
-        <h2>3. SONUÇLAR</h2>
+        <h2 id="sec-3">3. SONUÇLAR</h2>
 
         <h3>3.1 İstatistiksel Anlamlılık (Z-Testi)</h3>
         <p>Her stratejinin "HODL'u yenme" oranının %50'den (rastgele şans) anlamlı şekilde farklı olup olmadığı test edildi:</p>
@@ -293,7 +308,7 @@
             <tr><td><strong>Halving Yılı</strong></td><td class="good">+%224.0</td><td>Etkinlik beklentisi</td></tr>
         </table>
 
-        <h2>4. COİN BAZLI ANALİZ</h2>
+        <h2 id="sec-4">4. COİN BAZLI ANALİZ</h2>
 
         <h3>4.1 Stratejilerin En İyi Çalıştığı İlk 20 Coin</h3>
         <div class="scroll-table">
@@ -359,7 +374,7 @@
             <strong>🚀 Şok Edici Sonuç:</strong> "Sadece Astro" portföyü (burç_güneş + burç_güneşhariç ters) $10.000'ı 6 yılda $105.326'ya dönüştürdü—saf HODL'dan neredeyse 4 kat daha iyi!
         </div>
 
-        <h2>5. BURÇ NEDEN ÇALIŞIYOR</h2>
+        <h2 id="sec-5">5. BURÇ NEDEN ÇALIŞIYOR</h2>
         
         <p>Burç_güneş stratejisi, Türkiye'deki bir MacBook üzerindeki tüm gezegenlerden gelen net yerçekimi kuvveti yönüne göre işlem yapıyor. TERS versiyonun neden çalıştığı:</p>
         
@@ -376,7 +391,7 @@
         
         <p><strong>İçgörü:</strong> Kripto tarihsel olarak Q4'te (sonbahar/kış) daha iyi performans gösteriyor. Ters burç, yazın DIŞARDA ve kışın İÇERDE olarak bu mevsimselliği yanlışlıkla yakalıyor.</p>
 
-        <h2>6. TEMEL BULGULAR (Bölüm 1)</h2>
+        <h2 id="sec-6">6. TEMEL BULGULAR (Bölüm 1)</h2>
         
         <table>
             <tr><th>#</th><th>Bulgu</th><th>Kanıt</th><th>Sonuç</th></tr>
@@ -394,7 +409,7 @@
             <strong>Bölüm 1 Sınırlaması:</strong> HODL adil bir kıyaslama değil—stratejinin yokluğu. "Maymunlar piyasayı yenebilir mi"yi gerçekten test etmek için <strong>gerçek profesyonel trading stratejileriyle</strong> karşılaştırma gerekiyor. Bu karşılaştırma <strong>Bölüm 7</strong>'de yapılacak.
         </div>
 
-        <h2>7. İSTATİSTİKSEL TİTİZLİK ANALİZİ</h2>
+        <h2 id="sec-7">7. İSTATİSTİKSEL TİTİZLİK ANALİZİ</h2>
         
         <p>Bulguların istatistiksel tesadüfler olmadığından emin olmak için akademik araştırmalarda kullanılan titiz hipotez testi yöntemleri uygulandı.</p>
 
@@ -502,7 +517,7 @@
             <tr><td><strong>Çapraz Doğrulama Kararlılığı</strong></td><td class="bad">σ = %28.2</td><td>Yüksek değişkenlik</td></tr>
         </table>
 
-        <h2>8. SONUÇLAR</h2>
+        <h2 id="sec-8">8. SONUÇLAR</h2>
         
         <h3>Bölüm 1 Bulguları</h3>
         <p>Titiz istatistiksel testler uygulandıktan sonra:</p>
@@ -548,7 +563,7 @@
             <strong>Bölüm 1 Son Kararı:</strong> Aptal stratejiler HODL'u yeniyor, ama bu etkileyici değil—HODL korkunç bir kıyaslama. Asıl soru rastgeleliğin gerçek trading zekasıyla rekabet edip edemeyeceği. Yazı-turanın 171 metrikli bir sistemi yenip yenemeyeceğinin öğrenileceği Bölüm 7'yi bekleyin.
         </div>
 
-        <h2>EK: STRATEJİ KODU</h2>
+        <h2 id="sec-appendix">EK: STRATEJİ KODU</h2>
         <div class="code-block">
 <strong># COIN FLIP</strong>
 for close in prices:

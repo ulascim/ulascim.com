@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -114,7 +114,23 @@
             that traditional trading systems lack.
         </div>
 
-        <h2>1. THE PROBLEM: BLIND TO THE FUTURE</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Problem: Blind to the Future</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Failed Approaches: The $200/Month Wall</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Solution: Hybrid Free Architecture</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Dual-Mode Monitoring System</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> LLM Analysis Pipeline</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Current Testing</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Coins Tracked</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Integration with Ensemble</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Limitations &amp; Future Work</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Current Status</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. THE PROBLEM: BLIND TO THE FUTURE</h2>
         <p>Parts 3-5 created a powerful analytical engine with 171+ metrics. But all of them share one limitation: <strong>they only see the past.</strong></p>
         
         <ul>
@@ -130,7 +146,7 @@
             "but regulation news might reverse it tomorrow." Both perspectives are needed.
         </div>
 
-        <h2>2. FAILED APPROACHES: THE $200/MONTH WALL</h2>
+        <h2 id="sec-2">2. FAILED APPROACHES: THE $200/MONTH WALL</h2>
         <p>Several professional crypto news APIs were evaluated. The results were discouraging.</p>
 
         <h3>CryptoPanic API</h3>
@@ -168,7 +184,7 @@
             <tr><td>Messari</td><td><span class="status abandoned">REJECTED</span></td><td>Enterprise pricing only</td></tr>
         </table>
 
-        <h2>3. THE SOLUTION: HYBRID FREE ARCHITECTURE</h2>
+        <h2 id="sec-3">3. THE SOLUTION: HYBRID FREE ARCHITECTURE</h2>
         <p>The realization came that two free sources could be combined to achieve professional-grade coverage:</p>
 
         <div class="discovery">
@@ -204,7 +220,7 @@
             <tr><td class="bad"><strong>T3</strong></td><td>0.5x</td><td>BeInCrypto, AMBCrypto, aggregators</td><td>Higher speculation, verify claims</td></tr>
         </table>
 
-        <h2>4. DUAL-MODE MONITORING SYSTEM</h2>
+        <h2 id="sec-4">4. DUAL-MODE MONITORING SYSTEM</h2>
         <p>Two complementary analysis modes run continuously:</p>
 
         <h3>Quick Mode (Every 10 Minutes)</h3>
@@ -232,7 +248,7 @@
             while providing both real-time (RSS) and enriched (NewsData) coverage.
         </div>
 
-        <h2>5. LLM ANALYSIS PIPELINE</h2>
+        <h2 id="sec-5">5. LLM ANALYSIS PIPELINE</h2>
         <p>Raw headlines are not useful. They must be synthesized into actionable intelligence. A carefully engineered prompt transforms news into structured signals.</p>
 
         <h3>LLM Role Definition</h3>
@@ -263,7 +279,7 @@
             <li><strong>Structured JSON output:</strong> Enforced via system prompt for programmatic parsing</li>
         </ol>
 
-        <h2>6. CURRENT TESTING</h2>
+        <h2 id="sec-6">6. CURRENT TESTING</h2>
         <p>A live daemon is running, collecting and analyzing news in real-time. Early results are being validated against actual price movements.</p>
 
         <h3>Validation Methodology</h3>
@@ -290,7 +306,7 @@
             <tr><td>Price correlation</td><td><span class="status progress">TESTING</span></td><td>Manual validation ongoing</td></tr>
         </table>
 
-        <h2>7. COINS TRACKED</h2>
+        <h2 id="sec-7">7. COINS TRACKED</h2>
         <p>NewsData.io free tier limits daily calls. A diversified selection of 25 coins was chosen to maximize coverage without exceeding limits.</p>
 
         <table>
@@ -304,7 +320,7 @@
             <tr><td>Other</td><td>XRP, LTC, TRX</td></tr>
         </table>
 
-        <h2>8. INTEGRATION WITH ENSEMBLE</h2>
+        <h2 id="sec-8">8. INTEGRATION WITH ENSEMBLE</h2>
         <p>News sentiment becomes the fourth layer in the Omega ensemble architecture (Part 7).</p>
 
         <table>
@@ -320,7 +336,7 @@
             "what the technicals say" but also "what the news says" when making final trading decisions.
         </div>
 
-        <h2>9. LIMITATIONS & FUTURE WORK</h2>
+        <h2 id="sec-9">9. LIMITATIONS & FUTURE WORK</h2>
 
         <h3>Current Limitations</h3>
         <ul>
@@ -338,7 +354,7 @@
             <li>Implement "priced in" detection by correlating news timing with price charts</li>
         </ul>
 
-        <h2>10. CURRENT STATUS</h2>
+        <h2 id="sec-10">10. CURRENT STATUS</h2>
         <table>
             <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
             <tr class="highlight"><td><strong>RSS Pipeline</strong></td><td><span class="status complete">DONE</span></td><td>6 sources, unlimited calls</td></tr>

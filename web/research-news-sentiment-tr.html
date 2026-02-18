@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -114,7 +114,23 @@
             Omega ensemble'ının dördüncü katmanı olarak gerçek zamanlı haber duygusu ekler.
         </div>
 
-        <h2>1. PROBLEM: GELECEĞE KÖR</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Problem: Geleceğe Kör</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Başarısız Yaklaşımlar</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Çözüm: Hibrit Ücretsiz Mimari</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Çift Modlu İzleme Sistemi</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> LLM Analiz Hattı</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Mevcut Test</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Takip Edilen Coinler</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Ensemble ile Entegrasyon</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Sınırlamalar ve Gelecek</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Mevcut Durum</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. PROBLEM: GELECEĞE KÖR</h2>
         <p>Bölüm 3-5, 171+ metrikle güçlü bir analitik motor oluşturdu. Ancak hepsinin ortak bir sınırlaması var: <strong>sadece geçmişi görüyorlar.</strong></p>
         
         <ul>
@@ -130,7 +146,7 @@
             "ama düzenleme haberleri yarın bunu tersine çevirebilir" der. Her iki perspektif de gerekli.
         </div>
 
-        <h2>2. BAŞARISIZ YAKLAŞIMLAR: $200/AY DUVARI</h2>
+        <h2 id="sec-2">2. BAŞARISIZ YAKLAŞIMLAR: $200/AY DUVARI</h2>
         <p>Birçok profesyonel kripto haber API'si değerlendirildi. Sonuçlar cesaret kırıcıydı.</p>
 
         <h3>CryptoPanic API</h3>
@@ -168,7 +184,7 @@
             <tr><td>Messari</td><td><span class="status abandoned">REDDEDİLDİ</span></td><td>Sadece kurumsal fiyatlandırma</td></tr>
         </table>
 
-        <h2>3. ÇÖZÜM: HİBRİT ÜCRETSİZ MİMARİ</h2>
+        <h2 id="sec-3">3. ÇÖZÜM: HİBRİT ÜCRETSİZ MİMARİ</h2>
         <p>İki ücretsiz kaynağın birleştirilerek profesyonel düzeyde kapsam elde edilebileceği fark edildi:</p>
 
         <div class="discovery">
@@ -204,7 +220,7 @@
             <tr><td class="bad"><strong>T3</strong></td><td>0.5x</td><td>BeInCrypto, AMBCrypto, toplayıcılar</td><td>Daha fazla spekülasyon, iddiaları doğrula</td></tr>
         </table>
 
-        <h2>4. ÇİFT MODLU İZLEME SİSTEMİ</h2>
+        <h2 id="sec-4">4. ÇİFT MODLU İZLEME SİSTEMİ</h2>
         <p>İki tamamlayıcı analiz modu sürekli çalışır:</p>
 
         <h3>Hızlı Mod (Her 10 Dakikada)</h3>
@@ -232,7 +248,7 @@
             daha ucuz, hem gerçek zamanlı (RSS) hem de zenginleştirilmiş (NewsData) kapsam sağlıyor.
         </div>
 
-        <h2>5. LLM ANALİZ HATTI</h2>
+        <h2 id="sec-5">5. LLM ANALİZ HATTI</h2>
         <p>Ham başlıklar kullanışlı değil. Eyleme dönüştürülebilir zekaya sentezlenmeleri gerekiyor. Dikkatle tasarlanmış bir prompt, haberleri yapılandırılmış sinyallere dönüştürür.</p>
 
         <h3>LLM Rol Tanımı</h3>
@@ -263,7 +279,7 @@
             <li><strong>Yapılandırılmış JSON çıktısı:</strong> Programatik ayrıştırma için sistem prompt'u ile zorunlu kılınır</li>
         </ol>
 
-        <h2>6. MEVCUT TEST</h2>
+        <h2 id="sec-6">6. MEVCUT TEST</h2>
         <p>Canlı bir daemon çalışıyor, haberleri gerçek zamanlı olarak topluyor ve analiz ediyor. Erken sonuçlar gerçek fiyat hareketlerine karşı doğrulanıyor.</p>
 
         <h3>Doğrulama Metodolojisi</h3>
@@ -290,7 +306,7 @@
             <tr><td>Fiyat korelasyonu</td><td><span class="status progress">TEST EDİLİYOR</span></td><td>Manuel doğrulama devam ediyor</td></tr>
         </table>
 
-        <h2>7. TAKİP EDİLEN COİNLER</h2>
+        <h2 id="sec-7">7. TAKİP EDİLEN COİNLER</h2>
         <p>NewsData.io ücretsiz katmanı günlük çağrıları sınırlar. Limitleri aşmadan kapsamı maksimize etmek için 25 çeşitlendirilmiş coin seçildi.</p>
 
         <table>
@@ -304,7 +320,7 @@
             <tr><td>Diğer</td><td>XRP, LTC, TRX</td></tr>
         </table>
 
-        <h2>8. ENSEMBLE İLE ENTEGRASYON</h2>
+        <h2 id="sec-8">8. ENSEMBLE İLE ENTEGRASYON</h2>
         <p>Haber duygusu, Omega ensemble mimarisinde (Bölüm 7) dördüncü katman olur.</p>
 
         <table>
@@ -321,7 +337,7 @@
             değerlendirebilir.
         </div>
 
-        <h2>9. SINIRLAMALAR VE GELECEK ÇALIŞMALAR</h2>
+        <h2 id="sec-9">9. SINIRLAMALAR VE GELECEK ÇALIŞMALAR</h2>
 
         <h3>Mevcut Sınırlamalar</h3>
         <ul>
@@ -339,7 +355,7 @@
             <li>Haber zamanlamasını fiyat grafikleriyle ilişkilendirerek "fiyatlanmış" tespiti uygula</li>
         </ul>
 
-        <h2>10. MEVCUT DURUM</h2>
+        <h2 id="sec-10">10. MEVCUT DURUM</h2>
         <table>
             <tr><th>Bileşen</th><th>Durum</th><th>Notlar</th></tr>
             <tr class="highlight"><td><strong>RSS Pipeline</strong></td><td><span class="status complete">TAMAM</span></td><td>6 kaynak, sınırsız çağrı</td></tr>

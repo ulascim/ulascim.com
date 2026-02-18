@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -113,7 +113,20 @@
             %95.59 kazanma oranıyla <strong>%9,868 getiri</strong>.
         </div>
 
-        <h2>1. SİSTEM MİMARİSİ</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Sistem Mimarisi</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> 171 Metrik</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Sinyal Agregasyonu</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backtest Motoru</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Sonuçlar</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Sınırlamalar</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonuç</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. SİSTEM MİMARİSİ</h2>
         <p>Sistem, her seviyenin bir öncekinin üzerine inşa edildiği hiyerarşik bir veri akış desenini takip eder:</p>
         
         <table>
@@ -150,7 +163,7 @@
             <tr><td><strong>Seviye 6: Öncü</strong></td><td><strong>2.2x</strong></td><td>Öncü göstergeler</td></tr>
         </table>
 
-        <h2>2. 171 METRİK</h2>
+        <h2 id="sec-2">2. 171 METRİK</h2>
         
         <h3>2.1 Seviye 1: Teknik İndikatörler (27 metrik)</h3>
         <table>
@@ -212,7 +225,7 @@
             <tr><td><strong>VIX Ailesi</strong></td><td>VIX, VVIX (vol'ün vol'u), SKEW (kuyruk riski)</td></tr>
         </table>
 
-        <h2>3. SİNYAL AGREGASYONU</h2>
+        <h2 id="sec-3">3. SİNYAL AGREGASYONU</h2>
 
         <h3>3.1 Sinyal Normalizasyonu</h3>
         <p>Her metrik <strong>-1</strong> (güçlü sat) ile <strong>+1</strong> (güçlü al) arasında normalize edilmiş bir skora dönüştürülür:</p>
@@ -244,7 +257,7 @@
             <tr><td><strong>Risk-Off</strong></td><td>VIX &gt; 25, DXY yükseliyor</td><td class="bad">Defansif mod</td></tr>
         </table>
 
-        <h2>4. BACKTEST MOTORU</h2>
+        <h2 id="sec-4">4. BACKTEST MOTORU</h2>
 
         <h3>4.1 İşlem Yönetim Kuralları</h3>
         <table>
@@ -258,7 +271,7 @@
             <tr><td>İşlem Ücretleri</td><td>%0.1</td><td>Binance-eşdeğeri</td></tr>
         </table>
 
-        <h2>5. SONUÇLAR</h2>
+        <h2 id="sec-5">5. SONUÇLAR</h2>
         
         <h3>5.1 2021 Boğa Piyasası Performansı</h3>
         
@@ -331,7 +344,7 @@
             <tr><td><strong>2023</strong></td><td class="good"><strong>+394.64%</strong></td><td class="good">+122.10%</td><td><strong>3.01</strong></td><td class="bad">-13.21%</td><td><strong>97.06%</strong></td></tr>
         </table>
 
-        <h2>6. SINIRLAMALAR</h2>
+        <h2 id="sec-6">6. SINIRLAMALAR</h2>
         
         <div class="warning">
             <strong>BACKTEST ≠ CANLI:</strong> Bu sonuçlar tarihi backtestlerden elde edildi. Canlı trading tamamen yansıtılmayan uygulama riskleri, kayma ve piyasa etkisi içerir.<br><br>
@@ -349,7 +362,7 @@
             <li><strong>Canlı Paper Trading:</strong> Gerçek sermaye kullanımından önce canlı piyasa verileri üzerinde doğrulama</li>
         </ul>
 
-        <h2>7. SONUÇ</h2>
+        <h2 id="sec-7">7. SONUÇ</h2>
         
         <p>Omega Sistemi, kapsamlı, çok seviyeli bir sinyal agregasyonu yaklaşımının basit al-ve-tut stratejilerinden, özellikle volatil piyasalarda, önemli ölçüde daha iyi performans gösterebildiğini ortaya koyuyor.</p>
         <p><strong>$10,000'ı $1.1 milyonun üzerine</strong> çıkaran 2021 backtest sonucu, BTC/ETH tutmaya kıyasla 3.3x'e karşı 115x getiri temsil ediyor. Daha da önemlisi, sistem bunu <strong>HODL için %53'e karşı %32 maksimum drawdown</strong> ile başardı, üstün risk-ayarlı getiriler sergiledi.</p>

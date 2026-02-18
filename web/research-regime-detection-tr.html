@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -114,7 +114,23 @@
             bu modeller mükemmel tarihsel gerçekten öğreniyor.
         </div>
 
-        <h2>1. NEDEN REJİM TESPİTİ?</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Neden Rejim Tespiti?</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Seti: Kurumsal Düzey</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Etiketler: %100 Hindsight</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Model 1: HMM</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Model 2: Random Forest</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Model 3: LSTM + Attention</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Veri Pipeline: 10 Kontrol</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Altyapı</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Mevcut Durum</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Sonraki Adımlar</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. NEDEN REJİM TESPİTİ?</h2>
         <p>Bölüm 4'ün fiyat tahmin modelleri 0.52-0.57 civarında AUC skorları elde etti. Rastgeleden iyi, ama mütevazı. Sorun? <strong>Piyasalar farklı koşullarda farklı davranır.</strong></p>
         <p>Boğa piyasasında işe yarayan bir strateji, ayı piyasasında felaket olabilir. Yükseliş trendinde "düşüşü satın al" anlamına gelen sinyal, düşüş trendinde "düşen bıçağı yakala" anlamına gelir.</p>
         
@@ -131,7 +147,7 @@
             <tr><td><strong>YATAY</strong></td><td>AYNI</td><td>YATAY</td><td>Sıfır % değişim</td></tr>
         </table>
 
-        <h2>2. VERİ SETİ: KURUMSAL DÜZEY</h2>
+        <h2 id="sec-2">2. VERİ SETİ: KURUMSAL DÜZEY</h2>
         <p>Kestirmeden gitmedik. Bu veri seti aylarca süren veri mühendisliğini temsil ediyor.</p>
 
         <h3>Veri Kaynakları</h3>
@@ -199,7 +215,7 @@
 
         <p>Level 7 olmadan, modeller tamamen farklı piyasa bağlamlarında aynı özellik kalıplarını görürdü. Level 7 ile, ATH'deki -%5 günlük düşüş, yıllık diplerdeki -%5 düşüşten farklı görünür—çünkü gerçekten farklıdır.</p>
 
-        <h2>3. ETİKETLER: %100 HİNDSİGHT DOĞRULUĞU</h2>
+        <h2 id="sec-3">3. ETİKETLER: %100 HİNDSİGHT DOĞRULUĞU</h2>
         <p>Bu, rejim tespitini fiyat tahmininden farklı kılan temel içgörüdür.</p>
         
         <div class="finding">
@@ -216,7 +232,7 @@
             <tr><td>Aylık Rejim</td><td class="good">~%52</td><td class="bad">~%47</td><td>~%1</td></tr>
         </table>
 
-        <h2>4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
+        <h2 id="sec-4">4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
         <p><strong>Denetimsiz öğrenme.</strong> HMM etiketlerimizi görmez. Gizli durumları tamamen özellik kalıplarından keşfeder.</p>
 
         <h3>Neden HMM?</h3>
@@ -245,7 +261,7 @@
             <tr><td>Durum analizi</td><td><span class="status pending">BEKLİYOR</span></td></tr>
         </table>
 
-        <h2>5. MODEL 2: RANDOM FOREST</h2>
+        <h2 id="sec-5">5. MODEL 2: RANDOM FOREST</h2>
         <p><strong>Denetimli öğrenme.</strong> Random Forest hindsight-doğru etiketlerimizi görür ve bunları özelliklerden tahmin etmeyi öğrenir.</p>
 
         <h3>Neden Random Forest?</h3>
@@ -284,7 +300,7 @@
             <tr><td>Özellik önemi analizi</td><td><span class="status pending">BEKLİYOR</span></td></tr>
         </table>
 
-        <h2>6. MODEL 3: BİDİRECTİONAL LSTM + ATTENTİON</h2>
+        <h2 id="sec-6">6. MODEL 3: BİDİRECTİONAL LSTM + ATTENTİON</h2>
         <p><strong>Diziler için derin öğrenme.</strong> LSTM 90 ardışık günü işler ve sonraki günün rejimini tahmin eder.</p>
 
         <h3>Neden Attention'lı LSTM?</h3>
@@ -337,7 +353,7 @@
             <tr><td>Eğitim çalıştırma (GPU)</td><td><span class="status pending">BEKLİYOR</span></td></tr>
         </table>
 
-        <h2>7. VERİ PAYPLİNE: 10 DOĞRULAMA KONTROLÜ</h2>
+        <h2 id="sec-7">7. VERİ PAYPLİNE: 10 DOĞRULAMA KONTROLÜ</h2>
         <p>Kurumsal düzey veri hazırlığı her şeyi birden fazla kez doğrulamak demektir.</p>
 
         <table>
@@ -358,7 +374,7 @@
             <strong>10/10 kontrol geçti.</strong> Veri seti doğrulandı, temizlendi ve eğitime hazır.
         </div>
 
-        <h2>8. ALTYAPI</h2>
+        <h2 id="sec-8">8. ALTYAPI</h2>
         <p>Eğitim önemli hesaplama kaynakları gerektiriyor.</p>
 
         <table>
@@ -368,7 +384,7 @@
             <tr><td>LSTM</td><td class="good">GPU (A100/L40)</td><td>~30-40 GB VRAM</td><td>4-8 saat</td></tr>
         </table>
 
-        <h2>9. MEVCUT DURUM</h2>
+        <h2 id="sec-9">9. MEVCUT DURUM</h2>
         <table>
             <tr><th>Bileşen</th><th>Durum</th><th>Notlar</th></tr>
             <tr class="highlight"><td><strong>Veri Seti</strong></td><td><span class="status complete">TAMAMLANDI</span></td><td>233K satır × 203 özellik × 97 varlık</td></tr>
@@ -382,7 +398,7 @@
             <tr><td><strong>Ensemble</strong></td><td><span class="status pending">BEKLİYOR</span></td><td>Bireysel modeller tamamlandıktan sonra</td></tr>
         </table>
 
-        <h2>10. SONRAKİ ADIMLAR</h2>
+        <h2 id="sec-10">10. SONRAKİ ADIMLAR</h2>
         <ol>
             <li>18 GB veri setini RunPod network volume'a yükle</li>
             <li>HMM eğit (CPU pod, ~2 saat)</li>

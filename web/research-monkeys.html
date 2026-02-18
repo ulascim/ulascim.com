@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; text-align: justify; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -164,7 +164,22 @@
             <strong>Abstract.</strong> This is <strong>Part 1</strong> of a multi-part research series. A baseline is established by testing 12 absurd trading strategies—coin flips, dice rolls, and NASA-grade planetary gravitational forces—against buy-and-hold (HODL). After 38,778 backtests with rigorous statistical testing, it is found that stupid strategies can beat HODL, but <strong>beating HODL is a trivially low bar</strong>. Any strategy with an exit mechanism outperforms during crashes. The real question—<strong>can monkeys beat actual professional trading strategies?</strong>—will be answered in <strong>Part 7</strong>, where these same stupid strategies are compared against the full Omega System with 171 metrics.
         </div>
 
-        <h2>1. METHODOLOGY</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Methodology</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Strategies</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Results</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Coin-Based Analysis</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Why Horoscope Works</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Key Findings (Part 1)</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Statistical Rigor Analysis</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Conclusions</a>
+                <a href="#sec-appendix" style="text-decoration: none; color: var(--fg); display: block;"><strong>A.</strong> Appendix: Strategy Code</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. METHODOLOGY</h2>
         
         <h3>1.1 Data Collection</h3>
         <p>Historical OHLCV data was collected from Yahoo Finance via the yfinance API for the top 100 cryptocurrencies by market capitalization. Data spans from September 2014 (BTC inception on the exchange) to January 2026.</p>
@@ -210,7 +225,7 @@
             <li><strong>5-Fold Cross-Validation:</strong> Stability across data slices</li>
         </ul>
 
-        <h2>2. STRATEGIES</h2>
+        <h2 id="sec-2">2. STRATEGIES</h2>
         
         <table>
             <tr><th>Strategy</th><th>Logic</th><th>Avg Trades/Year</th></tr>
@@ -228,7 +243,7 @@
             <tr class="highlight"><td><strong>Horoscope NoSun</strong></td><td>Same but excluding Sun's force</td><td>22</td></tr>
         </table>
 
-        <h2>3. RESULTS</h2>
+        <h2 id="sec-3">3. RESULTS</h2>
 
         <h3>3.1 Statistical Significance (Z-Test)</h3>
         <p>Each strategy's "beat HODL" rate was tested for significant difference from 50% (random chance):</p>
@@ -293,7 +308,7 @@
             <tr><td><strong>Halving Year</strong></td><td class="good">+224.0%</td><td>Event anticipation</td></tr>
         </table>
 
-        <h2>4. COIN-BASED ANALYSIS</h2>
+        <h2 id="sec-4">4. COIN-BASED ANALYSIS</h2>
 
         <h3>4.1 Top 20 Coins Where Strategies Work Best</h3>
         <div class="scroll-table">
@@ -359,7 +374,7 @@
             <strong>🚀 Shocking Result:</strong> "Astro Only" portfolio (horoscope_sun + horoscope_nosun reversed) turned $10,000 into $105,326 over 6 years—nearly 4× better than pure HODL!
         </div>
 
-        <h2>5. WHY HOROSCOPE WORKS</h2>
+        <h2 id="sec-5">5. WHY HOROSCOPE WORKS</h2>
         
         <p>The horoscope_sun strategy trades based on the net gravitational force direction from all planets on a MacBook in Turkey. Here's why the REVERSED version works:</p>
         
@@ -376,7 +391,7 @@
         
         <p><strong>Insight:</strong> Crypto historically performs better in Q4 (fall/winter). The reversed horoscope accidentally captures this seasonality by being OUT during summer and IN during winter.</p>
 
-        <h2>6. KEY FINDINGS (Part 1)</h2>
+        <h2 id="sec-6">6. KEY FINDINGS (Part 1)</h2>
         
         <table>
             <tr><th>#</th><th>Finding</th><th>Evidence</th><th>Implication</th></tr>
@@ -394,7 +409,7 @@
             <strong>Part 1 Limitation:</strong> HODL is not a fair benchmark—it's the absence of strategy. To truly test if "monkeys can beat the market," comparison against <strong>actual professional trading strategies</strong> is required. This comparison will be conducted in <strong>Part 7</strong>.
         </div>
 
-        <h2>7. STATISTICAL RIGOR ANALYSIS</h2>
+        <h2 id="sec-7">7. STATISTICAL RIGOR ANALYSIS</h2>
         
         <p>To ensure findings aren't statistical flukes, rigorous hypothesis testing methods used in academic research were applied.</p>
 
@@ -502,7 +517,7 @@
             <tr><td><strong>Cross-Validation Stability</strong></td><td class="bad">σ = 28.2%</td><td>Highly variable</td></tr>
         </table>
 
-        <h2>8. CONCLUSIONS</h2>
+        <h2 id="sec-8">8. CONCLUSIONS</h2>
         
         <h3>Part 1 Findings</h3>
         <p>After applying rigorous statistical testing:</p>
@@ -548,7 +563,7 @@
             <strong>Final Verdict for Part 1:</strong> Stupid strategies beat HODL, but that's not impressive—HODL is a terrible benchmark. The real question is whether randomness can compete with actual trading intelligence. Stay tuned for Part 7, where it will be determined if a coin flip can beat a 171-metric trading system.
         </div>
 
-        <h2>APPENDIX: STRATEGY CODE</h2>
+        <h2 id="sec-appendix">APPENDIX: STRATEGY CODE</h2>
         <div class="code-block">
 <strong># COIN FLIP</strong>
 for close in prices:

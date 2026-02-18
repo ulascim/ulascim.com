@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -112,12 +112,29 @@
             This suggests learnable patterns exist in the data.
         </div>
 
-        <h2>1. THE QUESTION</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Question</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Dataset</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Failed: Large Language Models</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Failed: Reinforcement Learning (PPO)</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> What Worked: Gradient Boosting</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Understanding the Results</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> TFT: Neural Network Attempt</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Technical Challenges</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Final Status</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Next: Regime Detection</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Preliminary Conclusion</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. THE QUESTION</h2>
         <p>Part 3's Omega System used hand-coded signal aggregation rules. The results were impressive: 9,868% returns in 2021 backtests. But those rules encode human assumptions about markets.</p>
         <p><strong>What if machine learning is allowed to find the patterns instead?</strong></p>
         <p>The goal: train models on the same 171 features (expanded to ~16,000 through feature engineering) and see if they can learn to predict price direction. No hand-coded rules. Just data.</p>
 
-        <h2>2. THE DATASET</h2>
+        <h2 id="sec-2">2. THE DATASET</h2>
         <table>
             <tr><th>Parameter</th><th>Value</th></tr>
             <tr><td><strong>Assets</strong></td><td><strong>94 cryptocurrencies</strong></td></tr>
@@ -130,7 +147,7 @@
         </table>
         <p>Feature engineering expanded the 171 base metrics to ~16,000 through rolling windows, lags, interactions, and cross-asset relationships. For training efficiency, the top 500-1000 features were selected by variance.</p>
 
-        <h2>3. FAILED EXPERIMENT: LARGE LANGUAGE MODELS</h2>
+        <h2 id="sec-3">3. FAILED EXPERIMENT: LARGE LANGUAGE MODELS</h2>
         <p>The first approach was ambitious: <strong>train a Large Language Model (Qwen 3 4B) to predict prices.</strong></p>
         <p>The reasoning seemed sound—LLMs have shown remarkable abilities in pattern recognition, and financial data is ultimately sequential information.</p>
 
@@ -154,7 +171,7 @@
             Claude Opus 4.5 will interpret model outputs and make final trading decisions. That's what LLMs are good at.
         </div>
 
-        <h2>4. FAILED EXPERIMENT: REINFORCEMENT LEARNING (PPO)</h2>
+        <h2 id="sec-4">4. FAILED EXPERIMENT: REINFORCEMENT LEARNING (PPO)</h2>
         <p>The second approach: <strong>train a Proximal Policy Optimization (PPO) agent to trade.</strong></p>
         <p>Unlike supervised learning (predict up/down), RL agents learn through interaction. The agent takes actions (BUY/SELL/HOLD), receives rewards (profit/loss), and learns a policy.</p>
 
@@ -181,7 +198,7 @@
             <li><strong>Exploration collapse:</strong> Entropy dropped, meaning the agent stopped exploring alternatives</li>
         </ul>
 
-        <h2>5. WHAT WORKED: GRADIENT BOOSTING</h2>
+        <h2 id="sec-5">5. WHAT WORKED: GRADIENT BOOSTING</h2>
         <p>After the LLM and RL failures, the focus shifted to proven approaches for tabular data: <strong>Gradient Boosting Decision Trees (GBDT)</strong>.</p>
         <p>Three models were selected: XGBoost, CatBoost, and LightGBM. Each has slightly different algorithms, providing ensemble diversity.</p>
 
@@ -220,7 +237,7 @@
             <tr class="highlight"><td><strong>Best AUC</strong></td><td class="good"><strong>0.566</strong></td></tr>
         </table>
 
-        <h2>6. UNDERSTANDING THE RESULTS</h2>
+        <h2 id="sec-6">6. UNDERSTANDING THE RESULTS</h2>
 
         <h3>What Does AUC 0.566 Mean?</h3>
         <p>AUC (Area Under ROC Curve) measures how well a model distinguishes between classes:</p>
@@ -247,7 +264,7 @@
             <tr><td>XGBoost</td><td class="good"><strong>0.566</strong></td><td>TBD</td><td>—</td></tr>
         </table>
 
-        <h2>7. TFT: THE NEURAL NETWORK ATTEMPT</h2>
+        <h2 id="sec-7">7. TFT: THE NEURAL NETWORK ATTEMPT</h2>
         <p><strong>Temporal Fusion Transformer (TFT)</strong> is a neural network architecture designed for time series forecasting.</p>
 
         <div class="finding">
@@ -256,7 +273,7 @@
             not <em>classification</em> (predicting up/down). May be revisited for price magnitude prediction.
         </div>
 
-        <h2>8. TECHNICAL CHALLENGES</h2>
+        <h2 id="sec-8">8. TECHNICAL CHALLENGES</h2>
         <p>Training on 197K rows × 16K features presented engineering challenges:</p>
 
         <h3>Memory Management</h3>
@@ -281,7 +298,7 @@
             <li>Added timestamped backups to prevent overwrites</li>
         </ul>
 
-        <h2>9. FINAL STATUS</h2>
+        <h2 id="sec-9">9. FINAL STATUS</h2>
         <table>
             <tr><th>Model</th><th>Status</th><th>Result</th></tr>
             <tr class="highlight"><td><strong>XGBoost</strong></td><td><span class="status complete">DONE</span></td><td class="good">AUC 0.566 — Best performer</td></tr>
@@ -292,7 +309,7 @@
             <tr><td>Qwen LLM</td><td><span class="status abandoned">ABANDONED</span></td><td>Wrong architecture for numerical data</td></tr>
         </table>
 
-        <h2>10. NEXT: REGIME DETECTION (PART 5)</h2>
+        <h2 id="sec-10">10. NEXT: REGIME DETECTION (PART 5)</h2>
         <p>With price prediction models complete, the next phase is <strong>regime detection</strong>—dedicated models to classify market conditions as Bull, Bear, or Sideways.</p>
         <p>These models don't predict prices. They provide <em>context</em>. When the ensemble knows "we're in a bear market," it can weight signals and adjust risk parameters accordingly.</p>
 
@@ -306,7 +323,7 @@
             <strong>Labels:</strong> 100% hindsight-accurate (UP/DOWN/SAME, BULL/BEAR/SIDEWAYS)
         </div>
 
-        <h2>11. PRELIMINARY CONCLUSION</h2>
+        <h2 id="sec-11">11. PRELIMINARY CONCLUSION</h2>
         <p>The journey from LLMs to gradient boosting reflects a fundamental truth in machine learning: <strong>match the architecture to the problem</strong>.</p>
         <ul>
             <li>LLMs excel at language, not numbers</li>

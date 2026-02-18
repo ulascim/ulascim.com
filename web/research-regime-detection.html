@@ -13,7 +13,7 @@
     <style>
         .report { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 32px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
         .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
@@ -114,7 +114,23 @@
             these models learn from perfect historical truth.
         </div>
 
-        <h2>1. WHY REGIME DETECTION?</h2>
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Why Regime Detection?</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Dataset: Enterprise-Grade</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Labels: 100% Hindsight Accuracy</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Model 1: Hidden Markov Model</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Model 2: Random Forest</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Model 3: Bidirectional LSTM</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Data Pipeline: 10 Checks</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Infrastructure</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Current Status</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Next Steps</a>
+            </div>
+        </div>
+
+        <h2 id="sec-1">1. WHY REGIME DETECTION?</h2>
         <p>Part 4's price prediction models achieved AUC scores around 0.52-0.57. Better than random, but modest. The problem? <strong>Markets behave differently in different conditions.</strong></p>
         <p>A strategy that works in a bull market may fail catastrophically in a bear market. The same signal that means "buy the dip" in an uptrend means "catch a falling knife" in a downtrend.</p>
         
@@ -131,7 +147,7 @@
             <tr><td><strong>SIDEWAYS</strong></td><td>SAME</td><td>SIDEWAYS</td><td>Zero % change</td></tr>
         </table>
 
-        <h2>2. THE DATASET: ENTERPRISE-GRADE</h2>
+        <h2 id="sec-2">2. THE DATASET: ENTERPRISE-GRADE</h2>
         <p>No corners were cut. This dataset represents months of data engineering.</p>
 
         <h3>Data Sources</h3>
@@ -199,7 +215,7 @@
 
         <p>Without Level 7, models would see identical feature patterns at completely different market contexts. With Level 7, a -5% daily drop at ATH looks different from -5% drop at yearly lows—because it IS different.</p>
 
-        <h2>3. THE LABELS: 100% HINDSIGHT ACCURACY</h2>
+        <h2 id="sec-3">3. THE LABELS: 100% HINDSIGHT ACCURACY</h2>
         <p>This is the key insight that makes regime detection different from price prediction.</p>
         
         <div class="finding">
@@ -216,7 +232,7 @@
             <tr><td>Monthly Regime</td><td class="good">~52%</td><td class="bad">~47%</td><td>~1%</td></tr>
         </table>
 
-        <h2>4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
+        <h2 id="sec-4">4. MODEL 1: HIDDEN MARKOV MODEL (HMM)</h2>
         <p><strong>Unsupervised learning.</strong> HMM doesn't see the labels. It discovers hidden states purely from the feature patterns.</p>
 
         <h3>Why HMM?</h3>
@@ -245,7 +261,7 @@
             <tr><td>State analysis</td><td><span class="status pending">PENDING</span></td></tr>
         </table>
 
-        <h2>5. MODEL 2: RANDOM FOREST</h2>
+        <h2 id="sec-5">5. MODEL 2: RANDOM FOREST</h2>
         <p><strong>Supervised learning.</strong> Random Forest sees the hindsight-accurate labels and learns to predict them from features.</p>
 
         <h3>Why Random Forest?</h3>
@@ -284,7 +300,7 @@
             <tr><td>Feature importance analysis</td><td><span class="status pending">PENDING</span></td></tr>
         </table>
 
-        <h2>6. MODEL 3: BIDIRECTIONAL LSTM + ATTENTION</h2>
+        <h2 id="sec-6">6. MODEL 3: BIDIRECTIONAL LSTM + ATTENTION</h2>
         <p><strong>Deep learning for sequences.</strong> LSTM processes 90 consecutive days and predicts the next day's regime.</p>
 
         <h3>Why LSTM with Attention?</h3>
@@ -337,7 +353,7 @@
             <tr><td>Training execution (GPU)</td><td><span class="status pending">PENDING</span></td></tr>
         </table>
 
-        <h2>7. DATA PIPELINE: 10 VERIFICATION CHECKS</h2>
+        <h2 id="sec-7">7. DATA PIPELINE: 10 VERIFICATION CHECKS</h2>
         <p>Enterprise-grade data preparation means verifying everything multiple times.</p>
 
         <table>
@@ -358,7 +374,7 @@
             <strong>10/10 checks passed.</strong> The dataset is verified, cleaned, and ready for training.
         </div>
 
-        <h2>8. INFRASTRUCTURE</h2>
+        <h2 id="sec-8">8. INFRASTRUCTURE</h2>
         <p>Training requires significant compute resources.</p>
 
         <table>
@@ -368,7 +384,7 @@
             <tr><td>LSTM</td><td class="good">GPU (A100/L40)</td><td>~30-40 GB VRAM</td><td>4-8 hours</td></tr>
         </table>
 
-        <h2>9. CURRENT STATUS</h2>
+        <h2 id="sec-9">9. CURRENT STATUS</h2>
         <table>
             <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
             <tr class="highlight"><td><strong>Dataset</strong></td><td><span class="status complete">DONE</span></td><td>233K rows × 203 features × 97 assets</td></tr>
@@ -382,7 +398,7 @@
             <tr><td><strong>Ensemble</strong></td><td><span class="status pending">PENDING</span></td><td>After individual models complete</td></tr>
         </table>
 
-        <h2>10. NEXT STEPS</h2>
+        <h2 id="sec-10">10. NEXT STEPS</h2>
         <ol>
             <li>Upload 18 GB dataset to RunPod network volume</li>
             <li>Train HMM (CPU pod, ~2 hours)</li>
