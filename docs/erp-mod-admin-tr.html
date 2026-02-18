@@ -1423,6 +1423,481 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> AI sistemi <em>kontrol d&uuml;zlemi / veri d&uuml;zlemi</em> ayr&inodot;m&inodot;n&inodot; izler. Kontrol d&uuml;zlemi (bu ayarlar sayfas&inodot;) konfig&uuml;rasyon, anahtarlar ve izlemeyi y&ouml;netir. Veri d&uuml;zlemi (harici <code>SolenAIAgent</code>) ger&ccedil;ek sorgu i&#351;lemeyi y&ouml;netir. Bu ayr&inodot;m, AI ajan&inodot;n&inodot;n ERP backend&rsquo;inden ba&gbreve;&inodot;ms&inodot;z olarak y&uuml;kseltilmesi, de&gbreve;i&#351;tirilmesi veya &ouml;l&ccedil;eklenmesi anlam&inodot;na gelir. 47 s&uuml;tunlu denetim g&uuml;nl&uuml;&gbreve;&uuml; bilin&ccedil;li olarak a&#351;&inodot;r&inodot; m&uuml;hendislenmi&#351;tir &mdash; temel g&uuml;nl&uuml;kleme i&ccedil;in gerekenden &ccedil;ok daha fazla ba&gbreve;lam yakalar, &ccedil;&uuml;nk&uuml; AI adli bili&#351;imi yaln&inodot;zca AI&rsquo;n&inodot;n <em>ne</em> yapt&inodot;&gbreve;&inodot;n&inodot; de&gbreve;il, o eylemi <em>neden</em> se&ccedil;ti&gbreve;ini ve hangi alternatifleri de&gbreve;erlendirdi&gbreve;ini anlamay&inodot; gerektirir. &Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; mimarisi (Gemini aktif, OpenAI/Claude haz&inodot;r) AI sa&gbreve;lay&inodot;c&inodot;s&inodot;n&inodot; de&gbreve;i&#351;tirmenin bir kod de&gbreve;i&#351;ikli&gbreve;i de&gbreve;il konfig&uuml;rasyon de&gbreve;i&#351;ikli&gbreve;i oldu&gbreve;u anlam&inodot;na gelir.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.4  KULLANICI YÖNETİMİ                      -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-4" style="margin-top: 48px;">6.4 Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h2>
+
+        <h3>6.4.1 Ama&ccedil; ve &#304;&#351; Ba&gbreve;lam&inodot;</h3>
+
+        <p>Kullan&inodot;c&inodot; Y&ouml;netimi, t&uuml;m ERP&rsquo;nin <strong>kimlik ve yetkilendirme omurgas&inodot;d&inodot;r</strong>. Di&gbreve;er t&uuml;m mod&uuml;ller &mdash; Hammadde, Teknik, Sipari&#351;, &Uuml;retim, Stok, Lab, Admin &mdash; iki soruyu yan&inodot;tlamak i&ccedil;in bu alt mod&uuml;le ba&gbreve;&inodot;ml&inodot;d&inodot;r: <em>&ldquo;Bu ki&#351;i kim?&rdquo;</em> (kimlik do&gbreve;rulama) ve <em>&ldquo;Ne yapmaya yetkili?&rdquo;</em> (yetkilendirme). Sistemdeki en karma&#351;&inodot;k alt mod&uuml;ld&uuml;r &ccedil;&uuml;nk&uuml; <strong>hibrit bir yetki modeli</strong> uygular: eski rol tabanl&inodot; eri&#351;imin &uuml;zerine katmanlanan, 8 mod&uuml;l, 26+ sayfa ve 200+ eylem &uuml;zerinde tek tek UI butonlar&inodot;na kadar g&ouml;r&uuml;n&uuml;rl&uuml;&gbreve;&uuml; kontrol eden gran&uuml;ler sayfa+buton yetki sistemi.</p>
+
+        <p>Fabrikada &uuml;&ccedil; temel kullan&inodot;c&inodot; arketipi vard&inodot;r: <strong>S&uuml;per Admin</strong> (tam sistem kontrol&uuml;, masa&uuml;st&uuml;), <strong>Lab Kullan&inodot;c&inodot;s&inodot;</strong> (kalite testi, masa&uuml;st&uuml;) ve <strong>Operat&ouml;r</strong> (makine kullan&inodot;m&inodot;, mobil kiosk). Bunlar&inodot;n &ouml;tesinde sistem, her biri elle haz&inodot;rlanm&inodot;&#351; yetkilerle s&inodot;n&inodot;rs&inodot;z &ouml;zel kullan&inodot;c&inodot; tipini destekler.</p>
+
+        <h3>6.4.2 Veritaban&inodot; &#350;emas&inodot; &mdash; 6 Tablo, Joined-Table Kal&inodot;t&inodot;m</h3>
+
+        <h4>users (17 s&uuml;tun) &mdash; Temel Kimlik Tablosu</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Detay</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik artan, indeksli</td></tr>
+            <tr><td><code>email</code></td><td>String(320)</td><td>Benzersiz, indeksli, bo&#351; olamaz</td></tr>
+            <tr><td><code>hashed_password</code></td><td>String(1024)</td><td>bcrypt hash, bo&#351; olamaz</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Varsay&inodot;lan True</td></tr>
+            <tr><td><code>is_superuser</code></td><td>Boolean</td><td>Varsay&inodot;lan False (FastAPI-Users miras&inodot;)</td></tr>
+            <tr><td><code>is_verified</code></td><td>Boolean</td><td>Varsay&inodot;lan False</td></tr>
+            <tr><td><code>username</code></td><td>String(50)</td><td>Benzersiz, indeksli, bo&#351; olamaz</td></tr>
+            <tr><td><code>user_type</code></td><td>String(50)</td><td><code>super_admin</code>, <code>lab_user</code>, <code>operator</code> veya &ouml;zel</td></tr>
+            <tr><td><code>full_name</code></td><td>String(100)</td><td>G&ouml;r&uuml;nen ad</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td><code>active</code> / <code>inactive</code> / <code>suspended</code></td></tr>
+            <tr><td><code>last_login</code></td><td>DateTime</td><td>Her giri&#351;te g&uuml;ncellenir</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC zaman damgas&inodot;</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>De&gbreve;i&#351;iklikte otomatik g&uuml;ncellenir</td></tr>
+            <tr><td><code>preferred_interface</code></td><td>String(20)</td><td><code>mobile</code> / <code>desktop</code> / <code>auto</code></td></tr>
+            <tr><td><code>device_info</code></td><td>JSON</td><td>Son bilinen cihaz detaylar&inodot;</td></tr>
+            <tr><td><code>permissions</code></td><td>Text</td><td><strong>JSON string</strong> &mdash; gran&uuml;ler yetki nesnesi (sayfalar + butonlar)</td></tr>
+            <tr><td><code>force_password_change</code></td><td>Boolean</td><td>Varsay&inodot;lan False, &#351;ifre s&inodot;f&inodot;rlamada True olur</td></tr>
+        </table>
+
+        <h4>Joined-Table Kal&inodot;t&inodot;m &mdash; Uzant&inodot; Tablolar&inodot;</h4>
+        <p>Her kullan&inodot;c&inodot; tipinin <code>user_id FK &rarr; users.id</code> (benzersiz, bire-bir) ile ba&gbreve;lanan &ouml;zel bir uzant&inodot; tablosu vard&inodot;r. Bunlar tipe &ouml;zg&uuml; meta verileri saklar:</p>
+
+        <table>
+            <tr><th>Tablo</th><th>Ek S&uuml;tunlar</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>super_admins</code></td><td>admin_level (system/module/user), permissions (JSON liste), access_logs (JSON liste)</td><td>Admin hiyerar&#351;isi, eylem denetim izi</td></tr>
+            <tr><td><code>lab_users</code></td><td>lab_department, certifications (JSON liste), test_specializations (JSON liste), shift_schedule (JSON dict)</td><td>Lab&rsquo;a &ouml;zg&uuml; yeterlilikler ve vardiyalar</td></tr>
+            <tr><td><code>operators</code></td><td>assigned_machines (JSON liste), shift_schedule (JSON dict), skill_level (junior/senior/expert), certifications (JSON liste)</td><td>Makine atamalar&inodot; ve beceri takibi</td></tr>
+        </table>
+
+        <p>SQLAlchemy backref&rsquo;ler navigasyon sa&gbreve;lar: <code>user.super_admin_profile</code>, <code>user.lab_user_profile</code>, <code>user.operator_profile</code>.</p>
+
+        <h4>user_sessions (11 s&uuml;tun)</h4>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Detay</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik artan</td></tr>
+            <tr><td><code>user_id</code></td><td>Integer FK</td><td><code>users.id</code>&rsquo;ye referans</td></tr>
+            <tr><td><code>session_token</code></td><td>String(255)</td><td>Benzersiz, indeksli &mdash; JWT eri&#351;im token&rsquo;&inodot;</td></tr>
+            <tr><td><code>refresh_token</code></td><td>String(255)</td><td>Benzersiz, indeksli</td></tr>
+            <tr><td><code>login_time</code></td><td>DateTime</td><td>Oturum ne zaman ba&#351;lad&inodot;</td></tr>
+            <tr><td><code>logout_time</code></td><td>DateTime</td><td>&Ccedil;&inodot;k&inodot;&#351;a kadar null</td></tr>
+            <tr><td><code>expires_at</code></td><td>DateTime</td><td>Token s&uuml;re dolma zaman&inodot;</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(45)</td><td>IPv6 haz&inodot;r</td></tr>
+            <tr><td><code>user_agent</code></td><td>Text</td><td>Taray&inodot;c&inodot;/cihaz string&rsquo;i</td></tr>
+            <tr><td><code>device_type</code></td><td>String(20)</td><td><code>mobile</code> / <code>desktop</code> / <code>tablet</code></td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td><code>active</code> / <code>expired</code> / <code>terminated</code></td></tr>
+        </table>
+
+        <h4>user_roles (7 s&uuml;tun)</h4>
+        <p>Yeniden kullan&inodot;labilir yetki &#351;ablonlar&inodot; (rol tan&inodot;mlar&inodot;). Her rol, kullan&inodot;c&inodot;lara h&inodot;zla uygulanabilen tam bir yetki JSON&rsquo;&inodot; saklar.</p>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Detay</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik artan</td></tr>
+            <tr><td><code>name</code></td><td>String(50)</td><td>Benzersiz, &ouml;rn. &ldquo;Lab Teknisyeni&rdquo;</td></tr>
+            <tr><td><code>description</code></td><td>Text</td><td>Okunabilir rol a&ccedil;&inodot;klamas&inodot;</td></tr>
+            <tr><td><code>permissions</code></td><td>Text</td><td>JSON string &mdash; tam yetki yap&inodot;s&inodot;</td></tr>
+            <tr><td><code>is_system</code></td><td>Boolean</td><td>Sistem rolleri silinemez</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Otomatik g&uuml;ncellenir</td></tr>
+        </table>
+
+        <h4>user_activity_logs (11 s&uuml;tun)</h4>
+        <p>Kullan&inodot;c&inodot;lar &uuml;zerindeki her y&ouml;netim eylemi i&ccedil;in denetim izi. <code>username</code> h&inodot;zl&inodot; okuma i&ccedil;in denormalize edilmi&#351;tir.</p>
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>Detay</th></tr>
+            <tr><td><code>user_id</code></td><td>Integer FK</td><td>Eylemi kim ger&ccedil;ekle&#351;tirdi</td></tr>
+            <tr><td><code>username</code></td><td>String(50)</td><td>Denormalize</td></tr>
+            <tr><td><code>action</code></td><td>String(50)</td><td><code>create_user</code>, <code>update_user</code>, <code>suspend_user</code>, <code>delete_user</code>, <code>reset_password</code></td></tr>
+            <tr><td><code>module</code></td><td>String(50)</td><td>Her zaman <code>user_management</code></td></tr>
+            <tr><td><code>target_type</code></td><td>String(50)</td><td>Her zaman <code>user</code></td></tr>
+            <tr><td><code>target_id</code></td><td>Integer</td><td>Etkilenen kullan&inodot;c&inodot;n&inodot;n ID&rsquo;si</td></tr>
+            <tr><td><code>details</code></td><td>Text</td><td>Ek ba&gbreve;lam i&ccedil;in JSON string</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(50)</td><td>&#304;stemci IP</td></tr>
+            <tr><td><code>user_agent</code></td><td>Text</td><td>Taray&inodot;c&inodot; string&rsquo;i</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>Eylem ne zaman ger&ccedil;ekle&#351;ti</td></tr>
+        </table>
+
+        <h3>6.4.3 Kimlik Do&gbreve;rulama Sistemi &mdash; JWT Token&rsquo;lar ve Oturumlar</h3>
+
+        <h4>Token Mimarisi</h4>
+        <div class="flow">
+            <span class="flow-step">Giri&#351; (kullan&inodot;c&inodot; ad&inodot; + &#351;ifre)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">bcrypt do&gbreve;rulama</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Eri&#351;im Token&rsquo;&inodot; &Uuml;ret (HS256)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Yenileme Token&rsquo;&inodot; &Uuml;ret</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">UserSession sat&inodot;r&inodot; olu&#351;tur</span>
+        </div>
+
+        <table>
+            <tr><th>Token Tipi</th><th>S&uuml;re</th><th>Payload</th><th>Ama&ccedil;</th></tr>
+            <tr><td><strong>Eri&#351;im Token&rsquo;&inodot;</strong></td><td>12 saat (varsay&inodot;lan)</td><td><code>sub</code> (user_id), <code>username</code>, <code>user_type</code>, <code>permissions</code>, <code>type: "access"</code></td><td>Her API iste&gbreve;ini <code>Authorization: Bearer</code> ba&#351;l&inodot;&gbreve;&inodot; ile do&gbreve;rula</td></tr>
+            <tr><td><strong>Yenileme Token&rsquo;&inodot;</strong></td><td>7 g&uuml;n</td><td><code>sub</code> (user_id), <code>type: "refresh"</code>, <code>jti</code> (benzersiz token ID)</td><td>Yeniden giri&#351; yapmadan yeni eri&#351;im token&rsquo;&inodot; &uuml;ret</td></tr>
+            <tr><td><strong>Operat&ouml;r Kiosk Token&rsquo;&inodot;</strong></td><td><strong>6 ay</strong></td><td>Eri&#351;im token&rsquo;&inodot; ile ayn&inodot;</td><td>Fabrika kiosk telefonlar&inodot; &mdash; s&inodot;k yeniden giri&#351;ten ka&ccedil;&inodot;n</td></tr>
+        </table>
+
+        <p>6 ayl&inodot;k token sabit kodlanm&inodot;&#351; bir kontrolle tetiklenir: <code>if user.username == 'operator'</code>. Bu bilin&ccedil;lidir &mdash; payla&#351;&inodot;lan <code>operator</code> hesab&inodot;, aylarca oturum a&ccedil;&inodot;k kalmas&inodot; gereken duvara monte telefonlarda kullan&inodot;l&inodot;r.</p>
+
+        <h4>&#350;ifre Sistemi</h4>
+        <table>
+            <tr><th>&#304;&#351;lem</th><th>Uygulama</th></tr>
+            <tr><td>Hashleme</td><td><code>passlib</code> ile <code>bcrypt</code> &#351;emas&inodot;. <code>CryptContext(schemes=["bcrypt"], deprecated="auto")</code></td></tr>
+            <tr><td>Do&gbreve;rulama</td><td><code>pwd_context.verify(plain, hashed)</code> &mdash; sabit zamanl&inodot; kar&#351;&inodot;la&#351;t&inodot;rma</td></tr>
+            <tr><td>Otomatik &Uuml;retim</td><td><code>secrets.choice()</code> ile <code>ascii_letters + digits + "!@#$%"</code>, 12 karakter</td></tr>
+            <tr><td>Do&gbreve;rulama (Olu&#351;turma)</td><td>Min 8 karakter, b&uuml;y&uuml;k harf + k&uuml;&ccedil;&uuml;k harf + rakam i&ccedil;ermeli</td></tr>
+            <tr><td>Do&gbreve;rulama (Giri&#351;)</td><td>Min 5 karakter (operat&ouml;r &#351;ifreleri i&ccedil;in &ouml;rn. <code>op123</code>)</td></tr>
+        </table>
+
+        <h4>U&ccedil;tan Uca Giri&#351; Ak&inodot;&#351;&inodot;</h4>
+        <ol>
+            <li>Kullan&inodot;c&inodot; <code>POST /auth/login</code>&rsquo;a kullan&inodot;c&inodot; ad&inodot; + &#351;ifre g&ouml;nderir</li>
+            <li>Backend kullan&inodot;c&inodot;y&inodot; kullan&inodot;c&inodot; ad&inodot; <em>veya</em> e-posta ile sorgular (b&uuml;y&uuml;k/k&uuml;&ccedil;&uuml;k harf duyars&inodot;z)</li>
+            <li><code>is_active == True</code> ve <code>status != "suspended"</code> kontrol eder</li>
+            <li>&#350;ifreyi bcrypt ile do&gbreve;rular</li>
+            <li><code>last_login</code> zaman damgas&inodot;n&inodot; g&uuml;nceller</li>
+            <li><code>user_id</code>, <code>username</code>, <code>user_type</code>, <code>permissions</code> ile JWT payload olu&#351;turur</li>
+            <li>Operat&ouml;r hesab&inodot;ysa: 6 ay s&uuml;re; de&gbreve;ilse 12 saat</li>
+            <li><code>UserSession</code> sat&inodot;r&inodot; olu&#351;turur (session_token, refresh_token, cihaz bilgisi, IP, s&uuml;re)</li>
+            <li><code>{ access_token, refresh_token, expires_in, user }</code> d&ouml;nd&uuml;r&uuml;r</li>
+            <li>Frontend token&rsquo;lar&inodot; ve kullan&inodot;c&inodot;y&inodot; <code>localStorage</code>&rsquo;a kaydeder (anahtarlar: <code>solen_auth_token</code>, <code>solen_refresh_token</code>, <code>solen_current_user</code>)</li>
+            <li>Operat&ouml;rler <code>/production</code>&rsquo;a, di&gbreve;erleri <code>/welcome</code>&rsquo;a y&ouml;nlendirilir</li>
+        </ol>
+
+        <h4>Kiosk Otomatik Giri&#351;</h4>
+        <p>Giri&#351; sayfas&inodot; fabrika kiosk cihazlar&inodot;n&inodot; iki &#351;ekilde alg&inodot;lar:</p>
+        <ol>
+            <li><strong>User-Agent alg&inodot;lama:</strong> taray&inodot;c&inodot; user-agent string&rsquo;inde &ldquo;FullyKiosk&rdquo; kontrol&uuml; (Fully Kiosk Browser fabrika telefonlar&inodot;nda &ccedil;al&inodot;&#351;an uygulamad&inodot;r)</li>
+            <li><strong>Gizli URL token&rsquo;&inodot;:</strong> URL&rsquo;de <code>?kiosk=SOLEN_FACTORY_2024_KIOSK_SECRET</code> kontrol&uuml;</li>
+        </ol>
+        <p>E&#351;le&#351;me olursa sayfa otomatik olarak <code>operator</code> / <code>op123</code> ile giri&#351; yapar ve <code>/production</code>&rsquo;a y&ouml;nlendirir &mdash; insan etkile&#351;imi gerekmez.</p>
+
+        <h4>Token Yenileme ve &Ccedil;&inodot;k&inodot;&#351;</h4>
+        <ol>
+            <li><strong>Yenileme:</strong> <code>POST /auth/refresh</code> ile yenileme token&rsquo;&inodot; &rarr; do&gbreve;rular, yeni eri&#351;im token&rsquo;&inodot; &uuml;retir, yeni oturum <em>olu&#351;turmaz</em></li>
+            <li><strong>&Ccedil;&inodot;k&inodot;&#351;:</strong> <code>POST /auth/logout</code> ile eri&#351;im token&rsquo;&inodot; &rarr; oturum <code>status = "terminated"</code> ve <code>logout_time</code> ayarlan&inodot;r &rarr; frontend <code>localStorage</code>&rsquo;&inodot; temizler</li>
+        </ol>
+
+        <h3>6.4.4 Yetki Sistemi &mdash; En Karma&#351;&inodot;k B&ouml;l&uuml;m</h3>
+
+        <p>Yetkilendirme sistemi, rota d&uuml;zeyinden tek tek buton g&ouml;r&uuml;n&uuml;rl&uuml;&gbreve;&uuml;ne kadar eri&#351;imi kontrol eden <strong>5 katmanl&inodot; bir mimari</strong>dir:</p>
+
+        <div class="flow">
+            <span class="flow-step">Katman 1: Yetki Manifesti (statik tan&inodot;m)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Katman 2: Buton Kay&inodot;t Defteri (dinamik &ccedil;al&inodot;&#351;ma zaman&inodot;)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Katman 3: Eri&#351;im Kontrol&uuml; (rota korumalar&inodot;)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Katman 4: Yetki Yard&inodot;mc&inodot;lar&inodot; (bile&#351;en d&uuml;zeyi)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Katman 5: Backend Zorlama (API d&uuml;zeyi)</span>
+        </div>
+
+        <h4>Katman 1: Yetki Manifesti (<code>permissionManifest.ts</code>, 565 sat&inodot;r)</h4>
+
+        <p>T&uuml;m ERP&rsquo;deki <strong>her yetkilendirilebilir eylemin</strong> statik, merkezi tan&inodot;m&inodot;. Mod&uuml;l &rarr; Sayfa &rarr; Buton hiyerar&#351;isi:</p>
+
+        <table>
+            <tr><th>Mod&uuml;l</th><th>Sayfalar</th><th>Toplam Buton</th><th>&Ouml;ne &Ccedil;&inodot;kanlar</th></tr>
+            <tr><td><strong>Dashboard</strong></td><td>1 (Ana)</td><td>3</td><td>access_page, view_stats, view_charts</td></tr>
+            <tr><td><strong>Hammadde</strong></td><td>3 (Giri&#351;, Liste, Tedarik&ccedil;i)</td><td>30</td><td>Giri&#351; formlar&inodot; i&ccedil;in 12, liste i&ccedil;in 11 (hard_delete dahil), tedarik&ccedil;iler i&ccedil;in 7</td></tr>
+            <tr><td><strong>Lab</strong></td><td>2 (Panel, Test)</td><td>5</td><td>Lab eri&#351;imi, test y&ouml;netimi</td></tr>
+            <tr><td><strong>Teknik</strong></td><td>6 (Panel, Kablo Tasar&inodot;m, Makine, Standart, Kablo DB, Markalama)</td><td>32</td><td>Tek ba&#351;&inodot;na Kablo Playground i&ccedil;in 11</td></tr>
+            <tr><td><strong>Sipari&#351;</strong></td><td>3 (Sipari&#351;lerim, Olu&#351;tur, M&uuml;&#351;teri)</td><td>17</td><td>Sipari&#351; CRUD, m&uuml;&#351;teri y&ouml;netimi</td></tr>
+            <tr><td><strong>&Uuml;retim</strong></td><td>12 (Planlama, 6 makine, Aktarma, Paletleme, Sevkiyat, Liste, Ge&ccedil;mi&#351;)</td><td>~40</td><td>Makine tipi ba&#351;&inodot;na &uuml;retim ba&#351;lat/durdur, planlama, sevkiyat</td></tr>
+            <tr><td><strong>Stok</strong></td><td>3 (&Uuml;r&uuml;n, Hammadde, Projeksiyon)</td><td>14</td><td>G&ouml;r&uuml;nt&uuml;le, d&inodot;&#351;a aktar, filtrele, stok ayarla</td></tr>
+            <tr><td><strong>Admin</strong></td><td>3 (Yazd&inodot;rma &#304;zleme, Yaz&inodot;c&inodot;, Kullan&inodot;c&inodot;)</td><td>22</td><td>Kullan&inodot;c&inodot; Y&ouml;netimi i&ccedil;in 9 (manage_permissions dahil)</td></tr>
+        </table>
+
+        <p><strong>Toplam: 8 mod&uuml;l, 26+ sayfa, 200+ buton.</strong></p>
+
+        <p>Her butonun meta verisi vard&inodot;r:</p>
+        <pre><span class="keyword">interface</span> <span class="string">ButtonPermission</span> {
+  id: <span class="keyword">string</span>;       <span class="comment">// &ouml;rn. "hard_delete_material"</span>
+  label: <span class="keyword">string</span>;    <span class="comment">// &ouml;rn. "Kal&inodot;c&inodot; Silme"</span>
+  description: <span class="keyword">string</span>; <span class="comment">// &ouml;rn. "Malzemeyi veritaban&inodot;ndan tamamen siler"</span>
+  critical?: <span class="keyword">boolean</span>; <span class="comment">// true = yetki d&uuml;zenleyicide k&inodot;rm&inodot;z&inodot; vurgulanm&inodot;&#351;</span>
+}</pre>
+
+        <p>Manifest ayr&inodot;ca yard&inodot;mc&inodot; fonksiyonlar da export eder: <code>createEmptyPermissions()</code> (t&uuml;m&uuml; false), <code>createFullPermissions()</code> (t&uuml;m&uuml; true), <code>getAllPages()</code>, <code>getAllButtons()</code>.</p>
+
+        <h4>Katman 2: Buton Kay&inodot;t Defteri (<code>buttonRegistry.ts</code>, 130 sat&inodot;r)</h4>
+
+        <p>Statik manifeste dinamik bir tamamlay&inodot;c&inodot;. Bile&#351;enler &ccedil;al&inodot;&#351;ma zaman&inodot;nda <code>registerPageButtons()</code> ile butonlar&inodot;n&inodot; kaydedebilir. <code>buildCompleteManifest()</code> fonksiyonu statik manifest sayfalar&inodot;n&inodot; dinamik kay&inodot;t defteri butonlar&inodot;yla birle&#351;tirir. Bu, yeni sayfalar&inodot;n merkezi manifest dosyas&inodot;n&inodot; de&gbreve;i&#351;tirmeden yetkilerini kendilerinin kaydetmesine olanak tan&inodot;r.</p>
+
+        <h4>Katman 3: Eri&#351;im Kontrol&uuml; &mdash; Rota Korumalar&inodot; (<code>access.ts</code>, 93 sat&inodot;r)</h4>
+
+        <p>Her rota de&gbreve;i&#351;ikli&gbreve;inde &ccedil;al&inodot;&#351;&inodot;r. Mevcut kullan&inodot;c&inodot;n&inodot;n <code>permissions</code> JSON&rsquo;&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;r ve <code>routes.ts</code> taraf&inodot;ndan t&uuml;ketilen boolean bayraklar d&ouml;nd&uuml;r&uuml;r:</p>
+
+        <pre><span class="keyword">return</span> {
+  canAdmin: canAccessModule(<span class="string">'admin'</span>),     <span class="comment">// /admin/* rotalar&inodot;n&inodot; korur</span>
+  canLab: canAccessModule(<span class="string">'lab'</span>),         <span class="comment">// /lab/* rotalar&inodot;n&inodot; korur</span>
+  canProduction: canAccessModule(<span class="string">'production'</span>),
+  canHammadde: canAccessModule(<span class="string">'hammadde'</span>),
+  canTeknik: canAccessModule(<span class="string">'teknik'</span>),
+  canSiparis: canAccessModule(<span class="string">'siparis'</span>),
+  canStok: canAccessModule(<span class="string">'stok'</span>),
+  canDashboard: canAccessModule(<span class="string">'dashboard'</span>),
+  <span class="comment">// ... art&inodot; alt sayfa korumalar&inodot;</span>
+};</pre>
+
+        <p><code>canAccessModule(prefix)</code>, o mod&uuml;l alt&inodot;ndaki <em>herhangi bir</em> sayfa <code>access: true</code> ise true d&ouml;nd&uuml;r&uuml;r. Rotalar bunlar&inodot; koruma olarak kullan&inodot;r: rota konfig&uuml;rasyonunda <code>access: 'canAdmin'</code>.</p>
+
+        <h4>Katman 4: Yetki Yard&inodot;mc&inodot;lar&inodot; &mdash; Bile&#351;en D&uuml;zeyi (<code>permissions.ts</code>, 145 sat&inodot;r)</h4>
+
+        <p>Tek tek bile&#351;enler i&ccedil;in ince ayar kontrolleri sa&gbreve;lar:</p>
+        <ul>
+            <li><code>canAccessModule(module)</code> &mdash; mod&uuml;l etkin mi?</li>
+            <li><code>canPerformAction(module, action)</code> &mdash; belirli eylem izinli mi?</li>
+            <li><code>hasSpecialPermission(permission)</code> &mdash; &ouml;rn. <code>hard_delete</code></li>
+        </ul>
+
+        <p>Ayr&inodot;ca React sar&inodot;c&inodot; bile&#351;enleri export eder:</p>
+        <ul>
+            <li><code>&lt;PermissionButton module="hammadde" action="delete"&gt;</code> &mdash; yetkiye g&ouml;re butonu g&ouml;ster/gizle</li>
+            <li><code>&lt;PermissionGuard module="admin" action="manage"&gt;</code> &mdash; herhangi bir bile&#351;eni yetki kontrol&uuml;yle sar, reddedilirse fallback g&ouml;ster</li>
+        </ul>
+
+        <h4>Katman 5: Backend Zorlama (<code>permission_checker.py</code>, 200 sat&inodot;r)</h4>
+
+        <p>Sunucu taraf&inodot; aynas&inodot;. Bir kullan&inodot;c&inodot; frontend&rsquo;i atlasa bile backend yetkileri zorlar:</p>
+
+        <table>
+            <tr><th>Fonksiyon</th><th>Ne Kontrol Eder</th></tr>
+            <tr><td><code>check_user_permission(user, page_id, button_id)</code></td><td>Kullan&inodot;c&inodot;n&inodot;n <code>permissions</code> JSON&rsquo;&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;r, <code>pages[page_id].access</code> ve <code>pages[page_id].buttons[button_id]</code> kontrol eder</td></tr>
+            <tr><td><code>has_special_permission(user, permission)</code></td><td><code>special_permissions[permission]</code> kontrol eder</td></tr>
+            <tr><td><code>is_permitted_user(user, required_types)</code></td><td>Eski rol tabanl&inodot; kontrol + gran&uuml;ler geri d&ouml;n&uuml;&#351;</td></tr>
+            <tr><td><code>check_permission_smart(user, types, page, button)</code></td><td><strong>Hibrit</strong>: &ouml;nce eski rol kontrol&uuml;, sonra gran&uuml;ler, sonra nazik geri d&ouml;n&uuml;&#351;. Geriye uyumlu.</td></tr>
+            <tr><td><code>require_permission(page_id, button_id)</code></td><td>Yetki reddedilirse 403 f&inodot;rlatan bir FastAPI dependency d&ouml;nd&uuml;r&uuml;r</td></tr>
+        </table>
+
+        <p><strong>S&uuml;per admin atlama:</strong> Her yetki fonksiyonu &ouml;nce <code>user.user_type == "super_admin"</code> kontrol eder ve hemen <code>True</code> d&ouml;nd&uuml;r&uuml;r.</p>
+
+        <h4>Yetki JSON Yap&inodot;s&inodot;</h4>
+        <p><code>users.permissions</code> s&uuml;tununda JSON string olarak saklan&inodot;r. Frontend ve backend aras&inodot;ndaki s&ouml;zle&#351;me:</p>
+
+        <pre>{
+  <span class="string">"pages"</span>: {
+    <span class="string">"hammadde.hammadde_girisi"</span>: {
+      <span class="string">"access"</span>: <span class="keyword">true</span>,
+      <span class="string">"buttons"</span>: {
+        <span class="string">"add_copper"</span>: <span class="keyword">true</span>,
+        <span class="string">"add_tin"</span>: <span class="keyword">false</span>,
+        <span class="string">"submit_form"</span>: <span class="keyword">true</span>,
+        <span class="string">"print_qr"</span>: <span class="keyword">true</span>
+      }
+    },
+    <span class="string">"production.planning"</span>: {
+      <span class="string">"access"</span>: <span class="keyword">false</span>,
+      <span class="string">"buttons"</span>: {}
+    }
+  }
+}</pre>
+
+        <h3>6.4.5 API S&ouml;zle&#351;mesi &mdash; 14 Endpoint (9 Kullan&inodot;c&inodot; Y&ouml;netimi + 5 Auth)</h3>
+
+        <h4>Kimlik Do&gbreve;rulama Endpoint&rsquo;leri (5)</h4>
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/login</code></td><td>Kullan&inodot;c&inodot; ad&inodot;/&#351;ifre ile do&gbreve;rula. Eri&#351;im + yenileme token&rsquo;lar&inodot; ve kullan&inodot;c&inodot; nesnesi d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/logout</code></td><td>Oturumu sonland&inodot;r. Oturum durumunu &ldquo;terminated&rdquo; yapar ve &ccedil;&inodot;k&inodot;&#351; zaman&inodot;n&inodot; kaydeder.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/refresh</code></td><td>Yenileme token&rsquo;&inodot;n&inodot; yeni eri&#351;im token&rsquo;&inodot; ile de&gbreve;i&#351;tir. Yeni oturum olu&#351;turmaz.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/auth/me</code></td><td>Token&rsquo;dan mevcut kullan&inodot;c&inodot; bilgisini al. Frontend&rsquo;in sayfa yenilemede durumu geri y&uuml;klemesi i&ccedil;in.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/auth/health</code></td><td>Auth servisi sa&gbreve;l&inodot;k kontrol&uuml;: veritaban&inodot; ba&gbreve;lant&inodot;s&inodot;, versiyon, &ccedil;al&inodot;&#351;ma s&uuml;resi.</td></tr>
+        </table>
+
+        <h4>Kullan&inodot;c&inodot; Y&ouml;netimi Endpoint&rsquo;leri (9)</h4>
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/users/list</code></td><td>super_admin</td><td>T&uuml;m kullan&inodot;c&inodot;lar&inodot; listele. <code>?status_filter</code> ve <code>?user_type</code> sorgu parametrelerini destekler. Yetki JSON&rsquo;&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;r.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/operators</code></td><td>herhangi do&gbreve;rulanm&inodot;&#351;</td><td>Aktif kullan&inodot;c&inodot;lar&inodot; listele (di&gbreve;er mod&uuml;llerdeki operat&ouml;r dropdown&rsquo;lar&inodot; i&ccedil;in). Yaln&inodot;zca id, username, full_name d&ouml;nd&uuml;r&uuml;r.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/create</code></td><td>super_admin</td><td>Kullan&inodot;c&inodot; olu&#351;tur. Kullan&inodot;c&inodot; ad&inodot;/e-posta benzersizli&gbreve;ini do&gbreve;rular. Verilmezse &#351;ifre otomatik &uuml;retir. Yetki JSON&rsquo;&inodot;n&inodot; saklar. Aktivite kaydeder.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/user-management/users/{id}</code></td><td>super_admin</td><td>Kullan&inodot;c&inodot; alanlar&inodot;n&inodot; g&uuml;ncelle (kullan&inodot;c&inodot; ad&inodot;, e-posta, ad, tip, durum, yetkiler, &#351;ifre). Aktivite kaydeder.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/{id}/suspend</code></td><td>super_admin</td><td><code>active</code> ve <code>suspended</code> aras&inodot;nda ge&ccedil;i&#351; yap. Aktivite kaydeder.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/user-management/users/{id}</code></td><td>super_admin</td><td>Kullan&inodot;c&inodot;y&inodot; kal&inodot;c&inodot; olarak sil. Kendini silme engellenir (400). Aktivite kaydeder.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/{id}/reset-password</code></td><td>super_admin</td><td>Yeni 12 karakterlik &#351;ifre &uuml;ret. <code>force_password_change = True</code> ayarlar. &#350;ifreyi d&ouml;nd&uuml;r&uuml;r (tek seferlik). Aktivite kaydeder.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/roles/list</code></td><td>super_admin</td><td>T&uuml;m rol &#351;ablonlar&inodot;n&inodot; ayr&inodot;&#351;t&inodot;r&inodot;lm&inodot;&#351; yetkilerle listele.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/activity-logs</code></td><td>super_admin</td><td>Aktivite g&uuml;nl&uuml;klerini sorgula. <code>?user_id</code>, <code>?module</code>, <code>?action</code>, <code>?limit</code> filtrelerini destekler.</td></tr>
+        </table>
+
+        <h3>6.4.6 CRUD Ak&inodot;&#351;&inodot;</h3>
+
+        <p><strong>Olu&#351;tur (Yeni Kullan&inodot;c&inodot;):</strong></p>
+        <ol>
+            <li>&ldquo;Yeni Kullan&inodot;c&inodot;&rdquo; butonuna t&inodot;kla &rarr; 3 sekmeli modal a&ccedil;&inodot;l&inodot;r</li>
+            <li><strong>Sekme 1 &ndash; Temel Bilgiler:</strong> kullan&inodot;c&inodot; ad&inodot; (gerekli, alfan&uuml;merik + alt &ccedil;izgi), e-posta (do&gbreve;rulanm&inodot;&#351;), tam ad, &#351;ifre (iste&gbreve;e ba&gbreve;l&inodot; &mdash; bo&#351;sa otomatik &uuml;retilir), kullan&inodot;c&inodot; tipi (se&ccedil; veya sat&inodot;r i&ccedil;i &ouml;zel tip olu&#351;tur), durum, &#351;ifre de&gbreve;i&#351;tirme zorunlu onay kutusu</li>
+            <li><strong>Sekme 2 &ndash; Yetkiler:</strong> yetki d&uuml;zenleyici &mdash; &uuml;stte 4 h&inodot;zl&inodot; &#351;ablon (&ldquo;T&uuml;m Yetkiler&rdquo;, &ldquo;Hi&ccedil;biri&rdquo;, &ldquo;Operat&ouml;r Varsay&inodot;lan&rdquo;, &ldquo;Lab User Varsay&inodot;lan&rdquo;), ard&inodot;ndan kayd&inodot;r&inodot;labilir mod&uuml;l listesi. Her mod&uuml;l sayfalar&inodot; g&ouml;sterir, her sayfada: eri&#351;im switch&rsquo;i, &ldquo;T&uuml;m&uuml;&rdquo;/&ldquo;Hi&ccedil;biri&rdquo; h&inodot;zl&inodot; ge&ccedil;i&#351;ler, tek tek buton onay kutular&inodot;. Kritik butonlar k&inodot;rm&inodot;z&inodot; vurgulan&inodot;r. Bir butonu etkinle&#351;tirmek sayfan&inodot;n eri&#351;imini otomatik etkinle&#351;tirir. Sayfa eri&#351;imini kapatmak t&uuml;m butonlar&inodot;n&inodot; kapat&inodot;r.</li>
+            <li><strong>Sekme 3 &ndash; &Ouml;nizleme:</strong> salt okunur &ouml;zet, eri&#351;ilebilir mod&uuml;ller &rarr; sayfalar &rarr; etkin butonlar&inodot; renk kodlu etiketlerle g&ouml;sterir</li>
+            <li>&ldquo;Olu&#351;tur&rdquo;a t&inodot;kla &rarr; <code>POST /user-management/users/create</code> ile <code>{ username, email, full_name, user_type, status, permissions, force_password_change, return_password: true }</code></li>
+            <li>Backend benzersizli&gbreve;i do&gbreve;rular (kullan&inodot;c&inodot; ad&inodot;, e-posta), &#351;ifreyi bcrypt ile hashler, kullan&inodot;c&inodot; + yetki JSON&rsquo;&inodot;n&inodot; saklar, aktivite kaydeder</li>
+            <li>&#350;ifre otomatik &uuml;retildiyse: modal &uuml;retilen &#351;ifreyi &ldquo;Bu &#351;ifreyi not edin, tekrar g&ouml;sterilmeyecektir&rdquo; uyar&inodot;s&inodot;yla g&ouml;sterir</li>
+        </ol>
+
+        <p><strong>Oku (Kullan&inodot;c&inodot; Listesi):</strong></p>
+        <ol>
+            <li><code>/admin/user-management</code>&rsquo;a git &rarr; ProTable <code>GET /user-management/users/list</code> ile y&uuml;klenir</li>
+            <li>7 s&uuml;tun: ID (sabit sol), Kullan&inodot;c&inodot; (kullan&inodot;c&inodot; ad&inodot; + tam ad), E-posta, Tip (renkli etiket), Durum (renkli etiket), Son Giri&#351; (UTC &rarr; Istanbul), &#304;&#351;lemler (sabit sa&gbreve;)</li>
+            <li>&#304;stemci taraf&inodot; arama kullan&inodot;c&inodot; ad&inodot;, e-posta, tam ad, kullan&inodot;c&inodot; tipi ve durum &uuml;zerinde ayn&inodot; anda filtreler</li>
+            <li>Sayfalama: sayfa ba&#351;&inodot;na 10/20/50/100</li>
+            <li>ProTable yo&gbreve;unluk ve s&uuml;tun ayarlar&inodot; kontrolleri</li>
+        </ol>
+
+        <p><strong>G&uuml;ncelle (Kullan&inodot;c&inodot; D&uuml;zenle):</strong></p>
+        <ol>
+            <li>Kullan&inodot;c&inodot; sat&inodot;r&inodot;ndaki d&uuml;zenle ikonuna (EditOutlined) t&inodot;kla &rarr; ayn&inodot; 3 sekmeli modal a&ccedil;&inodot;l&inodot;r, kullan&inodot;c&inodot; verileriyle doldurulmu&#351;</li>
+            <li>Mevcut yetkiler y&uuml;klenir ve ayr&inodot;&#351;t&inodot;r&inodot;l&inodot;r (string JSON &rarr; nesne d&ouml;n&uuml;&#351;&uuml;m&uuml;n&uuml; y&ouml;netir)</li>
+            <li>&#350;ifre alan&inodot; d&uuml;zenleme modunda gizlidir (bunun i&ccedil;in &#350;ifre S&inodot;f&inodot;rla kullan&inodot;n)</li>
+            <li>Herhangi bir alan veya yetkiyi de&gbreve;i&#351;tir &rarr; &ldquo;G&uuml;ncelle&rdquo;ye t&inodot;kla</li>
+            <li><code>PUT /user-management/users/{id}</code> ile de&gbreve;i&#351;en alanlar + tam yetki nesnesi</li>
+            <li>Backend do&gbreve;rular, g&uuml;nceller, aktivite kaydeder</li>
+        </ol>
+
+        <p><strong>Sil (Kal&inodot;c&inodot;):</strong></p>
+        <ol>
+            <li>Kullan&inodot;c&inodot; sat&inodot;r&inodot;ndaki sil ikonuna (DeleteOutlined, tehlike) t&inodot;kla</li>
+            <li>Onay modal&inodot;: &ldquo;Bu kullan&inodot;c&inodot;y&inodot; silmek istedi&gbreve;inizden emin misiniz?&rdquo;</li>
+            <li><code>DELETE /user-management/users/{id}</code></li>
+            <li>Backend kendini silmeyi engeller (400 hatas&inodot;). Kullan&inodot;c&inodot; kayd&inodot;n&inodot; kal&inodot;c&inodot; olarak siler. Aktivite kaydeder.</li>
+        </ol>
+
+        <p><strong>Askiya Al / Etkinle&#351;tir:</strong></p>
+        <ol>
+            <li>Kullan&inodot;c&inodot; sat&inodot;r&inodot;ndaki durdur ikonuna (StopOutlined) t&inodot;kla</li>
+            <li><code>POST /user-management/users/{id}/suspend</code></li>
+            <li><code>active</code> ve <code>suspended</code> aras&inodot;nda durumu de&gbreve;i&#351;tirir. Ask&inodot;ya al&inodot;nm&inodot;&#351; kullan&inodot;c&inodot;lar giri&#351; yapamaz.</li>
+        </ol>
+
+        <p><strong>&#350;ifre S&inodot;f&inodot;rla:</strong></p>
+        <ol>
+            <li>Kullan&inodot;c&inodot; sat&inodot;r&inodot;ndaki anahtar ikonuna (KeyOutlined) t&inodot;kla</li>
+            <li><code>POST /user-management/users/{id}/reset-password</code></li>
+            <li>Backend kriptografik olarak g&uuml;venli 12 karakterlik &#351;ifre &uuml;retir, bcrypt ile hashler, <code>force_password_change = True</code> ayarlar</li>
+            <li>Modal yeni &#351;ifreyi uyar&inodot;yla bir kez g&ouml;sterir. Admin &#351;ifreyi kullan&inodot;c&inodot;ya bant d&inodot;&#351;&inodot;ndan iletmelidir.</li>
+        </ol>
+
+        <h3>6.4.7 Kullan&inodot;c&inodot; Tipleri ve Farklar&inodot;</h3>
+
+        <table>
+            <tr><th></th><th>S&uuml;per Admin</th><th>Lab Kullan&inodot;c&inodot;s&inodot;</th><th>Operat&ouml;r</th><th>&Ouml;zel Tipler</th></tr>
+            <tr><td><strong>Aray&uuml;z</strong></td><td>Masa&uuml;st&uuml;</td><td>Masa&uuml;st&uuml;</td><td>Mobil (kiosk)</td><td>Yap&inodot;land&inodot;r&inodot;labilir</td></tr>
+            <tr><td><strong>Panel Rotas&inodot;</strong></td><td><code>/welcome</code></td><td><code>/lab/dashboard</code></td><td><code>/production</code></td><td>Varsay&inodot;lan <code>/welcome</code></td></tr>
+            <tr><td><strong>Token S&uuml;resi</strong></td><td>12 saat</td><td>12 saat</td><td><strong>6 ay</strong></td><td>12 saat</td></tr>
+            <tr><td><strong>Yetki Atlama</strong></td><td><strong>Evet</strong> &mdash; t&uuml;m kontroller True d&ouml;ner</td><td>Hay&inodot;r</td><td>Hay&inodot;r</td><td>Hay&inodot;r</td></tr>
+            <tr><td><strong>Varsay&inodot;lan Mod&uuml;ller</strong></td><td>T&uuml;m&uuml; (<code>all_access</code>)</td><td>Lab, Hammadde</td><td>&Uuml;retim</td><td>Hi&ccedil;biri (manuel)</td></tr>
+            <tr><td><strong>Uzant&inodot; Tablosu</strong></td><td><code>super_admins</code></td><td><code>lab_users</code></td><td><code>operators</code></td><td>Yok</td></tr>
+            <tr><td><strong>Kullan&inodot;c&inodot; Y&ouml;netebilir</strong></td><td>Evet</td><td>Hay&inodot;r</td><td>Hay&inodot;r</td><td>Hay&inodot;r</td></tr>
+            <tr><td><strong>Otomatik Giri&#351;</strong></td><td>Hay&inodot;r</td><td>Hay&inodot;r</td><td><strong>Evet</strong> (kiosk)</td><td>Hay&inodot;r</td></tr>
+            <tr><td><strong>Men&uuml; Eri&#351;imi</strong></td><td><code>["all"]</code></td><td><code>["lab", "welcome"]</code></td><td><code>["production"]</code></td><td>Yetkilere ba&gbreve;l&inodot;</td></tr>
+        </table>
+
+        <p>&Ouml;zel tipler (&ouml;rn. <code>teknik_user</code>, <code>bakim_user</code>, <code>data</code>) do&gbreve;rudan Kullan&inodot;c&inodot; Y&ouml;netimi modal&inodot;nda olu&#351;turulabilir &mdash; kullan&inodot;c&inodot; tipi dropdown&rsquo;&inodot;n&inodot;n alt&inodot;ndaki bir girdi alan&inodot; yeni tip ad&inodot; yazmaya olanak tan&inodot;r. <code>user_type</code> alan&inodot; serbest bir <code>String(50)</code>&rsquo;dir, enum de&gbreve;il, bu esnekli&gbreve;i sa&gbreve;lar.</p>
+
+        <h3>6.4.8 Frontend Mimarisi</h3>
+
+        <p>Tek dosya: <code>src/pages/Admin/UserManagement/index.tsx</code> (960 sat&inodot;r). Rota: <code>/admin/user-management</code>.</p>
+
+        <h4>ProTable (7 s&uuml;tun)</h4>
+        <table>
+            <tr><th>#</th><th>S&uuml;tun</th><th>Geni&#351;lik</th><th>Detay</th></tr>
+            <tr><td>1</td><td>ID</td><td>60px, sabit sol</td><td>Say&inodot;sal</td></tr>
+            <tr><td>2</td><td>Kullan&inodot;c&inodot;</td><td>140px</td><td>Kullan&inodot;c&inodot; ad&inodot; (kal&inodot;n) + alt&inodot;nda tam ad</td></tr>
+            <tr><td>3</td><td>E-posta</td><td>200px</td><td>Ta&#351;mada &uuml;&ccedil; nokta</td></tr>
+            <tr><td>4</td><td>Tip</td><td>110px</td><td>Renkli etiket: super_admin (k&inodot;rm&inodot;z&inodot;), lab_user (mavi), operator (ye&#351;il), teknik_user (mor), bakim_user (turuncu)</td></tr>
+            <tr><td>5</td><td>Durum</td><td>100px</td><td>active (ba&#351;ar&inodot;/ye&#351;il), suspended (uyar&inodot;/sar&inodot;), inactive (varsay&inodot;lan/gri)</td></tr>
+            <tr><td>6</td><td>Son Giri&#351;</td><td>140px</td><td><code>dayjs.utc(date).tz('Europe/Istanbul')</code> formatl&inodot;</td></tr>
+            <tr><td>7</td><td>&#304;&#351;lemler</td><td>160px, sabit sa&gbreve;</td><td>4 eylem butonu (d&uuml;zenle, &#351;ifre s&inodot;f&inodot;rla, ask&inodot;ya al, sil)</td></tr>
+        </table>
+
+        <h4>Yetki D&uuml;zenleyici (Modal&rsquo;&inodot;n Sekme 2&rsquo;si)</h4>
+        <p>T&uuml;m ERP&rsquo;deki en karma&#351;&inodot;k UI bile&#351;eni. 8 mod&uuml;l&uuml;n her biri i&ccedil;in:</p>
+        <ol>
+            <li><strong>Mod&uuml;l ba&#351;l&inodot;&gbreve;&inodot;:</strong> ikon ile mod&uuml;l ad&inodot;</li>
+            <li><strong>Sayfa kartlar&inodot;:</strong> her sayfa Card bile&#351;eni olarak:
+                <ul>
+                    <li>Ba&#351;l&inodot;k: sayfa eri&#351;imi i&ccedil;in <code>Switch</code> + sayfa etiketi + &ldquo;X/Y&rdquo; etkin buton say&inodot;s&inodot; g&ouml;steren etiket</li>
+                    <li>H&inodot;zl&inodot; eylemler: &ldquo;T&uuml;m&uuml;&rdquo; (t&uuml;m&uuml;n&uuml; etkinle&#351;tir) / &ldquo;Hi&ccedil;biri&rdquo; (t&uuml;m&uuml;n&uuml; kapat) metin butonlar&inodot;</li>
+                    <li>Buton &inodot;zgaras&inodot;: her buton i&ccedil;in <code>Row</code>/<code>Col</code> d&uuml;zeninde <code>Checkbox</code> bile&#351;enleri</li>
+                    <li>Kritik butonlar: k&inodot;rm&inodot;z&inodot; metin ve farkl&inodot; stille vurgulanm&inodot;&#351;</li>
+                </ul>
+            </li>
+            <li><strong>Ak&inodot;ll&inodot; ge&ccedil;i&#351;:</strong> herhangi bir butonu etkinle&#351;tirmek sayfan&inodot;n eri&#351;imini otomatik etkinle&#351;tirir. Sayfa eri&#351;imini kapatmak t&uuml;m butonlar&inodot; kaskad olarak kapat&inodot;r.</li>
+        </ol>
+
+        <h4>H&inodot;zl&inodot; &#350;ablonlar</h4>
+        <table>
+            <tr><th>&#350;ablon</th><th>Etki</th></tr>
+            <tr><td>&ldquo;T&uuml;m Yetkiler&rdquo;</td><td><code>createFullPermissions()</code> &mdash; her sayfa ve her buton <code>true</code></td></tr>
+            <tr><td>&ldquo;Hi&ccedil;biri&rdquo;</td><td><code>createEmptyPermissions()</code> &mdash; her &#351;ey <code>false</code></td></tr>
+            <tr><td>&ldquo;Operat&ouml;r Varsay&inodot;lan&rdquo;</td><td>&Uuml;retim mod&uuml;l&uuml; etkin (planlama sayfas&inodot; hari&ccedil;, o d&inodot;&#351;lanm&inodot;&#351;)</td></tr>
+            <tr><td>&ldquo;Lab User Varsay&inodot;lan&rdquo;</td><td>Lab ve Hammadde mod&uuml;lleri etkin</td></tr>
+        </table>
+
+        <h4>&Ouml;nizleme Sekmesi (Sekme 3)</h4>
+        <p>Card bile&#351;enleri kullanan salt okunur &ouml;zet. Yaln&inodot;zca eri&#351;ilebilir mod&uuml;lleri/sayfalar&inodot; g&ouml;sterir. Her sayfa etkin butonlar&inodot;n&inodot; Tag olarak listeler (kritik olanlar k&inodot;rm&inodot;z&inodot;). Kaydetmeden &ouml;nce h&inodot;zl&inodot; g&ouml;rsel onay sa&gbreve;lar.</p>
+
+        <h3>6.4.9 Aktivite G&uuml;nl&uuml;&gbreve;&uuml; &mdash; Admin Denetim &#304;zi</h3>
+
+        <p>Her kullan&inodot;c&inodot; y&ouml;netimi eylemi <code>log_activity()</code> yard&inodot;mc&inodot; fonksiyonu arac&inodot;l&inodot;&gbreve;&inodot;yla <code>user_activity_logs</code>&rsquo;a kaydedilir:</p>
+
+        <table>
+            <tr><th>Eylem</th><th>Kaydedilen Alanlar</th></tr>
+            <tr><td><code>create_user</code></td><td>Kim olu&#351;turdu, hedef kullan&inodot;c&inodot; ID, kullan&inodot;c&inodot; ad&inodot;, IP, user agent</td></tr>
+            <tr><td><code>update_user</code></td><td>Kim g&uuml;ncelledi, hedef kullan&inodot;c&inodot; ID, de&gbreve;i&#351;en alanlar detaylarda</td></tr>
+            <tr><td><code>suspend_user</code></td><td>Kim ask&inodot;ya ald&inodot;, hedef kullan&inodot;c&inodot; ID, yeni durum</td></tr>
+            <tr><td><code>delete_user</code></td><td>Kim sildi, hedef kullan&inodot;c&inodot; ID</td></tr>
+            <tr><td><code>reset_password</code></td><td>Kim s&inodot;f&inodot;rlad&inodot;, hedef kullan&inodot;c&inodot; ID (&#351;ifre asla kaydedilmez)</td></tr>
+        </table>
+
+        <p>G&uuml;nl&uuml;kler <code>GET /user-management/activity-logs</code> ile user_id, module, action ve limit (varsay&inodot;lan 200) filtreleriyle sorgulanabilir. Yaln&inodot;zca s&uuml;per adminler bu endpoint&rsquo;e eri&#351;ebilir.</p>
+
+        <h3>6.4.10 Yetki Modeli</h3>
+
+        <p>Kullan&inodot;c&inodot; Y&ouml;netimi sistemdeki en y&uuml;ksek ayr&inodot;cal&inodot;k d&uuml;zeyini gerektirir:</p>
+
+        <table>
+            <tr><th>Eylem</th><th>Gerekli Rol</th></tr>
+            <tr><td>Kullan&inodot;c&inodot; listesini g&ouml;r&uuml;nt&uuml;le</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Kullan&inodot;c&inodot; olu&#351;tur</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Kullan&inodot;c&inodot; d&uuml;zenle</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Yetkileri y&ouml;net</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Ask&inodot;ya al / etkinle&#351;tir</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>&#350;ifre s&inodot;f&inodot;rla</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Kullan&inodot;c&inodot; sil</td><td>yaln&inodot;zca super_admin (kendini silme engellenir)</td></tr>
+            <tr><td>Aktivite g&uuml;nl&uuml;klerini g&ouml;r&uuml;nt&uuml;le</td><td>yaln&inodot;zca super_admin</td></tr>
+            <tr><td>Operat&ouml;rleri listele (dropdown)</td><td>herhangi do&gbreve;rulanm&inodot;&#351; kullan&inodot;c&inodot;</td></tr>
+        </table>
+
+        <p>Yetki manifestinde Kullan&inodot;c&inodot; Y&ouml;netimi&rsquo;nin 9 kay&inodot;tl&inodot; butonu vard&inodot;r: <code>access_page</code>, <code>view_users</code>, <code>create_user</code>, <code>edit_user</code>, <code>manage_permissions</code>, <code>suspend_user</code>, <code>reset_password</code>, <code>delete_user</code>, <code>view_activity_logs</code>.</p>
+
+        <p>Backend rol tabanl&inodot; eri&#351;im zorlar: <code>/user-management/operators</code> hari&ccedil; her endpoint <code>current_user.user_type != "super_admin"</code> kontrol eder ve ba&#351;ar&inodot;s&inodot;z olursa 403 d&ouml;nd&uuml;r&uuml;r.</p>
+
+        <h3>6.4.11 Kullan&inodot;c&inodot; Y&ouml;netimi Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; T&uuml;m Mod&uuml;ller (Kimlik Do&gbreve;rulama)</h4>
+                <p>T&uuml;m ERP&rsquo;deki her API endpoint&rsquo;i Kullan&inodot;c&inodot; Y&ouml;netimi&rsquo;nin kimlik do&gbreve;rulamas&inodot;na ba&gbreve;&inodot;ml&inodot;d&inodot;r. <code>get_current_user_dependency()</code> FastAPI dependency&rsquo;si t&uuml;m rota dosyalar&inodot;na import edilir ve kullan&inodot;l&inodot;r. Burada &uuml;retilen JWT token&rsquo;lar&inodot; herhangi korunan kayna&gbreve;a eri&#351;menin <em>tek</em> yoludur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; T&uuml;m Mod&uuml;ller (Yetkilendirme)</h4>
+                <p>Kullan&inodot;c&inodot; ba&#351;&inodot;na saklanan <code>permissions</code> JSON&rsquo;&inodot;, her kullan&inodot;c&inodot;n&inodot;n 8 mod&uuml;l&uuml;n tamam&inodot;nda ne g&ouml;rd&uuml;&gbreve;&uuml;n&uuml; ve ne yapabilece&gbreve;ini kontrol eder. Rota korumalar&inodot; (<code>access.ts</code>), bile&#351;en korumalar&inodot; (<code>PermissionGuard</code>) ve backend kontrolleri (<code>permission_checker.py</code>) hepsi ayn&inodot; yetki yap&inodot;s&inodot;ndan okur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Hammadde Giri&#351;i (Operat&ouml;r Dropdown&rsquo;&inodot;)</h4>
+                <p><code>GET /user-management/operators</code> endpoint&rsquo;i, malzeme giri&#351; formlar&inodot;ndaki ve &uuml;retim sayfalar&inodot;ndaki operat&ouml;r/kullan&inodot;c&inodot; dropdown&rsquo;lar&inodot;n&inodot; besler. Herhangi do&gbreve;rulanm&inodot;&#351; kullan&inodot;c&inodot; buna eri&#351;ebilir, mod&uuml;ller aras&inodot;nda formlar&inodot;n &ldquo;bu malzemeyi kim girdi&rdquo; g&ouml;stermesini sa&gbreve;lar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; &Uuml;retim Sayfalar&inodot; (Kiosk Otomatik Giri&#351;)</h4>
+                <p>Kiosk otomatik giri&#351; sistemi (<code>?kiosk=...</code> token&rsquo;&inodot; veya Fully Kiosk alg&inodot;lamas&inodot;) fabrika kat&inodot; cihazlar&inodot; i&ccedil;in giri&#351; formunu tamamen atlar, payla&#351;&inodot;lan operat&ouml;r hesab&inodot;n&inodot;n 6 ayl&inodot;k token&rsquo;&inodot;yla do&gbreve;rudan <code>/production</code>&rsquo;a iner.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> Kullan&inodot;c&inodot; Y&ouml;netimi t&uuml;m ERP&rsquo;nin <em>&ccedil;ekim merkezi</em>dir. Her mod&uuml;l ona ba&gbreve;&inodot;ml&inodot;d&inodot;r ama o hi&ccedil;bir mod&uuml;le ba&gbreve;&inodot;ml&inodot; de&gbreve;ildir. 5 katmanl&inodot; yetki mimarisi (manifest &rarr; kay&inodot;t defteri &rarr; rota korumalar&inodot; &rarr; bile&#351;en korumalar&inodot; &rarr; backend zorlama) derinlemesine savunma sa&gbreve;lar: bir katman atlan&inodot;lsa bile di&gbreve;erleri hala eri&#351;im kontrol&uuml;n&uuml; zorlar. Hibrit yetki modeli (eski rol tabanl&inodot; + gran&uuml;ler sayfa+buton JSON) pragmatik bir m&uuml;hendislik karar&inodot;d&inodot;r &mdash; sistem basit rol kontrollerinden gran&uuml;ler yetkilere tam bir yeniden yazma gerektirmeden evrildi. <code>check_permission_smart()</code> fonksiyonu bunu somutla&#351;t&inodot;r&inodot;r: &ouml;nce yeni sistemi dener, eskiye geri d&ouml;ner ve nazik&ccedil;e degrade olur. 200+ buton manifesti, tek tek kay&inodot;t d&uuml;zeyinde eri&#351;im kontrol&uuml;ne gitmeden m&uuml;mk&uuml;n olan en ince ayarl&inodot; yetki sistemini olu&#351;turur. 6 ayl&inodot;k kiosk token&rsquo;&inodot;, &uuml;retim kat&inodot;ndaki payla&#351;&inodot;lan cihazlar&inodot;n her 12 saatte bir BT m&uuml;dahalesi olmadan &ldquo;&ccedil;al&inodot;&#351;mas&inodot;&rdquo; gereken bir fabrika ortam&inodot; i&ccedil;in al&inodot;&#351;&inodot;lmad&inodot;k ama pratik bir se&ccedil;imdir.</p>
+        </div>
+
     </main>
 </body>
 </html>

@@ -1423,6 +1423,481 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The AI system follows a <em>control plane / data plane</em> separation. The control plane (this settings page) manages configuration, keys, and monitoring. The data plane (the external <code>SolenAIAgent</code>) handles actual query processing. This separation means the AI agent can be upgraded, swapped, or scaled independently of the ERP backend. The 47-column audit log is deliberately over-engineered &mdash; it captures far more context than needed for basic logging, because AI forensics requires understanding not just <em>what</em> the AI did, but <em>why</em> it chose that action and what alternatives it considered. The multi-provider architecture (Gemini active, OpenAI/Claude ready) means switching AI providers is a configuration change, not a code change.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.4  KULLANICI YÖNETİMİ                      -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-4" style="margin-top: 48px;">6.4 Kullan&inodot;c&inodot; Y&ouml;netimi (User Management)</h2>
+
+        <h3>6.4.1 Purpose and Business Context</h3>
+
+        <p>User Management is the <strong>identity and authorization backbone</strong> of the entire ERP. Every other module &mdash; Hammadde, Teknik, Sipari&#351;, &Uuml;retim, Stok, Lab, Admin &mdash; depends on this submodule to answer two questions: <em>&ldquo;Who is this person?&rdquo;</em> (authentication) and <em>&ldquo;What are they allowed to do?&rdquo;</em> (authorization). It is the most complex submodule in the system because it implements a <strong>hybrid permission model</strong>: legacy role-based access layered with a granular page+button permission system that controls visibility down to individual UI buttons across 8 modules, 26+ pages, and 200+ actions.</p>
+
+        <p>The factory has three core user archetypes: <strong>Super Admin</strong> (full system control, desktop), <strong>Lab User</strong> (quality testing, desktop), and <strong>Operator</strong> (machine operation, mobile kiosk). Beyond these, the system supports unlimited custom user types created on-the-fly, each with hand-crafted permissions.</p>
+
+        <h3>6.4.2 Database Schema &mdash; 6 Tables, Joined-Table Inheritance</h3>
+
+        <h4>users (17 columns) &mdash; The Core Identity Table</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment, indexed</td></tr>
+            <tr><td><code>email</code></td><td>String(320)</td><td>Unique, indexed, not null</td></tr>
+            <tr><td><code>hashed_password</code></td><td>String(1024)</td><td>bcrypt hash, not null</td></tr>
+            <tr><td><code>is_active</code></td><td>Boolean</td><td>Default True</td></tr>
+            <tr><td><code>is_superuser</code></td><td>Boolean</td><td>Default False (FastAPI-Users legacy)</td></tr>
+            <tr><td><code>is_verified</code></td><td>Boolean</td><td>Default False</td></tr>
+            <tr><td><code>username</code></td><td>String(50)</td><td>Unique, indexed, not null</td></tr>
+            <tr><td><code>user_type</code></td><td>String(50)</td><td><code>super_admin</code>, <code>lab_user</code>, <code>operator</code>, or custom</td></tr>
+            <tr><td><code>full_name</code></td><td>String(100)</td><td>Display name</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td><code>active</code> / <code>inactive</code> / <code>suspended</code></td></tr>
+            <tr><td><code>last_login</code></td><td>DateTime</td><td>Updated on each login</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC timestamp</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Auto-updated on change</td></tr>
+            <tr><td><code>preferred_interface</code></td><td>String(20)</td><td><code>mobile</code> / <code>desktop</code> / <code>auto</code></td></tr>
+            <tr><td><code>device_info</code></td><td>JSON</td><td>Last known device details</td></tr>
+            <tr><td><code>permissions</code></td><td>Text</td><td><strong>JSON string</strong> &mdash; the granular permission object (pages + buttons)</td></tr>
+            <tr><td><code>force_password_change</code></td><td>Boolean</td><td>Default False, set True on password reset</td></tr>
+        </table>
+
+        <h4>Joined-Table Inheritance &mdash; Extension Tables</h4>
+        <p>Each user type has a dedicated extension table linked via <code>user_id FK &rarr; users.id</code> (unique, one-to-one). These store type-specific metadata:</p>
+
+        <table>
+            <tr><th>Table</th><th>Extra Columns</th><th>Purpose</th></tr>
+            <tr><td><code>super_admins</code></td><td>admin_level (system/module/user), permissions (JSON list), access_logs (JSON list)</td><td>Admin hierarchy, action audit trail</td></tr>
+            <tr><td><code>lab_users</code></td><td>lab_department, certifications (JSON list), test_specializations (JSON list), shift_schedule (JSON dict)</td><td>Lab-specific qualifications and shifts</td></tr>
+            <tr><td><code>operators</code></td><td>assigned_machines (JSON list), shift_schedule (JSON dict), skill_level (junior/senior/expert), certifications (JSON list)</td><td>Machine assignments and skill tracking</td></tr>
+        </table>
+
+        <p>SQLAlchemy backrefs provide navigation: <code>user.super_admin_profile</code>, <code>user.lab_user_profile</code>, <code>user.operator_profile</code>.</p>
+
+        <h4>user_sessions (11 columns)</h4>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment</td></tr>
+            <tr><td><code>user_id</code></td><td>Integer FK</td><td>References <code>users.id</code></td></tr>
+            <tr><td><code>session_token</code></td><td>String(255)</td><td>Unique, indexed &mdash; the JWT access token</td></tr>
+            <tr><td><code>refresh_token</code></td><td>String(255)</td><td>Unique, indexed</td></tr>
+            <tr><td><code>login_time</code></td><td>DateTime</td><td>When session started</td></tr>
+            <tr><td><code>logout_time</code></td><td>DateTime</td><td>Null until logout</td></tr>
+            <tr><td><code>expires_at</code></td><td>DateTime</td><td>Token expiry timestamp</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(45)</td><td>IPv6-ready</td></tr>
+            <tr><td><code>user_agent</code></td><td>Text</td><td>Browser/device string</td></tr>
+            <tr><td><code>device_type</code></td><td>String(20)</td><td><code>mobile</code> / <code>desktop</code> / <code>tablet</code></td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td><code>active</code> / <code>expired</code> / <code>terminated</code></td></tr>
+        </table>
+
+        <h4>user_roles (7 columns)</h4>
+        <p>Reusable permission templates (role definitions). Each role stores a full permission JSON that can be quickly applied to users.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment</td></tr>
+            <tr><td><code>name</code></td><td>String(50)</td><td>Unique, e.g. &ldquo;Lab Technician&rdquo;</td></tr>
+            <tr><td><code>description</code></td><td>Text</td><td>Human-readable role description</td></tr>
+            <tr><td><code>permissions</code></td><td>Text</td><td>JSON string &mdash; full permission structure</td></tr>
+            <tr><td><code>is_system</code></td><td>Boolean</td><td>System roles cannot be deleted</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Auto-updated</td></tr>
+        </table>
+
+        <h4>user_activity_logs (11 columns)</h4>
+        <p>Audit trail for every administrative action on users. <code>username</code> is denormalized for fast reads.</p>
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>user_id</code></td><td>Integer FK</td><td>Who performed the action</td></tr>
+            <tr><td><code>username</code></td><td>String(50)</td><td>Denormalized</td></tr>
+            <tr><td><code>action</code></td><td>String(50)</td><td><code>create_user</code>, <code>update_user</code>, <code>suspend_user</code>, <code>delete_user</code>, <code>reset_password</code></td></tr>
+            <tr><td><code>module</code></td><td>String(50)</td><td>Always <code>user_management</code></td></tr>
+            <tr><td><code>target_type</code></td><td>String(50)</td><td>Always <code>user</code></td></tr>
+            <tr><td><code>target_id</code></td><td>Integer</td><td>ID of affected user</td></tr>
+            <tr><td><code>details</code></td><td>Text</td><td>JSON string with extra context</td></tr>
+            <tr><td><code>ip_address</code></td><td>String(50)</td><td>Client IP</td></tr>
+            <tr><td><code>user_agent</code></td><td>Text</td><td>Browser string</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>When action occurred</td></tr>
+        </table>
+
+        <h3>6.4.3 Authentication System &mdash; JWT Tokens and Sessions</h3>
+
+        <h4>Token Architecture</h4>
+        <div class="flow">
+            <span class="flow-step">Login (username + password)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">bcrypt verify</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Generate Access Token (HS256)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Generate Refresh Token</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Create UserSession row</span>
+        </div>
+
+        <table>
+            <tr><th>Token Type</th><th>Expiry</th><th>Payload</th><th>Purpose</th></tr>
+            <tr><td><strong>Access Token</strong></td><td>12 hours (default)</td><td><code>sub</code> (user_id), <code>username</code>, <code>user_type</code>, <code>permissions</code>, <code>type: "access"</code></td><td>Authenticate every API request via <code>Authorization: Bearer</code> header</td></tr>
+            <tr><td><strong>Refresh Token</strong></td><td>7 days</td><td><code>sub</code> (user_id), <code>type: "refresh"</code>, <code>jti</code> (unique token ID)</td><td>Generate new access token without re-login</td></tr>
+            <tr><td><strong>Operator Kiosk Token</strong></td><td><strong>6 months</strong></td><td>Same as access token</td><td>Factory floor kiosk phones &mdash; avoid frequent re-login</td></tr>
+        </table>
+
+        <p>The 6-month token is triggered by a hardcoded check: <code>if user.username == 'operator'</code>. This is deliberate &mdash; the shared <code>operator</code> account is used on wall-mounted phones that should stay logged in for months.</p>
+
+        <h4>Password System</h4>
+        <table>
+            <tr><th>Operation</th><th>Implementation</th></tr>
+            <tr><td>Hashing</td><td><code>passlib</code> with <code>bcrypt</code> scheme. <code>CryptContext(schemes=["bcrypt"], deprecated="auto")</code></td></tr>
+            <tr><td>Verification</td><td><code>pwd_context.verify(plain, hashed)</code> &mdash; constant-time comparison</td></tr>
+            <tr><td>Auto-Generation</td><td><code>secrets.choice()</code> over <code>ascii_letters + digits + "!@#$%"</code>, 12 characters</td></tr>
+            <tr><td>Validation (Create)</td><td>Min 8 chars, must contain uppercase + lowercase + digit</td></tr>
+            <tr><td>Validation (Login)</td><td>Min 5 chars (allows simple operator passwords like <code>op123</code>)</td></tr>
+        </table>
+
+        <h4>Login Flow End-to-End</h4>
+        <ol>
+            <li>User submits username + password to <code>POST /auth/login</code></li>
+            <li>Backend queries user by username <em>or</em> email (case-insensitive)</li>
+            <li>Checks <code>is_active == True</code> and <code>status != "suspended"</code></li>
+            <li>Verifies password with bcrypt</li>
+            <li>Updates <code>last_login</code> timestamp</li>
+            <li>Builds JWT payload with <code>user_id</code>, <code>username</code>, <code>user_type</code>, <code>permissions</code></li>
+            <li>If operator account: sets 6-month expiry; otherwise 12-hour expiry</li>
+            <li>Creates <code>UserSession</code> row (session_token, refresh_token, device info, IP, expiry)</li>
+            <li>Returns <code>{ access_token, refresh_token, expires_in, user }</code></li>
+            <li>Frontend stores tokens and user in <code>localStorage</code> (keys: <code>solen_auth_token</code>, <code>solen_refresh_token</code>, <code>solen_current_user</code>)</li>
+            <li>Operators redirect to <code>/production</code>, others to <code>/welcome</code></li>
+        </ol>
+
+        <h4>Kiosk Auto-Login</h4>
+        <p>The Login page detects factory kiosk devices in two ways:</p>
+        <ol>
+            <li><strong>User-Agent detection:</strong> checks for &ldquo;FullyKiosk&rdquo; in the browser user-agent string (Fully Kiosk Browser is the app running on factory phones)</li>
+            <li><strong>Secret URL token:</strong> checks for <code>?kiosk=SOLEN_FACTORY_2024_KIOSK_SECRET</code> in the URL</li>
+        </ol>
+        <p>If either matches, the page automatically logs in as <code>operator</code> / <code>op123</code> and redirects to <code>/production</code> &mdash; no human interaction needed.</p>
+
+        <h4>Token Refresh and Logout</h4>
+        <ol>
+            <li><strong>Refresh:</strong> <code>POST /auth/refresh</code> with refresh token &rarr; validates, generates new access token, does <em>not</em> create new session</li>
+            <li><strong>Logout:</strong> <code>POST /auth/logout</code> with access token &rarr; sets session <code>status = "terminated"</code> and <code>logout_time</code> &rarr; frontend clears <code>localStorage</code></li>
+        </ol>
+
+        <h3>6.4.4 The Permission System &mdash; The Most Complex Part</h3>
+
+        <p>The authorization system is a <strong>5-layer architecture</strong> that controls access from route-level down to individual button visibility:</p>
+
+        <div class="flow">
+            <span class="flow-step">Layer 1: Permission Manifest (static definition)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Layer 2: Button Registry (dynamic runtime)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Layer 3: Access Control (route guards)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Layer 4: Permission Utilities (component-level)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Layer 5: Backend Enforcement (API-level)</span>
+        </div>
+
+        <h4>Layer 1: The Permission Manifest (<code>permissionManifest.ts</code>, 565 lines)</h4>
+
+        <p>A static, centralized definition of <strong>every permissionable action</strong> in the entire ERP. Structured as Module &rarr; Page &rarr; Button hierarchy:</p>
+
+        <table>
+            <tr><th>Module</th><th>Pages</th><th>Total Buttons</th><th>Highlights</th></tr>
+            <tr><td><strong>Dashboard</strong></td><td>1 (Main)</td><td>3</td><td>access_page, view_stats, view_charts</td></tr>
+            <tr><td><strong>Hammadde</strong></td><td>3 (Giri&#351;, Liste, Tedarik&ccedil;i)</td><td>30</td><td>12 for entry forms, 11 for list (incl. hard_delete), 7 for suppliers</td></tr>
+            <tr><td><strong>Lab</strong></td><td>2 (Panel, Test)</td><td>5</td><td>Lab access, test management</td></tr>
+            <tr><td><strong>Teknik</strong></td><td>6 (Panel, Kablo Tasar&inodot;m, Makine, Standart, Kablo DB, Markalama)</td><td>32</td><td>11 for Cable Playground alone</td></tr>
+            <tr><td><strong>Sipari&#351;</strong></td><td>3 (Sipari&#351;lerim, Olu&#351;tur, M&uuml;&#351;teri)</td><td>17</td><td>Order CRUD, customer management</td></tr>
+            <tr><td><strong>&Uuml;retim</strong></td><td>12 (Planlama, 6 machine pages, Aktarma, Paletleme, Sevkiyat, Liste, Ge&ccedil;mi&#351;)</td><td>~40</td><td>Start/stop production per machine type, planning, shipping</td></tr>
+            <tr><td><strong>Stok</strong></td><td>3 (&Uuml;r&uuml;n, Hammadde, Projeksiyon)</td><td>14</td><td>View, export, filter, adjust stock</td></tr>
+            <tr><td><strong>Admin</strong></td><td>3 (Yazd&inodot;rma &#304;zleme, Yaz&inodot;c&inodot;, Kullan&inodot;c&inodot;)</td><td>22</td><td>9 for User Management (incl. manage_permissions)</td></tr>
+        </table>
+
+        <p><strong>Total: 8 modules, 26+ pages, 200+ buttons.</strong></p>
+
+        <p>Each button has metadata:</p>
+        <pre><span class="keyword">interface</span> <span class="string">ButtonPermission</span> {
+  id: <span class="keyword">string</span>;       <span class="comment">// e.g. "hard_delete_material"</span>
+  label: <span class="keyword">string</span>;    <span class="comment">// e.g. "Kalıcı Silme"</span>
+  description: <span class="keyword">string</span>; <span class="comment">// e.g. "Malzemeyi veritabanından tamamen siler"</span>
+  critical?: <span class="keyword">boolean</span>; <span class="comment">// true = highlighted in red in permission editor</span>
+}</pre>
+
+        <p>The manifest also exports helper functions: <code>createEmptyPermissions()</code> (all false), <code>createFullPermissions()</code> (all true), <code>getAllPages()</code>, <code>getAllButtons()</code>.</p>
+
+        <h4>Layer 2: Button Registry (<code>buttonRegistry.ts</code>, 130 lines)</h4>
+
+        <p>A dynamic complement to the static manifest. Components can register their buttons at runtime via <code>registerPageButtons()</code>. The <code>buildCompleteManifest()</code> function merges static manifest pages with dynamic registry buttons. This allows new pages to self-register permissions without modifying the central manifest file.</p>
+
+        <h4>Layer 3: Access Control &mdash; Route Guards (<code>access.ts</code>, 93 lines)</h4>
+
+        <p>Runs on every route change. Parses the current user&rsquo;s <code>permissions</code> JSON and returns boolean flags consumed by <code>routes.ts</code>:</p>
+
+        <pre><span class="keyword">return</span> {
+  canAdmin: canAccessModule(<span class="string">'admin'</span>),     <span class="comment">// guards /admin/* routes</span>
+  canLab: canAccessModule(<span class="string">'lab'</span>),         <span class="comment">// guards /lab/* routes</span>
+  canProduction: canAccessModule(<span class="string">'production'</span>),
+  canHammadde: canAccessModule(<span class="string">'hammadde'</span>),
+  canTeknik: canAccessModule(<span class="string">'teknik'</span>),
+  canSiparis: canAccessModule(<span class="string">'siparis'</span>),
+  canStok: canAccessModule(<span class="string">'stok'</span>),
+  canDashboard: canAccessModule(<span class="string">'dashboard'</span>),
+  <span class="comment">// ... plus sub-page guards</span>
+};</pre>
+
+        <p><code>canAccessModule(prefix)</code> returns true if <em>any</em> page under that module has <code>access: true</code>. Routes use these as guards: <code>access: 'canAdmin'</code> in route config.</p>
+
+        <h4>Layer 4: Permission Utilities &mdash; Component-Level (<code>permissions.ts</code>, 145 lines)</h4>
+
+        <p>Provides fine-grained checks for individual components:</p>
+        <ul>
+            <li><code>canAccessModule(module)</code> &mdash; is module enabled?</li>
+            <li><code>canPerformAction(module, action)</code> &mdash; is specific action allowed?</li>
+            <li><code>hasSpecialPermission(permission)</code> &mdash; e.g. <code>hard_delete</code></li>
+        </ul>
+
+        <p>Also exports React wrapper components:</p>
+        <ul>
+            <li><code>&lt;PermissionButton module="hammadde" action="delete"&gt;</code> &mdash; shows/hides button based on permission</li>
+            <li><code>&lt;PermissionGuard module="admin" action="manage"&gt;</code> &mdash; wraps any component with permission check, shows fallback if denied</li>
+        </ul>
+
+        <h4>Layer 5: Backend Enforcement (<code>permission_checker.py</code>, 200 lines)</h4>
+
+        <p>The server-side mirror. Even if a user bypasses the frontend, the backend enforces permissions:</p>
+
+        <table>
+            <tr><th>Function</th><th>What It Checks</th></tr>
+            <tr><td><code>check_user_permission(user, page_id, button_id)</code></td><td>Parses user&rsquo;s <code>permissions</code> JSON, checks <code>pages[page_id].access</code> and <code>pages[page_id].buttons[button_id]</code></td></tr>
+            <tr><td><code>has_special_permission(user, permission)</code></td><td>Checks <code>special_permissions[permission]</code></td></tr>
+            <tr><td><code>is_permitted_user(user, required_types)</code></td><td>Legacy role-based check + granular fallback</td></tr>
+            <tr><td><code>check_permission_smart(user, types, page, button)</code></td><td><strong>Hybrid</strong>: tries legacy role check first, then granular, then graceful fallback. Backward-compatible.</td></tr>
+            <tr><td><code>require_permission(page_id, button_id)</code></td><td>Returns a FastAPI dependency that raises 403 if permission denied</td></tr>
+        </table>
+
+        <p><strong>Super admin bypass:</strong> Every permission function checks <code>user.user_type == "super_admin"</code> first and returns <code>True</code> immediately.</p>
+
+        <h4>The Permission JSON Structure</h4>
+        <p>Stored as a JSON string in the <code>users.permissions</code> column. This is the contract between frontend and backend:</p>
+
+        <pre>{
+  <span class="string">"pages"</span>: {
+    <span class="string">"hammadde.hammadde_girisi"</span>: {
+      <span class="string">"access"</span>: <span class="keyword">true</span>,
+      <span class="string">"buttons"</span>: {
+        <span class="string">"add_copper"</span>: <span class="keyword">true</span>,
+        <span class="string">"add_tin"</span>: <span class="keyword">false</span>,
+        <span class="string">"submit_form"</span>: <span class="keyword">true</span>,
+        <span class="string">"print_qr"</span>: <span class="keyword">true</span>
+      }
+    },
+    <span class="string">"production.planning"</span>: {
+      <span class="string">"access"</span>: <span class="keyword">false</span>,
+      <span class="string">"buttons"</span>: {}
+    }
+  }
+}</pre>
+
+        <h3>6.4.5 API Contract &mdash; 14 Endpoints (9 User Management + 5 Auth)</h3>
+
+        <h4>Authentication Endpoints (5)</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/login</code></td><td>Authenticate with username/password. Returns access + refresh tokens and user object.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/logout</code></td><td>Terminate session. Sets session status to &ldquo;terminated&rdquo; and records logout time.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/auth/refresh</code></td><td>Exchange refresh token for new access token. Does not create new session.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/auth/me</code></td><td>Get current user info from token. Used by frontend to restore state on page refresh.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/auth/health</code></td><td>Auth service health check: database connection, version, uptime.</td></tr>
+        </table>
+
+        <h4>User Management Endpoints (9)</h4>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/users/list</code></td><td>super_admin</td><td>List all users. Supports <code>?status_filter</code> and <code>?user_type</code> query params. Parses permissions JSON.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/operators</code></td><td>any authenticated</td><td>List active users (for operator dropdowns in other modules). Returns only id, username, full_name.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/create</code></td><td>super_admin</td><td>Create user. Validates username/email uniqueness. Auto-generates password if not provided. Stores permissions JSON. Logs activity.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/user-management/users/{id}</code></td><td>super_admin</td><td>Update user fields (username, email, name, type, status, permissions, password). Logs activity.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/{id}/suspend</code></td><td>super_admin</td><td>Toggle between <code>active</code> and <code>suspended</code>. Logs activity.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/user-management/users/{id}</code></td><td>super_admin</td><td>Permanently delete user. Self-deletion blocked (400). Logs activity.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/user-management/users/{id}/reset-password</code></td><td>super_admin</td><td>Generate new 12-char password. Sets <code>force_password_change = True</code>. Returns password (one-time). Logs activity.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/roles/list</code></td><td>super_admin</td><td>List all role templates with parsed permissions.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/user-management/activity-logs</code></td><td>super_admin</td><td>Query activity logs. Supports <code>?user_id</code>, <code>?module</code>, <code>?action</code>, <code>?limit</code> filters.</td></tr>
+        </table>
+
+        <h3>6.4.6 CRUD Flow</h3>
+
+        <p><strong>Create (New User):</strong></p>
+        <ol>
+            <li>Click &ldquo;Yeni Kullan&inodot;c&inodot;&rdquo; button &rarr; modal opens with 3 tabs</li>
+            <li><strong>Tab 1 &ndash; Temel Bilgiler:</strong> fill username (required, alphanumeric + underscore), email (validated), full name, password (optional &mdash; auto-generated if empty), user type (select or create custom type inline), status, force password change checkbox</li>
+            <li><strong>Tab 2 &ndash; Yetkiler:</strong> the permission editor &mdash; 4 quick templates at top (&ldquo;T&uuml;m Yetkiler&rdquo;, &ldquo;Hi&ccedil;biri&rdquo;, &ldquo;Operat&ouml;r Varsay&inodot;lan&rdquo;, &ldquo;Lab User Varsay&inodot;lan&rdquo;), then scrollable module list. Each module shows pages, each page has: access switch, &ldquo;T&uuml;m&uuml;&rdquo;/&ldquo;Hi&ccedil;biri&rdquo; quick toggles, individual button checkboxes. Critical buttons highlighted in red. Enabling a button auto-enables page access. Disabling page access disables all its buttons.</li>
+            <li><strong>Tab 3 &ndash; &Ouml;nizleme:</strong> read-only summary showing accessible modules &rarr; pages &rarr; enabled buttons with color-coded tags</li>
+            <li>Click &ldquo;Olu&#351;tur&rdquo; &rarr; <code>POST /user-management/users/create</code> with <code>{ username, email, full_name, user_type, status, permissions, force_password_change, return_password: true }</code></li>
+            <li>Backend validates uniqueness (username, email), hashes password with bcrypt, stores user + permissions JSON, logs activity</li>
+            <li>If password was auto-generated: modal shows the generated password with a warning &ldquo;Bu &#351;ifreyi not edin, tekrar g&ouml;sterilmeyecektir&rdquo; (Note this password, it won&rsquo;t be shown again)</li>
+        </ol>
+
+        <p><strong>Read (User List):</strong></p>
+        <ol>
+            <li>Navigate to <code>/admin/user-management</code> &rarr; ProTable loads via <code>GET /user-management/users/list</code></li>
+            <li>7 columns: ID (fixed left), Kullan&inodot;c&inodot; (username + full_name), Email, Tip (colored tag), Durum (colored tag), Son Giri&#351; (UTC &rarr; Istanbul), &#304;&#351;lemler (fixed right)</li>
+            <li>Client-side search filters across username, email, full_name, user_type, and status simultaneously</li>
+            <li>Pagination: 10/20/50/100 per page</li>
+            <li>ProTable density and column settings controls</li>
+        </ol>
+
+        <p><strong>Update (Edit User):</strong></p>
+        <ol>
+            <li>Click edit icon (EditOutlined) on user row &rarr; same 3-tab modal opens, pre-filled with user data</li>
+            <li>Existing permissions loaded and parsed (handles string JSON &rarr; object conversion)</li>
+            <li>Password field is hidden in edit mode (use Reset Password for that)</li>
+            <li>Modify any field or permission &rarr; click &ldquo;G&uuml;ncelle&rdquo;</li>
+            <li><code>PUT /user-management/users/{id}</code> with changed fields + full permissions object</li>
+            <li>Backend validates, updates, logs activity</li>
+        </ol>
+
+        <p><strong>Delete (Permanent):</strong></p>
+        <ol>
+            <li>Click delete icon (DeleteOutlined, danger) on user row</li>
+            <li>Confirmation modal: &ldquo;Bu kullan&inodot;c&inodot;y&inodot; silmek istedi&gbreve;inizden emin misiniz?&rdquo;</li>
+            <li><code>DELETE /user-management/users/{id}</code></li>
+            <li>Backend blocks self-deletion (400 error). Hard deletes user record. Logs activity.</li>
+        </ol>
+
+        <p><strong>Suspend / Activate:</strong></p>
+        <ol>
+            <li>Click stop icon (StopOutlined) on user row</li>
+            <li><code>POST /user-management/users/{id}/suspend</code></li>
+            <li>Toggles status between <code>active</code> and <code>suspended</code>. Suspended users cannot log in.</li>
+        </ol>
+
+        <p><strong>Reset Password:</strong></p>
+        <ol>
+            <li>Click key icon (KeyOutlined) on user row</li>
+            <li><code>POST /user-management/users/{id}/reset-password</code></li>
+            <li>Backend generates cryptographically secure 12-character password, hashes with bcrypt, sets <code>force_password_change = True</code></li>
+            <li>Modal shows new password once with warning. Admin must communicate it to user out-of-band.</li>
+        </ol>
+
+        <h3>6.4.7 User Types and Their Differences</h3>
+
+        <table>
+            <tr><th></th><th>Super Admin</th><th>Lab User</th><th>Operator</th><th>Custom Types</th></tr>
+            <tr><td><strong>Interface</strong></td><td>Desktop</td><td>Desktop</td><td>Mobile (kiosk)</td><td>Configurable</td></tr>
+            <tr><td><strong>Dashboard Route</strong></td><td><code>/welcome</code></td><td><code>/lab/dashboard</code></td><td><code>/production</code></td><td>Defaults to <code>/welcome</code></td></tr>
+            <tr><td><strong>Token Expiry</strong></td><td>12 hours</td><td>12 hours</td><td><strong>6 months</strong></td><td>12 hours</td></tr>
+            <tr><td><strong>Permission Bypass</strong></td><td><strong>Yes</strong> &mdash; all checks return True</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>Default Modules</strong></td><td>All (<code>all_access</code>)</td><td>Lab, Hammadde</td><td>Production</td><td>None (manual)</td></tr>
+            <tr><td><strong>Extension Table</strong></td><td><code>super_admins</code></td><td><code>lab_users</code></td><td><code>operators</code></td><td>None</td></tr>
+            <tr><td><strong>Can Manage Users</strong></td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+            <tr><td><strong>Auto-Login</strong></td><td>No</td><td>No</td><td><strong>Yes</strong> (kiosk)</td><td>No</td></tr>
+            <tr><td><strong>Menu Access</strong></td><td><code>["all"]</code></td><td><code>["lab", "welcome"]</code></td><td><code>["production"]</code></td><td>Based on permissions</td></tr>
+        </table>
+
+        <p>Custom types (e.g. <code>teknik_user</code>, <code>bakim_user</code>, <code>data</code>) can be created directly in the User Management modal &mdash; an input field at the bottom of the user type dropdown allows typing a new type name. The <code>user_type</code> field is a free <code>String(50)</code>, not an enum, enabling this flexibility.</p>
+
+        <h3>6.4.8 Frontend Architecture</h3>
+
+        <p>Single file: <code>src/pages/Admin/UserManagement/index.tsx</code> (960 lines). Route: <code>/admin/user-management</code>.</p>
+
+        <h4>ProTable (7 columns)</h4>
+        <table>
+            <tr><th>#</th><th>Column</th><th>Width</th><th>Details</th></tr>
+            <tr><td>1</td><td>ID</td><td>60px, fixed left</td><td>Numeric</td></tr>
+            <tr><td>2</td><td>Kullan&inodot;c&inodot;</td><td>140px</td><td>Username (bold) + full_name below</td></tr>
+            <tr><td>3</td><td>Email</td><td>200px</td><td>Ellipsis on overflow</td></tr>
+            <tr><td>4</td><td>Tip</td><td>110px</td><td>Colored tag: super_admin (red), lab_user (blue), operator (green), teknik_user (purple), bakim_user (orange)</td></tr>
+            <tr><td>5</td><td>Durum</td><td>100px</td><td>active (success/green), suspended (warning/yellow), inactive (default/gray)</td></tr>
+            <tr><td>6</td><td>Son Giri&#351;</td><td>140px</td><td><code>dayjs.utc(date).tz('Europe/Istanbul')</code> formatted</td></tr>
+            <tr><td>7</td><td>&#304;&#351;lemler</td><td>160px, fixed right</td><td>4 action buttons (edit, reset password, suspend, delete)</td></tr>
+        </table>
+
+        <h4>The Permission Editor (Tab 2 of Modal)</h4>
+        <p>The most complex UI component in the entire ERP. For each of the 8 modules:</p>
+        <ol>
+            <li><strong>Module header:</strong> module name with icon</li>
+            <li><strong>Page cards:</strong> each page as a Card component with:
+                <ul>
+                    <li>Header: <code>Switch</code> for page access + page label + tag showing &ldquo;X/Y&rdquo; enabled buttons count</li>
+                    <li>Quick actions: &ldquo;T&uuml;m&uuml;&rdquo; (enable all) / &ldquo;Hi&ccedil;biri&rdquo; (disable all) text buttons</li>
+                    <li>Button grid: <code>Row</code>/<code>Col</code> layout of <code>Checkbox</code> components for each button</li>
+                    <li>Critical buttons: highlighted with red text and distinct styling</li>
+                </ul>
+            </li>
+            <li><strong>Smart toggling:</strong> enabling any button auto-enables its page access. Disabling page access cascades to disable all buttons.</li>
+        </ol>
+
+        <h4>Quick Templates</h4>
+        <table>
+            <tr><th>Template</th><th>Effect</th></tr>
+            <tr><td>&ldquo;T&uuml;m Yetkiler&rdquo;</td><td><code>createFullPermissions()</code> &mdash; every page and every button set to <code>true</code></td></tr>
+            <tr><td>&ldquo;Hi&ccedil;biri&rdquo;</td><td><code>createEmptyPermissions()</code> &mdash; everything <code>false</code></td></tr>
+            <tr><td>&ldquo;Operat&ouml;r Varsay&inodot;lan&rdquo;</td><td>Production module enabled (except planning page, which is excluded)</td></tr>
+            <tr><td>&ldquo;Lab User Varsay&inodot;lan&rdquo;</td><td>Lab and Hammadde modules enabled</td></tr>
+        </table>
+
+        <h4>Preview Tab (Tab 3)</h4>
+        <p>Read-only summary using Card components. Shows only accessible modules/pages. Each page lists its enabled buttons as Tags (critical ones in red). Provides a quick visual confirmation before saving.</p>
+
+        <h3>6.4.9 Activity Logging &mdash; Admin Audit Trail</h3>
+
+        <p>Every user management action is logged to <code>user_activity_logs</code> via the <code>log_activity()</code> helper function:</p>
+
+        <table>
+            <tr><th>Action</th><th>Logged Fields</th></tr>
+            <tr><td><code>create_user</code></td><td>Who created, target user ID, username, IP, user agent</td></tr>
+            <tr><td><code>update_user</code></td><td>Who updated, target user ID, changed fields in details</td></tr>
+            <tr><td><code>suspend_user</code></td><td>Who suspended, target user ID, new status</td></tr>
+            <tr><td><code>delete_user</code></td><td>Who deleted, target user ID</td></tr>
+            <tr><td><code>reset_password</code></td><td>Who reset, target user ID (password never logged)</td></tr>
+        </table>
+
+        <p>Logs are queryable via <code>GET /user-management/activity-logs</code> with filters for user_id, module, action, and limit (default 200). Only super admins can access this endpoint.</p>
+
+        <h3>6.4.10 Permission Model</h3>
+
+        <p>User Management requires the highest privilege level in the system:</p>
+
+        <table>
+            <tr><th>Action</th><th>Required Role</th></tr>
+            <tr><td>View user list</td><td>super_admin only</td></tr>
+            <tr><td>Create user</td><td>super_admin only</td></tr>
+            <tr><td>Edit user</td><td>super_admin only</td></tr>
+            <tr><td>Manage permissions</td><td>super_admin only</td></tr>
+            <tr><td>Suspend / activate user</td><td>super_admin only</td></tr>
+            <tr><td>Reset password</td><td>super_admin only</td></tr>
+            <tr><td>Delete user</td><td>super_admin only (self-deletion blocked)</td></tr>
+            <tr><td>View activity logs</td><td>super_admin only</td></tr>
+            <tr><td>List operators (dropdown)</td><td>any authenticated user</td></tr>
+        </table>
+
+        <p>In the permission manifest, User Management has 9 registered buttons: <code>access_page</code>, <code>view_users</code>, <code>create_user</code>, <code>edit_user</code>, <code>manage_permissions</code>, <code>suspend_user</code>, <code>reset_password</code>, <code>delete_user</code>, <code>view_activity_logs</code>.</p>
+
+        <p>Backend enforces role-based access: every endpoint except <code>/user-management/operators</code> checks <code>current_user.user_type != "super_admin"</code> and returns 403 if it fails.</p>
+
+        <h3>6.4.11 How User Management Connects to the Rest of the System</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; Every Module (Authentication)</h4>
+                <p>Every API endpoint in the entire ERP depends on User Management&rsquo;s authentication. The <code>get_current_user_dependency()</code> FastAPI dependency is imported and used across all route files. JWT tokens issued here are the <em>only</em> way to access any protected resource.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Every Module (Authorization)</h4>
+                <p>The <code>permissions</code> JSON stored per user controls what every user sees and can do across all 8 modules. Route guards (<code>access.ts</code>), component guards (<code>PermissionGuard</code>), and backend checks (<code>permission_checker.py</code>) all read from this same permission structure.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Hammadde Giri&#351;i (Operator Dropdown)</h4>
+                <p>The <code>GET /user-management/operators</code> endpoint feeds operator/user dropdowns in material entry forms and production pages. Any authenticated user can access this, enabling forms across modules to show &ldquo;who entered this material.&rdquo;</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Production Pages (Kiosk Auto-Login)</h4>
+                <p>The kiosk auto-login system (<code>?kiosk=...</code> token or Fully Kiosk detection) bypasses the login form entirely for factory floor devices, landing directly on <code>/production</code> with the shared operator account&rsquo;s 6-month token.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> User Management is the <em>gravitational center</em> of the entire ERP. Every module depends on it, but it depends on no other module. The 5-layer permission architecture (manifest &rarr; registry &rarr; route guards &rarr; component guards &rarr; backend enforcement) ensures defense-in-depth: even if one layer is bypassed, others still enforce access control. The hybrid permission model (legacy role-based + granular page+button JSON) is a pragmatic engineering decision &mdash; the system evolved from simple role checks to granular permissions without requiring a full rewrite. The <code>check_permission_smart()</code> function embodies this: it tries the new system first, falls back to legacy, and gracefully degrades. The 200+ button manifest makes this the finest-grained permission system possible without going to individual record-level access control. The 6-month kiosk token is an unusual but practical choice for a factory environment where shared devices on the production floor need to &ldquo;just work&rdquo; without IT intervention every 12 hours.</p>
+        </div>
+
     </main>
 </body>
 </html>
