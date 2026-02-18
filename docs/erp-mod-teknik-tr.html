@@ -31,7 +31,7 @@
         .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
@@ -144,8 +144,27 @@
             </div>
         </div>
 
+        <!-- İÇİNDEKİLER -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">&#304;&Ccedil;&#304;NDEK&#304;LER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Teknik Ne Yapar</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Ak&#305;&#351;&#305;</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Veritaban&#305; Katman&#305;</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Makine Y&ouml;netimi</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Standart Y&ouml;netimi</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Operat&ouml;r Y&ouml;netimi</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Markalama</a>
+                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 &amp; 6.6 Kablo Tasar&#305;m &amp; Kablo Veritaban&#305;</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonu&ccedil;</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. TEKN&#304;K NE YAPAR</h2>
+        <h2 id="sec-1">1. TEKN&#304;K NE YAPAR</h2>
         <!-- ============================================ -->
 
         <p>Teknik mod&uuml;l&uuml;, t&uuml;m fabrikan&#305;n ba&#287;l&#305; oldu&#287;u be&scedil; soruyu yan&#305;tlar:</p>
@@ -163,7 +182,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. VER&#304; AKI&Scedil;I</h2>
+        <h2 id="sec-2">2. VER&#304; AKI&Scedil;I</h2>
         <!-- ============================================ -->
 
         <p>Veri tek y&ouml;nde akar: Teknik&rsquo;ten d&#305;&scedil;ar&#305;ya. Her alt mod&uuml;l&uuml;n sistemi nas&#305;l besledi&#287;i a&scedil;a&#287;&#305;da g&ouml;sterilmi&scedil;tir.</p>
@@ -191,7 +210,7 @@
         <p>Kablo Veritaban&#305; birle&scedil;me noktas&#305;d&#305;r. Tamamlanm&#305;&scedil; tasar&#305;m&#305; yap&#305;land&#305;r&#305;lm&#305;&scedil; JSON olarak saklar: eksiksiz &uuml;retim ak&#305;&scedil;&#305;, olu&scedil;turulacak her yar&#305; mamul, hammadde listesi ve t&uuml;m test gereksinimleri. Sipari&scedil; malzeme ihtiyac&#305;n&#305; hesaplarken veya &Uuml;retim i&scedil; kartlar&#305; olu&scedil;tururken Kablo Veritaban&#305;&rsquo;ndan okur &mdash; asla do&#287;rudan Playground veya Makinelerden de&#287;il.</p>
 
         <!-- ============================================ -->
-        <h2>3. VER&#304;TABANI KATMANI</h2>
+        <h2 id="sec-3">3. VER&#304;TABANI KATMANI</h2>
         <!-- ============================================ -->
 
         <p>Teknik mod&uuml;l&uuml;ne 12 tablo hizmet eder. D&ouml;rt gruba ayr&#305;l&#305;rlar:</p>
@@ -243,7 +262,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>4. BACKEND M&#304;MAR&#304;S&#304;</h2>
+        <h2 id="sec-4">4. BACKEND M&#304;MAR&#304;S&#304;</h2>
         <!-- ============================================ -->
 
         <p>Teknik backend&rsquo;i <code>/api/teknik/</code> alt&#305;na monte edilmi&scedil; <strong>6 route dosyas&#305;</strong> ve Playground&rsquo;un sim&uuml;lasyon motorunu &ccedil;al&#305;&scedil;t&#305;ran <strong>6 yard&#305;mc&#305; mod&uuml;l</strong>den olu&scedil;ur.</p>
@@ -290,7 +309,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>5. FRONTEND</h2>
+        <h2 id="sec-5">5. FRONTEND</h2>
         <!-- ============================================ -->
 
         <p><code>/teknik/*</code> alt&#305;nda 7 sayfa, <code>canTeknik</code> eri&scedil;im bayra&#287;&#305;yla korunur. T&uuml;m sayfalar Ant Design Pro&rsquo;nun <code>ProTable</code> bile&scedil;enini T&uuml;rk&ccedil;e yerel ayar, istemci tarafl&#305; arama ve bulan&#305;k arkaplan modallar&#305;yla kullan&#305;r.</p>
@@ -309,7 +328,7 @@
         <p>Cable Playground tek ba&scedil;&#305;na frontend kodunun yar&#305;s&#305;ndan fazlas&#305;n&#305; olu&scedil;turur. Mod&uuml;ler bir bile&scedil;en sistemi olarak in&scedil;a edilmi&scedil;tir: <code>usePlayground</code> hook&rsquo;u durum ve API &ccedil;a&#287;r&#305;lar&#305;n&#305; y&ouml;netir, <code>FlowCanvas</code> SVG diyagram&#305;n&#305; &ccedil;izer, <code>MachineLibrary</code> yan panel paletidir, <code>ConfigurationDrawer</code> 6 makineye &ouml;zg&uuml; formu bar&#305;nd&#305;r&#305;r (1.215 sat&#305;r) ve <code>ProgressionPanel</code> ger&ccedil;ek zamanl&#305; malzeme takibini g&ouml;sterir.</p>
 
         <!-- ============================================ -->
-        <h2>6. ALT MOD&Uuml;LLER</h2>
+        <h2 id="sec-6">6. ALT MOD&Uuml;LLER</h2>
         <!-- ============================================ -->
 
         <p>A&scedil;a&#287;&#305;daki b&ouml;l&uuml;mler her alt mod&uuml;l&uuml; tam detay&#305;yla belgeler &mdash; her form alan&#305;, her API endpoint, her veritaban&#305; s&uuml;tunu, her do&#287;rulama kural&#305; ve arkas&#305;ndaki tasar&#305;m kararlar&#305;. Temel veriden onu t&uuml;keten ara&ccedil;lara do&#287;ru s&#305;ralanm&#305;&scedil;t&#305;r.</p>
@@ -397,7 +416,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.1 MAK&#304;NE Y&Ouml;NET&#304;M&#304;</h2>
+        <h2 id="sec-6-1">6.1 MAK&#304;NE Y&Ouml;NET&#304;M&#304;</h2>
         <!-- ============================================ -->
 
         <p>Bir kablo tasarlamadan &ouml;nce, sisteme fabrikan&#305;n hangi makinelere sahip oldu&#287;unu s&ouml;ylemeniz gerekir. Makine Y&ouml;netimi, &uuml;retim kat&#305;ndaki her fiziksel makinenin kayd&#305;d&#305;r &mdash; markas&#305;, modeli ve en &ouml;nemlisi <strong>kapasite aral&#305;klar&#305;</strong>. Bu aral&#305;klar (h&#305;z min/maks, &ccedil;ap min/maks vb.) sistem genelinde a&ccedil;&#305;l&#305;r men&uuml; se&ccedil;enekleri olu&scedil;turmak ve bir kablo tasar&#305;m&#305;n&#305;n fiziksel olarak &uuml;retilebilir oldu&#287;unu do&#287;rulamak i&ccedil;in kullan&#305;l&#305;r.</p>
@@ -689,7 +708,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.2 STANDART Y&Ouml;NET&#304;M&#304;</h2>
+        <h2 id="sec-6-2">6.2 STANDART Y&Ouml;NET&#304;M&#304;</h2>
         <!-- ============================================ -->
 
         <p>Sat&#305;lan her kablo, uluslararas&#305; standart kurulu&scedil;lar&#305; (IEC, CENELEC) veya m&uuml;&scedil;teri taraf&#305;ndan tan&#305;mlanan kalite testlerini ge&ccedil;melidir. Standart Y&ouml;netimi, bu testlerin tan&#305;mland&#305;&#287;&#305; yerdir &mdash; neyin &ouml;l&ccedil;&uuml;lece&#287;i, ka&ccedil; numune al&#305;naca&#287;&#305;, hangi parametrelerle ve referans standart numaras&#305;n&#305;n ne oldu&#287;u. Bu tan&#305;mlar daha sonra kablo tasar&#305;mlar&#305;na g&ouml;m&uuml;l&uuml;r, b&ouml;ylece Lab mod&uuml;l&uuml; &uuml;retim s&#305;ras&#305;nda tam olarak neyi ne zaman test edece&#287;ini bilir.</p>
@@ -940,7 +959,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.3 OPERAT&Ouml;R Y&Ouml;NET&#304;M&#304;</h2>
+        <h2 id="sec-6-3">6.3 OPERAT&Ouml;R Y&Ouml;NET&#304;M&#304;</h2>
         <!-- ============================================ -->
 
         <p>&Uuml;retim operat&ouml;rleri fabrika kat&#305;nda makineleri &ccedil;al&#305;&scedil;t&#305;ran ki&scedil;ilerdir. Sistem giri&scedil;ine ihtiya&ccedil;lar&#305; yoktur &mdash; sadece bir kay&#305;t defterindeki isimlerdir ve birisi &uuml;retim &ccedil;al&#305;&scedil;t&#305;rmas&#305; ba&scedil;latt&#305;&#287;&#305;nda &uuml;retim oturumlar&#305;na atan&#305;rlar. Teknik&rsquo;in en basit alt mod&uuml;l&uuml;d&uuml;r (284 sat&#305;r frontend, 4 endpoint), ama verisi her &uuml;retim oturumunda, her i&scedil; kart&#305;nda ve her yar&#305; mamul kayd&#305;nda g&ouml;r&uuml;n&uuml;r.</p>
@@ -1092,7 +1111,7 @@
         <!-- 6.4  MARKALAMA (KABLO MARKALAMA)             -->
         <!-- ============================================ -->
 
-        <h2 id="markalama">6.4 Markalama (Kablo Markalama)</h2>
+        <h2 id="sec-6-4">6.4 Markalama (Kablo Markalama)</h2>
 
         <p>Fabrikadan &ccedil;&#305;kan her metre kablonun k&#305;l&#305;f&#305; &uuml;zerine fiziksel olarak metin bas&#305;l&#305;r &mdash; firma ad&#305;, standart, gerilim de&#287;eri, kesit, &uuml;retim y&#305;l&#305;. Markalama, ekstr&uuml;der makinesinin &uuml;retim s&#305;ras&#305;nda kabloya bast&#305;&#287;&#305; bu <strong>markalama &scedil;ablonlar&#305;n&#305;</strong> y&ouml;neten alt mod&uuml;ld&uuml;r: s&#305;ral&#305; kelime/segment dizileri.</p>
 
@@ -1386,7 +1405,7 @@ marking_name = <span class="keyword">None</span>
             <p style="margin-bottom: 0;"><strong>Tasar&#305;m ilkesi:</strong> &Scedil;ablon tabanl&#305; markalama. Sipari&scedil; ba&scedil;&#305;na serbest metin markalama talimatlar&#305; saklamak yerine, sistem yeniden kullan&#305;labilir &scedil;ablonlar kayd&#305; tutar. Bu tutarl&#305;l&#305;k sa&#287;lar &mdash; ayn&#305; kablo tipi i&ccedil;in her sipari&scedil; tamamen ayn&#305; markalama metnini kullan&#305;r. S&#305;ral&#305; kelime dizisi yap&#305;s&#305;, ekstr&uuml;der bask&#305; kafas&#305;n&#305;n &ccedil;al&#305;&scedil;ma &scedil;ekliyle do&#287;rudan e&scedil;le&scedil;ir: kelimeleri s&#305;rayla d&ouml;ng&uuml;yle gezer, aralar&#305;nda bo&scedil;luk b&#305;rakarak kablo uzunlu&#287;u boyunca basar. Dinamik de&#287;i&scedil;kenler (<code>{CABLE_SIZE}</code>, <code>{YEAR}</code> vb.) yeni &scedil;ablon olu&scedil;turmadan sipari&scedil;e &ouml;zel ba&#287;lam ekler.</p>
         </div>
 
-        <h2 id="playground">6.5 &amp; 6.6 Kablo Tasar&#305;m (Cable Playground) &amp; Kablo Veritaban&#305; (Cable Database)</h2>
+        <h2 id="sec-6-5">6.5 &amp; 6.6 Kablo Tasar&#305;m (Cable Playground) &amp; Kablo Veritaban&#305; (Cable Database)</h2>
 
         <p>Bu iki alt mod&uuml;l birlikte belgelenir &ccedil;&uuml;nk&uuml; ayr&#305;lmazd&#305;r: <strong>Playground</strong>, ger&ccedil;ek fabrika makineleri kullan&#305;larak kablolar&#305;n ad&#305;m ad&#305;m tasarland&#305;&#287;&#305; yerdir ve <strong>Kablo Veritaban&#305;</strong>, tamamlanm&#305;&scedil; tasar&#305;mlar&#305;n kal&#305;c&#305; olarak sakland&#305;&#287;&#305; depodur. Sistemdeki di&#287;er t&uuml;m mod&uuml;ller &mdash; Sipari&scedil;ler, &Uuml;retim Planlama, &#304;&scedil; Kartlar&#305;, Malzeme Hesaplamalar&#305;, Stok &mdash; nihayetinde Playground&rsquo;un olu&scedil;turup Kablo Veritaban&#305;&rsquo;na kaydetti&#287;i kay&#305;tlara ba&#287;l&#305;d&#305;r.</p>
 
@@ -1870,7 +1889,7 @@ MACHINE_FLOW = {
         </div>
 
         <!-- ============================================ -->
-        <h2 style="margin-top: 64px;">7. SONU&Ccedil;</h2>
+        <h2 id="sec-7" style="margin-top: 64px;">7. SONU&Ccedil;</h2>
         <!-- ============================================ -->
 
         <div class="abstract">

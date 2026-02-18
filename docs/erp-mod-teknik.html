@@ -31,7 +31,7 @@
         .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
-        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
         .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
         .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
         .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
@@ -144,8 +144,27 @@
             </div>
         </div>
 
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> What Teknik Does</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Data Flow</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Database Layer</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Machine Management</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Standards Management</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Operator Management</a>
+                <a href="#sec-6-4" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.4 Markalama (Cable Marking)</a>
+                <a href="#sec-6-5" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.5 &amp; 6.6 Kablo Tasar&#305;m &amp; Kablo Veritaban&#305;</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Conclusion</a>
+            </div>
+        </div>
+
         <!-- ============================================ -->
-        <h2>1. WHAT TEKNIK DOES</h2>
+        <h2 id="sec-1">1. WHAT TEKNIK DOES</h2>
         <!-- ============================================ -->
 
         <p>The Teknik module answers five questions that the entire factory depends on:</p>
@@ -163,7 +182,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>2. THE DATA FLOW</h2>
+        <h2 id="sec-2">2. THE DATA FLOW</h2>
         <!-- ============================================ -->
 
         <p>Data flows in one direction: from Teknik outward. Here is how each submodule feeds the rest of the system.</p>
@@ -191,7 +210,7 @@
         <p>The Cable Database is the convergence point. It stores the finalized design as structured JSON: the complete production flow, every half-product that will be created, the bill of raw materials, and all test requirements. When Sipari&scedil; calculates material needs or &Uuml;retim generates work cards, they read from Cable Database &mdash; never from the Playground or Machines directly.</p>
 
         <!-- ============================================ -->
-        <h2>3. THE DATABASE LAYER</h2>
+        <h2 id="sec-3">3. THE DATABASE LAYER</h2>
         <!-- ============================================ -->
 
         <p>12 tables serve the Teknik module. They fall into four groups:</p>
@@ -243,7 +262,7 @@
         </table>
 
         <!-- ============================================ -->
-        <h2>4. THE BACKEND ARCHITECTURE</h2>
+        <h2 id="sec-4">4. THE BACKEND ARCHITECTURE</h2>
         <!-- ============================================ -->
 
         <p>The Teknik backend is split into <strong>6 route files</strong> mounted under <code>/api/teknik/</code> and <strong>6 utility modules</strong> that power the Playground&rsquo;s simulation engine.</p>
@@ -290,7 +309,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>5. THE FRONTEND</h2>
+        <h2 id="sec-5">5. THE FRONTEND</h2>
         <!-- ============================================ -->
 
         <p>7 pages under <code>/teknik/*</code>, protected by the <code>canTeknik</code> access flag. All pages use Ant Design Pro&rsquo;s <code>ProTable</code> with Turkish locale, client-side search, and blurred backdrop modals.</p>
@@ -309,7 +328,7 @@
         <p>The Cable Playground alone accounts for more than half the frontend code. It is built as a modular component system: a <code>usePlayground</code> hook manages state and API calls, <code>FlowCanvas</code> renders the SVG diagram, <code>MachineLibrary</code> is the sidebar palette, <code>ConfigurationDrawer</code> holds 6 machine-specific forms (1,215 lines), and <code>ProgressionPanel</code> shows real-time material tracking.</p>
 
         <!-- ============================================ -->
-        <h2>6. THE SUBMODULES</h2>
+        <h2 id="sec-6">6. THE SUBMODULES</h2>
         <!-- ============================================ -->
 
         <p>The sections that follow document each submodule in full detail &mdash; every form field, every API endpoint, every database column, every validation rule, and the design decisions behind them. Ordered from foundational data to the tools that consume it.</p>
@@ -397,7 +416,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.1 MACHINE MANAGEMENT</h2>
+        <h2 id="sec-6-1">6.1 MACHINE MANAGEMENT</h2>
         <!-- ============================================ -->
 
         <p>Before you can design a cable, you need to tell the system what machines the factory has. Machine Management is the registry of every physical machine on the production floor &mdash; its brand, model, and most importantly, its <strong>capability ranges</strong>. These ranges (speed min/max, diameter min/max, etc.) are used throughout the system to generate dropdown options and validate that a cable design is physically producible.</p>
@@ -700,7 +719,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.2 STANDARDS MANAGEMENT</h2>
+        <h2 id="sec-6-2">6.2 STANDARDS MANAGEMENT</h2>
         <!-- ============================================ -->
 
         <p>Every cable sold must pass a set of quality tests defined by international standards bodies (IEC, CENELEC) or the customer. Standards Management is where those tests are defined &mdash; what to measure, how many samples, with which parameters, and what the reference standard number is. These definitions are then embedded into cable designs so that the Lab module knows exactly what to test and when during production.</p>
@@ -951,7 +970,7 @@
         </div>
 
         <!-- ============================================ -->
-        <h2>6.3 OPERATOR MANAGEMENT</h2>
+        <h2 id="sec-6-3">6.3 OPERATOR MANAGEMENT</h2>
         <!-- ============================================ -->
 
         <p>Production operators are the people running the machines on the factory floor. They don&rsquo;t need system logins &mdash; they are simply names in a registry that get assigned to production sessions when someone starts a manufacturing run. This is the simplest submodule in Teknik (284 lines of frontend, 4 endpoints), but its data appears in every production session, every work card, and every half-product record.</p>
@@ -1103,7 +1122,7 @@
         <!-- 6.4  MARKALAMA (CABLE MARKING)               -->
         <!-- ============================================ -->
 
-        <h2 id="markalama">6.4 Markalama (Cable Marking)</h2>
+        <h2 id="sec-6-4">6.4 Markalama (Cable Marking)</h2>
 
         <p>Every meter of cable that leaves the factory has text physically printed on its sheath &mdash; company name, standard, voltage rating, cross-section, production year. Markalama is the submodule that manages these <strong>marking templates</strong>: ordered arrays of words/segments that the extruder machine prints during cable production.</p>
 
@@ -1403,7 +1422,7 @@ marking_name = <span class="keyword">None</span>
         <!--   +  6.6  KABLO VER&Idot;TABANI (CABLE DATABASE)    -->
         <!-- ============================================ -->
 
-        <h2 id="playground">6.5 &amp; 6.6 Kablo Tasar&inodot;m (Cable Playground) &amp; Kablo Veritaban&inodot; (Cable Database)</h2>
+        <h2 id="sec-6-5">6.5 &amp; 6.6 Kablo Tasar&inodot;m (Cable Playground) &amp; Kablo Veritaban&inodot; (Cable Database)</h2>
 
         <p>These two submodules are documented together because they are inseparable: <strong>Playground</strong> is where cables are designed step-by-step using real factory machines, and <strong>Cable Database</strong> is the permanent repository where finalized designs are stored. Every other module in the system &mdash; Orders, Production Planning, Work Cards, Material Calculations, Stock &mdash; ultimately depends on the records that Playground creates and saves into Cable Database.</p>
 
@@ -1891,7 +1910,7 @@ MACHINE_FLOW = {
         </div>
 
         <!-- ============================================ -->
-        <h2 style="margin-top: 64px;">7. CONCLUSION</h2>
+        <h2 id="sec-7" style="margin-top: 64px;">7. CONCLUSION</h2>
         <!-- ============================================ -->
 
         <div class="abstract">
