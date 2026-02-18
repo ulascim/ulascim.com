@@ -1747,6 +1747,47 @@ MACHINE_FLOW = {
             <span class="flow-step">&#304;lerleme g&uuml;ncellenir</span>
         </div>
 
+        <h4>CRUD Ak&#305;&#351;&#305;</h4>
+
+        <p>Playground geleneksel bir CRUD sayfas&#305; de&#287;ildir. <strong>Oturum tabanl&#305; bir &uuml;retim sim&uuml;lasyon motorudur.</strong> &ldquo;Olu&#351;turma&rdquo; tek bir form g&ouml;ndermesi de&#287;il, &ccedil;ok ad&#305;ml&#305; bir tasar&#305;m s&uuml;recidir.</p>
+
+        <p><strong>Olu&#351;tur (Kablo Tasarla):</strong></p>
+        <ol>
+            <li>&ldquo;Oturum Ba&#351;lat&rdquo; butonuna t&#305;kla &rarr; Modal standart (EN/UL/SLN) ve kesit sorar</li>
+            <li><code>POST /playground/start</code> &rarr; Bellekte oturum olu&#351;turulur, ilerleme panelinde ba&#351;lang&#305;&ccedil; girdisi olarak 8mm filma&#351;in belirir</li>
+            <li>K&uuml;t&uuml;phaneden makineyi canvas&rsquo;a s&uuml;r&uuml;kle &rarr; <code>POST /playground/steps/add</code> &rarr; oturuma ad&#305;m eklenir</li>
+            <li>Makine d&uuml;&#287;&uuml;m&uuml;ne t&#305;kla &rarr; <code>GET /playground/form-data/{t&uuml;r}</code> &rarr; ConfigurationDrawer a&ccedil;&#305;l&#305;r (1.215 sat&#305;rl&#305;k bile&#351;en)</li>
+            <li>Ger&ccedil;ek makineleri se&ccedil; (onay kutular&#305;) &rarr; <code>POST /playground/calculate-intersection</code> &rarr; a&ccedil;&#305;l&#305;r listeler yaln&#305;zca t&uuml;m se&ccedil;ilen makinelerin &uuml;retebilece&#287;i de&#287;erlerle g&uuml;ncellenir</li>
+            <li>Konfig&uuml;rasyon formunu doldur &rarr; <code>POST /playground/configure/{t&uuml;r}/{ad&#305;m}</code> &rarr; ilerleme paneli yeni &ccedil;&#305;kt&#305;lar + miktarlarla g&uuml;ncellenir</li>
+            <li>Her &uuml;retim makinesi i&ccedil;in 3&ndash;6 ad&#305;mlar&#305; tekrarla (KC &rarr; KL &rarr; IC &rarr; BN &rarr; EX &rarr; iste&#287;e ba&#287;l&#305; E-beam)</li>
+            <li>Sistem <code>POST /playground/autosave</code> ile otomatik kaydeder (her de&#287;i&#351;iklik geri al/yinele i&ccedil;in bir kontrol noktas&#305; olu&#351;turur)</li>
+            <li>&ldquo;Sonland&#305;r&rdquo; butonuna t&#305;kla &rarr; <code>POST /playground/finalize</code> &rarr; atomik veritaban&#305; i&#351;lemi <code>cable_designs</code>, <code>design_steps</code> ve <code>cable_database</code> tablolar&#305;na ayn&#305; anda yazar. Deterministik SHA-256 kod &uuml;retilir. Oturum yok edilir.</li>
+        </ol>
+
+        <p><strong>Oku (Oturumu Devam Ettir):</strong></p>
+        <ol>
+            <li>Mevcut oturumlar bellekte kal&#305;r. Sayfay&#305; yenile &rarr; <code>GET /playground/status</code> aktif oturum kontrol eder</li>
+            <li>Oturum varsa: canvas son kontrol noktas&#305;ndan tam ilerleme durumuyla geri y&uuml;klenir</li>
+        </ol>
+
+        <p><strong>Geri Al / Yinele (Oturum &#304;&ccedil;i):</strong></p>
+        <ol>
+            <li>Geri Al&rsquo;a t&#305;kla &rarr; <code>POST /playground/undo</code> &rarr; oturum &ouml;nceki kontrol noktas&#305;na geri d&ouml;ner</li>
+            <li>Yinele&rsquo;ye t&#305;kla &rarr; <code>POST /playground/redo</code> &rarr; oturum sonraki kontrol noktas&#305;na ilerler</li>
+            <li>Her yap&#305;land&#305;r/ekle/kald&#305;r eylemi atomik bir kontrol noktas&#305; olu&#351;turur. Geri alma y&#305;&#287;&#305;n&#305; oturum i&ccedil;inde s&#305;n&#305;rs&#305;zd&#305;r.</li>
+        </ol>
+
+        <p><strong>Sil (Ad&#305;m Kald&#305;r):</strong></p>
+        <ol>
+            <li>Canvas&rsquo;taki makine d&uuml;&#287;&uuml;m&uuml;ne sa&#287; t&#305;kla &rarr; &ldquo;Kald&#305;r&rdquo;</li>
+            <li><code>POST /playground/steps/remove</code> &rarr; ad&#305;m oturumdan kald&#305;r&#305;l&#305;r, ilerleme yeniden hesaplan&#305;r, kontrol noktas&#305; olu&#351;turulur</li>
+            <li>A&#351;a&#287;&#305; ak&#305;&#351; ba&#287;&#305;ml&#305;l&#305;klar&#305; olan bir ad&#305;m&#305; kald&#305;rmak, bu ad&#305;mlar&#305;n da zincirleme kald&#305;r&#305;lmas&#305;n&#305; tetikler</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Neden geleneksel CRUD de&#287;il:</strong> Sonland&#305;rmadan sonra &ldquo;kabloyu d&uuml;zenle&rdquo; butonu yoktur. Bir tasar&#305;m Kablo Veritaban&#305;&rsquo;na sonland&#305;r&#305;ld&#305;&#287;&#305;nda <strong>de&#287;i&#351;tirilemez</strong>. Bir kabloyu &ldquo;d&uuml;zenlemek&rdquo; i&ccedil;in yeni bir Playground oturumu ba&#351;lat&#305;l&#305;r, yeniden tasarlan&#305;r ve tekrar sonland&#305;r&#305;l&#305;r. Deterministik kod sistemi, elde edilen kablo ayn&#305; fiziksel &ouml;zelliklere sahipse otomatik olarak ayn&#305; kodu al&#305;r. Farkl&#305;ysa yeni bir kod al&#305;r. Bu, halihaz&#305;rda &uuml;retilen bir kablonun de&#287;i&#351;tirilme riskini ortadan kald&#305;r&#305;r.</p>
+        </div>
+
         <h2 id="cable-database" style="margin-top: 48px;">6.6 Kablo Veritaban&#305; (Cable Database)</h2>
 
         <h3>6.6.1 Ne Kaydedilir &mdash; Sonland&#305;rma S&uuml;reci</h3>
@@ -1857,6 +1898,63 @@ MACHINE_FLOW = {
                 <h4>ProductionFlowViewer</h4>
                 <p>Makine ikonlar&#305;, parametreler ve paralel g&ouml;stergelerle her &uuml;retim ad&#305;m&#305;n&#305; g&ouml;steren Ant Design Timeline bile&scedil;eni.</p>
             </div>
+        </div>
+
+        <h4>CRUD Ak&#305;&#351;&#305;</h4>
+
+        <p>Kablo Veritaban&#305; esas olarak <strong>okuma a&#287;&#305;rl&#305;kl&#305;, bir kez yaz</strong> deposudur. Kablolar yaln&#305;zca Playground sonland&#305;rmas&#305; yoluyla girer &mdash; manuel &ldquo;kablo olu&#351;tur&rdquo; formu yoktur.</p>
+
+        <p><strong>Olu&#351;tur (Playground Sonland&#305;rmas&#305; Yoluyla):</strong></p>
+        <ol>
+            <li>Kullan&#305;c&#305; Playground&rsquo;da tasar&#305;m&#305; sonland&#305;r&#305;r &rarr; <code>POST /playground/finalize</code></li>
+            <li>Backend fiziksel &ouml;zelliklerin SHA-256 hash&rsquo;i ile deterministik kablo kodu &uuml;retir</li>
+            <li>Kod zaten varsa: sonland&#305;rma <strong>reddedilir</strong> (ayn&#305; kablo zaten kay&#305;tl&#305;)</li>
+            <li>Kod yeniyse: atomik i&#351;lem <code>cable_designs</code> + <code>design_steps</code> + <code>cable_database</code> sat&#305;rlar&#305;n&#305; tek seferde yazar</li>
+            <li><code>teknik</code> odas&#305;na WebSocket yay&#305;n&#305; &rarr; t&uuml;m ba&#287;l&#305; kullan&#305;c&#305;larda Kablo Veritaban&#305; tablosu yenilenir</li>
+        </ol>
+
+        <p><strong>Oku:</strong></p>
+        <ol>
+            <li>/teknik/kablo-veritabani sayfas&#305;n&#305; a&ccedil; &rarr; <code>GET /cable-database</code> &rarr; ProTable t&uuml;m kablolar&#305; display_name, cable_code, standart, kesit, durum ile listeler</li>
+            <li>&#304;stemci taraf&#305; arama kablo kodu, t&uuml;r veya kesite g&ouml;re filtreler</li>
+            <li>Kablo sat&#305;r&#305;na t&#305;kla &rarr; Detay &Ccedil;ekmecesi &uuml;&ccedil; sekmeli a&ccedil;&#305;l&#305;r:
+                <ul>
+                    <li><strong>&Uuml;retim Ak&#305;&#351;&#305;:</strong> <code>GET /cable-database/{kod}/production-flow</code> &rarr; Ant Design Timeline ile her &uuml;retim ad&#305;m&#305;n&#305;n g&ouml;rselle&#351;tirilmesi</li>
+                    <li><strong>Yar&#305; Mamul &Uuml;r&uuml;nler:</strong> <code>GET /cable-database/{kod}/half-products</code> &rarr; &ouml;zellikleriyle t&uuml;m ara &uuml;r&uuml;nler</li>
+                    <li><strong>Gereksinimler:</strong> <code>GET /cable-database/{kod}/requirements</code> &rarr; hammaddeler (bak&#305;r, kalay, plastik, katalist, boya) + test gereksinimleri</li>
+                </ul>
+            </li>
+            <li>Di&#287;er mod&uuml;ller kablo verilerini &ouml;zel endpoint&rsquo;ler &uuml;zerinden okur: <code>/full</code> (malzeme hesaplay&#305;c&#305;), <code>/parsed-structure</code> (sipari&#351; formlar&#305;)</li>
+        </ol>
+
+        <p><strong>Ge&ccedil;ici Silme (Devre D&#305;&#351;&#305; B&#305;rakma):</strong></p>
+        <ol>
+            <li>Tablo sat&#305;r&#305;ndaki devre d&#305;&#351;&#305; b&#305;rakma ikonuna t&#305;kla (<code>super_admin</code> veya <code>production_manager</code> yetkisi gerekir)</li>
+            <li>Onay diyalogu uyar&#305;s&#305;</li>
+            <li><code>PUT /cable-database/{kod}/deactivate</code> &rarr; <code>is_active = false</code> olarak ayarlan&#305;r</li>
+            <li>Kablo varsay&#305;lan liste g&ouml;r&uuml;n&uuml;mlerinden kaybolur (<code>active_only=false</code> filtresiyle hala eri&#351;ilebilir). Bu kablo koduna referans veren a&#351;a&#287;&#305; ak&#305;&#351; mod&uuml;lleri &ccedil;al&#305;&#351;maya devam eder &mdash; devre d&#305;&#351;&#305; b&#305;rakma <em>yeni</em> sipari&#351;lerin bunu kullanmas&#305;n&#305; engeller.</li>
+        </ol>
+
+        <p><strong>Kal&#305;c&#305; Silme:</strong></p>
+        <ol>
+            <li>Kal&#305;c&#305; silme ikonuna t&#305;kla (yaln&#305;zca <code>super_admin</code> yetkisi gerekir)</li>
+            <li>G&uuml;&ccedil;l&uuml; uyar&#305; metniyle onay diyalogu</li>
+            <li><code>DELETE /cable-database/{kod}/permanent</code></li>
+            <li>Backend cable_database kayd&#305;n&#305; + ili&#351;kili cable_designs + design_steps&rsquo;i siler (cascade)</li>
+            <li>WebSocket yay&#305;n&#305; &rarr; t&uuml;m ba&#287;l&#305; kullan&#305;c&#305;larda tablo yenilenir</li>
+            <li><strong>Tehlike:</strong> Bu y&#305;k&#305;c&#305; bir i&#351;lemdir. Aktif sipari&#351;ler veya i&#351; kartlar&#305; bu kablo koduna referans veriyorsa, bu referanslar yetim kal&#305;r.</li>
+        </ol>
+
+        <p><strong>G&uuml;ncelle (Stok Seviyesi &mdash; &Uuml;r&uuml;n Kodlar&#305;):</strong></p>
+        <ol>
+            <li>&Uuml;r&uuml;n kodlar&#305; g&ouml;r&uuml;n&uuml;m&uuml;ne git &rarr; <code>GET /products/codes</code></li>
+            <li>&Uuml;r&uuml;nde stok d&uuml;zenle&rsquo;ye t&#305;kla &rarr; <code>PUT /products/{kod}/stock</code> (<code>super_admin</code>, <code>production_manager</code> veya <code>operator</code> gerekir)</li>
+            <li>O yar&#305; mamul/nihai &uuml;r&uuml;n i&ccedil;in stock_level alan&#305;n&#305; g&uuml;nceller</li>
+            <li>Stok g&uuml;ncellemeleri i&ccedil;in WebSocket yay&#305;n&#305; yok &mdash; yoklama tabanl&#305;</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Temel ayr&#305;m:</strong> Kablo Veritaban&#305; kay&#305;tlar&#305; <strong>olu&#351;turulduktan sonra de&#287;i&#351;tirilemez</strong>. Bir kablonun yap&#305;s&#305;n&#305;, &uuml;retim ak&#305;&#351;&#305;n&#305; veya malzeme gereksinimlerini d&uuml;zenleyemezsiniz. De&#287;i&#351;tirilebilir tek alanlar <code>is_active</code> (ge&ccedil;ici silme de&#287;i&#351;tirici) ve &uuml;r&uuml;n kodlar&#305;ndaki <code>stock_level</code>&rsquo;d&#305;r. Bir kablo tasar&#305;m&#305;n&#305;n de&#287;i&#351;tirilmesi gerekiyorsa, Playground&rsquo;da s&#305;f&#305;rdan yeni bir kablo tasarlanmal&#305;d&#305;r; bu kablo ayn&#305; fiziksel &ouml;zelliklere sahipse ayn&#305; kodu, farkl&#305;ysa yeni bir kod al&#305;r.</p>
         </div>
 
         <h3>6.6.5 Kablo Veritaban&#305; Sistemin Geri Kalan&#305;n&#305; Nas&#305;l Besler</h3>

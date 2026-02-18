@@ -1764,6 +1764,47 @@ MACHINE_FLOW = {
             <span class="flow-step">Progression updates</span>
         </div>
 
+        <h4>CRUD Flow</h4>
+
+        <p>The Playground is not a traditional CRUD page. It is a <strong>session-based production simulation engine</strong>. The &ldquo;Create&rdquo; is a multi-step design process, not a single form submit.</p>
+
+        <p><strong>Create (Design a Cable):</strong></p>
+        <ol>
+            <li>Click &ldquo;Oturum Ba&#351;lat&rdquo; (Start Session) &rarr; Modal asks for standard (EN/UL/SLN) and cross-section</li>
+            <li><code>POST /playground/start</code> &rarr; In-memory session created with 8mm filma&#351;in as initial input in the progression panel</li>
+            <li>Drag machine from library to canvas &rarr; <code>POST /playground/steps/add</code> &rarr; step added to session</li>
+            <li>Click machine node &rarr; <code>GET /playground/form-data/{type}</code> &rarr; ConfigurationDrawer opens (1,215-line component)</li>
+            <li>Select real machines (checkboxes) &rarr; <code>POST /playground/calculate-intersection</code> &rarr; dropdowns update with only values all selected machines can produce</li>
+            <li>Fill configuration form &rarr; <code>POST /playground/configure/{type}/{step}</code> &rarr; progression panel updates with new outputs + quantities</li>
+            <li>Repeat steps 3&ndash;6 for each production machine (KC &rarr; KL &rarr; IC &rarr; BN &rarr; EX &rarr; optional E-beam)</li>
+            <li>System auto-saves via <code>POST /playground/autosave</code> (every change creates a checkpoint for undo/redo)</li>
+            <li>Click &ldquo;Finalize&rdquo; &rarr; <code>POST /playground/finalize</code> &rarr; atomic database transaction writes to <code>cable_designs</code>, <code>design_steps</code>, and <code>cable_database</code> tables simultaneously. Deterministic SHA-256 code generated. Session destroyed.</li>
+        </ol>
+
+        <p><strong>Read (Resume a Session):</strong></p>
+        <ol>
+            <li>Existing sessions persist in memory. Reload the page &rarr; <code>GET /playground/status</code> checks for active session</li>
+            <li>If session exists: canvas restores from last checkpoint with full progression state</li>
+        </ol>
+
+        <p><strong>Undo / Redo (In-Session):</strong></p>
+        <ol>
+            <li>Click Undo &rarr; <code>POST /playground/undo</code> &rarr; session restores to previous checkpoint</li>
+            <li>Click Redo &rarr; <code>POST /playground/redo</code> &rarr; session advances to next checkpoint</li>
+            <li>Each configure/add/remove action pushes an atomic checkpoint. Undo stack is unlimited within the session.</li>
+        </ol>
+
+        <p><strong>Delete (Remove a Step):</strong></p>
+        <ol>
+            <li>Right-click machine node on canvas &rarr; &ldquo;Kald&#305;r&rdquo; (Remove)</li>
+            <li><code>POST /playground/steps/remove</code> &rarr; step removed from session, progression recalculated, checkpoint created</li>
+            <li>Removing a step that has downstream dependents triggers cascading removal of those steps</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why this isn&rsquo;t traditional CRUD:</strong> There is no &ldquo;edit cable&rdquo; button after finalization. Once a design is finalized to Cable Database, it is <strong>immutable</strong>. To &ldquo;edit&rdquo; a cable, you start a new Playground session, redesign it, and finalize again. The deterministic code system means if the resulting cable has the same physical specifications, it gets the same code automatically. If it&rsquo;s different, it gets a new code. This eliminates the risk of modifying a cable that&rsquo;s already being produced.</p>
+        </div>
+
         <!-- ============================================ -->
         <!-- 6.6  CABLE DATABASE                          -->
         <!-- ============================================ -->
@@ -1878,6 +1919,63 @@ MACHINE_FLOW = {
                 <h4>ProductionFlowViewer</h4>
                 <p>Ant Design Timeline component showing each production step with machine icons, parameters, and parallel indicators.</p>
             </div>
+        </div>
+
+        <h4>CRUD Flow</h4>
+
+        <p>Cable Database is primarily a <strong>read-heavy, write-once</strong> store. Cables enter it exclusively via Playground finalization &mdash; there is no manual &ldquo;create cable&rdquo; form.</p>
+
+        <p><strong>Create (via Playground Finalization):</strong></p>
+        <ol>
+            <li>User finalizes a design in Playground &rarr; <code>POST /playground/finalize</code></li>
+            <li>Backend generates deterministic cable code via SHA-256 hash of physical specifications</li>
+            <li>If code already exists: finalization is <strong>rejected</strong> (identical cable already registered)</li>
+            <li>If code is new: atomic transaction writes <code>cable_designs</code> + <code>design_steps</code> + <code>cable_database</code> rows in one shot</li>
+            <li>WebSocket broadcast to <code>teknik</code> room &rarr; Cable Database table refreshes for all connected users</li>
+        </ol>
+
+        <p><strong>Read:</strong></p>
+        <ol>
+            <li>Open /teknik/kablo-veritabani &rarr; <code>GET /cable-database</code> &rarr; ProTable lists all cables with display_name, cable_code, standard, cross_section, status</li>
+            <li>Client-side search filters by cable code, type, or cross-section</li>
+            <li>Click a cable row &rarr; Detail Drawer opens with three tabs:
+                <ul>
+                    <li><strong>Production Flow:</strong> <code>GET /cable-database/{code}/production-flow</code> &rarr; Ant Design Timeline visualization of each production step</li>
+                    <li><strong>Half Products:</strong> <code>GET /cable-database/{code}/half-products</code> &rarr; all intermediate products with properties</li>
+                    <li><strong>Requirements:</strong> <code>GET /cable-database/{code}/requirements</code> &rarr; raw materials (copper, tin, plastic, catalyst, dye) + test requirements</li>
+                </ul>
+            </li>
+            <li>Other modules read cable data via specialized endpoints: <code>/full</code> (material calculator), <code>/parsed-structure</code> (order forms)</li>
+        </ol>
+
+        <p><strong>Soft Delete (Deactivate):</strong></p>
+        <ol>
+            <li>Click deactivate icon in the table row (requires <code>super_admin</code> or <code>production_manager</code> permission)</li>
+            <li>Popconfirm warning</li>
+            <li><code>PUT /cable-database/{code}/deactivate</code> &rarr; sets <code>is_active = false</code></li>
+            <li>Cable disappears from default list views (still accessible via <code>active_only=false</code> filter). Downstream modules that reference this cable code still function &mdash; deactivation prevents <em>new</em> orders from using it.</li>
+        </ol>
+
+        <p><strong>Hard Delete (Permanent):</strong></p>
+        <ol>
+            <li>Click permanent delete icon (requires <code>super_admin</code> permission only)</li>
+            <li>Popconfirm with strong warning text</li>
+            <li><code>DELETE /cable-database/{code}/permanent</code></li>
+            <li>Backend deletes the cable_database record + related cable_designs + design_steps (cascade)</li>
+            <li>WebSocket broadcast &rarr; table refreshes for all connected users</li>
+            <li><strong>Danger:</strong> This is a destructive operation. If active orders or work cards reference this cable code, those references become orphaned.</li>
+        </ol>
+
+        <p><strong>Update (Stock Level &mdash; Product Codes):</strong></p>
+        <ol>
+            <li>Navigate to product codes view &rarr; <code>GET /products/codes</code></li>
+            <li>Click stock edit on a product &rarr; <code>PUT /products/{code}/stock</code> (requires <code>super_admin</code>, <code>production_manager</code>, or <code>operator</code>)</li>
+            <li>Updates the stock_level field for that half/final product</li>
+            <li>No WebSocket broadcast for stock updates &mdash; polling-based</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Key distinction:</strong> Cable Database records themselves are <strong>immutable after creation</strong>. You cannot edit a cable&rsquo;s structure, production flow, or material requirements. The only mutable fields are <code>is_active</code> (soft delete toggle) and <code>stock_level</code> on product codes. If a cable design needs modification, a new cable must be designed from scratch in the Playground, which will either generate the same code (if physically identical) or a new one (if different).</p>
         </div>
 
         <h3>6.6.5 How Cable Database Feeds the Rest of the System</h3>
