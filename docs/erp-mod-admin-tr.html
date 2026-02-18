@@ -1212,6 +1212,217 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> Yazd&inodot;rma kuyru&gbreve;u <em>engellenmeyen, at-ve-unut</em> bir sistemdir. Kullan&inodot;c&inodot; &ldquo;Yazd&inodot;r&rdquo;a t&inodot;klad&inodot;&gbreve;&inodot;nda, API hemen bir i&#351; ID&rsquo;si ile d&ouml;ner &mdash; kullan&inodot;c&inodot; fiziksel yaz&inodot;c&inodot;y&inodot; beklemez. &#304;&#351;&ccedil;i bunu asenkron olarak i&#351;ler. Bu tasar&inodot;m, Hammadde Giri&#351;i&rsquo;nin yava&#351; veya &ccedil;evrimd&inodot;&#351;&inodot; yaz&inodot;c&inodot;larda asla engellenmemesi anlam&inodot;na gelir. &#304;zleme panosu bu asenkronlu&gbreve;un bir g&ouml;zlemlenebilirlik bo&#351;lu&gbreve;u yaratt&inodot;&gbreve;&inodot; i&ccedil;in vard&inodot;r: att&inodot;ktan ve unuttukuntan sonra ne oldu&gbreve;unu g&ouml;recek bir yere ihtiyac&inodot;n&inodot;z var. Malzeme verisinin i&#351; sat&inodot;r&inodot;na denormalizasyonu bilin&ccedil;li bir performans &ouml;d&uuml;n&uuml;d&uuml;r &mdash; izleme sayfas&inodot; 500 i&#351;le bile h&inodot;zl&inodot; y&uuml;klenir &ccedil;&uuml;nk&uuml; asla raw_materials veya suppliers&rsquo;a join yapmaz.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.3  AI AYARLARI                              -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 AI Ayarlar&inodot; (AI Settings)</h2>
+
+        <h3>6.3.1 Ama&ccedil; ve &#304;&#351; Ba&gbreve;lam&inodot;</h3>
+
+        <p>ERP, Google Gemini taraf&inodot;ndan desteklenen (OpenAI ve Anthropic Claude gelecekteki aktivasyon i&ccedil;in haz&inodot;r) bir AI asistan i&ccedil;erir. Asistan, kullan&inodot;c&inodot;lar ad&inodot;na dahili API&rsquo;leri &ccedil;a&gbreve;&inodot;rarak sipari&#351;ler, malzemeler, &uuml;retim ve envanter hakk&inodot;nda sorular&inodot; yan&inodot;tlayabilir. <strong>AI Ayarlar&inodot;</strong>, bu asistan&inodot;n yap&inodot;land&inodot;rma ve izleme merkezidir: API anahtar y&ouml;netimi, model se&ccedil;imi, parametre ayarlama, kullan&inodot;m istatistikleri ve her AI etkile&#351;iminin kapsaml&inodot; denetim izi.</p>
+
+        <p>AI ajan&inodot;n&inodot;n kendisi ana backend&rsquo;den ayr&inodot; bir serviste (<code>solen_ai_service</code>) ya&#351;ar. Bu alt mod&uuml;l <em>kontrol d&uuml;zlemi</em>ni sa&gbreve;lar &mdash; bir y&ouml;neticinin koda veya konfig&uuml;rasyon dosyalar&inodot;na dokunmadan AI&rsquo;y&inodot; y&ouml;netmesini sa&gbreve;layan d&uuml;&gbreve;meler ve panolar.</p>
+
+        <h3>6.3.2 Veritaban&inodot; &#350;emas&inodot; &mdash; 47 S&uuml;tunlu Denetim G&uuml;nl&uuml;&gbreve;&uuml;</h3>
+
+        <p>AI sistemi adli d&uuml;zeyde denetim g&uuml;nl&uuml;&gbreve;&uuml; i&ccedil;in iki tablo kullan&inodot;r:</p>
+
+        <h4>ai_audit_logs (47 s&uuml;tun)</h4>
+        <p>Her tekil AI etkile&#351;imi tam ba&gbreve;lamla kaydedilir. S&uuml;tunlar 8 gruba ayr&inodot;lm&inodot;&#351;t&inodot;r:</p>
+
+        <table>
+            <tr><th>Grup</th><th>S&uuml;tunlar</th><th>Ne Yakalar</th></tr>
+            <tr><td><strong>Kimlik</strong> (10)</td><td>user_id, username, user_type, session_id, session_token, ip_address, user_agent, device_type, browser, os</td><td>Kim sordu, nereden, hangi cihazda</td></tr>
+            <tr><td><strong>Sorgu</strong> (6)</td><td>original_query, query_language, query_length, query_type, query_category, detected_entities</td><td>Ne soruldu, s&inodot;n&inodot;fland&inodot;r&inodot;ld&inodot; ve ayr&inodot;&#351;t&inodot;r&inodot;ld&inodot; (&ouml;rn. <code>{"order_id": 377}</code>)</td></tr>
+            <tr><td><strong>AI &#304;&#351;leme</strong> (9)</td><td>ai_model, ai_model_version, ai_preprocessing, ai_reasoning, ai_confidence, selected_tool, tool_params, tool_params_sanitized, alternative_tools</td><td>AI nas&inodot;l karar verdi, hangi arac&inodot; se&ccedil;ti, hangi alternatifleri d&uuml;&#351;&uuml;nd&uuml;</td></tr>
+            <tr><td><strong>API &Ccedil;a&gbreve;r&inodot;s&inodot;</strong> (6)</td><td>api_endpoint, api_method, api_request_headers, api_response_status, api_response_data, api_response_size_bytes</td><td>AI&rsquo;n&inodot;n kullan&inodot;c&inodot; ad&inodot;na yapt&inodot;&gbreve;&inodot; dahili API &ccedil;a&gbreve;r&inodot;s&inodot;</td></tr>
+            <tr><td><strong>Sonu&ccedil;</strong> (6)</td><td>success, error_type, error_message, error_stack, final_response, response_type</td><td>AI ne yan&inodot;tlad&inodot;, ba&#351;ar&inodot;l&inodot; m&inodot; oldu, de&gbreve;ilse hata detaylar&inodot;</td></tr>
+            <tr><td><strong>Performans</strong> (4)</td><td>total_duration_ms, ai_processing_ms, api_call_ms, response_generation_ms</td><td>Zamanlama da&gbreve;&inodot;l&inodot;m&inodot;: AI d&uuml;&#351;&uuml;nme + API &ccedil;a&gbreve;r&inodot;s&inodot; + yan&inodot;t &uuml;retme</td></tr>
+            <tr><td><strong>G&uuml;venlik</strong> (4)</td><td>security_flags, rate_limit_status, was_blocked, block_reason</td><td>Enjeksiyon tespiti, h&inodot;z s&inodot;n&inodot;rlama, engellenen sorgular</td></tr>
+            <tr><td><strong>Meta</strong> (2)</td><td>created_at, metadata</td><td>Zaman damgas&inodot; ve geni&#351;letilebilir JSON meta verisi</td></tr>
+        </table>
+
+        <p>11 indeks sorgular&inodot; optimize eder: user_id, username, session_id, ip_address, selected_tool, success, created_at &uuml;zerinde tekli; (user_id, created_at), (selected_tool, created_at), (success, created_at), (ip_address, created_at) &uuml;zerinde bile&#351;ik.</p>
+
+        <h4>ai_audit_log_summaries (12 s&uuml;tun)</h4>
+        <p>G&uuml;nl&uuml;k toplu istatistikler: toplam/ba&#351;ar&inodot;l&inodot;/ba&#351;ar&inodot;s&inodot;z/engellenen sorgular, benzersiz kullan&inodot;c&inodot;lar ve IP&rsquo;ler, en &ccedil;ok kullan&inodot;lan ara&ccedil;lar, en &ccedil;ok kategori, ortalama yan&inodot;t s&uuml;releri, hata da&gbreve;&inodot;l&inodot;m&inodot;. G&uuml;nde bir sat&inodot;r. &#350;u anda API &uuml;zerinden sunulmuyor &mdash; gelecekteki analitik panolar&inodot; i&ccedil;in ayr&inodot;lm&inodot;&#351;.</p>
+
+        <h3>6.3.3 API S&ouml;zle&#351;mesi &mdash; 12 Endpoint</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/chat</code></td><td>AI ajan&inodot;na sorgu g&ouml;nder. AI&rsquo;n&inodot;n etkin olup olmad&inodot;&gbreve;&inodot;n&inodot; kontrol eder. Yan&inodot;t, kullan&inodot;lan ara&ccedil;lar, zamanlama d&ouml;nd&uuml;r&uuml;r. Hatalar&inodot; kullan&inodot;c&inodot;dan gizler.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/status</code></td><td>AI haz&inodot;rl&inodot;k durumunu kontrol et: API anahtar&inodot; yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; m&inodot;, model ad&inodot;, ajan durumu (ready/error/not_initialized).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/models</code></td><td>Sa&gbreve;lay&inodot;c&inodot;ya g&ouml;re gruplanm&inodot;&#351; mevcut modelleri listele: tier, a&ccedil;&inodot;klama, &ouml;nerilen bayra&gbreve;&inodot;, yak&inodot;nda bayra&gbreve;&inodot;.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/reset</code></td><td>Mevcut ajan singleton&rsquo;&inodot;n&inodot; yok et. Sonraki istekte en son konfig&uuml;rasyonla yeniden ba&#351;lat&inodot;l&inodot;r.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/config</code></td><td>Mevcut konfig&uuml;rasyonu al: enabled, model_name, max_tokens, temperature, anahtar durumu.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/config</code></td><td>Konfig&uuml;rasyonu g&uuml;ncelle. K&inodot;smi g&uuml;ncellemeler desteklenir. <code>ai_config.json</code>&rsquo;a kaydeder.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/stats</code></td><td>Denetim tablosundan kullan&inodot;m istatistikleri: toplam/ba&#351;ar&inodot;l&inodot;/ba&#351;ar&inodot;s&inodot;z sorgular, ort. yan&inodot;t s&uuml;resi, bug&uuml;nk&uuml; say&inodot;.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/audit-logs</code></td><td>Sayfalanm&inodot;&#351; denetim g&uuml;nl&uuml;&gbreve;&uuml; kay&inodot;tlar&inodot;. Params: <code>?limit=100&amp;offset=0</code>.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/api-keys/status</code></td><td>3 sa&gbreve;lay&inodot;c&inodot; anahtar&inodot;n&inodot;n durumu: yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; bayra&gbreve;&inodot; + maskeli &ouml;nizleme (ilk 8 + &ldquo;...&rdquo; + son 4 karakter).</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/api-keys/save</code></td><td>Sa&gbreve;lay&inodot;c&inodot; i&ccedil;in API anahtar&inodot; kaydet. Uzunluk (&ge; 20) do&gbreve;rular, &ouml;nek kontrol eder (yaln&inodot;zca uyar&inodot;). <code>.env</code>&rsquo;ye yazar, &ccedil;al&inodot;&#351;ma zaman&inodot; ortam&inodot;n&inodot; g&uuml;nceller, ajan&inodot; s&inodot;f&inodot;rlar.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/ai/api-keys/{provider}</code></td><td><code>.env</code> ve &ccedil;al&inodot;&#351;ma zaman&inodot; ortam&inodot;ndan API anahtar&inodot;n&inodot; kald&inodot;r.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/api-keys/test/{provider}</code></td><td>Anahtar ge&ccedil;erlili&gbreve;ini test et: Gemini istemci &ouml;rnekleme, OpenAI/Anthropic modeller endpoint&rsquo;i ile.</td></tr>
+        </table>
+
+        <h3>6.3.4 CRUD Ak&inodot;&#351;&inodot;</h3>
+
+        <p><strong>Olu&#351;tur / G&uuml;ncelle (API Anahtar&inodot;):</strong></p>
+        <ol>
+            <li>&ldquo;API Anahtarlar&inodot;&rdquo; sekmesine git &rarr; 3 sa&gbreve;lay&inodot;c&inodot; kart&inodot; (Google Gemini, OpenAI, Anthropic Claude) her biri logo, durum etiketi ve &#351;ifre girdisi ile</li>
+            <li>&#350;ifre alan&inodot;na API anahtar&inodot;n&inodot; gir &rarr; &ldquo;Kaydet&rdquo;e t&inodot;kla</li>
+            <li><code>POST /api/ai/api-keys/save</code> ile <code>{ provider, api_key }</code></li>
+            <li>Backend do&gbreve;rular: bo&#351; de&gbreve;il, &ge; 20 karakter, &ouml;nek kontrol (Gemini i&ccedil;in AIza, OpenAI i&ccedil;in sk-, Anthropic i&ccedil;in sk-ant- &mdash; yaln&inodot;zca uyar&inodot;, engelleme yok)</li>
+            <li><code>solen_ai_service/.env</code> dosyas&inodot;na yazar, &ccedil;al&inodot;&#351;ma zaman&inodot; <code>os.environ</code>&rsquo;&inodot; g&uuml;nceller, AI ajan singleton&rsquo;&inodot;n&inodot; s&inodot;f&inodot;rlar</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;API anahtar&inodot; kaydedildi&rdquo; + varsa &ouml;nek uyar&inodot;s&inodot; &rarr; kartta maskeli anahtar g&ouml;sterilir &rarr; durum yenilenir</li>
+        </ol>
+
+        <p><strong>Oku (Genel Bak&inodot;&#351; Panosu):</strong></p>
+        <ol>
+            <li>/admin/ai-settings sayfas&inodot;na git &rarr; &ldquo;Genel Bak&inodot;&#351;&rdquo; sekmesi y&uuml;klenir</li>
+            <li>4 istatistik kart&inodot;: AI durumu (aktif/pasif), bug&uuml;nk&uuml; sorgular, toplam sorgular, ortalama yan&inodot;t s&uuml;resi</li>
+            <li>Ba&#351;ar&inodot; oran&inodot; kart&inodot;: dairesel ilerleme grafi&gbreve;i + ba&#351;ar&inodot;l&inodot;/ba&#351;ar&inodot;s&inodot;z say&inodot;lar&inodot;</li>
+            <li>Ba&gbreve;lant&inodot; test kart&inodot;: durum, API anahtar durumu, mevcut modeli g&ouml;sterir. &ldquo;Ba&gbreve;lant&inodot;y&inodot; Test Et&rdquo; butonu <code>GET /api/ai/status</code> &ccedil;a&gbreve;&inodot;r&inodot;r</li>
+        </ol>
+
+        <p><strong>Model Ayarlar&inodot;n&inodot; G&uuml;ncelle:</strong></p>
+        <ol>
+            <li>&ldquo;Model Ayarlar&inodot;&rdquo; sekmesine git</li>
+            <li>4 alanl&inodot; form: AI etkin (switch), model (cascader: Sa&gbreve;lay&inodot;c&inodot; &rarr; Model, tier etiketleri ve &ouml;nerilen y&inodot;ld&inodot;zlar&inodot;yla), maks token (se&ccedil;im: 1024/2048/4096/8192), s&inodot;cakl&inodot;k (se&ccedil;im: 0.1/0.3/0.5/0.7/0.9)</li>
+            <li>&ldquo;Ayarlar&inodot; Kaydet&rdquo;e t&inodot;kla</li>
+            <li><code>POST /api/ai/config</code> &rarr; <code>ai_config.json</code>&rsquo;a kaydeder</li>
+            <li><code>POST /api/ai/reset</code> &rarr; mevcut ajan&inodot; yok eder, sonraki sorguda yeni konfig&uuml;rasyonla yeniden ba&#351;lat&inodot;l&inodot;r</li>
+            <li>Toast: &ldquo;Ayarlar kaydedildi - AI yeniden ba&#351;lat&inodot;ld&inodot;&rdquo;</li>
+        </ol>
+
+        <p><strong>API Anahtar&inodot; Sil:</strong></p>
+        <ol>
+            <li>Sa&gbreve;lay&inodot;c&inodot; kart&inodot;nda &ldquo;Sil&rdquo; butonuna t&inodot;kla</li>
+            <li>Onay modal&inodot;</li>
+            <li><code>DELETE /api/ai/api-keys/{provider}</code></li>
+            <li>Backend anahtar&inodot; <code>.env</code> dosyas&inodot;ndan ve <code>os.environ</code>&rsquo;dan kald&inodot;r&inodot;r</li>
+            <li>Toast: &ldquo;API anahtar&inodot; silindi&rdquo; &rarr; kart yap&inodot;land&inodot;r&inodot;lmam&inodot;&#351; duruma d&ouml;ner</li>
+        </ol>
+
+        <p><strong>API Anahtar&inodot; Test Et:</strong></p>
+        <ol>
+            <li>Yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; sa&gbreve;lay&inodot;c&inodot; kart&inodot;nda &ldquo;Test Et&rdquo; butonuna t&inodot;kla</li>
+            <li><code>POST /api/ai/api-keys/test/{provider}</code></li>
+            <li>Backend test eder: Gemini istemci &ouml;rnekleme ile, OpenAI <code>GET https://api.openai.com/v1/models</code> ile, Anthropic <code>GET https://api.anthropic.com/v1/models</code> ile</li>
+            <li>Ba&#351;ar&inodot; toast&rsquo;u veya detayl&inodot; hata toast&rsquo;u</li>
+        </ol>
+
+        <h3>6.3.5 AI Sa&gbreve;lay&inodot;c&inodot; Yap&inodot;land&inodot;rmas&inodot;</h3>
+
+        <table>
+            <tr><th>Sa&gbreve;lay&inodot;c&inodot;</th><th>Ortam De&gbreve;i&#351;keni</th><th>Anahtar &Ouml;neki</th><th>Modeller</th><th>Durum</th></tr>
+            <tr><td><strong>Google Gemini</strong></td><td><code>GEMINI_API_KEY</code></td><td><code>AIza</code></td><td>gemini-3-flash (&ouml;nerilen), gemini-3-pro, gemini-2.5-flash, gemini-2.5-pro</td><td>Aktif</td></tr>
+            <tr><td><strong>OpenAI</strong></td><td><code>OPENAI_API_KEY</code></td><td><code>sk-</code></td><td>gpt-5.2 (&ouml;nerilen), gpt-5-mini, o3, gpt-4.1</td><td>Yak&inodot;nda</td></tr>
+            <tr><td><strong>Anthropic Claude</strong></td><td><code>ANTHROPIC_API_KEY</code></td><td><code>sk-ant-</code></td><td>claude-sonnet-4-5 (&ouml;nerilen), claude-opus-4-5, claude-haiku-4-5</td><td>Yak&inodot;nda</td></tr>
+        </table>
+
+        <h4>Anahtar Saklama Mimarisi</h4>
+        <p>API anahtarlar&inodot; <code>solen_ai_service</code> dizinindeki <code>.env</code> dosyas&inodot;nda saklan&inodot;r (ana backend&rsquo;den ayr&inodot;). Veritaban&inodot;nda <strong>asla</strong> saklanmazlar. Kaydetme s&inodot;ras&inodot;nda anahtar, yeniden ba&#351;latma olmadan anl&inodot;k kullan&inodot;m i&ccedil;in <code>os.environ</code>&rsquo;da da ayarlan&inodot;r. Anahtarlar API yan&inodot;tlar&inodot;nda <strong>asla</strong> d&ouml;nd&uuml;r&uuml;lmez &mdash; yaln&inodot;zca maskeli &ouml;nizlemeler (ilk 8 + &ldquo;...&rdquo; + son 4 karakter).</p>
+
+        <h4>Konfig&uuml;rasyon Saklama</h4>
+        <p>Model ayarlar&inodot; (enabled, model_name, max_tokens, temperature) <code>.env</code> dosyas&inodot;n&inodot;n yan&inodot;ndaki <code>ai_config.json</code>&rsquo;da saklan&inodot;r. Varsay&inodot;lanlar: enabled=true, model=gemini-3-flash, max_tokens=4096, temperature=0.7.</p>
+
+        <h3>6.3.6 AI Ajan&inodot; &mdash; Singleton Mimarisi</h3>
+
+        <p>AI ajan&inodot; (<code>SolenAIAgent</code>) istekler aras&inodot;nda kal&inodot;c&inodot; bir singleton&rsquo;d&inodot;r. &#304;lk AI sorgusunda ba&#351;lat&inodot;l&inodot;r ve a&ccedil;&inodot;k&ccedil;a s&inodot;f&inodot;rlan&inodot;ncaya kadar yeniden kullan&inodot;l&inodot;r.</p>
+
+        <div class="flow">
+            <span class="flow-step">&#304;lk /ai/chat &ccedil;a&gbreve;r&inodot;s&inodot;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">ai_config.json y&uuml;kle</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">SolenAIAgent(config) olu&#351;tur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">_agent_instance&rsquo;da sakla</span>
+        </div>
+
+        <p>Ajan &#351;u durumlarda s&inodot;f&inodot;rlan&inodot;r (yok edilir ve yeniden olu&#351;turulur): API anahtarlar&inodot; kaydedildi&gbreve;inde/silindi&gbreve;inde, konfig&uuml;rasyon ayarlar sayfas&inodot; &uuml;zerinden g&uuml;ncellendi&gbreve;inde veya <code>POST /api/ai/reset</code> &ccedil;a&gbreve;r&inodot;ld&inodot;&gbreve;&inodot;nda. Bu, ajan&inodot;n her zaman en son konfig&uuml;rasyonu kullanmas&inodot;n&inodot; sa&gbreve;lar.</p>
+
+        <h4>Sohbet &#304;stek Ak&inodot;&#351;&inodot;</h4>
+        <ol>
+            <li>Kullan&inodot;c&inodot; <code>POST /api/ai/chat</code> ile <code>{ query, conversation_history, user_type }</code> g&ouml;nderir</li>
+            <li>Backend <code>ai_config.json</code>&rsquo;&inodot; kontrol eder &mdash; <code>enabled: false</code> ise &ldquo;AI servisi &#351;u an devre d&inodot;&#351;&inodot;&rdquo; d&ouml;nd&uuml;r&uuml;r</li>
+            <li>Ajan singleton&rsquo;&inodot;n&inodot; al&inodot;r veya olu&#351;turur, JWT&rsquo;den kullan&inodot;c&inodot; bilgisini &ccedil;&inodot;kar&inodot;r</li>
+            <li><code>agent.process_query(query, history, user_type, ip, username, user_id)</code> &ccedil;a&gbreve;&inodot;r&inodot;r</li>
+            <li>Ajan dahili olarak: sorguyu &ouml;n i&#351;ler, ara&ccedil; se&ccedil;er, dahili API &ccedil;a&gbreve;&inodot;r&inodot;r, yan&inodot;t &uuml;retir, <strong>denetim g&uuml;nl&uuml;&gbreve;&uuml; yazar</strong></li>
+            <li>Backend yan&inodot;t&inodot; temizler (ham API hatalar&inodot;n&inodot; gizler), <code>{ success, response, tool_used, timing_ms }</code> d&ouml;nd&uuml;r&uuml;r</li>
+        </ol>
+
+        <h3>6.3.7 Denetim G&uuml;nl&uuml;&gbreve;&uuml; &mdash; Adli D&uuml;zeyde &#304;zleme</h3>
+
+        <p>Her AI etkile&#351;imi <code>ai_audit_logs</code>&rsquo;a 47 s&uuml;tun ba&gbreve;lamla bir sat&inodot;r yazar. Denetim g&uuml;nl&uuml;&gbreve;&uuml; her sorgu hakk&inodot;nda 7 soruyu yan&inodot;tlar:</p>
+
+        <ol>
+            <li><strong>Kim?</strong> &mdash; user_id, username, user_type, oturum bilgisi, IP, cihaz, taray&inodot;c&inodot;, i&#351;letim sistemi</li>
+            <li><strong>Ne?</strong> &mdash; orijinal sorgu, dil, t&uuml;r (arama/soru/komut), kategori (sipari&#351;/malzeme/&uuml;retim), tespit edilen varl&inodot;klar</li>
+            <li><strong>Nas&inodot;l?</strong> &mdash; AI model, ak&inodot;l y&uuml;r&uuml;tme, g&uuml;ven skoru, se&ccedil;ilen ara&ccedil;, ara&ccedil; parametreleri, de&gbreve;erlendirilen alternatif ara&ccedil;lar</li>
+            <li><strong>Nereye?</strong> &mdash; &ccedil;a&gbreve;r&inodot;lan API endpoint&rsquo;i, metot, yan&inodot;t durumu, yan&inodot;t verisi, yan&inodot;t boyutu</li>
+            <li><strong>Sonu&ccedil;?</strong> &mdash; ba&#351;ar&inodot;/ba&#351;ar&inodot;s&inodot;zl&inodot;k, hata t&uuml;r&uuml; ve mesaj&inodot;, son yan&inodot;t metni, yan&inodot;t t&uuml;r&uuml;</li>
+            <li><strong>Performans?</strong> &mdash; toplam ms, AI i&#351;leme ms, API &ccedil;a&gbreve;r&inodot;s&inodot; ms, yan&inodot;t &uuml;retme ms</li>
+            <li><strong>G&uuml;venlik?</strong> &mdash; enjeksiyon bayraklar&inodot;, h&inodot;z s&inodot;n&inodot;r&inodot; durumu, engelleme bayra&gbreve;&inodot; ve nedeni</li>
+        </ol>
+
+        <h3>6.3.8 Frontend Mimarisi</h3>
+
+        <p>Tek dosya: <code>src/pages/Admin/AISettings/index.tsx</code> (1.177 sat&inodot;r). Rota: <code>/admin/ai-settings</code>.</p>
+
+        <h4>4 Sekmeli D&uuml;zen</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Sekme 1: Genel Bak&inodot;&#351;</h4>
+                <p>4 istatistik kart&inodot; (AI durumu, bug&uuml;nk&uuml; sorgular, toplam sorgular, ort. yan&inodot;t s&uuml;resi). Ba&#351;ar&inodot; oran&inodot; dairesel ilerleme grafi&gbreve;i. Ba&gbreve;lant&inodot; test kart&inodot;: durum g&ouml;stergesi, API anahtar bayra&gbreve;&inodot; ve model ad&inodot;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Sekme 2: API Anahtarlar&inodot;</h4>
+                <p>3 sa&gbreve;lay&inodot;c&inodot; kart&inodot; (Gemini, OpenAI, Claude) her biri: sa&gbreve;lay&inodot;c&inodot; logosu, &ldquo;Aktif&rdquo;/&ldquo;Yak&inodot;nda&rdquo; etiketi, maskeli anahtar g&ouml;r&uuml;nt&uuml;leme, &#351;ifre girdisi, kaydet/test/sil butonlar&inodot; ve sa&gbreve;lay&inodot;c&inodot;n&inodot;n API konsoluna ba&gbreve;lant&inodot; ile. Art&inodot; AI servis hesab&inodot; durum kart&inodot;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Sekme 3: Model Ayarlar&inodot;</h4>
+                <p>Form: etkin switch, model cascader (Sa&gbreve;lay&inodot;c&inodot; &rarr; Model, ikonlar, tier etiketleri, &ouml;nerilen y&inodot;ld&inodot;zlar, API anahtar yoksa devre d&inodot;&#351;&inodot;), maks token se&ccedil;imi (1024&ndash;8192), s&inodot;cakl&inodot;k se&ccedil;imi (0.1&ndash;0.9). Kaydet konfig g&uuml;ncelleme + ajan s&inodot;f&inodot;rlama tetikler.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Sekme 4: Kullan&inodot;m Ge&ccedil;mi&#351;i</h4>
+                <p>Geni&#351;letilebilir sat&inodot;rl&inodot; ProTable. S&uuml;tunlar: zaman damgas&inodot;, kullan&inodot;c&inodot; ad&inodot; + user_type etiketi, kullan&inodot;lan ara&ccedil; (mavi etiket), durum (ba&#351;ar&inodot;/hata), yan&inodot;t s&uuml;resi (renk kodlu: ye&#351;il &lt; 500ms, turuncu 500&ndash;1000ms, k&inodot;rm&inodot;z&inodot; &gt; 1000ms), IP. Geni&#351;letilmi&#351; sat&inodot;r: sorgu, AI yan&inodot;t&inodot;, hata mesaj&inodot;. Arama, sayfalama (10/20/50), yo&gbreve;unluk kontrolleri.</p>
+            </div>
+        </div>
+
+        <h3>6.3.9 Yetki Modeli</h3>
+
+        <p>AI Ayarlar&inodot; manifest&rsquo;te gran&uuml;ler buton d&uuml;zeyinde yetkilere sahip de&gbreve;ildir. Eri&#351;im mod&uuml;l d&uuml;zeyinde <code>canAdmin</code> ile kontrol edilir &mdash; admin mod&uuml;l&uuml;ne eri&#351;imi olan herhangi bir kullan&inodot;c&inodot; AI Ayarlar&inodot;&rsquo;n&inodot; g&ouml;r&uuml;nt&uuml;leyebilir. Backend endpoint&rsquo;lerinde JWT kimlik do&gbreve;rulamas&inodot; &ouml;tesinde a&ccedil;&inodot;k yetki kontrol&uuml; yoktur.</p>
+
+        <p>Bu bilin&ccedil;li bir tasar&inodot;m se&ccedil;imidir: AI konfig&uuml;rasyonu buton ba&#351;&inodot;na bir yetki de&gbreve;il, admin genelinde bir yetenek olarak kabul edilir. Pratikte yaln&inodot;zca super admin&rsquo;ler admin mod&uuml;l&uuml;ne eri&#351;ir.</p>
+
+        <h3>6.3.10 AI Ayarlar&inodot; Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; AI Ajan&inodot; (Harici Servis)</h4>
+                <p>Ayarlar sayfas&inodot; <code>SolenAIAgent</code>&rsquo;&inodot; i&ccedil;eren harici <code>solen_ai_service</code>&rsquo;i yap&inodot;land&inodot;r&inodot;r. API anahtarlar&inodot;, model se&ccedil;imi ve parametreler ajan&inodot;n okudu&gbreve;u dosyalarda saklan&inodot;r. Ajan, backend&rsquo;e singleton olarak import edilir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; AI Arama (Sorgu &Ouml;n &#304;&#351;leme)</h4>
+                <p><code>ai_search_service.py</code> (256 sat&inodot;r) arama sorgular&inodot;n&inodot; &ouml;n i&#351;lemek i&ccedil;in Gemini kullan&inodot;r: T&uuml;rk&ccedil;e karakter d&uuml;zeltme, sorgu s&inodot;n&inodot;fland&inodot;rma, varl&inodot;k tespiti. AI kullan&inodot;lamazsa kural tabanl&inodot; i&#351;lemeye geri d&ouml;ner.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; T&uuml;m ERP Mod&uuml;lleri (AI Sohbet Yoluyla)</h4>
+                <p>AI ajan&inodot; kullan&inodot;c&inodot;lar ad&inodot;na dahili API&rsquo;leri &ccedil;a&gbreve;&inodot;rabilir &mdash; sipari&#351;leri, malzemeleri, tedarik&ccedil;ileri, &uuml;retim verilerini sorgular. Her mod&uuml;lden veri <em>t&uuml;keten</em> ancak asla yazmayan salt okunur bir asistan.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Denetim ve Uyumluluk</h4>
+                <p>47 s&uuml;tunlu denetim g&uuml;nl&uuml;&gbreve;&uuml; her AI etkile&#351;iminin eksiksiz adli izini olu&#351;turur: kim ne sordu, AI nas&inodot;l i&#351;ledi, hangi API&rsquo;yi &ccedil;a&gbreve;&inodot;rd&inodot;, ne yan&inodot;tlad&inodot; ve ne kadar s&uuml;rd&uuml;. Bu hem hata ay&inodot;klamay&inodot; hem de g&uuml;venlik denetimini destekler.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> AI sistemi <em>kontrol d&uuml;zlemi / veri d&uuml;zlemi</em> ayr&inodot;m&inodot;n&inodot; izler. Kontrol d&uuml;zlemi (bu ayarlar sayfas&inodot;) konfig&uuml;rasyon, anahtarlar ve izlemeyi y&ouml;netir. Veri d&uuml;zlemi (harici <code>SolenAIAgent</code>) ger&ccedil;ek sorgu i&#351;lemeyi y&ouml;netir. Bu ayr&inodot;m, AI ajan&inodot;n&inodot;n ERP backend&rsquo;inden ba&gbreve;&inodot;ms&inodot;z olarak y&uuml;kseltilmesi, de&gbreve;i&#351;tirilmesi veya &ouml;l&ccedil;eklenmesi anlam&inodot;na gelir. 47 s&uuml;tunlu denetim g&uuml;nl&uuml;&gbreve;&uuml; bilin&ccedil;li olarak a&#351;&inodot;r&inodot; m&uuml;hendislenmi&#351;tir &mdash; temel g&uuml;nl&uuml;kleme i&ccedil;in gerekenden &ccedil;ok daha fazla ba&gbreve;lam yakalar, &ccedil;&uuml;nk&uuml; AI adli bili&#351;imi yaln&inodot;zca AI&rsquo;n&inodot;n <em>ne</em> yapt&inodot;&gbreve;&inodot;n&inodot; de&gbreve;il, o eylemi <em>neden</em> se&ccedil;ti&gbreve;ini ve hangi alternatifleri de&gbreve;erlendirdi&gbreve;ini anlamay&inodot; gerektirir. &Ccedil;oklu sa&gbreve;lay&inodot;c&inodot; mimarisi (Gemini aktif, OpenAI/Claude haz&inodot;r) AI sa&gbreve;lay&inodot;c&inodot;s&inodot;n&inodot; de&gbreve;i&#351;tirmenin bir kod de&gbreve;i&#351;ikli&gbreve;i de&gbreve;il konfig&uuml;rasyon de&gbreve;i&#351;ikli&gbreve;i oldu&gbreve;u anlam&inodot;na gelir.</p>
+        </div>
+
     </main>
 </body>
 </html>

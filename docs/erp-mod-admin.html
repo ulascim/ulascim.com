@@ -1212,6 +1212,217 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The print queue is a <em>non-blocking, fire-and-forget</em> system. When a user clicks &ldquo;Yazd&inodot;r&rdquo;, the API returns immediately with a job ID &mdash; the user doesn&rsquo;t wait for the physical printer. The worker processes it asynchronously. This design means Material Entry never blocks on slow or offline printers. The monitoring dashboard exists because this asynchrony creates an observability gap: you need a place to see what happened after you fired and forgot. The denormalization of material data into the job row is a deliberate performance trade-off &mdash; the monitoring page loads fast even with 500 jobs because it never joins to raw_materials or suppliers.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.3  AI AYARLARI                              -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-3" style="margin-top: 48px;">6.3 AI Ayarlar&inodot; (AI Settings)</h2>
+
+        <h3>6.3.1 Purpose and Business Context</h3>
+
+        <p>The ERP includes an AI assistant powered by Google Gemini (with OpenAI and Anthropic Claude prepared for future activation). The assistant can answer questions about orders, materials, production, and inventory by calling internal APIs on behalf of users. <strong>AI Ayarlar&inodot;</strong> is the configuration and monitoring center for this assistant: API key management, model selection, parameter tuning, usage statistics, and a comprehensive audit trail of every AI interaction.</p>
+
+        <p>The AI agent itself lives in a separate service (<code>solen_ai_service</code>), external to the main backend. This submodule provides the <em>control plane</em> &mdash; the knobs and dashboards that let an administrator manage the AI without touching code or config files.</p>
+
+        <h3>6.3.2 Database Schema &mdash; The 47-Column Audit Log</h3>
+
+        <p>The AI system uses two tables for forensic-grade audit logging:</p>
+
+        <h4>ai_audit_logs (47 columns)</h4>
+        <p>Every single AI interaction is recorded with full context. The columns are organized into 8 groups:</p>
+
+        <table>
+            <tr><th>Group</th><th>Columns</th><th>What It Captures</th></tr>
+            <tr><td><strong>Identity</strong> (10)</td><td>user_id, username, user_type, session_id, session_token, ip_address, user_agent, device_type, browser, os</td><td>Who asked, from where, on what device</td></tr>
+            <tr><td><strong>Query</strong> (6)</td><td>original_query, query_language, query_length, query_type, query_category, detected_entities</td><td>What was asked, classified and parsed (e.g. <code>{"order_id": 377}</code>)</td></tr>
+            <tr><td><strong>AI Processing</strong> (9)</td><td>ai_model, ai_model_version, ai_preprocessing, ai_reasoning, ai_confidence, selected_tool, tool_params, tool_params_sanitized, alternative_tools</td><td>How the AI decided what to do, which tool it picked, what alternatives it considered</td></tr>
+            <tr><td><strong>API Call</strong> (6)</td><td>api_endpoint, api_method, api_request_headers, api_response_status, api_response_data, api_response_size_bytes</td><td>The internal API call the AI made on behalf of the user</td></tr>
+            <tr><td><strong>Result</strong> (6)</td><td>success, error_type, error_message, error_stack, final_response, response_type</td><td>What the AI answered, whether it succeeded, error details if not</td></tr>
+            <tr><td><strong>Performance</strong> (4)</td><td>total_duration_ms, ai_processing_ms, api_call_ms, response_generation_ms</td><td>Timing breakdown: AI thinking + API call + response generation</td></tr>
+            <tr><td><strong>Security</strong> (4)</td><td>security_flags, rate_limit_status, was_blocked, block_reason</td><td>Injection detection, rate limiting, blocked queries</td></tr>
+            <tr><td><strong>Meta</strong> (2)</td><td>created_at, metadata</td><td>Timestamp and extensible JSON metadata</td></tr>
+        </table>
+
+        <p>11 indexes optimize queries: single-column on user_id, username, session_id, ip_address, selected_tool, success, created_at; composite on (user_id, created_at), (selected_tool, created_at), (success, created_at), (ip_address, created_at).</p>
+
+        <h4>ai_audit_log_summaries (12 columns)</h4>
+        <p>Daily aggregated statistics: total/successful/failed/blocked queries, unique users and IPs, top tools, top categories, average response times, error distribution. One row per day. Not currently exposed via API &mdash; reserved for future analytics dashboards.</p>
+
+        <h3>6.3.3 API Contract &mdash; 12 Endpoints</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/chat</code></td><td>Send a query to the AI agent. Checks if AI is enabled. Returns response, tools used, timing. Sanitizes errors for users.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/status</code></td><td>Check AI readiness: API key configured, model name, agent status (ready/error/not_initialized).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/models</code></td><td>List available models grouped by provider with tier, description, recommended flag, coming_soon flag.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/reset</code></td><td>Destroy current agent singleton. Reinitializes on next request with latest config.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/config</code></td><td>Get current config: enabled, model_name, max_tokens, temperature, key status.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/config</code></td><td>Update config. Partial updates supported. Saves to <code>ai_config.json</code>.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/stats</code></td><td>Usage statistics from audit table: total/successful/failed queries, avg response time, today&rsquo;s count.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/audit-logs</code></td><td>Paginated audit log entries. Params: <code>?limit=100&amp;offset=0</code>. Returns key fields for display.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/ai/api-keys/status</code></td><td>Status of all 3 provider keys: configured flag + masked preview (first 8 + &ldquo;...&rdquo; + last 4 chars).</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/api-keys/save</code></td><td>Save API key for a provider. Validates length (&ge; 20), checks prefix (warning only). Writes to <code>.env</code>, updates runtime env, resets agent.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/ai/api-keys/{provider}</code></td><td>Remove API key from <code>.env</code> and runtime environment.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/api-keys/test/{provider}</code></td><td>Test key validity: Gemini via client instantiation, OpenAI/Anthropic via models endpoint.</td></tr>
+        </table>
+
+        <h3>6.3.4 CRUD Flow</h3>
+
+        <p><strong>Create / Update API Key:</strong></p>
+        <ol>
+            <li>Navigate to &ldquo;API Anahtarlar&inodot;&rdquo; tab &rarr; 3 provider cards (Google Gemini, OpenAI, Anthropic Claude) each with logo, status tag, and password input</li>
+            <li>Enter API key in the password field &rarr; click &ldquo;Kaydet&rdquo;</li>
+            <li><code>POST /api/ai/api-keys/save</code> with <code>{ provider, api_key }</code></li>
+            <li>Backend validates: not empty, &ge; 20 chars, checks prefix (AIza for Gemini, sk- for OpenAI, sk-ant- for Anthropic &mdash; warning only, not blocking)</li>
+            <li>Writes to <code>solen_ai_service/.env</code> file, updates runtime <code>os.environ</code>, resets AI agent singleton</li>
+            <li>On success: toast &ldquo;API anahtar&inodot; kaydedildi&rdquo; + prefix warning if applicable &rarr; masked key shown on card &rarr; status refreshes</li>
+        </ol>
+
+        <p><strong>Read (Overview Dashboard):</strong></p>
+        <ol>
+            <li>Navigate to /admin/ai-settings &rarr; &ldquo;Genel Bak&inodot;&#351;&rdquo; tab loads</li>
+            <li>4 stat cards: AI status (active/inactive), today&rsquo;s queries, total queries, average response time</li>
+            <li>Success rate card with circular progress chart + successful/failed counts</li>
+            <li>Connection test card: shows status, API key status, current model. &ldquo;Ba&gbreve;lant&inodot;y&inodot; Test Et&rdquo; button calls <code>GET /api/ai/status</code></li>
+        </ol>
+
+        <p><strong>Update Model Settings:</strong></p>
+        <ol>
+            <li>Navigate to &ldquo;Model Ayarlar&inodot;&rdquo; tab</li>
+            <li>Form with 4 fields: AI enabled (switch), model (cascader: Provider &rarr; Model, with tier tags and recommended stars), max tokens (select: 1024/2048/4096/8192), temperature (select: 0.1/0.3/0.5/0.7/0.9)</li>
+            <li>Click &ldquo;Ayarlar&inodot; Kaydet&rdquo;</li>
+            <li><code>POST /api/ai/config</code> &rarr; saves to <code>ai_config.json</code></li>
+            <li><code>POST /api/ai/reset</code> &rarr; destroys current agent, reinitializes with new config on next query</li>
+            <li>Toast: &ldquo;Ayarlar kaydedildi - AI yeniden ba&#351;lat&inodot;ld&inodot;&rdquo;</li>
+        </ol>
+
+        <p><strong>Delete API Key:</strong></p>
+        <ol>
+            <li>Click &ldquo;Sil&rdquo; button on a provider card</li>
+            <li>Confirmation modal</li>
+            <li><code>DELETE /api/ai/api-keys/{provider}</code></li>
+            <li>Backend removes key from <code>.env</code> file and <code>os.environ</code></li>
+            <li>Toast: &ldquo;API anahtar&inodot; silindi&rdquo; &rarr; card reverts to unconfigured state</li>
+        </ol>
+
+        <p><strong>Test API Key:</strong></p>
+        <ol>
+            <li>Click &ldquo;Test Et&rdquo; button on a configured provider card</li>
+            <li><code>POST /api/ai/api-keys/test/{provider}</code></li>
+            <li>Backend tests: Gemini via client instantiation, OpenAI via <code>GET https://api.openai.com/v1/models</code>, Anthropic via <code>GET https://api.anthropic.com/v1/models</code></li>
+            <li>Success toast or error toast with details</li>
+        </ol>
+
+        <h3>6.3.5 AI Provider Configuration</h3>
+
+        <table>
+            <tr><th>Provider</th><th>Env Variable</th><th>Key Prefix</th><th>Models</th><th>Status</th></tr>
+            <tr><td><strong>Google Gemini</strong></td><td><code>GEMINI_API_KEY</code></td><td><code>AIza</code></td><td>gemini-3-flash (recommended), gemini-3-pro, gemini-2.5-flash, gemini-2.5-pro</td><td>Active</td></tr>
+            <tr><td><strong>OpenAI</strong></td><td><code>OPENAI_API_KEY</code></td><td><code>sk-</code></td><td>gpt-5.2 (recommended), gpt-5-mini, o3, gpt-4.1</td><td>Coming Soon</td></tr>
+            <tr><td><strong>Anthropic Claude</strong></td><td><code>ANTHROPIC_API_KEY</code></td><td><code>sk-ant-</code></td><td>claude-sonnet-4-5 (recommended), claude-opus-4-5, claude-haiku-4-5</td><td>Coming Soon</td></tr>
+        </table>
+
+        <h4>Key Storage Architecture</h4>
+        <p>API keys are stored in a <code>.env</code> file inside the <code>solen_ai_service</code> directory (separate from the main backend). They are <strong>never</strong> stored in the database. On save, the key is also set in <code>os.environ</code> for immediate use without restart. Keys are <strong>never</strong> returned in API responses &mdash; only masked previews (first 8 + &ldquo;...&rdquo; + last 4 characters).</p>
+
+        <h4>Configuration Storage</h4>
+        <p>Model settings (enabled, model_name, max_tokens, temperature) are stored in <code>ai_config.json</code> alongside the <code>.env</code> file. Defaults: enabled=true, model=gemini-3-flash, max_tokens=4096, temperature=0.7.</p>
+
+        <h3>6.3.6 The AI Agent &mdash; Singleton Architecture</h3>
+
+        <p>The AI agent (<code>SolenAIAgent</code>) is a singleton that persists across requests. It&rsquo;s initialized on the first AI query and reused until explicitly reset.</p>
+
+        <div class="flow">
+            <span class="flow-step">First /ai/chat call</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Load ai_config.json</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Create SolenAIAgent(config)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Singleton stored in _agent_instance</span>
+        </div>
+
+        <p>The agent is reset (destroyed and recreated) when: API keys are saved/deleted, config is updated via the settings page, or <code>POST /api/ai/reset</code> is called. This ensures the agent always uses the latest configuration.</p>
+
+        <h4>Chat Request Flow</h4>
+        <ol>
+            <li>User sends query via <code>POST /api/ai/chat</code> with <code>{ query, conversation_history, user_type }</code></li>
+            <li>Backend checks <code>ai_config.json</code> &mdash; if <code>enabled: false</code>, returns &ldquo;AI servisi &#351;u an devre d&inodot;&#351;&inodot;&rdquo;</li>
+            <li>Gets or creates agent singleton, extracts user info from JWT</li>
+            <li>Calls <code>agent.process_query(query, history, user_type, ip, username, user_id)</code></li>
+            <li>Agent internally: preprocesses query, selects tool, calls internal API, generates response, <strong>writes audit log</strong></li>
+            <li>Backend sanitizes response (hides raw API errors), returns <code>{ success, response, tool_used, timing_ms }</code></li>
+        </ol>
+
+        <h3>6.3.7 Audit Logging &mdash; Forensic-Grade Tracking</h3>
+
+        <p>Every AI interaction writes a row to <code>ai_audit_logs</code> with 47 columns of context. The audit log answers 7 questions about every query:</p>
+
+        <ol>
+            <li><strong>Who?</strong> &mdash; user_id, username, user_type, session info, IP, device, browser, OS</li>
+            <li><strong>What?</strong> &mdash; original query, language, type (search/question/command), category (order/material/production), detected entities</li>
+            <li><strong>How?</strong> &mdash; AI model, reasoning, confidence score, selected tool, tool parameters, alternative tools considered</li>
+            <li><strong>Where?</strong> &mdash; API endpoint called, method, response status, response data, response size</li>
+            <li><strong>Result?</strong> &mdash; success/fail, error type and message, final response text, response type</li>
+            <li><strong>Performance?</strong> &mdash; total ms, AI processing ms, API call ms, response generation ms</li>
+            <li><strong>Security?</strong> &mdash; injection flags, rate limit status, blocked flag and reason</li>
+        </ol>
+
+        <h3>6.3.8 Frontend Architecture</h3>
+
+        <p>Single file: <code>src/pages/Admin/AISettings/index.tsx</code> (1,177 lines). Route: <code>/admin/ai-settings</code>.</p>
+
+        <h4>4-Tab Layout</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Tab 1: Genel Bak&inodot;&#351; (Overview)</h4>
+                <p>4 stat cards (AI status, today&rsquo;s queries, total queries, avg response time). Success rate circular progress chart. Connection test card with status indicator, API key flag, and model name.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tab 2: API Anahtarlar&inodot; (API Keys)</h4>
+                <p>3 provider cards (Gemini, OpenAI, Claude) each with: provider logo, &ldquo;Aktif&rdquo;/&ldquo;Yak&inodot;nda&rdquo; tag, masked key display, password input, save/test/delete buttons, and link to provider&rsquo;s API console. Plus AI service account status card.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tab 3: Model Ayarlar&inodot; (Model Settings)</h4>
+                <p>Form: enabled switch, model cascader (Provider &rarr; Model with icons, tier tags, recommended stars, disabled if no API key), max tokens select (1024&ndash;8192), temperature select (0.1&ndash;0.9). Save triggers config update + agent reset.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Tab 4: Kullan&inodot;m Ge&ccedil;mi&#351;i (Audit Log)</h4>
+                <p>ProTable with expandable rows. Columns: timestamp, username + user_type tag, tool used (blue tag), status (success/error), response time (color-coded: green &lt; 500ms, orange 500&ndash;1000ms, red &gt; 1000ms), IP. Expanded row shows: query, AI response, error message. Search, pagination (10/20/50), density controls.</p>
+            </div>
+        </div>
+
+        <h3>6.3.9 Permission Model</h3>
+
+        <p>AI Settings does not have granular button-level permissions in the manifest. Access is controlled at the module level via <code>canAdmin</code> &mdash; any user with access to the admin module can view AI Settings. Backend endpoints have no explicit permission checks beyond JWT authentication.</p>
+
+        <p>This is a deliberate design choice: AI configuration is considered an admin-wide capability, not a per-button permission. In practice, only super admins access the admin module.</p>
+
+        <h3>6.3.10 How AI Settings Connects to the Rest of the System</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&rarr; AI Agent (External Service)</h4>
+                <p>The settings page configures the external <code>solen_ai_service</code> which contains the <code>SolenAIAgent</code>. API keys, model selection, and parameters are stored in files that the agent reads. The agent is imported as a singleton into the backend.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; AI Search (Query Preprocessing)</h4>
+                <p><code>ai_search_service.py</code> (256 lines) uses Gemini to preprocess search queries: Turkish character correction, query classification, entity detection. Falls back to rule-based processing if AI is unavailable.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; All ERP Modules (via AI Chat)</h4>
+                <p>The AI agent can call internal APIs on behalf of users &mdash; querying orders, materials, suppliers, production data. It&rsquo;s a read-only assistant that <em>consumes</em> data from every module but never writes.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Audit &amp; Compliance</h4>
+                <p>The 47-column audit log creates a complete forensic trail of every AI interaction: who asked what, how the AI processed it, what API it called, what it answered, and how long it took. This supports both debugging and security auditing.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The AI system follows a <em>control plane / data plane</em> separation. The control plane (this settings page) manages configuration, keys, and monitoring. The data plane (the external <code>SolenAIAgent</code>) handles actual query processing. This separation means the AI agent can be upgraded, swapped, or scaled independently of the ERP backend. The 47-column audit log is deliberately over-engineered &mdash; it captures far more context than needed for basic logging, because AI forensics requires understanding not just <em>what</em> the AI did, but <em>why</em> it chose that action and what alternatives it considered. The multi-provider architecture (Gemini active, OpenAI/Claude ready) means switching AI providers is a configuration change, not a code change.</p>
+        </div>
+
     </main>
 </body>
 </html>
