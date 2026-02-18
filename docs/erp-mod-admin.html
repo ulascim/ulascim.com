@@ -963,6 +963,255 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> Printer Management is a hardware abstraction layer. The rest of the system never talks to printers directly &mdash; they queue jobs with a <code>printer_id</code>, and the worker threads handle the physical communication via CUPS/IPP. This decoupling means a printer can be replaced, re-IPed, or taken offline without any code changes in Material Entry or Materials List. The <code>assigned_materials</code> field is metadata for the UI (helping users pick the right printer) but is not enforced at the queue level &mdash; any printer can technically print any material&rsquo;s label.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.2  YAZDIRMA İZLEME                         -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-2" style="margin-top: 48px;">6.2 Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h2>
+
+        <h3>6.2.1 Purpose and Business Context</h3>
+
+        <p>Every material label print passes through a job queue. The job is created the moment a user clicks &ldquo;Yazd&inodot;r&rdquo; in Material Entry or Materials List, and a background worker picks it up within one second. <strong>Yazd&inodot;rma &Idot;zleme</strong> is the real-time dashboard that makes this invisible pipeline visible: how many jobs are waiting, which are printing right now, which succeeded, which failed, and why.</p>
+
+        <p>It serves two purposes: <strong>monitoring</strong> (are the printers keeping up? any failures?) and <strong>intervention</strong> (retry a failed job, cancel a queued one). Without this submodule, a failed print would silently vanish after 3 retries, and nobody would know a material is missing its label.</p>
+
+        <h3>6.2.2 Database Schema</h3>
+
+        <p>Single table: <code>print_jobs</code> (model file: 69 lines)</p>
+
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Purpose</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment, indexed</td><td>Unique job identifier</td></tr>
+            <tr><td><code>material_id</code></td><td>Integer FK &rarr; raw_materials</td><td>NOT NULL</td><td>Which material this label is for</td></tr>
+            <tr><td><code>qr_code</code></td><td>String(50)</td><td>NOT NULL</td><td>QR code text. Includes &ldquo; - REDDEDILDI&rdquo; suffix for rejected materials</td></tr>
+            <tr><td><code>printer_id</code></td><td>Integer</td><td>NOT NULL, indexed</td><td>Target printer (1&ndash;4)</td></tr>
+            <tr><td><code>copies</code></td><td>Integer</td><td>NOT NULL, default 1</td><td>Number of label copies to print</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td>NOT NULL, indexed, default &ldquo;queued&rdquo;</td><td>Job lifecycle state</td></tr>
+            <tr><td><code>retry_count</code></td><td>Integer</td><td>NOT NULL, default 0</td><td>How many times the worker retried (max 3)</td></tr>
+            <tr><td><code>error_message</code></td><td>Text</td><td>NULLABLE</td><td>Error details if job failed</td></tr>
+            <tr><td><code>requested_by</code></td><td>Integer FK &rarr; users</td><td>NOT NULL</td><td>User who triggered the print</td></tr>
+            <tr><td><code>requested_at</code></td><td>DateTime</td><td>NOT NULL, auto</td><td>When the job was queued</td></tr>
+            <tr><td><code>started_at</code></td><td>DateTime</td><td>NULLABLE</td><td>When the worker started printing</td></tr>
+            <tr><td><code>completed_at</code></td><td>DateTime</td><td>NULLABLE</td><td>When the job completed or failed</td></tr>
+            <tr><td><code>material_type</code></td><td>String(50)</td><td>NULLABLE, denormalized</td><td>Material type for fast display without join</td></tr>
+            <tr><td><code>lot_number</code></td><td>String(100)</td><td>NULLABLE, denormalized</td><td>Lot number for fast display</td></tr>
+            <tr><td><code>supplier_name</code></td><td>String(200)</td><td>NULLABLE, denormalized</td><td>Supplier name for fast display</td></tr>
+        </table>
+
+        <h4>PrintJobStatus Enum (5 states)</h4>
+        <pre><span class="keyword">class</span> <span class="string">PrintJobStatus</span>(str, Enum):
+    QUEUED    = <span class="string">"queued"</span>      <span class="comment"># Waiting in queue</span>
+    PRINTING  = <span class="string">"printing"</span>    <span class="comment"># Worker is printing now</span>
+    COMPLETED = <span class="string">"completed"</span>   <span class="comment"># Label printed successfully</span>
+    FAILED    = <span class="string">"failed"</span>      <span class="comment"># Failed after 3 retries</span>
+    CANCELLED = <span class="string">"cancelled"</span>   <span class="comment"># Manually cancelled by admin</span></pre>
+
+        <h4>Job Lifecycle</h4>
+        <div class="flow">
+            <span class="flow-step">QUEUED</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PRINTING</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">COMPLETED</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">PRINTING (fail)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">QUEUED (retry &lt; 3)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PRINTING</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">FAILED (retry &ge; 3)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">QUEUED</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">CANCELLED (manual)</span>
+        </div>
+
+        <h4>Denormalization Strategy</h4>
+        <p>Three columns (<code>material_type</code>, <code>lot_number</code>, <code>supplier_name</code>) are deliberately denormalized from <code>raw_materials</code> and <code>suppliers</code>. This allows the monitoring dashboard to display all job data without expensive joins across tables &mdash; critical for a page that lists up to 500 jobs.</p>
+
+        <h3>6.2.3 API Contract &mdash; 5 Endpoints</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/print-queue/queue/{material_id}?printer_id=X</code></td><td>super_admin, lab_user, operator</td><td>Queue a print job. Creates PrintJob with QUEUED status. Copies from <code>material.quantity</code> (default 1). Appends &ldquo; - REDDEDILDI&rdquo; to QR if material is rejected. Denormalizes material_type, lot_number, supplier_name.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/print-queue/jobs</code></td><td>super_admin only</td><td>List jobs with filters: <code>?status=</code>, <code>?printer_id=</code>, <code>?limit=</code> (default 100, max 500). Ordered by <code>requested_at DESC</code>. Calculates <code>duration</code> seconds if completed.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/print-queue/jobs/{id}/retry</code></td><td>super_admin or lab_user</td><td>Reset failed job: status &rarr; QUEUED, retry_count &rarr; 0, clears error_message, resets timestamps. Worker re-picks it.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/print-queue/jobs/{id}</code></td><td>super_admin only</td><td>Cancel a queued job. <strong>Blocked</strong> if status is PRINTING (&ldquo;Devam eden i&#351; iptal edilemez&rdquo;). Sets status &rarr; CANCELLED, stamps completed_at.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/print-queue/stats</code></td><td>super_admin only</td><td>Returns job counts: <code>{ queued, printing, completed, failed, total }</code>.</td></tr>
+        </table>
+
+        <h3>6.2.4 CRUD Flow</h3>
+
+        <p><strong>Create (Queue a Print Job):</strong></p>
+        <ol>
+            <li>In Materials List, click the print icon on a material row (disabled for palettes/reels)</li>
+            <li>Printer selection modal opens showing: QR code, label count (<code>material.quantity</code> or 1), and a dropdown of active printers fetched from <code>GET /api/printers/list?active_only=true</code></li>
+            <li>Select printer &rarr; click &ldquo;Yazd&inodot;r&rdquo;</li>
+            <li><code>POST /api/print-queue/queue/{material_id}?printer_id=X</code></li>
+            <li>Backend validates material exists, gets supplier name from relationship, checks if material is rejected (appends &ldquo; - REDDEDILDI&rdquo; to QR), denormalizes type/lot/supplier into the job row</li>
+            <li>On success: toast &ldquo;Yazd&inodot;rma i&#351;i kuyru&gbreve;a eklendi (#123)&rdquo; &rarr; modal closes</li>
+            <li>Background worker picks up the job within 1 second and starts printing</li>
+        </ol>
+
+        <p><strong>Read (Monitor Jobs):</strong></p>
+        <ol>
+            <li>Navigate to /admin/print-monitor</li>
+            <li>Page loads &rarr; <code>GET /api/print-queue/jobs?limit=200</code> + <code>GET /api/print-queue/stats</code></li>
+            <li>4 stat cards render at the top: Bekleyen (gray), Yazd&inodot;r&inodot;l&inodot;yor (blue), Tamamlanan (green), Ba&#351;ar&inodot;s&inodot;z (red)</li>
+            <li>ProTable (16 columns) renders all jobs with: ID, QR code (blue tag), material type (color-coded Turkish tag), lot, supplier, printer (filterable 1&ndash;4), copies (bold), status (color-coded tag), retry count (X/3 warning tag if &gt; 0), error message (red with tooltip), user, requested/started/completed timestamps (Turkey timezone), duration (seconds), actions</li>
+            <li>Client-side search filters across QR code, lot, supplier, user, status, material type, ID, and printer &mdash; including Turkish translations</li>
+        </ol>
+
+        <p><strong>Retry (Failed &rarr; Queued):</strong></p>
+        <ol>
+            <li>Retry button (RedoOutlined) appears <strong>only</strong> on rows with status &ldquo;failed&rdquo;</li>
+            <li>Click retry &rarr; <code>POST /api/print-queue/jobs/{id}/retry</code></li>
+            <li>Backend resets: status &rarr; QUEUED, retry_count &rarr; 0, clears error_message, nulls started_at and completed_at</li>
+            <li>On success: toast &ldquo;&#304;&#351; #{id} tekrar kuyru&gbreve;a eklendi&rdquo; &rarr; table + stats reload</li>
+            <li>Worker re-picks the job on next poll cycle (within 1 second)</li>
+        </ol>
+
+        <p><strong>Cancel (Queued &rarr; Cancelled):</strong></p>
+        <ol>
+            <li>Cancel button (CloseCircleOutlined, danger) appears <strong>only</strong> on rows with status &ldquo;queued&rdquo;</li>
+            <li>Click cancel &rarr; confirmation modal: &ldquo;&#304;&#351; #{id} iptal edilsin mi?&rdquo; with &ldquo;&#304;ptal Et&rdquo; (danger) / &ldquo;Vazge&ccedil;&rdquo;</li>
+            <li>On confirm: <code>DELETE /api/print-queue/jobs/{id}</code></li>
+            <li>Backend validates job is not PRINTING (blocks with &ldquo;Devam eden i&#351; iptal edilemez&rdquo;), sets status &rarr; CANCELLED, stamps completed_at</li>
+            <li>On success: toast &ldquo;&#304;&#351; #{id} iptal edildi&rdquo; &rarr; table + stats reload</li>
+        </ol>
+
+        <h3>6.2.5 The Background Worker &mdash; How Jobs Actually Get Printed</h3>
+
+        <p>The connection between this monitoring page and physical printing is the <code>PrintWorker</code> (292 lines, described in 6.1.6). Here&rsquo;s the exact data flow when a worker processes a job:</p>
+
+        <div class="flow">
+            <span class="flow-step">Poll DB every 1s</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Find oldest QUEUED job for this printer</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Status &rarr; PRINTING</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Fetch RawMaterial</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Fetch User (entered_by)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Build material_data dict</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">print_label_with_quantity()</span>
+        </div>
+
+        <h4>The material_data Dict (Built by Worker)</h4>
+        <table>
+            <tr><th>Key</th><th>Source</th></tr>
+            <tr><td><code>qr_code</code></td><td><code>job.qr_code</code> (includes &ldquo;REDDEDILDI&rdquo; if rejected)</td></tr>
+            <tr><td><code>material_type</code></td><td><code>job.material_type</code> (denormalized)</td></tr>
+            <tr><td><code>lot_number</code></td><td><code>job.lot_number</code> or <code>material.lot_number</code></td></tr>
+            <tr><td><code>supplier_name</code></td><td><code>job.supplier_name</code> (denormalized)</td></tr>
+            <tr><td><code>weight</code></td><td><code>material.weight</code> (live from DB)</td></tr>
+            <tr><td><code>received_date</code></td><td><code>material.received_date</code> (live from DB)</td></tr>
+            <tr><td><code>entered_by</code></td><td><code>user.full_name</code> or <code>user.username</code> (live lookup)</td></tr>
+            <tr><td><code>notes</code></td><td><code>material.notes</code> (live from DB)</td></tr>
+        </table>
+
+        <p>Note the hybrid approach: some fields come from the denormalized job row (fast, no join), while weight, date, user name, and notes are fetched live from DB (always current).</p>
+
+        <h4>Retry Logic (Automatic)</h4>
+        <table>
+            <tr><th>retry_count</th><th>Print Fails</th><th>Result</th></tr>
+            <tr><td>0</td><td>First attempt fails</td><td>retry_count &rarr; 1, status &rarr; QUEUED, error stored</td></tr>
+            <tr><td>1</td><td>Second attempt fails</td><td>retry_count &rarr; 2, status &rarr; QUEUED</td></tr>
+            <tr><td>2</td><td>Third attempt fails</td><td>retry_count &rarr; 3, status &rarr; QUEUED</td></tr>
+            <tr><td>3</td><td>Fourth attempt fails</td><td>status &rarr; <strong>FAILED</strong>, completed_at stamped</td></tr>
+        </table>
+
+        <p>After the automatic 3 retries exhaust, the job shows as &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; with a retry count of &ldquo;3/3&rdquo; in the dashboard. An admin or lab user can then manually retry it (resetting the counter to 0).</p>
+
+        <h3>6.2.6 Frontend Architecture</h3>
+
+        <p>Single file: <code>src/pages/Admin/PrintJobMonitor/index.tsx</code> (509 lines). Route: <code>/admin/print-monitor</code>.</p>
+
+        <h4>Component Structure</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>4 Stat Cards (Row, gutter 16)</h4>
+                <p><strong>Bekleyen &#304;&#351;ler</strong> (gray #8c8c8c), <strong>Yazd&inodot;r&inodot;l&inodot;yor</strong> (blue #1890ff), <strong>Tamamlanan</strong> (green #52c41a), <strong>Ba&#351;ar&inodot;s&inodot;z</strong> (red #ff4d4f). Font size 24px. Refreshed after every table load and after retry/cancel actions.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProTable (16 columns)</h4>
+                <p>Default page size 50, max 500. Scroll width 1800px. Columns: ID (sortable, fixed left), QR code (blue tag), material type (color-coded), lot, supplier, printer (filterable), copies (bold), status (filterable, color-coded), retry count, error (red tooltip), user, 3 timestamps (Turkey TZ), duration, actions (fixed right).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Toolbar</h4>
+                <p>Search input (client-side filtering across all columns including Turkish translations) + table options (density toggle, reload, column settings). Title: &ldquo;Yazd&inodot;rma &#304;&#351;leri&rdquo;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Action Buttons (conditional)</h4>
+                <p><strong>Retry</strong> (RedoOutlined): only visible on &ldquo;failed&rdquo; rows. <strong>Cancel</strong> (CloseCircleOutlined, danger): only visible on &ldquo;queued&rdquo; rows. No actions on &ldquo;printing&rdquo;, &ldquo;completed&rdquo;, or &ldquo;cancelled&rdquo; rows.</p>
+            </div>
+        </div>
+
+        <h4>Date Formatting</h4>
+        <p>All timestamps are stored as UTC in the database. The frontend converts them using <code>dayjs.utc(dateStr).tz('Europe/Istanbul')</code> and displays in <code>D.MM.YYYY HH:mm:ss</code> format (e.g. &ldquo;18.02.2026 14:30:45&rdquo;).</p>
+
+        <h4>Material Type Tags (Color Mapping)</h4>
+        <table>
+            <tr><th>Type</th><th>Tag Color</th><th>Turkish Label</th></tr>
+            <tr><td><code>raw_copper</code></td><td>orange</td><td>Bak&inodot;r</td></tr>
+            <tr><td><code>raw_tin</code></td><td>cyan</td><td>Kalay</td></tr>
+            <tr><td><code>raw_plastic</code></td><td>purple</td><td>Plastik</td></tr>
+            <tr><td><code>raw_catalyst</code></td><td>magenta</td><td>Kataliz&ouml;r</td></tr>
+            <tr><td><code>raw_dye</code></td><td>volcano</td><td>Boya</td></tr>
+            <tr><td><code>raw_antirodent</code></td><td>geekblue</td><td>Antirodent</td></tr>
+        </table>
+
+        <h4>No WebSocket &mdash; Manual Refresh</h4>
+        <p>Unlike other pages in the ERP, the Print Job Monitor does not use WebSocket for real-time updates. The table and stats refresh via <code>actionRef.current?.reload()</code> after mutations (retry, cancel) and on the table&rsquo;s built-in reload button. There is no automatic polling.</p>
+
+        <h3>6.2.7 Permission Model</h3>
+
+        <p>Page ID: <code>admin.yazdirma_izleme</code></p>
+
+        <table>
+            <tr><th>Permission ID</th><th>Label</th><th>Description</th></tr>
+            <tr><td><code>access_page</code></td><td>Sayfaya Eri&#351;im</td><td>Yazd&inodot;rma izleme sayfas&inodot;n&inodot; g&ouml;r&uuml;nt&uuml;leme</td></tr>
+            <tr><td><code>view_jobs</code></td><td>&#304;&#351;leri G&ouml;r&uuml;nt&uuml;le</td><td>Yazd&inodot;rma i&#351;lerini g&ouml;rme</td></tr>
+            <tr><td><code>view_stats</code></td><td>&#304;statistikler</td><td>&#304;statistik kartlar&inodot;n&inodot; g&ouml;rme</td></tr>
+            <tr><td><code>retry_job</code></td><td>Tekrar Dene</td><td>Ba&#351;ar&inodot;s&inodot;z i&#351;i tekrar &ccedil;al&inodot;&#351;t&inodot;rma</td></tr>
+            <tr><td><code>cancel_job</code></td><td>&#304;&#351;i &#304;ptal Et</td><td>Bekleyen i&#351;i iptal etme</td></tr>
+            <tr><td><code>refresh_data</code></td><td>Yenile</td><td>Veriyi yenileme butonu</td></tr>
+        </table>
+
+        <p>Backend enforces: <code>super_admin</code> can do everything. <code>lab_user</code> can retry failed jobs. <code>operator</code> can only queue new jobs (via Material Entry) but cannot access the monitoring dashboard.</p>
+
+        <h3>6.2.8 How Print Job Monitor Connects to the Rest of the System</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&larr; Hammadde Giri&#351;i (Source)</h4>
+                <p>After entering a material, the success modal&rsquo;s &ldquo;Yazd&inodot;r&rdquo; button queues a print job via <code>POST /print-queue/queue/{id}</code>. This is the primary job creation path.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&larr; Hammaddeler Listesi (Source)</h4>
+                <p>The reprint button on any material row opens a printer selection modal (showing QR code + label count), then queues via the same endpoint. Disabled for palettes and reels.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Yaz&inodot;c&inodot; Y&ouml;netimi (6.1)</h4>
+                <p>Print workers are initialized from the printers table. The printer selection modal in Materials List fetches active printers from <code>/api/printers/list</code>. Printer ID in the job maps to a physical device configured in 6.1.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; PrintWorker (Background)</h4>
+                <p>One daemon thread per printer polls the print_jobs table every 1 second, processes QUEUED jobs in FIFO order, handles automatic retries (max 3), and updates job status. Described in detail in 6.1.6.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The print queue is a <em>non-blocking, fire-and-forget</em> system. When a user clicks &ldquo;Yazd&inodot;r&rdquo;, the API returns immediately with a job ID &mdash; the user doesn&rsquo;t wait for the physical printer. The worker processes it asynchronously. This design means Material Entry never blocks on slow or offline printers. The monitoring dashboard exists because this asynchrony creates an observability gap: you need a place to see what happened after you fired and forgot. The denormalization of material data into the job row is a deliberate performance trade-off &mdash; the monitoring page loads fast even with 500 jobs because it never joins to raw_materials or suppliers.</p>
+        </div>
+
     </main>
 </body>
 </html>

@@ -963,6 +963,255 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> Yaz&inodot;c&inodot; Y&ouml;netimi bir donan&inodot;m soyutlama katman&inodot;d&inodot;r. Sistemin geri kalan&inodot; asla do&gbreve;rudan yaz&inodot;c&inodot;larla konu&#351;maz &mdash; bir <code>printer_id</code> ile i&#351; kuyru&gbreve;a al&inodot;r ve i&#351;&ccedil;i thread&rsquo;leri CUPS/IPP &uuml;zerinden fiziksel ileti&#351;imi y&ouml;netir. Bu ayr&inodot;&#351;t&inodot;rma, bir yaz&inodot;c&inodot;n&inodot;n Hammadde Giri&#351;i veya Hammaddeler Listesi&rsquo;nde hi&ccedil;bir kod de&gbreve;i&#351;ikli&gbreve;i olmadan de&gbreve;i&#351;tirilebilece&gbreve;i, IP&rsquo;sinin g&uuml;ncellenebilece&gbreve;i veya &ccedil;evrimd&inodot;&#351;&inodot; al&inodot;nabilece&gbreve;i anlam&inodot;na gelir. <code>assigned_materials</code> alan&inodot; kullan&inodot;c&inodot; aray&uuml;z&uuml; i&ccedil;in meta veridir (kullan&inodot;c&inodot;lar&inodot;n do&gbreve;ru yaz&inodot;c&inodot;y&inodot; se&ccedil;mesine yard&inodot;mc&inodot; olur) ancak kuyruk d&uuml;zeyinde uygulanmaz &mdash; herhangi bir yaz&inodot;c&inodot; teknik olarak herhangi bir malzemenin etiketini yazd&inodot;rabilir.</p>
         </div>
 
+        <!-- ============================================ -->
+        <!-- 6.2  YAZDIRMA İZLEME                         -->
+        <!-- ============================================ -->
+
+        <h2 id="sec-6-2" style="margin-top: 48px;">6.2 Yazd&inodot;rma &Idot;zleme (Print Job Monitor)</h2>
+
+        <h3>6.2.1 Ama&ccedil; ve &Idot;&#351; Ba&gbreve;lam&inodot;</h3>
+
+        <p>Her malzeme etiket yazd&inodot;rmas&inodot; bir i&#351; kuyru&gbreve;undan ge&ccedil;er. &Idot;&#351;, kullan&inodot;c&inodot; Hammadde Giri&#351;i veya Hammaddeler Listesi&rsquo;nde &ldquo;Yazd&inodot;r&rdquo;a t&inodot;klad&inodot;&gbreve;&inodot; anda olu&#351;turulur ve bir arka plan i&#351;&ccedil;isi bir saniye i&ccedil;inde onu al&inodot;r. <strong>Yazd&inodot;rma &Idot;zleme</strong>, bu g&ouml;r&uuml;nmez boru hatt&inodot;n&inodot; g&ouml;r&uuml;n&uuml;r k&inodot;lan ger&ccedil;ek zamanl&inodot; panodur: ka&ccedil; i&#351; bekliyor, hangileri &#351;u anda yazd&inodot;r&inodot;l&inodot;yor, hangileri ba&#351;ar&inodot;l&inodot; oldu, hangileri ba&#351;ar&inodot;s&inodot;z oldu ve neden.</p>
+
+        <p>&Idot;ki amaca hizmet eder: <strong>izleme</strong> (yaz&inodot;c&inodot;lar yeti&#351;ebiliyor mu? ba&#351;ar&inodot;s&inodot;zl&inodot;k var m&inodot;?) ve <strong>m&uuml;dahale</strong> (ba&#351;ar&inodot;s&inodot;z bir i&#351;i yeniden dene, kuyruktakini iptal et). Bu alt mod&uuml;l olmadan, ba&#351;ar&inodot;s&inodot;z bir yazd&inodot;rma 3 denemeden sonra sessizce kaybolur ve kimse bir malzemenin etiketinin eksik oldu&gbreve;unu bilmez.</p>
+
+        <h3>6.2.2 Veritaban&inodot; &#350;emas&inodot;</h3>
+
+        <p>Tek tablo: <code>print_jobs</code> (model dosyas&inodot;: 69 sat&inodot;r)</p>
+
+        <table>
+            <tr><th>S&uuml;tun</th><th>Tip</th><th>K&inodot;s&inodot;tlamalar</th><th>Ama&ccedil;</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik art&inodot;&#351;, indeksli</td><td>Benzersiz i&#351; tan&inodot;mlay&inodot;c&inodot;</td></tr>
+            <tr><td><code>material_id</code></td><td>Integer FK &rarr; raw_materials</td><td>NOT NULL</td><td>Bu etiketin hangi malzeme i&ccedil;in oldu&gbreve;u</td></tr>
+            <tr><td><code>qr_code</code></td><td>String(50)</td><td>NOT NULL</td><td>QR kod metni. Reddedilen malzemeler i&ccedil;in &ldquo; - REDDEDILDI&rdquo; eki i&ccedil;erir</td></tr>
+            <tr><td><code>printer_id</code></td><td>Integer</td><td>NOT NULL, indeksli</td><td>Hedef yaz&inodot;c&inodot; (1&ndash;4)</td></tr>
+            <tr><td><code>copies</code></td><td>Integer</td><td>NOT NULL, varsay&inodot;lan 1</td><td>Yazd&inodot;r&inodot;lacak etiket kopya say&inodot;s&inodot;</td></tr>
+            <tr><td><code>status</code></td><td>String(20)</td><td>NOT NULL, indeksli, varsay&inodot;lan &ldquo;queued&rdquo;</td><td>&#304;&#351; ya&#351;am d&ouml;ng&uuml;s&uuml; durumu</td></tr>
+            <tr><td><code>retry_count</code></td><td>Integer</td><td>NOT NULL, varsay&inodot;lan 0</td><td>&#304;&#351;&ccedil;inin ka&ccedil; kez yeniden denedi&gbreve;i (maks 3)</td></tr>
+            <tr><td><code>error_message</code></td><td>Text</td><td>NULLABLE</td><td>&#304;&#351; ba&#351;ar&inodot;s&inodot;z olursa hata detaylar&inodot;</td></tr>
+            <tr><td><code>requested_by</code></td><td>Integer FK &rarr; users</td><td>NOT NULL</td><td>Yazd&inodot;rmay&inodot; tetikleyen kullan&inodot;c&inodot;</td></tr>
+            <tr><td><code>requested_at</code></td><td>DateTime</td><td>NOT NULL, otomatik</td><td>&#304;&#351;in kuyru&gbreve;a al&inodot;nd&inodot;&gbreve;&inodot; zaman</td></tr>
+            <tr><td><code>started_at</code></td><td>DateTime</td><td>NULLABLE</td><td>&#304;&#351;&ccedil;inin yazd&inodot;rmaya ba&#351;lad&inodot;&gbreve;&inodot; zaman</td></tr>
+            <tr><td><code>completed_at</code></td><td>DateTime</td><td>NULLABLE</td><td>&#304;&#351;in tamamland&inodot;&gbreve;&inodot; veya ba&#351;ar&inodot;s&inodot;z oldu&gbreve;u zaman</td></tr>
+            <tr><td><code>material_type</code></td><td>String(50)</td><td>NULLABLE, denormalize</td><td>Join olmadan h&inodot;zl&inodot; g&ouml;sterim i&ccedil;in malzeme t&uuml;r&uuml;</td></tr>
+            <tr><td><code>lot_number</code></td><td>String(100)</td><td>NULLABLE, denormalize</td><td>H&inodot;zl&inodot; g&ouml;sterim i&ccedil;in lot numaras&inodot;</td></tr>
+            <tr><td><code>supplier_name</code></td><td>String(200)</td><td>NULLABLE, denormalize</td><td>H&inodot;zl&inodot; g&ouml;sterim i&ccedil;in tedarik&ccedil;i ad&inodot;</td></tr>
+        </table>
+
+        <h4>PrintJobStatus Enum (5 durum)</h4>
+        <pre><span class="keyword">class</span> <span class="string">PrintJobStatus</span>(str, Enum):
+    QUEUED    = <span class="string">"queued"</span>      <span class="comment"># Kuyrukta bekliyor</span>
+    PRINTING  = <span class="string">"printing"</span>    <span class="comment"># &#304;&#351;&ccedil;i &#351;u anda yazd&inodot;r&inodot;yor</span>
+    COMPLETED = <span class="string">"completed"</span>   <span class="comment"># Etiket ba&#351;ar&inodot;yla yazd&inodot;r&inodot;ld&inodot;</span>
+    FAILED    = <span class="string">"failed"</span>      <span class="comment"># 3 denemeden sonra ba&#351;ar&inodot;s&inodot;z</span>
+    CANCELLED = <span class="string">"cancelled"</span>   <span class="comment"># Admin taraf&inodot;ndan manuel iptal</span></pre>
+
+        <h4>&#304;&#351; Ya&#351;am D&ouml;ng&uuml;s&uuml;</h4>
+        <div class="flow">
+            <span class="flow-step">QUEUED</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PRINTING</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">COMPLETED</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">PRINTING (ba&#351;ar&inodot;s&inodot;z)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">QUEUED (deneme &lt; 3)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PRINTING</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">FAILED (deneme &ge; 3)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">QUEUED</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">CANCELLED (manuel)</span>
+        </div>
+
+        <h4>Denormalizasyon Stratejisi</h4>
+        <p>&Uuml;&ccedil; s&uuml;tun (<code>material_type</code>, <code>lot_number</code>, <code>supplier_name</code>) bilin&ccedil;li olarak <code>raw_materials</code> ve <code>suppliers</code>&rsquo;dan denormalize edilmi&#351;tir. Bu, izleme panosunun tablolar aras&inodot; pahal&inodot; join&rsquo;ler olmadan t&uuml;m i&#351; verilerini g&ouml;stermesini sa&gbreve;lar &mdash; 500&rsquo;e kadar i&#351; listeleyen bir sayfa i&ccedil;in kritiktir.</p>
+
+        <h3>6.2.3 API S&ouml;zle&#351;mesi &mdash; 5 Endpoint</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Yetki</th><th>Ne Yapar</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/print-queue/queue/{material_id}?printer_id=X</code></td><td>super_admin, lab_user, operator</td><td>Yazd&inodot;rma i&#351;i kuyru&gbreve;a al. QUEUED durumuyla PrintJob olu&#351;turur. Kopya say&inodot;s&inodot; <code>material.quantity</code>&rsquo;den (varsay&inodot;lan 1). Malzeme reddedilmi&#351;se QR&rsquo;ye &ldquo; - REDDEDILDI&rdquo; ekler. material_type, lot_number, supplier_name denormalize eder.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/print-queue/jobs</code></td><td>Yaln&inodot;zca super_admin</td><td>&#304;&#351;leri filtrelerle listele: <code>?status=</code>, <code>?printer_id=</code>, <code>?limit=</code> (varsay&inodot;lan 100, maks 500). <code>requested_at DESC</code> s&inodot;ral&inodot;. Tamamlanm&inodot;&#351;sa <code>duration</code> saniye hesaplar.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/print-queue/jobs/{id}/retry</code></td><td>super_admin veya lab_user</td><td>Ba&#351;ar&inodot;s&inodot;z i&#351;i s&inodot;f&inodot;rla: durum &rarr; QUEUED, retry_count &rarr; 0, error_message temizle, zaman damgalar&inodot;n&inodot; s&inodot;f&inodot;rla. &#304;&#351;&ccedil;i yeniden al&inodot;r.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/print-queue/jobs/{id}</code></td><td>Yaln&inodot;zca super_admin</td><td>Kuyruktaki i&#351;i iptal et. Durum PRINTING ise <strong>engellenir</strong> (&ldquo;Devam eden i&#351; iptal edilemez&rdquo;). Durum &rarr; CANCELLED, completed_at damgalan&inodot;r.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/print-queue/stats</code></td><td>Yaln&inodot;zca super_admin</td><td>&#304;&#351; say&inodot;lar&inodot;n&inodot; d&ouml;nd&uuml;r&uuml;r: <code>{ queued, printing, completed, failed, total }</code>.</td></tr>
+        </table>
+
+        <h3>6.2.4 CRUD Ak&inodot;&#351;&inodot;</h3>
+
+        <p><strong>Olu&#351;tur (Yazd&inodot;rma &#304;&#351;i Kuyru&gbreve;a Al):</strong></p>
+        <ol>
+            <li>Hammaddeler Listesi&rsquo;nde bir malzeme sat&inodot;r&inodot;ndaki yazd&inodot;r ikonuna t&inodot;kla (palet/makara i&ccedil;in devre d&inodot;&#351;&inodot;)</li>
+            <li>Yaz&inodot;c&inodot; se&ccedil;im modal&inodot; a&ccedil;&inodot;l&inodot;r: QR kodu, etiket say&inodot;s&inodot; (<code>material.quantity</code> veya 1) ve <code>GET /api/printers/list?active_only=true</code>&rsquo;den &ccedil;ekilen aktif yaz&inodot;c&inodot;lar&inodot;n a&ccedil;&inodot;l&inodot;r listesini g&ouml;sterir</li>
+            <li>Yaz&inodot;c&inodot; se&ccedil; &rarr; &ldquo;Yazd&inodot;r&rdquo;a t&inodot;kla</li>
+            <li><code>POST /api/print-queue/queue/{material_id}?printer_id=X</code></li>
+            <li>Backend malzemenin var oldu&gbreve;unu do&gbreve;rular, ili&#351;kiden tedarik&ccedil;i ad&inodot;n&inodot; al&inodot;r, malzemenin reddedilip reddedilmedi&gbreve;ini kontrol eder (QR&rsquo;ye &ldquo; - REDDEDILDI&rdquo; ekler), t&uuml;r/lot/tedarik&ccedil;iyi i&#351; sat&inodot;r&inodot;na denormalize eder</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;Yazd&inodot;rma i&#351;i kuyru&gbreve;a eklendi (#123)&rdquo; &rarr; modal kapan&inodot;r</li>
+            <li>Arka plan i&#351;&ccedil;isi i&#351;i 1 saniye i&ccedil;inde al&inodot;r ve yazd&inodot;rmaya ba&#351;lar</li>
+        </ol>
+
+        <p><strong>Oku (&#304;&#351;leri &#304;zle):</strong></p>
+        <ol>
+            <li>/admin/print-monitor sayfas&inodot;na git</li>
+            <li>Sayfa y&uuml;klenir &rarr; <code>GET /api/print-queue/jobs?limit=200</code> + <code>GET /api/print-queue/stats</code></li>
+            <li>&Uuml;stte 4 istatistik kart&inodot; render edilir: Bekleyen (gri), Yazd&inodot;r&inodot;l&inodot;yor (mavi), Tamamlanan (ye&#351;il), Ba&#351;ar&inodot;s&inodot;z (k&inodot;rm&inodot;z&inodot;)</li>
+            <li>ProTable (16 s&uuml;tun) t&uuml;m i&#351;leri render eder: ID, QR kod (mavi etiket), malzeme t&uuml;r&uuml; (renk kodlu T&uuml;rk&ccedil;e etiket), lot, tedarik&ccedil;i, yaz&inodot;c&inodot; (filtrelenebilir 1&ndash;4), adet (kal&inodot;n), durum (renk kodlu etiket), deneme say&inodot;s&inodot; (X/3 uyar&inodot; etiketi &gt; 0 ise), hata mesaj&inodot; (k&inodot;rm&inodot;z&inodot; tooltip), kullan&inodot;c&inodot;, istek/ba&#351;lang&inodot;&ccedil;/biti&#351; zaman damgalar&inodot; (T&uuml;rkiye saat dilimi), s&uuml;re (saniye), i&#351;lemler</li>
+            <li>&#304;stemci taraf&inodot; arama QR kod, lot, tedarik&ccedil;i, kullan&inodot;c&inodot;, durum, malzeme t&uuml;r&uuml;, ID ve yaz&inodot;c&inodot; &uuml;zerinde &mdash; T&uuml;rk&ccedil;e &ccedil;eviriler dahil &mdash; filtreler</li>
+        </ol>
+
+        <p><strong>Yeniden Dene (Ba&#351;ar&inodot;s&inodot;z &rarr; Kuyrukta):</strong></p>
+        <ol>
+            <li>Yeniden dene butonu (RedoOutlined) <strong>yaln&inodot;zca</strong> &ldquo;ba&#351;ar&inodot;s&inodot;z&rdquo; durumlu sat&inodot;rlarda g&ouml;r&uuml;n&uuml;r</li>
+            <li>Yeniden dene&rsquo;ye t&inodot;kla &rarr; <code>POST /api/print-queue/jobs/{id}/retry</code></li>
+            <li>Backend s&inodot;f&inodot;rlar: durum &rarr; QUEUED, retry_count &rarr; 0, error_message temizlenir, started_at ve completed_at null yap&inodot;l&inodot;r</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;&#304;&#351; #{id} tekrar kuyru&gbreve;a eklendi&rdquo; &rarr; tablo + istatistikler yenilenir</li>
+            <li>&#304;&#351;&ccedil;i sonraki yoklama d&ouml;ng&uuml;s&uuml;nde (1 saniye i&ccedil;inde) i&#351;i yeniden al&inodot;r</li>
+        </ol>
+
+        <p><strong>&#304;ptal (Kuyrukta &rarr; &#304;ptal Edildi):</strong></p>
+        <ol>
+            <li>&#304;ptal butonu (CloseCircleOutlined, tehlike) <strong>yaln&inodot;zca</strong> &ldquo;kuyrukta&rdquo; durumlu sat&inodot;rlarda g&ouml;r&uuml;n&uuml;r</li>
+            <li>&#304;ptal&rsquo;e t&inodot;kla &rarr; onay modal&inodot;: &ldquo;&#304;&#351; #{id} iptal edilsin mi?&rdquo; ile &ldquo;&#304;ptal Et&rdquo; (tehlike) / &ldquo;Vazge&ccedil;&rdquo;</li>
+            <li>Onayda: <code>DELETE /api/print-queue/jobs/{id}</code></li>
+            <li>Backend i&#351;in PRINTING olmad&inodot;&gbreve;&inodot;n&inodot; do&gbreve;rular (&ldquo;Devam eden i&#351; iptal edilemez&rdquo; ile engeller), durum &rarr; CANCELLED, completed_at damgalan&inodot;r</li>
+            <li>Ba&#351;ar&inodot;da: toast &ldquo;&#304;&#351; #{id} iptal edildi&rdquo; &rarr; tablo + istatistikler yenilenir</li>
+        </ol>
+
+        <h3>6.2.5 Arka Plan &#304;&#351;&ccedil;isi &mdash; &#304;&#351;ler Nas&inodot;l Ger&ccedil;ekten Yazd&inodot;r&inodot;l&inodot;r</h3>
+
+        <p>Bu izleme sayfas&inodot; ile fiziksel yazd&inodot;rma aras&inodot;ndaki ba&gbreve;lant&inodot; <code>PrintWorker</code>&rsquo;d&inodot;r (292 sat&inodot;r, 6.1.6&rsquo;da a&ccedil;&inodot;klanm&inodot;&#351;t&inodot;r). &#304;&#351;&ccedil;i bir i&#351;i i&#351;lerken tam veri ak&inodot;&#351;&inodot;:</p>
+
+        <div class="flow">
+            <span class="flow-step">Her 1s DB yokla</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Bu yaz&inodot;c&inodot; i&ccedil;in en eski QUEUED i&#351;i bul</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Durum &rarr; PRINTING</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">RawMaterial &ccedil;ek</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">User (entered_by) &ccedil;ek</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">material_data dict olu&#351;tur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">print_label_with_quantity()</span>
+        </div>
+
+        <h4>material_data Dict (&#304;&#351;&ccedil;i Taraf&inodot;ndan Olu&#351;turulur)</h4>
+        <table>
+            <tr><th>Anahtar</th><th>Kaynak</th></tr>
+            <tr><td><code>qr_code</code></td><td><code>job.qr_code</code> (reddedilmi&#351;se &ldquo;REDDEDILDI&rdquo; i&ccedil;erir)</td></tr>
+            <tr><td><code>material_type</code></td><td><code>job.material_type</code> (denormalize)</td></tr>
+            <tr><td><code>lot_number</code></td><td><code>job.lot_number</code> veya <code>material.lot_number</code></td></tr>
+            <tr><td><code>supplier_name</code></td><td><code>job.supplier_name</code> (denormalize)</td></tr>
+            <tr><td><code>weight</code></td><td><code>material.weight</code> (DB&rsquo;den canl&inodot;)</td></tr>
+            <tr><td><code>received_date</code></td><td><code>material.received_date</code> (DB&rsquo;den canl&inodot;)</td></tr>
+            <tr><td><code>entered_by</code></td><td><code>user.full_name</code> veya <code>user.username</code> (canl&inodot; arama)</td></tr>
+            <tr><td><code>notes</code></td><td><code>material.notes</code> (DB&rsquo;den canl&inodot;)</td></tr>
+        </table>
+
+        <p>Hibrit yakla&#351;&inodot;ma dikkat edin: baz&inodot; alanlar denormalize i&#351; sat&inodot;r&inodot;ndan gelir (h&inodot;zl&inodot;, join yok), a&gbreve;&inodot;rl&inodot;k, tarih, kullan&inodot;c&inodot; ad&inodot; ve notlar ise DB&rsquo;den canl&inodot; &ccedil;ekilir (her zaman g&uuml;ncel).</p>
+
+        <h4>Yeniden Deneme Mant&inodot;&gbreve;&inodot; (Otomatik)</h4>
+        <table>
+            <tr><th>retry_count</th><th>Yazd&inodot;rma Ba&#351;ar&inodot;s&inodot;z</th><th>Sonu&ccedil;</th></tr>
+            <tr><td>0</td><td>&#304;lk deneme ba&#351;ar&inodot;s&inodot;z</td><td>retry_count &rarr; 1, durum &rarr; QUEUED, hata saklan&inodot;r</td></tr>
+            <tr><td>1</td><td>&#304;kinci deneme ba&#351;ar&inodot;s&inodot;z</td><td>retry_count &rarr; 2, durum &rarr; QUEUED</td></tr>
+            <tr><td>2</td><td>&Uuml;&ccedil;&uuml;nc&uuml; deneme ba&#351;ar&inodot;s&inodot;z</td><td>retry_count &rarr; 3, durum &rarr; QUEUED</td></tr>
+            <tr><td>3</td><td>D&ouml;rd&uuml;nc&uuml; deneme ba&#351;ar&inodot;s&inodot;z</td><td>durum &rarr; <strong>FAILED</strong>, completed_at damgalan&inodot;r</td></tr>
+        </table>
+
+        <p>Otomatik 3 deneme t&uuml;kendikten sonra, i&#351; panoda &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; olarak &ldquo;3/3&rdquo; deneme say&inodot;s&inodot;yla g&ouml;r&uuml;n&uuml;r. Bir admin veya lab kullan&inodot;c&inodot;s&inodot; daha sonra manuel olarak yeniden deneyebilir (sayac&inodot; 0&rsquo;a s&inodot;f&inodot;rlar).</p>
+
+        <h3>6.2.6 Frontend Mimarisi</h3>
+
+        <p>Tek dosya: <code>src/pages/Admin/PrintJobMonitor/index.tsx</code> (509 sat&inodot;r). Rota: <code>/admin/print-monitor</code>.</p>
+
+        <h4>Bile&#351;en Yap&inodot;s&inodot;</h4>
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>4 &#304;statistik Kart&inodot; (Row, gutter 16)</h4>
+                <p><strong>Bekleyen &#304;&#351;ler</strong> (gri #8c8c8c), <strong>Yazd&inodot;r&inodot;l&inodot;yor</strong> (mavi #1890ff), <strong>Tamamlanan</strong> (ye&#351;il #52c41a), <strong>Ba&#351;ar&inodot;s&inodot;z</strong> (k&inodot;rm&inodot;z&inodot; #ff4d4f). Font boyutu 24px. Her tablo y&uuml;klemesinden ve yeniden dene/iptal eylemlerinden sonra yenilenir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>ProTable (16 s&uuml;tun)</h4>
+                <p>Varsay&inodot;lan sayfa boyutu 50, maks 500. Kayd&inodot;rma geni&#351;li&gbreve;i 1800px. S&uuml;tunlar: ID (s&inodot;ralanabilir, sabit sol), QR kod (mavi etiket), malzeme t&uuml;r&uuml; (renk kodlu), lot, tedarik&ccedil;i, yaz&inodot;c&inodot; (filtrelenebilir), adet (kal&inodot;n), durum (filtrelenebilir, renk kodlu), deneme say&inodot;s&inodot;, hata (k&inodot;rm&inodot;z&inodot; tooltip), kullan&inodot;c&inodot;, 3 zaman damgas&inodot; (T&uuml;rkiye SD), s&uuml;re, i&#351;lemler (sabit sa&gbreve;).</p>
+            </div>
+            <div class="arch-box">
+                <h4>Ara&ccedil; &Ccedil;ubu&gbreve;u</h4>
+                <p>Arama girdisi (T&uuml;rk&ccedil;e &ccedil;eviriler dahil t&uuml;m s&uuml;tunlarda istemci taraf&inodot; filtreleme) + tablo se&ccedil;enekleri (yo&gbreve;unluk, yenile, s&uuml;tun ayarlar&inodot;). Ba&#351;l&inodot;k: &ldquo;Yazd&inodot;rma &#304;&#351;leri&rdquo;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&#304;&#351;lem Butonlar&inodot; (ko&#351;ullu)</h4>
+                <p><strong>Yeniden Dene</strong> (RedoOutlined): yaln&inodot;zca &ldquo;ba&#351;ar&inodot;s&inodot;z&rdquo; sat&inodot;rlarda g&ouml;r&uuml;n&uuml;r. <strong>&#304;ptal</strong> (CloseCircleOutlined, tehlike): yaln&inodot;zca &ldquo;kuyrukta&rdquo; sat&inodot;rlarda g&ouml;r&uuml;n&uuml;r. &ldquo;Yazd&inodot;r&inodot;l&inodot;yor&rdquo;, &ldquo;tamamland&inodot;&rdquo; veya &ldquo;iptal edildi&rdquo; sat&inodot;rlar&inodot;nda i&#351;lem yok.</p>
+            </div>
+        </div>
+
+        <h4>Tarih Bi&ccedil;imlendirme</h4>
+        <p>T&uuml;m zaman damgalar&inodot; veritaban&inodot;nda UTC olarak saklan&inodot;r. Frontend bunlar&inodot; <code>dayjs.utc(dateStr).tz('Europe/Istanbul')</code> kullanarak d&ouml;n&uuml;&#351;t&uuml;r&uuml;r ve <code>D.MM.YYYY HH:mm:ss</code> bi&ccedil;iminde g&ouml;sterir (&ouml;rn. &ldquo;18.02.2026 14:30:45&rdquo;).</p>
+
+        <h4>Malzeme T&uuml;r&uuml; Etiketleri (Renk E&#351;lemesi)</h4>
+        <table>
+            <tr><th>T&uuml;r</th><th>Etiket Rengi</th><th>T&uuml;rk&ccedil;e Etiket</th></tr>
+            <tr><td><code>raw_copper</code></td><td>orange</td><td>Bak&inodot;r</td></tr>
+            <tr><td><code>raw_tin</code></td><td>cyan</td><td>Kalay</td></tr>
+            <tr><td><code>raw_plastic</code></td><td>purple</td><td>Plastik</td></tr>
+            <tr><td><code>raw_catalyst</code></td><td>magenta</td><td>Kataliz&ouml;r</td></tr>
+            <tr><td><code>raw_dye</code></td><td>volcano</td><td>Boya</td></tr>
+            <tr><td><code>raw_antirodent</code></td><td>geekblue</td><td>Antirodent</td></tr>
+        </table>
+
+        <h4>WebSocket Yok &mdash; Manuel Yenileme</h4>
+        <p>ERP&rsquo;deki di&gbreve;er sayfalar&inodot;n aksine, Yazd&inodot;rma &#304;zleme ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler i&ccedil;in WebSocket kullanmaz. Tablo ve istatistikler mutasyonlardan (yeniden dene, iptal) sonra <code>actionRef.current?.reload()</code> ile ve tablonun yerle&#351;ik yenile butonuyla yenilenir. Otomatik yoklama yoktur.</p>
+
+        <h3>6.2.7 Yetki Modeli</h3>
+
+        <p>Sayfa ID: <code>admin.yazdirma_izleme</code></p>
+
+        <table>
+            <tr><th>Yetki ID</th><th>Etiket</th><th>A&ccedil;&inodot;klama</th></tr>
+            <tr><td><code>access_page</code></td><td>Sayfaya Eri&#351;im</td><td>Yazd&inodot;rma izleme sayfas&inodot;n&inodot; g&ouml;r&uuml;nt&uuml;leme</td></tr>
+            <tr><td><code>view_jobs</code></td><td>&#304;&#351;leri G&ouml;r&uuml;nt&uuml;le</td><td>Yazd&inodot;rma i&#351;lerini g&ouml;rme</td></tr>
+            <tr><td><code>view_stats</code></td><td>&#304;statistikler</td><td>&#304;statistik kartlar&inodot;n&inodot; g&ouml;rme</td></tr>
+            <tr><td><code>retry_job</code></td><td>Tekrar Dene</td><td>Ba&#351;ar&inodot;s&inodot;z i&#351;i tekrar &ccedil;al&inodot;&#351;t&inodot;rma</td></tr>
+            <tr><td><code>cancel_job</code></td><td>&#304;&#351;i &#304;ptal Et</td><td>Bekleyen i&#351;i iptal etme</td></tr>
+            <tr><td><code>refresh_data</code></td><td>Yenile</td><td>Veriyi yenileme butonu</td></tr>
+        </table>
+
+        <p>Backend uygular: <code>super_admin</code> her &#351;eyi yapabilir. <code>lab_user</code> ba&#351;ar&inodot;s&inodot;z i&#351;leri yeniden deneyebilir. <code>operator</code> yaln&inodot;zca yeni i&#351; kuyru&gbreve;a alabilir (Hammadde Giri&#351;i &uuml;zerinden) ancak izleme panosuna eri&#351;emez.</p>
+
+        <h3>6.2.8 Yazd&inodot;rma &#304;zleme Sistemin Geri Kalan&inodot;na Nas&inodot;l Ba&gbreve;lan&inodot;r</h3>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>&larr; Hammadde Giri&#351;i (Kaynak)</h4>
+                <p>Bir malzeme girildikten sonra ba&#351;ar&inodot; modal&inodot;n&inodot;n &ldquo;Yazd&inodot;r&rdquo; butonu <code>POST /print-queue/queue/{id}</code> ile bir yazd&inodot;rma i&#351;i kuyru&gbreve;a al&inodot;r. Bu birincil i&#351; olu&#351;turma yoludur.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&larr; Hammaddeler Listesi (Kaynak)</h4>
+                <p>Herhangi bir malzeme sat&inodot;r&inodot;ndaki yeniden yazd&inodot;r butonu bir yaz&inodot;c&inodot; se&ccedil;im modal&inodot; a&ccedil;ar (QR kodu + etiket say&inodot;s&inodot; g&ouml;sterir), sonra ayn&inodot; endpoint &uuml;zerinden kuyru&gbreve;a al&inodot;r. Palet ve makaralar i&ccedil;in devre d&inodot;&#351;&inodot;.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; Yaz&inodot;c&inodot; Y&ouml;netimi (6.1)</h4>
+                <p>Yazd&inodot;rma i&#351;&ccedil;ileri yaz&inodot;c&inodot;lar tablosundan ba&#351;lat&inodot;l&inodot;r. Hammaddeler Listesi&rsquo;ndeki yaz&inodot;c&inodot; se&ccedil;im modal&inodot; <code>/api/printers/list</code>&rsquo;den aktif yaz&inodot;c&inodot;lar&inodot; &ccedil;eker. &#304;&#351;teki yaz&inodot;c&inodot; ID&rsquo;si 6.1&rsquo;de yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; fiziksel bir cihaza kar&#351;&inodot;l&inodot;k gelir.</p>
+            </div>
+            <div class="arch-box">
+                <h4>&rarr; PrintWorker (Arka Plan)</h4>
+                <p>Yaz&inodot;c&inodot; ba&#351;&inodot;na bir daemon thread&rsquo;i print_jobs tablosunu her 1 saniyede yoklar, QUEUED i&#351;leri FIFO s&inodot;ras&inodot;yla i&#351;ler, otomatik yeniden denemeleri y&ouml;netir (maks 3) ve i&#351; durumunu g&uuml;nceller. 6.1.6&rsquo;da detayl&inodot; a&ccedil;&inodot;klanm&inodot;&#351;t&inodot;r.</p>
+            </div>
+        </div>
+
+        <div class="discovery">
+            <p style="margin-bottom: 0;"><strong>Mimari i&ccedil;g&ouml;r&uuml;:</strong> Yazd&inodot;rma kuyru&gbreve;u <em>engellenmeyen, at-ve-unut</em> bir sistemdir. Kullan&inodot;c&inodot; &ldquo;Yazd&inodot;r&rdquo;a t&inodot;klad&inodot;&gbreve;&inodot;nda, API hemen bir i&#351; ID&rsquo;si ile d&ouml;ner &mdash; kullan&inodot;c&inodot; fiziksel yaz&inodot;c&inodot;y&inodot; beklemez. &#304;&#351;&ccedil;i bunu asenkron olarak i&#351;ler. Bu tasar&inodot;m, Hammadde Giri&#351;i&rsquo;nin yava&#351; veya &ccedil;evrimd&inodot;&#351;&inodot; yaz&inodot;c&inodot;larda asla engellenmemesi anlam&inodot;na gelir. &#304;zleme panosu bu asenkronlu&gbreve;un bir g&ouml;zlemlenebilirlik bo&#351;lu&gbreve;u yaratt&inodot;&gbreve;&inodot; i&ccedil;in vard&inodot;r: att&inodot;ktan ve unuttukuntan sonra ne oldu&gbreve;unu g&ouml;recek bir yere ihtiyac&inodot;n&inodot;z var. Malzeme verisinin i&#351; sat&inodot;r&inodot;na denormalizasyonu bilin&ccedil;li bir performans &ouml;d&uuml;n&uuml;d&uuml;r &mdash; izleme sayfas&inodot; 500 i&#351;le bile h&inodot;zl&inodot; y&uuml;klenir &ccedil;&uuml;nk&uuml; asla raw_materials veya suppliers&rsquo;a join yapmaz.</p>
+        </div>
+
     </main>
 </body>
 </html>
