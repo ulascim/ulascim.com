@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok &amp; Envanter Modülü | Kablo Fabrikası ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-step { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .code-block { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../index.html" class="nav-logo">SOLEN</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-stok-tr.html" class="nav-link-small" style="font-weight: 700;">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-stok.html" class="nav-link-small">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives-tr.html" class="back-link">Mod&uuml;llere D&ouml;n</a>
+        <h1>STOK &amp; ENVANTER &mdash; &Ccedil;İFT MANTIKLI MALZEME G&Ouml;R&Uuml;N&Uuml;RL&Uuml;ĞÜ</h1>
+        <p class="subtitle">İki paralel sistem, iki farklı soruyu yanıtlıyor: &ldquo;Şu an elimizde ne var?&rdquo; ve &ldquo;Gelecekte elimizde ne olacak?&rdquo; &mdash; canlı envanter ve kalıcı projeksiyon planı, yerleşik bir çapraz doğrulama mekanizması olarak yan yana çalışıyor.</p>
+        <p class="authors">Şubat 2026 &bull; Solen Kablo &bull; Canlı Belge</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Stok &amp; Envanter modülü temel bir ikilik üzerine çalışır.</strong> Üç sayfasından ikisi &mdash; Ürün Stok ve Hammadde Stok &mdash; fabrikanın bu andaki fiziksel gerçekliğini gösterir: her sepet bakır tel, her makara ekstrüde kablo, depodaki her kilogram ham plastik. Bunlar, Üretim her çıktı kaydettiğinde veya bir malzeme tüketildiğinde değişir. Üçüncü sayfa &mdash; Projeksiyon &mdash; fiziksel gerçekliği tamamen göz ardı eder ve bunun yerine <em>planı</em> gösterir: iş kartlarından (EKSİ) ne kadar malzeme gerekeceğinin ve satın alma siparişlerinden (ARTI) ne kadar geleceğinin haftalık tahmini. Projeksiyon, malzemeler fiziksel olarak geldiğinde veya üretim tamamlandığında değişmez; yalnızca planın kendisi değiştiğinde değişir. Bu ikilik kasıtlıdır &mdash; canlı envanterin projeksiyonu doğruladığı ve projeksiyonun canlı envanterin henüz göremediği gelecekteki açıkları önceden uyardığı yerleşik bir çapraz doğrulama mekanizması oluşturur.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">3</div>
+                <div class="label">ALT MOD&Uuml;L</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~14</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2</div>
+                <div class="label">VERİTABANI TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5800+</div>
+                <div class="label">SATIR KOD</div>
+            </div>
+        </div>
+
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">İÇİNDEKİLER</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Stok &amp; Envanter Ne Yapar</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Veri Akışı</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Veritabanı Katmanı</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Projeksiyon (Stok Tahmini)</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 &Uuml;r&uuml;n Stok</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Stok</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonuç</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. STOK &amp; ENVANTER NE YAPAR</h2>
+        <!-- ============================================ -->
+
+        <p>Stok &amp; Envanter modülü, herhangi bir üretim operasyonundaki en temel iki soruyu yanıtlar:</p>
+
+        <ol>
+            <li><strong>&ldquo;Şu an elimizde ne var?&rdquo;</strong> &mdash; Ürün Stok (yarı mamul/mamul ürünler) ve Hammadde Stok (hammaddeler) tarafından yanıtlanır. Bu sayfalar fabrikanın envanterinin t=0 anındaki canlı, fiziksel durumunu gösterir. Her sepet çekilmiş bakır tel (X kodlu), her makara kalaylanmış tel (Y kodlu), her kilogram ham plastik &mdash; gerçek zamanlı ağırlıklar, durumlar, tahsisler ve tam üretim izlenebilirliğiyle birlikte görünür.</li>
+            <li><strong>&ldquo;Gelecekte elimizde ne olacak?&rdquo;</strong> &mdash; Projeksiyon (Stok Tahmini) tarafından yanıtlanır. Bu sayfa 8 malzeme kategorisinde (bakır, kalay, plastik, katalizör, boya, antirodent, makara, palet) haftalık bir tahmin gösterir; planlanan iş kartlarının ne kadar malzeme tüketeceğini (EKSİ) ile satın alma siparişlerinden ne kadar geleceğini (ARTI) hesaplayarak, açıkları haftalarca önceden ortaya çıkaran kümülatif bir bakiye üretir.</li>
+        </ol>
+
+        <p>Bu iki sistem <strong>temelden farklı veri kaynakları</strong> üzerinde çalışır:</p>
+
+        <table>
+            <tr><th>Boyut</th><th>Canlı Envanter (Ürün + Hammadde Stok)</th><th>Projeksiyon</th></tr>
+            <tr><td><strong>Veri kaynağı</strong></td><td><code>half_product_stock</code> tablosu + <code>materials</code> tablosu</td><td><code>work_cards</code> (EKSİ) + <code>material_orders</code> (ARTI)</td></tr>
+            <tr><td><strong>Zaman ekseni</strong></td><td>Şimdi (t=0)</td><td>Geleceğe doğru haftalar (H01&ndash;H52+)</td></tr>
+            <tr><td><strong>Ne zaman değişir</strong></td><td>Üretim çıktı kaydeder, malzeme tüketilir/alınır</td><td>Plan değişir: sipariş teslim haftası, kablo miktarı, malzeme sipariş tarihi/miktarı, iptal</td></tr>
+            <tr><td><strong>Ne zaman DEĞİŞMEZ</strong></td><td>&mdash;</td><td>Malzemeler fiziksel olarak geldiğinde, üretim tamamlandığında</td></tr>
+            <tr><td><strong>CRUD</strong></td><td>Tam (görüntüle, ağırlık/durum düzenle, sil)</td><td>Salt okunur (projeksiyon hesaplanır, düzenlenmez)</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Çapraz doğrulama mekanizması:</strong> Projeksiyon H15 haftası için bakır fazlası gösteriyorsa ama Hammadde Stok bakırın <em>şu an</em> azaldığını gösteriyorsa, bir şeyler yanlıştır &mdash; belki bir malzeme siparişi kaydedildi ama fiziksel teslimat gerçekleşmedi. Tersine, Hammadde Stok bol plastik gösteriyorsa ama Projeksiyon H20&rsquo;de açık öngörüyorsa, mevcut stok yaklaşan üretim tarafından tüketilecek demektir. Hiçbir sistem tek başına hikayenin tamamını anlatamaz; birlikte kapsamlı bir malzeme görünürlük katmanı oluştururlar.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. VERİ AKIŞI</h2>
+        <!-- ============================================ -->
+
+        <h3>2.1 Projeksiyon Veri Akışı</h3>
+        <p>Projeksiyon, haftalık tahminini <code>ProjeksiyonService</code> (804 satır) içinde birleştirilen iki bağımsız veri kaynağından hesaplar:</p>
+
+        <div class="flow">
+            <span class="flow-step">İş Kartları (sevkiyat_week)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">material_details JSON</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hafta başına malzeme EKSİ</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Malzeme Siparişleri (expected_date)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">miktar + malzeme_tipi</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hafta başına malzeme ARTI</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">ARTI &minus; EKSİ</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Haftalık değişim</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Kümülatif bakiye</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Açık tespiti</span>
+        </div>
+
+        <h4>EKSİ Tarafı: İş Kartı Malzeme Gereksinimleri</h4>
+        <p>Her iş kartı, hangi hammaddeleri tüketeceğini belirten bir <code>material_details</code> JSON&rsquo;u taşır. Servis, makine türlerini malzeme kategorilerine eşler:</p>
+        <table>
+            <tr><th>Makine Türü</th><th>Çıkarılan Malzeme</th><th>JSON Yolu</th></tr>
+            <tr><td>Kabatel Çekme</td><td>Bakır (kg)</td><td><code>material_details.copper_kg</code></td></tr>
+            <tr><td>Kalaylama</td><td>Kalay (kg)</td><td><code>material_details.tin_kg</code></td></tr>
+            <tr><td>Extruder</td><td>Plastik, Katalizör, Boya, Antirodent (kg)</td><td><code>quantities.*</code>, <code>insulation_materials[]</code>, <code>sheath_materials[]</code></td></tr>
+            <tr><td>Aktarma</td><td>Makara (adet)</td><td><code>makara_distributions[].count</code></td></tr>
+            <tr><td>Paletleme</td><td>Palet (adet)</td><td><code>palettes[].quantity</code></td></tr>
+        </table>
+
+        <p><code>CANCELLED</code> dışındaki tüm iş kartları dahil edilir &mdash; tamamlanmış olanlar bile. Bunun nedeni Projeksiyon&rsquo;un mevcut durumu değil, <strong>kalıcı planı</strong> temsil etmesidir.</p>
+
+        <h4>ARTI Tarafı: Gelen Malzeme Siparişleri</h4>
+        <p>Her malzeme siparişinin bir <code>material_type</code>, <code>quantity</code> ve <code>expected_date</code> alanı vardır. Teslim edilen siparişlerde sistem bunun yerine <code>delivered_date</code> ve <code>delivered_quantity</code> kullanır. Malzeme adları, mevcut olduğunda tedarikçinin malzeme kataloğundan çözümlenir. <code>CANCELLED</code> dışındaki tüm siparişler dahil edilir.</p>
+
+        <h4>Kümülatif Hesaplama</h4>
+        <p>Servis, <strong>en erken veri noktasından</strong> (bir önceki yılda olabilir) son görünen haftaya kadar tüm haftaları üretir. <code>haftalık = artı - eksi</code> hesaplar ve 8 malzeme kategorisinin her biri için kümülatif bir bakiye tutar. Kullanıcının görüntüleme penceresinde (varsayılan 10 hafta), gizli açık tespiti için <strong>alt-malzeme kümülatifleri</strong> de (örn. Plastik kategorisi içindeki &ldquo;HFX 500P&rdquo; gibi bireysel plastik türleri) izlenir.</p>
+
+        <h3>2.2 Canlı Envanter Veri Akışı</h3>
+        <p>Canlı envanter sayfaları doğrudan fiziksel envanter tablolarından okur:</p>
+
+        <div class="flow">
+            <span class="flow-step">Üretim çıktı kaydeder</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">half_product_stock satırı oluşur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ürün Stok gösterir</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Malzeme giriş formu</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">materials satırı oluşur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammadde Stok gösterir</span>
+        </div>
+
+        <p>Ürün Stok 7 paralel API çağrısı yapar (her üretim adımı için birer tane: Kabatel, Kalaylama, İncetel, Buncher, Extruder, E-Beam, Aktarma), Hammadde Stok ise tüm malzemeleri tek bir çağrıda alır ve istemci tarafında 8 kategoriye gruplar.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. VERİTABANI KATMANI</h2>
+        <!-- ============================================ -->
+
+        <p>Stok modülü, canlı envanter için iki birincil tabloya ve Projeksiyon hesaplamasını besleyen iki harici tabloya (diğer modüllerden) dayanır.</p>
+
+        <h3>3.1 half_product_stock (20 sütun) &mdash; Yarı Mamul &amp; Mamul Ürünler</h3>
+        <p>Herhangi bir makine tarafından üretilen her sepet, makara veya bobin burada kaydedilir. Her kayıt deterministik bir QR koda sahiptir (Kabatel için X1, Kalaylama için Y1, İncetel için Z1, Buncher için T1, Extruder için U1, E-Beam için G1).</p>
+
+        <table>
+            <tr><th>Sütun</th><th>Tip</th><th>Detay</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Otomatik artış</td></tr>
+            <tr><td><code>qr_code</code></td><td>String(50)</td><td>Benzersiz, indeksli. Deterministik: X1, X2, Y1, Y2, vb.</td></tr>
+            <tr><td><code>product_code</code></td><td>String(100)</td><td>İndeksli. Örn: KC_18 (Kabatel 1.8mm), KL_18 (Kalaylama 1.8mm)</td></tr>
+            <tr><td><code>product_name</code></td><td>String(200)</td><td>Okunabilir ad</td></tr>
+            <tr><td><code>production_step</code></td><td>String(50)</td><td>İndeksli. Enum: kabatel_cekme, kalaylama, incetel, buncher, extruder, ebeam</td></tr>
+            <tr><td><code>initial_weight_kg</code></td><td>Float</td><td>İlk üretildiğindeki ağırlık</td></tr>
+            <tr><td><code>remaining_weight_kg</code></td><td>Float</td><td>Mevcut ağırlık (bir sonraki adımda tüketildikçe azalır)</td></tr>
+            <tr><td><code>basket_number</code></td><td>Integer</td><td>Oturum içinde sıralı</td></tr>
+            <tr><td><code>allocation</code></td><td>String(20)</td><td><code>ORDER</code> (müşteri siparişine bağlı) veya <code>STOCK</code> (serbest envanter)</td></tr>
+            <tr><td><code>order_id</code></td><td>Integer FK</td><td>allocation = ORDER ise <code>orders.id</code>&rsquo;ye referans</td></tr>
+            <tr><td><code>status</code></td><td>String(50)</td><td>İndeksli. Enum: available, in_use, consumed, reserved, shipped</td></tr>
+            <tr><td><code>production_output_id</code></td><td>Integer FK</td><td><code>production_outputs.id</code>&rsquo;ye referans, indeksli</td></tr>
+            <tr><td><code>session_id</code></td><td>Integer FK</td><td><code>production_sessions.id</code>&rsquo;ye referans</td></tr>
+            <tr><td><code>work_card_id</code></td><td>Integer FK</td><td><code>work_cards.id</code>&rsquo;ye referans</td></tr>
+            <tr><td><code>source_qr_codes</code></td><td>Text</td><td>Tam izlenebilirlik için girdi QR kodlarının JSON dizisi (örn. bir Kalaylama Y1, Kabatel X3 ve X4&rsquo;ü tüketmiş)</td></tr>
+            <tr><td><code>produced_at</code></td><td>DateTime</td><td>Üretim zamanı</td></tr>
+            <tr><td><code>consumed_at</code></td><td>DateTime</td><td>Tamamen tüketilme zamanı (nullable)</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Otomatik güncelleme</td></tr>
+            <tr><td><code>notes</code></td><td>Text</td><td>İsteğe bağlı notlar</td></tr>
+        </table>
+
+        <p><strong>Bileşik indeksler:</strong> Adım bazlı filtreleme için <code>(production_step, status)</code>, ürün bazlı gruplama için <code>(product_code, status)</code>. 4 yabancı anahtar siparişlere, üretim çıktılarına, oturumlara ve iş kartlarına bağlanır.</p>
+
+        <h3>3.2 materials (Hammadde modülünden)</h3>
+        <p>Hammadde envanter tablosu (Hammadde modülünde belgelenmiştir). Hammadde Stok bu tabloyu doğrudan <code>GET /api/materials/list</code> üzerinden okur. Her satır QR kodu, ağırlığı, tedarikçisi, lot numarası ve durumuyla bir fiziksel hammadde lotunu temsil eder. 8 malzeme türü: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel.</p>
+
+        <h3>3.3 Projeksiyon&rsquo;u Besleyen Harici Tablolar</h3>
+
+        <table>
+            <tr><th>Tablo</th><th>Modül</th><th>Projeksiyon Ne Okur</th></tr>
+            <tr><td><code>work_cards</code></td><td>Üretim</td><td><code>sevkiyat_week</code> (teslim haftası), <code>machine_type</code>, <code>material_details</code> JSON, <code>status</code> (CANCELLED hariç)</td></tr>
+            <tr><td><code>material_orders</code></td><td>Hammadde</td><td><code>material_type</code>, <code>quantity</code>, <code>expected_date</code>, <code>delivered_date</code>, <code>delivered_quantity</code>, <code>status</code> (CANCELLED hariç)</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Ayrı bir &ldquo;projeksiyon&rdquo; tablosu yoktur.</strong> Projeksiyon, iş kartları ve malzeme siparişlerinden anlık olarak hesaplanır. Bu bilinçli bir tasarım kararıdır: Projeksiyon planı yansıttığı için (depolanmış bir durumu değil), senkronizasyon veya önbellek geçersiz kılma gerektirmeden her zaman planın en güncel halini gösterir. Ödün, istek başına hesaplama maliyetidir, ancak sorgu kapsamı (milyonlarca değil yüzlerce iş kartı ve sipariş) bunu uygulanabilir kılar.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. BACKEND MİMARİSİ</h2>
+        <!-- ============================================ -->
+
+        <h3>4.1 Route Dosyaları</h3>
+
+        <table>
+            <tr><th>Dosya</th><th>Satır</th><th>Prefix</th><th>Endpoint</th><th>Amaç</th></tr>
+            <tr><td><code>projeksiyon_routes.py</code></td><td>245</td><td><code>/api/projeksiyon</code></td><td>4</td><td>Stok projeksiyonu: ana veri, özet, debug, malzeme bazlı detay</td></tr>
+            <tr><td><code>half_product_routes.py</code></td><td>327</td><td><code>/api/stock</code></td><td>6</td><td>Yarı mamul CRUD: liste, adım bazlı, özet, QR bazlı, güncelle, sil</td></tr>
+            <tr><td><code>material_routes.py</code></td><td>(Hammadde)</td><td><code>/api/materials</code></td><td>~4</td><td>Hammadde listeleme (Hammadde modülüyle paylaşılır)</td></tr>
+        </table>
+
+        <h3>4.2 Projeksiyon Servisi (804 satır)</h3>
+        <p>Modülün hesaplama kalbi. <code>ProjeksiyonService</code> tüm projeksiyon hesaplamasını yönetir:</p>
+
+        <table>
+            <tr><th>Metot</th><th>Ne Yapar</th></tr>
+            <tr><td><code>get_earliest_data_week_offset()</code></td><td>Veri içeren en erken haftayı bulmak için hem iş kartlarını hem malzeme siparişlerini tarar. Kümülatif hesaplamaların önceki yıllardan gelen verileri de içermesini sağlar (örn. 2025 siparişleri 2026 projeksiyonunu hâlâ etkiler).</td></tr>
+            <tr><td><code>get_requirements_by_week(weeks)</code></td><td>İptal edilmemiş TÜM iş kartlarını okur, hafta ve kategori bazında malzeme gereksinimlerini çıkarır. 5 makine türünü 8 malzeme kategorisine eşler. Hem toplu hem de belirli malzeme adına göre detaylı kırılımlar üretir. Hafta başına tekrarlanan malzeme adlarını birleştirir.</td></tr>
+            <tr><td><code>get_incoming_by_week(weeks)</code></td><td>İptal edilmemiş TÜM malzeme siparişlerini okur. Teslim edilenler için gerçek teslim tarihi/miktarı; bekleyen/sevk edilenler için beklenen tarih/miktar kullanır. Aynı 8 kategoriye eşler. Tedarikçi kataloğundan belirli malzeme adlarını çözümler.</td></tr>
+            <tr><td><code>get_projeksiyon(num_weeks, offset)</code></td><td>Ana metot. Hafta pencerelerini üretir, TÜM haftalar için (yalnızca görüntüleme penceresi değil) gereksinimleri ve gelenleri çeker, kategori ve alt-malzeme başına kümülatif hesaplar, frontend açık tespiti için görüntüleme öncesi kümülatif durumu yakalar, yapılandırılmış yanıt döndürür.</td></tr>
+        </table>
+
+        <h3>4.3 API Sözleşmesi &mdash; Projeksiyon Endpoint&rsquo;leri (4)</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Parametreler</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon</code></td><td><code>weeks</code> (4&ndash;52, varsayılan 10), <code>offset</code> (&minus;260 ile +260)</td><td>Ana endpoint. Malzeme başına ARTI/EKSİ/kümülatif, alt-malzeme kümülatifleri, tüketim ve gelen detay dizileri, navigasyon bilgisi ile haftalık kırılım döndürür.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/summary</code></td><td><code>weeks</code> (4&ndash;52, varsayılan 8)</td><td>Açık uyarı endpoint&rsquo;i. Tüm haftalarda negatif kümülatifleri tarar, malzeme, hafta ve kümülatif değerle açık olaylarının listesini döndürür.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/material/{type}</code></td><td><code>type</code> (8 geçerli), <code>weeks</code></td><td>Malzeme bazlı detay. Tek bir malzeme türü için tam artı/eksi/kümülatif ile haftalık veri döndürür. Plastik türü için plastik detaylarını içerir.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/debug</code></td><td>&mdash;</td><td>Debug endpoint&rsquo;i. DB&rsquo;deki benzersiz sevkiyat_week&rsquo;leri, hafta başına kart sayısı, material_details anahtarlarıyla örnek iş kartları, örnek malzeme siparişlerini gösterir.</td></tr>
+        </table>
+
+        <h3>4.4 API Sözleşmesi &mdash; Yarı Mamul Endpoint&rsquo;leri (6)</h3>
+
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Ne Yapar</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products</code></td><td>İsteğe bağlı <code>production_step</code> ve <code>status</code> filtreleriyle tüm yarı mamulleri listeler. Sayfalanmış (limit/offset).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/by-step/{step}</code></td><td>Oturumdan operatör adıyla belirli bir üretim adımı için öğeleri getirir. Ürün Stok sayfası tarafından kullanılır (7 paralel çağrı).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/summary</code></td><td>6 üretim adımı için adım başına toplu sayılar ve ağırlıklar (mevcut sayı, mevcut kg, toplam sayı).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/{qr_code}</code></td><td>QR koduna göre tek öğe getirir.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/stock/half-products/{id}</code></td><td>İzin verilen alanları günceller: <code>remaining_weight_kg</code>, <code>status</code>, <code>notes</code>.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/stock/half-products/{id}</code></td><td>Kalıcı silme. Bağlı <code>production_output</code>&rsquo;u da siler ve bu son numaraysa QR sırasını azaltır.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <h3>5.1 Sayfa Yapısı</h3>
+
+        <table>
+            <tr><th>Route</th><th>Bileşen</th><th>Satır</th><th>Amaç</th></tr>
+            <tr><td><code>/stok/projeksiyon</code></td><td><code>Stok/Projeksiyon/index.tsx</code></td><td><strong>3.323</strong></td><td>Tüm ERP&rsquo;deki en büyük bileşen. Genişletilebilir alt-malzeme sütunlarıyla haftalık tahmin tablosu + 3 grafik türü (Çizgi, Isı Haritası, Radar). Malzeme filtreleme, hafta navigasyonu, gizli açık tespiti.</td></tr>
+            <tr><td><code>/stok/urun-stok</code></td><td><code>Stok/UrunStok/index.tsx</code></td><td>866</td><td>Yarı mamul envanter. 7 Collapse paneli (her üretim adımı için birer tane), 3 seviyeli tablo hiyerarşisi (adım &rarr; ürün grubu &rarr; bireysel öğe), düzenle/sil, bağlı test görüntüleme.</td></tr>
+            <tr><td><code>/stok/hammadde-stok</code></td><td><code>Stok/HammaddeStok/index.tsx</code></td><td>676</td><td>Hammadde envanter. 8 Collapse paneli (her malzeme türü için birer tane), 3 seviyeli tablo hiyerarşisi (tür &rarr; malzeme adı &rarr; bireysel lot), koşullu ağırlık renklendirmesi, düzenle/sil.</td></tr>
+        </table>
+
+        <p><strong>Toplam frontend:</strong> 3 sayfada 4.865 satır. Projeksiyon tek başına kodun %68&rsquo;ini oluşturur.</p>
+
+        <h3>5.2 Ortak Kalıplar</h3>
+        <ul>
+            <li><strong>WebSocket yok:</strong> Üç sayfanın tamamı REST API polling veya tek seferlik fetch kullanır. Gerçek zamanlı abonelik yoktur.</li>
+            <li><strong>Türkçe yerel ayar:</strong> Tüm sayfalar <code>ConfigProvider locale={trTR}</code> içinde <code>dayjs</code> ile <code>Europe/Istanbul</code> zaman dilimi dönüşümüyle sarılır.</li>
+            <li><strong>ProTable yok:</strong> Diğer modüllerden farklı olarak stok sayfaları düz Ant Design <code>Table</code> bileşenleri kullanır (Hammadde modülünde bulunan HammaddeSipariş hariç).</li>
+            <li><strong>İstemci tarafı gruplama:</strong> Hem Ürün Stok hem Hammadde Stok verileri çeker ve istemci tarafında gruplar (sırasıyla product_code ve material_name&rsquo;e göre).</li>
+        </ul>
+
+        <h3>5.3 Projeksiyon &mdash; Frontend Öne Çıkanlar</h3>
+        <p>3.323 satırıyla Projeksiyon, ERP&rsquo;deki en karmaşık tekil React bileşenidir. İki sekmesi vardır:</p>
+
+        <p><strong>Sekme 1 &mdash; Tablo Görünümü:</strong> Hafta satırları ve 8 malzeme sütunuyla dinamik bir tablo. Her malzeme sütunu gelen (yeşil &uarr;), tüketim (kırmızı &darr;) ve kümülatif bakiye (renk kodlu Tag) gösterir. Sütunlar <strong>genişletilebilir</strong>: bir malzeme başlığına tıklamak bireysel alt-malzeme sütunlarını açar (örn. Bakır altında &ldquo;Filamaşin&rdquo;, Plastik altında &ldquo;HFX 500P&rdquo;). Genişletilmeyen malzemeler trafik ışığı göstergeleriyle 20px renk çubuklarına daraltılır. Hafta navigasyonu offset parametresiyle 10 haftalık pencereyi kaydırır. Özet satırı son kümülatifleri gösterir.</p>
+
+        <p><strong>Sekme 2 &mdash; Grafik Görünümü:</strong> <strong>ReactECharts</strong> ile çalışan üç değiştirilebilir grafik türü:</p>
+        <ol>
+            <li><strong>Çizgi Grafik:</strong> Alan dolgusuyla yumuşak kümülatif çizgiler. Genel bakış modu (tüm malzemeler) veya detay modu (1&ndash;3 seçili malzeme için alt-malzeme yığılmış çubuklar + kümülatif üst katman).</li>
+            <li><strong>Isı Haritası:</strong> Haftalar (x) vs malzemeler/alt-malzemeler (y), malzeme başına normalizasyonla kırmızıdan yeşile renklendirilmiş. Özel HTML eksen tooltip&rsquo;ları açık başlangıcı/artışı bilgisi gösterir.</li>
+            <li><strong>Radar Grafik:</strong> Birleştirilmiş mod (4 hafta üst üste) veya bireysel mod (sayfalanmış örümcek ağları). 50 = sıfır çizgisi ile normalleştirilmiş 0&ndash;100 ölçeği. İşarete göre renklendirilmiş zengin metin etiketleri.</li>
+        </ol>
+
+        <p><strong>Gizli Açık Tespiti:</strong> En sofistike özellik. Toplam Bakır kümülatifi pozitifken alt-malzeme &ldquo;Filamaşin 8mm&rdquo; negatifse, hücre bir uyarı tooltip&rsquo;uyla <span class="good">yeşil arka plan</span> üzerinde <span class="bad">kırmızı kenarlık</span> alır. Bu, üç grafik türünün tamamında görünür.</p>
+
+        <h3>5.4 Ürün Stok &mdash; Frontend Öne Çıkanlar</h3>
+        <p>7 Collapse paneli (Kabatel, Kalaylama, İncetel, Buncher, Extruder, E-Beam, Aktarma), her biri renk kodlu bir ikon ve 3 başlık istatistiğiyle (Toplam kg, Sipariş kg, Serbest kg). 2. seviyede product_code&rsquo;a göre gruplanmış öğeler, 3. seviyede bireysel QR kodlu öğeler. Özellikler: düzenleme modalı (ağırlık, tahsis, notlar), onaylı silme ve production_output_id&rsquo;si olan herhangi bir öğe için Lab modülünden test sonuçlarını çeken <strong>bağlı test görüntüleyici</strong>.</p>
+
+        <h3>5.5 Hammadde Stok &mdash; Frontend Öne Çıkanlar</h3>
+        <p>8 Collapse paneli (Bakır, Kalay, Plastik, Katalizör, Boya, Antirodent, Palet, Makara). Yapısal olarak Ürün Stok&rsquo;u yansıtır ancak hammaddeler içindir. Birimler uyarlanır: çoğu malzeme için kg, palet ve makara için &ldquo;adet&rdquo;. <strong>Koşullu ağırlık renklendirmesi:</strong> kalan ağırlık orijinalin %20&rsquo;sinin altında <span class="bad">kırmızı</span>, orijinalin %95&rsquo;inin altında <span style="color: #ca8a04; font-weight: 700;">sarı</span> gösterilir. Tek bir API çağrısı tüm malzemeleri çeker; <code>material_type</code>&rsquo;a göre istemci tarafı gruplama.</p>
+
+        <h3>5.6 Yetki Sistemi</h3>
+        <table>
+            <tr><th>Sayfa</th><th>Route Guard</th><th>Manifest Butonları</th></tr>
+            <tr><td>Projeksiyon</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_projections</code>, <code>create_projection</code>, <code>edit_projection</code></td></tr>
+            <tr><td>Ürün Stok</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code></td></tr>
+            <tr><td>Hammadde Stok</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code></td></tr>
+        </table>
+
+        <p>Üç sayfanın tamamı <code>access.ts</code>&rsquo;den <code>canStok</code> route guard&rsquo;ını paylaşır. Buton düzeyi izinler manifest&rsquo;te tanımlıdır ancak şu an sayfa bileşenlerinde uygulanmamaktadır &mdash; route düzeyi guard aktif erişim kontrolüdür.</p>
+
+        <!-- placeholder: Bölüm 6 alt modüller buraya eklenecek -->
+
+        <!-- placeholder: Bölüm 7 SONUÇ buraya eklenecek -->
+
+    </main>
+</body>
+</html>

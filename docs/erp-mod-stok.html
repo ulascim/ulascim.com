@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock &amp; Inventory Module | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-step { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .code-block { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../index.html" class="nav-logo">SOLEN</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-stok-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-stok.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
+        <h1>STOCK &amp; INVENTORY &mdash; DUAL-LOGIC MATERIAL VISIBILITY</h1>
+        <p class="subtitle">Two parallel systems answering two different questions: &ldquo;What do we have right now?&rdquo; and &ldquo;What will we have in the future?&rdquo; &mdash; the live inventory and the permanent projection plan, running side by side as a built-in double-check mechanism.</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>The Stock &amp; Inventory module operates on a fundamental duality.</strong> Two of its three pages &mdash; &Uuml;r&uuml;n Stok and Hammadde Stok &mdash; show the physical reality of the factory at this exact moment: every basket of copper wire, every reel of extruded cable, every kilogram of raw plastic sitting in the warehouse. These change every time Production records an output or a material is consumed. The third page &mdash; Projeksiyon &mdash; ignores physical reality entirely and instead shows the <em>plan</em>: a week-by-week forecast of what materials will be needed (from work cards) versus what materials are coming in (from purchase orders). Projeksiyon does not change when materials arrive or production completes; it only changes when the plan itself changes. This duality is intentional &mdash; it creates a built-in cross-verification mechanism where the live inventory validates the projection, and the projection warns about future shortages that the live inventory cannot yet see.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">3</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~14</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5800+</div>
+                <div class="label">LINES OF CODE</div>
+            </div>
+        </div>
+
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> What Stock &amp; Inventory Does</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Data Flow</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Database Layer</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
+                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Projeksiyon (Stock Projection)</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 &Uuml;r&uuml;n Stok (Product Stock)</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Stok (Raw Material Stock)</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Conclusion</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. WHAT STOCK &amp; INVENTORY DOES</h2>
+        <!-- ============================================ -->
+
+        <p>The Stock &amp; Inventory module answers the two most fundamental questions in any manufacturing operation:</p>
+
+        <ol>
+            <li><strong>&ldquo;What do we have right now?&rdquo;</strong> &mdash; Answered by &Uuml;r&uuml;n Stok (finished/semi-finished goods) and Hammadde Stok (raw materials). These pages show the live, physical state of the factory&rsquo;s inventory at t=0. Every basket of drawn copper wire (X-coded), every reel of tinned wire (Y-coded), every kilogram of raw plastic &mdash; all visible with real-time weights, statuses, allocations, and full production traceability.</li>
+            <li><strong>&ldquo;What will we have in the future?&rdquo;</strong> &mdash; Answered by Projeksiyon (Stock Projection). This page shows a week-by-week forecast across 8 material categories (copper, tin, plastic, catalyst, dye, antirodent, reels, palettes), calculating how much material will be consumed by planned work cards (MINUS) versus how much is arriving through purchase orders (PLUS), producing a running cumulative balance that reveals shortages weeks before they become critical.</li>
+        </ol>
+
+        <p>These two systems run on <strong>fundamentally different data sources</strong>:</p>
+
+        <table>
+            <tr><th>Aspect</th><th>Live Inventory (&Uuml;r&uuml;n + Hammadde Stok)</th><th>Projection (Projeksiyon)</th></tr>
+            <tr><td><strong>Data source</strong></td><td><code>half_product_stock</code> table + <code>materials</code> table</td><td><code>work_cards</code> (MINUS) + <code>material_orders</code> (PLUS)</td></tr>
+            <tr><td><strong>Time axis</strong></td><td>Now (t=0)</td><td>Weeks into the future (H01&ndash;H52+)</td></tr>
+            <tr><td><strong>Changes when</strong></td><td>Production records output, materials consumed/received</td><td>Plan changes: order delivery week, cable quantity, material order date/qty, cancellation</td></tr>
+            <tr><td><strong>Does NOT change when</strong></td><td>&mdash;</td><td>Materials physically arrive, production completes</td></tr>
+            <tr><td><strong>CRUD</strong></td><td>Full (view, edit weight/status, delete)</td><td>Read-only (projection is calculated, not edited)</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The double-check mechanism:</strong> If Projeksiyon shows a copper surplus for week H15, but Hammadde Stok shows copper running low <em>now</em>, something is wrong &mdash; perhaps a material order was recorded but the physical delivery didn&rsquo;t happen. Conversely, if Hammadde Stok shows plenty of plastic but Projeksiyon projects a shortage in H20, it means current stock will be depleted by upcoming production. Neither system alone tells the complete story; together they form a comprehensive material visibility layer.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <h3>2.1 Projeksiyon Data Flow</h3>
+        <p>Projeksiyon computes its weekly forecast from two independent data sources, combined in the <code>ProjeksiyonService</code> (804 lines):</p>
+
+        <div class="flow">
+            <span class="flow-step">Work Cards (sevkiyat_week)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">material_details JSON</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">MINUS per week per material</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Material Orders (expected_date)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">quantity + material_type</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">PLUS per week per material</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">PLUS &minus; MINUS</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Weekly change</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Running cumulative</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Shortage detection</span>
+        </div>
+
+        <h4>MINUS Side: Work Card Material Requirements</h4>
+        <p>Each work card carries a <code>material_details</code> JSON that specifies exactly what raw materials it will consume. The service maps machine types to material categories:</p>
+        <table>
+            <tr><th>Machine Type</th><th>Material Extracted</th><th>JSON Path</th></tr>
+            <tr><td>Kabatel &Ccedil;ekme</td><td>Copper (kg)</td><td><code>material_details.copper_kg</code></td></tr>
+            <tr><td>Kalaylama</td><td>Tin (kg)</td><td><code>material_details.tin_kg</code></td></tr>
+            <tr><td>Extruder</td><td>Plastic, Catalyst, Dye, Antirodent (kg)</td><td><code>quantities.*</code>, <code>insulation_materials[]</code>, <code>sheath_materials[]</code></td></tr>
+            <tr><td>Aktarma</td><td>Reels (adet)</td><td><code>makara_distributions[].count</code></td></tr>
+            <tr><td>Paletleme</td><td>Palettes (adet)</td><td><code>palettes[].quantity</code></td></tr>
+        </table>
+
+        <p>All work cards except <code>CANCELLED</code> are included &mdash; even completed ones. This is because Projeksiyon represents the <strong>permanent plan</strong>, not the current state.</p>
+
+        <h4>PLUS Side: Material Order Incoming</h4>
+        <p>Each material order has a <code>material_type</code>, <code>quantity</code>, and <code>expected_date</code>. For delivered orders, the system uses <code>delivered_date</code> and <code>delivered_quantity</code> instead. Material names are resolved from the supplier&rsquo;s material catalog when available. All orders except <code>CANCELLED</code> are included.</p>
+
+        <h4>Cumulative Calculation</h4>
+        <p>The service generates all weeks from the <strong>earliest data point</strong> (which may be in a previous year) through the last visible week. It calculates <code>weekly = plus - minus</code> and maintains a running <code>cumulative</code> for each of the 8 material categories. For the user&rsquo;s view window (default 10 weeks), it also tracks <strong>sub-material cumulatives</strong> (e.g., individual plastic types like &ldquo;HFX 500P&rdquo; within the Plastic category) for hidden shortage detection.</p>
+
+        <h3>2.2 Live Inventory Data Flow</h3>
+        <p>The live inventory pages read directly from physical inventory tables:</p>
+
+        <div class="flow">
+            <span class="flow-step">Production records output</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">half_product_stock row created</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;r&uuml;n Stok shows it</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Material entry form</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">materials row created</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammadde Stok shows it</span>
+        </div>
+
+        <p>&Uuml;r&uuml;n Stok fetches 7 parallel API calls (one per production step: Kabatel, Kalaylama, &Idot;ncetel, Buncher, Extruder, E-Beam, Aktarma), while Hammadde Stok fetches all materials in a single call and groups them client-side into 8 categories.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. THE DATABASE LAYER</h2>
+        <!-- ============================================ -->
+
+        <p>The Stock module relies on two primary tables for live inventory, plus two external tables (from other modules) that feed the Projeksiyon calculation.</p>
+
+        <h3>3.1 half_product_stock (20 columns) &mdash; Semi-Finished &amp; Finished Products</h3>
+        <p>Every basket, reel, or coil produced by any machine is recorded here. Each entry has a deterministic QR code (X1 for Kabatel, Y1 for Kalaylama, Z1 for &Idot;ncetel, T1 for Buncher, U1 for Extruder, G1 for E-Beam).</p>
+
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment</td></tr>
+            <tr><td><code>qr_code</code></td><td>String(50)</td><td>Unique, indexed. Deterministic: X1, X2, Y1, Y2, etc.</td></tr>
+            <tr><td><code>product_code</code></td><td>String(100)</td><td>Indexed. e.g., KC_18 (Kabatel 1.8mm), KL_18 (Kalaylama 1.8mm)</td></tr>
+            <tr><td><code>product_name</code></td><td>String(200)</td><td>Human-readable name</td></tr>
+            <tr><td><code>production_step</code></td><td>String(50)</td><td>Indexed. Enum: kabatel_cekme, kalaylama, incetel, buncher, extruder, ebeam</td></tr>
+            <tr><td><code>initial_weight_kg</code></td><td>Float</td><td>Weight when first produced</td></tr>
+            <tr><td><code>remaining_weight_kg</code></td><td>Float</td><td>Current weight (decreases as material is consumed in next step)</td></tr>
+            <tr><td><code>basket_number</code></td><td>Integer</td><td>Sequential within session</td></tr>
+            <tr><td><code>allocation</code></td><td>String(20)</td><td><code>ORDER</code> (tied to a customer order) or <code>STOCK</code> (free inventory)</td></tr>
+            <tr><td><code>order_id</code></td><td>Integer FK</td><td>References <code>orders.id</code> if allocation = ORDER</td></tr>
+            <tr><td><code>status</code></td><td>String(50)</td><td>Indexed. Enum: available, in_use, consumed, reserved, shipped</td></tr>
+            <tr><td><code>production_output_id</code></td><td>Integer FK</td><td>References <code>production_outputs.id</code>, indexed</td></tr>
+            <tr><td><code>session_id</code></td><td>Integer FK</td><td>References <code>production_sessions.id</code></td></tr>
+            <tr><td><code>work_card_id</code></td><td>Integer FK</td><td>References <code>work_cards.id</code></td></tr>
+            <tr><td><code>source_qr_codes</code></td><td>Text</td><td>JSON array of input QR codes for full traceability (e.g., a Kalaylama Y1 consumed Kabatel X3 and X4)</td></tr>
+            <tr><td><code>produced_at</code></td><td>DateTime</td><td>When produced</td></tr>
+            <tr><td><code>consumed_at</code></td><td>DateTime</td><td>When fully consumed (nullable)</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Auto-updated</td></tr>
+            <tr><td><code>notes</code></td><td>Text</td><td>Optional notes</td></tr>
+        </table>
+
+        <p><strong>Composite indexes:</strong> <code>(production_step, status)</code> for step-based filtering, <code>(product_code, status)</code> for product-based grouping. 4 foreign keys link to orders, production outputs, sessions, and work cards.</p>
+
+        <h3>3.2 materials (from Hammadde module)</h3>
+        <p>The raw material inventory table (documented in the Hammadde module). Hammadde Stok reads this table directly via <code>GET /api/materials/list</code>. Each row represents a physical lot of raw material with QR code, weight, supplier, lot number, and status. 8 material types: raw_copper, raw_tin, raw_plastic, raw_catalyst, raw_dye, raw_antirodent, raw_palette, raw_reel.</p>
+
+        <h3>3.3 External Tables Feeding Projeksiyon</h3>
+
+        <table>
+            <tr><th>Table</th><th>Module</th><th>What Projeksiyon Reads</th></tr>
+            <tr><td><code>work_cards</code></td><td>Production</td><td><code>sevkiyat_week</code> (delivery week), <code>machine_type</code>, <code>material_details</code> JSON, <code>status</code> (excludes CANCELLED)</td></tr>
+            <tr><td><code>material_orders</code></td><td>Hammadde</td><td><code>material_type</code>, <code>quantity</code>, <code>expected_date</code>, <code>delivered_date</code>, <code>delivered_quantity</code>, <code>status</code> (excludes CANCELLED)</td></tr>
+        </table>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>No dedicated &ldquo;projeksiyon&rdquo; table exists.</strong> The projection is computed on-the-fly from work cards and material orders. This is a deliberate design decision: since Projeksiyon reflects the plan (not a stored state), it always shows the latest version of the plan without requiring synchronization or cache invalidation. The trade-off is computational cost per request, but the query scope (hundreds of work cards and orders, not millions) makes this viable.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. THE BACKEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <h3>4.1 Route Files</h3>
+
+        <table>
+            <tr><th>File</th><th>Lines</th><th>Prefix</th><th>Endpoints</th><th>Purpose</th></tr>
+            <tr><td><code>projeksiyon_routes.py</code></td><td>245</td><td><code>/api/projeksiyon</code></td><td>4</td><td>Stock projection: main data, summary, debug, per-material detail</td></tr>
+            <tr><td><code>half_product_routes.py</code></td><td>327</td><td><code>/api/stock</code></td><td>6</td><td>Half-product CRUD: list, by-step, summary, by-QR, update, delete</td></tr>
+            <tr><td><code>material_routes.py</code></td><td>(Hammadde)</td><td><code>/api/materials</code></td><td>~4</td><td>Raw material listing (shared with Hammadde module)</td></tr>
+        </table>
+
+        <h3>4.2 The Projeksiyon Service (804 lines)</h3>
+        <p>The computational heart of the module. <code>ProjeksiyonService</code> orchestrates the entire projection calculation:</p>
+
+        <table>
+            <tr><th>Method</th><th>What It Does</th></tr>
+            <tr><td><code>get_earliest_data_week_offset()</code></td><td>Scans both work cards and material orders to find the earliest week with data. Ensures cumulative calculations include data from previous years (e.g., 2025 orders still affect 2026 projection).</td></tr>
+            <tr><td><code>get_requirements_by_week(weeks)</code></td><td>Reads ALL non-cancelled work cards, extracts material requirements per week per category. Maps 5 machine types to 8 material categories. Produces both aggregate totals and detailed breakdowns by specific material name. Consolidates duplicate material names per week.</td></tr>
+            <tr><td><code>get_incoming_by_week(weeks)</code></td><td>Reads ALL non-cancelled material orders. For delivered orders, uses actual delivered date/quantity; for pending/shipped, uses expected date/quantity. Maps to the same 8 categories. Resolves specific material names from supplier catalog.</td></tr>
+            <tr><td><code>get_projeksiyon(num_weeks, offset)</code></td><td>Master method. Generates week windows, fetches requirements and incoming for ALL weeks (not just view window), calculates running cumulative per category and per sub-material, captures pre-view cumulative state for frontend shortage detection, returns structured response.</td></tr>
+        </table>
+
+        <h3>4.3 API Contract &mdash; Projeksiyon Endpoints (4)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Parameters</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon</code></td><td><code>weeks</code> (4&ndash;52, default 10), <code>offset</code> (&minus;260 to +260)</td><td>Main endpoint. Returns weekly breakdown with PLUS/MINUS/cumulative per material, sub-material cumulatives, detail arrays for consumption and incoming, navigation info.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/summary</code></td><td><code>weeks</code> (4&ndash;52, default 8)</td><td>Shortage alert endpoint. Scans all weeks for negative cumulatives, returns list of shortage events with material, week, and cumulative value.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/material/{type}</code></td><td><code>type</code> (8 valid), <code>weeks</code></td><td>Per-material detail. Returns week-by-week data for a single material type with full plus/minus/cumulative. Includes plastic details for the plastic type.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/debug</code></td><td>&mdash;</td><td>Debug endpoint. Shows unique sevkiyat_weeks in DB, cards per week, sample work cards with material_details keys, sample material orders.</td></tr>
+        </table>
+
+        <h3>4.4 API Contract &mdash; Half Product Endpoints (6)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Does</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products</code></td><td>List all half products with optional <code>production_step</code> and <code>status</code> filters. Paginated (limit/offset).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/by-step/{step}</code></td><td>Get items for a specific production step with operator name from session. Used by &Uuml;r&uuml;n Stok page (7 parallel calls).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/summary</code></td><td>Aggregated counts and weights per step (available count, available kg, total count) for 6 production steps.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/stock/half-products/{qr_code}</code></td><td>Get single item by QR code.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/stock/half-products/{id}</code></td><td>Update allowed fields: <code>remaining_weight_kg</code>, <code>status</code>, <code>notes</code>.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/stock/half-products/{id}</code></td><td>Hard delete. Also deletes linked <code>production_output</code> and decrements QR sequence if this was the last number.</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. THE FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <h3>5.1 Page Structure</h3>
+
+        <table>
+            <tr><th>Route</th><th>Component</th><th>Lines</th><th>Purpose</th></tr>
+            <tr><td><code>/stok/projeksiyon</code></td><td><code>Stok/Projeksiyon/index.tsx</code></td><td><strong>3,323</strong></td><td>The largest component in the entire ERP. Weekly forecast table with expandable sub-material columns + 3 chart types (Line, Heatmap, Radar). Material filtering, week navigation, hidden shortage detection.</td></tr>
+            <tr><td><code>/stok/urun-stok</code></td><td><code>Stok/UrunStok/index.tsx</code></td><td>866</td><td>Semi-finished product inventory. 7 Collapse panels (one per production step), 3-level table hierarchy (step &rarr; product group &rarr; individual item), edit/delete, bonded test viewing.</td></tr>
+            <tr><td><code>/stok/hammadde-stok</code></td><td><code>Stok/HammaddeStok/index.tsx</code></td><td>676</td><td>Raw material inventory. 8 Collapse panels (one per material type), 3-level table hierarchy (type &rarr; material name &rarr; individual lot), conditional weight coloring, edit/delete.</td></tr>
+        </table>
+
+        <p><strong>Total frontend:</strong> 4,865 lines across 3 pages. Projeksiyon alone accounts for 68% of the code.</p>
+
+        <h3>5.2 Shared Patterns</h3>
+        <ul>
+            <li><strong>No WebSocket:</strong> All three pages use REST API polling or one-time fetches. No real-time subscriptions.</li>
+            <li><strong>Turkish locale:</strong> All pages wrap in <code>ConfigProvider locale={trTR}</code> with <code>dayjs</code> timezone conversion to <code>Europe/Istanbul</code>.</li>
+            <li><strong>No ProTable:</strong> Unlike other modules, the stock pages use plain Ant Design <code>Table</code> components (except HammaddeSiparis which is in the Hammadde module).</li>
+            <li><strong>Client-side grouping:</strong> Both &Uuml;r&uuml;n Stok and Hammadde Stok fetch data and group it client-side (by product_code and material_name respectively).</li>
+        </ul>
+
+        <h3>5.3 Projeksiyon &mdash; Frontend Highlights</h3>
+        <p>At 3,323 lines, Projeksiyon is the single most complex React component in the ERP. It has two tabs:</p>
+
+        <p><strong>Tab 1 &mdash; Table View:</strong> A dynamic table with week rows and 8 material columns. Each material column shows incoming (green &uarr;), consumption (red &darr;), and cumulative balance (color-coded Tag). Columns are <strong>expandable</strong>: clicking a material header reveals individual sub-material columns (e.g., &ldquo;Filma&#351;in&rdquo; under Copper, &ldquo;HFX 500P&rdquo; under Plastic). Non-expanded materials collapse to 20px color bars with traffic-light indicators. Week navigation shifts the 10-week window via offset parameter. A summary row shows final cumulatives.</p>
+
+        <p><strong>Tab 2 &mdash; Charts View:</strong> Three interchangeable chart types powered by <strong>ReactECharts</strong>:</p>
+        <ol>
+            <li><strong>Line Chart:</strong> Smooth cumulative lines with area fill. Overview mode (all materials) or detail mode (1&ndash;3 selected materials showing sub-material stacked bars + cumulative overlay).</li>
+            <li><strong>Heatmap:</strong> Weeks (x) vs materials/sub-materials (y), colored red-to-green with per-material normalization. Custom HTML axis tooltips show shortage start/increase info.</li>
+            <li><strong>Radar Chart:</strong> Merged mode (4 weeks overlapping) or individual mode (paginated spiders). Normalized 0&ndash;100 scale with 50 = zero line. Rich text labels colored by sign.</li>
+        </ol>
+
+        <p><strong>Hidden Shortage Detection:</strong> The most sophisticated feature. If the aggregate Copper cumulative is positive but the sub-material &ldquo;Filma&#351;in 8mm&rdquo; is negative, the cell gets a <span class="bad">red border</span> on a <span class="good">green background</span> with a warning tooltip. This appears across all three chart types.</p>
+
+        <h3>5.4 &Uuml;r&uuml;n Stok &mdash; Frontend Highlights</h3>
+        <p>7 Collapse panels (Kabatel, Kalaylama, &Idot;ncetel, Buncher, Extruder, E-Beam, Aktarma), each with a color-coded icon and 3 header stats (Total kg, Sipari&#351; kg, Serbest kg). Items grouped by product_code at level 2, individual QR-coded items at level 3. Features: edit modal (weight, allocation, notes), delete with confirmation, and a <strong>bonded test viewer</strong> that fetches test results from the Lab module for any item with a production_output_id.</p>
+
+        <h3>5.5 Hammadde Stok &mdash; Frontend Highlights</h3>
+        <p>8 Collapse panels (Bak&inodot;r, Kalay, Plastik, Kataliz&ouml;r, Boya, Antirodent, Palet, Makara). Structurally mirrors &Uuml;r&uuml;n Stok but for raw materials. Units adapt: kg for most materials, &ldquo;adet&rdquo; for palettes and reels. <strong>Conditional weight coloring:</strong> remaining weight shown in <span class="bad">red</span> below 20% of original, <span style="color: #ca8a04; font-weight: 700;">yellow</span> below 95% of original. Single API call fetches all materials; client-side grouping by <code>material_type</code>.</p>
+
+        <h3>5.6 Permission System</h3>
+        <table>
+            <tr><th>Page</th><th>Route Guard</th><th>Manifest Buttons</th></tr>
+            <tr><td>Projeksiyon</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_projections</code>, <code>create_projection</code>, <code>edit_projection</code></td></tr>
+            <tr><td>&Uuml;r&uuml;n Stok</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code></td></tr>
+            <tr><td>Hammadde Stok</td><td><code>canStok</code></td><td><code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code></td></tr>
+        </table>
+
+        <p>All three pages share the <code>canStok</code> route guard from <code>access.ts</code>. Button-level permissions are defined in the manifest but not currently enforced in the page components &mdash; the route-level guard is the active access control.</p>
+
+        <!-- placeholder: Section 6 submodules will be added here -->
+
+        <!-- placeholder: Section 7 CONCLUSION will be added here -->
+
+    </main>
+</body>
+</html>
