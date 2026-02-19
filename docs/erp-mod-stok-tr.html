@@ -1233,14 +1233,31 @@
             <span class="flow-step">İş Kartları (EKSİ)</span>
         </div>
 
-        <p>Alt akışı besleyen Teknik'in veya gelen malzemeleri kaydeden Hammadde'nin aksine, Stok <strong>her yerden okur ve neredeyse hiçbir yere yazmaz</strong>. Beş farklı modülden &mdash; Hammadde, Hammadde Siparişi, Üretim, Lab ve Sipariş &mdash; gelen verinin birleşik görünümlere çekildiği bir yakınsama noktasıdır. Gerçekleştirdiği tek yazma işlemleri, stok düzeyinde düzeltmeler (düzenleme modalları) ve Ürün Stok'taki kademeli silmelerdir.</p>
+        <p>İlk bakışta Stok pasif, salt okunur bir modül gibi görünür &mdash; her yerden okur, neredeyse hiçbir yere yazmaz. Ama bu yanıltıcıdır. Ürün Stok, üretim planlama döngüsünde <strong>kritik bir üst akış rolü</strong> oynar: Sipariş modülünün iş kartı hesaplama motoru, mevcut ürün stoğunu (<code>STOCK</code> tahsisli ve <code>available</code> durumlu kayıtları) sorgular ve <strong>yeni iş kartları oluşturmadan önce serbest envanteri düşer</strong>. <code>allocation</code> (ORDER vs STOCK) ve <code>status</code> (available, in_use, consumed, reserved) alanlarının var olma nedeni tam olarak budur &mdash; sadece görüntüleme için değil, ne kadar yeni üretim gerektiğini belirleyen girdi verisi olarak.</p>
 
-        <p>Bu okuma ağırlıklı mimari, üst akış verisi tutarsız olduğunda ilk kırılan modülün Stok olduğu anlamına gelir. Bir malzeme siparişinin <code>delivered_date</code>'i yanlışsa, Projeksiyon'un tahmini kayar. Üretim <code>remaining_weight_kg</code>'yi güncellemezse, Hammadde Stok eski ağırlıkları gösterir. Bir üretim çıktısı Ürün Stok dışından silinirse, yetim stok kayıtları ortaya çıkar. Stok yalnızca veri göstermez &mdash; tüm sistemin bütünlüğünü açığa çıkarır.</p>
+        <p>Bu, doğrusal bir hat değil, <strong>dairesel bir bağımlılık</strong> oluşturur:</p>
+
+        <div class="flow">
+            <span class="flow-step">Sipariş</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">İş Kartları</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Üretim</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ürün Stok</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Sipariş (mevcudu düş)</span>
+            <span class="flow-arrow">&rarr; ...</span>
+        </div>
+
+        <p>Tüm ERP sistemi bu döngü olarak çalışır. Gerçek bir &ldquo;başlangıç modülü&rdquo; yoktur &mdash; her modül bir diğerinin verisine bağlıdır, o da bir üçüncüye bağlıdır ve döngü geri döner. Stok bu döngüdeki kritik bir kavşakta durur: Üretim ve Hammadde'den veri alır, ama aynı zamanda mevcut envanteri sağlayarak kaç iş kartı oluşturulacağını şekillendiren <strong>Sipariş modülüne geri besleme</strong> yapar. Eğer Ürün Stok 50&nbsp;kg serbest Kabatel teli gösteriyorsa, hesaplama motoru üretim görevlerini dağıtmadan önce bunu düşer. Doğru stok verisi olmadan fabrika ya fazla üretir (kaynak israfı) ya da az üretir (teslimat tarihlerini kaçırır).</p>
+
+        <p>Bu aynı zamanda üst akış verisi tutarsız olduğunda ilk kırılan modülün Stok olduğu anlamına gelir. Bir malzeme siparişinin <code>delivered_date</code>'i yanlışsa, Projeksiyon'un tahmini kayar. Üretim <code>remaining_weight_kg</code>'yi güncellemezse, Hammadde Stok eski ağırlıkları gösterir. Bir üretim çıktısı Ürün Stok dışından silinirse, yetim stok kayıtları ortaya çıkar. Stok yalnızca veri göstermez &mdash; tüm sistemin bütünlüğünü açığa çıkarır.</p>
 
         <h3>7.5 Son Söz</h3>
 
         <div class="abstract">
-            <p style="margin-bottom: 0;">Stok &amp; Envanter modülü fabrikanın malzeme sinir sistemidir. Malzeme taşımaz, kablo üretmez, sipariş karşılamaz &mdash; ama organizasyondaki herkese neyin var olduğunu, neyin tahsis edildiğini, neyin serbest olduğunu ve gelecek hafta neyin mevcut olacağını söyler. Projeksiyon, bir açık kritik hale gelmeden önce satın almayı uyarır. Hammadde Stok, depoda fiziksel olarak raflarda ne olduğunu söyler. Ürün Stok, üretim plancılarına hangi yarı mamullerin bir sonraki adım için hazır olduğunu söyler. Üç sayfa, iki veritabanı tablosu ve beş üst akış bağımlılığı &mdash; ama bu modül olmadan fabrika kör çalışır. Bu doküman, bu görünürlüğü mümkün kılan her veri kaynağını, her API çağrısını, her gruplama algoritmasını ve her çapraz modül bağlantısını izlemiştir.</p>
+            <p style="margin-bottom: 0;">Stok &amp; Envanter modülü fabrikanın malzeme sinir sistemidir. Malzeme taşımaz, kablo üretmez, sipariş karşılamaz &mdash; ama organizasyondaki herkese neyin var olduğunu, neyin tahsis edildiğini, neyin serbest olduğunu ve gelecek hafta neyin mevcut olacağını söyler. Daha da kritik olarak, bu bilgiyi üretim planlama döngüsüne geri besler: Sipariş modülünün hesaplama motoru iş kartları oluşturmadan önce mevcut yarı mamulleri düşmek için Ürün Stok'u okur ve sipariş, üretim ve envanteri birbirine bağlayan daireyi kapatır. Projeksiyon, bir açık kritik hale gelmeden önce satın almayı uyarır. Hammadde Stok, depoda fiziksel olarak raflarda ne olduğunu söyler. Ürün Stok, üretim plancılarına hangi yarı mamullerin bir sonraki adım için hazır olduğunu söyler &mdash; ve Sipariş modülüne neyin hiç üretilmesine gerek olmadığını söyler. Üç sayfa, iki veritabanı tablosu, beş üst akış bağımlılığı ve bir kritik geri besleme döngüsü &mdash; bu modül olmadan fabrika ya kör çalışır ya da zaten elinde olan şeyleri üreterek döngüde döner.</p>
         </div>
 
     </main>

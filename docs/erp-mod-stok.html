@@ -1238,14 +1238,31 @@
             <span class="flow-step">Work Cards (MINUS)</span>
         </div>
 
-        <p>Unlike Teknik (which feeds downstream) or Hammadde (which records incoming), Stock <strong>reads from everywhere and writes almost nowhere</strong>. It is a convergence point where data from five different modules &mdash; Hammadde, Hammadde Sipari&#351;, Production, Lab, and Order &mdash; is pulled together into unified views. The only writes it performs are stock-level corrections (edit modals) and cascade deletes in &Uuml;r&uuml;n Stok.</p>
+        <p>At first glance, Stock appears to be a passive, read-only module &mdash; it reads from everywhere and writes almost nowhere. But this is misleading. &Uuml;r&uuml;n Stok plays a <strong>critical upstream role</strong> in the production planning loop: the Order module&rsquo;s work card calculator engine queries available product stock (items with <code>STOCK</code> allocation and <code>available</code> status) and <strong>deducts free inventory before generating new work cards</strong>. This is precisely why the <code>allocation</code> (ORDER vs STOCK) and <code>status</code> (available, in_use, consumed, reserved) fields exist &mdash; not just for display, but as input data that determines how much new production is actually needed.</p>
 
-        <p>This read-heavy architecture means Stock is the first module to break when upstream data is inconsistent. If a material order&rsquo;s <code>delivered_date</code> is wrong, Projeksiyon&rsquo;s forecast shifts. If Production doesn&rsquo;t update <code>remaining_weight_kg</code>, Hammadde Stok shows stale weights. If a production output is deleted outside of &Uuml;r&uuml;n Stok, orphaned stock records appear. Stock doesn&rsquo;t just display data &mdash; it exposes the integrity of the entire system.</p>
+        <p>This creates a <strong>circular dependency</strong>, not a linear pipeline:</p>
+
+        <div class="flow">
+            <span class="flow-step">Order</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Work Cards</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Production</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;r&uuml;n Stok</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Order (deduct available)</span>
+            <span class="flow-arrow">&rarr; ...</span>
+        </div>
+
+        <p>The entire ERP system operates as this loop. There is no true &ldquo;starting module&rdquo; &mdash; every module depends on data from another, which in turn depends on a third, which circles back. Stock sits at a critical junction in this loop: it receives data from Production and Hammadde, but it also <strong>feeds back</strong> into Order by providing the available inventory that shapes how many work cards get generated. If &Uuml;r&uuml;n Stok shows 50&nbsp;kg of free Kabatel wire, the calculator subtracts that before distributing production tasks. Without accurate stock data, the factory either overproduces (wasting resources) or underproduces (missing delivery dates).</p>
+
+        <p>This also means Stock is the first module to break when upstream data is inconsistent. If a material order&rsquo;s <code>delivered_date</code> is wrong, Projeksiyon&rsquo;s forecast shifts. If Production doesn&rsquo;t update <code>remaining_weight_kg</code>, Hammadde Stok shows stale weights. If a production output is deleted outside of &Uuml;r&uuml;n Stok, orphaned stock records appear. Stock doesn&rsquo;t just display data &mdash; it exposes the integrity of the entire system.</p>
 
         <h3>7.5 Final Word</h3>
 
         <div class="abstract">
-            <p style="margin-bottom: 0;">The Stock &amp; Inventory module is the factory&rsquo;s material nervous system. It does not move materials, produce cables, or fulfill orders &mdash; but it tells everyone in the organization what exists, what is committed, what is free, and what will be available next week. Projeksiyon alerts purchasing before a shortage becomes critical. Hammadde Stok tells the warehouse what&rsquo;s physically on the shelves. &Uuml;r&uuml;n Stok tells production planners what semi-finished goods are ready for the next step. Three pages, two database tables, and five upstream dependencies &mdash; yet without this module, the factory operates blind. This document has traced every data source, every API call, every grouping algorithm, and every cross-module connection that makes that visibility possible.</p>
+            <p style="margin-bottom: 0;">The Stock &amp; Inventory module is the factory&rsquo;s material nervous system. It does not move materials, produce cables, or fulfill orders &mdash; but it tells everyone in the organization what exists, what is committed, what is free, and what will be available next week. More critically, it feeds this information back into the production planning loop: the Order module&rsquo;s calculator engine reads &Uuml;r&uuml;n Stok to deduct available half-products before generating work cards, closing the circle that connects ordering, production, and inventory. Projeksiyon alerts purchasing before a shortage becomes critical. Hammadde Stok tells the warehouse what&rsquo;s physically on the shelves. &Uuml;r&uuml;n Stok tells production planners what semi-finished goods are ready for the next step &mdash; and tells the Order module what doesn&rsquo;t need to be produced at all. Three pages, two database tables, five upstream dependencies, and one critical feedback loop &mdash; without this module, the factory either operates blind or runs in circles producing what it already has.</p>
         </div>
 
     </main>
