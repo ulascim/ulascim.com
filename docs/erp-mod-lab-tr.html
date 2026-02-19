@@ -128,7 +128,7 @@
         <div class="stat-grid">
             <div class="stat-box">
                 <div class="value" style="color: var(--accent);">2</div>
-                <div class="label">ALT MOD&Uuml;L</div>
+                <div class="label">SAYFA</div>
             </div>
             <div class="stat-box">
                 <div class="value" style="color: var(--turquoise);">~20</div>
@@ -153,10 +153,9 @@
                 <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Veritaban&inodot; Katman&inodot;</a>
                 <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Backend Mimarisi</a>
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Frontend</a>
-                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
-                <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Lab Paneli (Dashboard)</a>
-                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Test Y&ouml;netimi</a>
-                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonu&ccedil;</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Lab Paneli (Dashboard)</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Test Y&ouml;netimi</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Sonu&ccedil;</a>
             </div>
         </div>
 
@@ -445,43 +444,307 @@
         <p>Test sayfas&inodot;ndaki kullan&inodot;c&inodot; tipi kontrolleri: <code>isLabUser</code> (lab_user veya super_admin) testleri ba&#351;latabilir/tamamlayabilir. <code>isSuperAdmin</code> test taleplerini silebilir. Normal kullan&inodot;c&inodot;lar salt okunur eri&#351;ime sahiptir.</p>
 
         <!-- ============================================ -->
-        <h2 id="sec-6">6. ALT MOD&Uuml;LLER</h2>
+        <h2 id="sec-6">6. LAB PANEL&#304; (DASHBOARD)</h2>
         <!-- ============================================ -->
 
-        <p>Laboratuvar mod&uuml;l&uuml;n&uuml;n 2 alt mod&uuml;l&uuml; vard&inodot;r:</p>
+        <h3>6.1 Ama&ccedil;</h3>
+        <p>Lab Paneli, laboratuvar kullan&inodot;c&inodot;lar&inodot; i&ccedil;in <code>/lab/dashboard</code> adresindeki giri&#351; sayfas&inodot;d&inodot;r. Amac&inodot;, lab&rsquo;&inodot;n i&#351; y&uuml;k&uuml;n&uuml;n genel bir g&ouml;r&uuml;n&uuml;m&uuml;n&uuml; sunmakt&inodot;r: ka&ccedil; uyar&inodot; bekliyor, ka&ccedil; test aktif, ka&ccedil; tanesi tamamland&inodot; ve bug&uuml;n ne oldu. Lab kullan&inodot;c&inodot;s&inodot;n&inodot;n giri&#351; yapt&inodot;ktan sonra g&ouml;rd&uuml;&gbreve;&uuml; ilk sayfad&inodot;r.</p>
 
-        <div class="submod-card">
-            <div class="submod-num">6.1</div>
-            <div class="submod-body">
-                <h4>Lab Paneli (Dashboard)</h4>
-                <p>&#304;statistikler ve uyar&inodot;larla genel bak&inodot;&#351; paneli. Sahte verilerle haz&inodot;rlanm&inodot;&#351; kabuk, ger&ccedil;ek API entegrasyonuna haz&inodot;r.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">&#304;STAT&#304;ST&#304;K</span>
-                    <span class="submod-tag">UYARILAR</span>
-                    <span class="submod-tag">SAHTE VER&#304;</span>
-                </div>
-            </div>
+        <h3>6.2 Mevcut Durum &mdash; Haz&inodot;rlanm&inodot;&#351; Kabuk</h3>
+        <p>Dashboard &#351;u anda <strong>sahte verilerle haz&inodot;rlanm&inodot;&#351; bir kabuktur</strong>. T&uuml;m istatistikler ve tablo sat&inodot;rlar&inodot; sabit kodlanm&inodot;&#351;t&inodot;r &mdash; hi&ccedil;bir API &ccedil;a&gbreve;r&inodot;s&inodot; yap&inodot;lmaz. Bu bilin&ccedil;li bir tercihtir: d&uuml;zen ve bilgi mimarisini tan&inodot;mlamak i&ccedil;in &ouml;nce kabuk olu&#351;turulmu&#351;tur ve Lab mod&uuml;l&uuml; olgunla&#351;t&inodot;k&ccedil;a ger&ccedil;ek endpoint&rsquo;lere ba&gbreve;lanacakt&inodot;r. Bile&#351;en, 133 sat&inodot;r temiz React kodundan olu&#351;ur, tamamen stillendirilmi&#351; ve entegrasyona haz&inodot;rd&inodot;r.</p>
+
+        <h3>6.3 D&uuml;zen ve Bile&#351;enler</h3>
+        <p>Sayfa, &ldquo;Lab Kontrol Paneli&rdquo; ba&#351;l&inodot;&gbreve;&inodot;n&inodot; ve giri&#351; yapm&inodot;&#351; kullan&inodot;c&inodot;n&inodot;n ad&inodot;n&inodot; g&ouml;steren ki&#351;iselle&#351;tirilmi&#351; bir selamlama ile bir <code>PageContainer</code> sar&inodot;c&inodot;s&inodot; i&ccedil;inde Ant Design grid sistemini kullan&inodot;r.</p>
+
+        <h4>&#304;statistik Sat&inodot;r&inodot; (4 kart)</h4>
+        <p>D&ouml;rt <code>Statistic</code> kart&inodot; duyarl&inodot; 4 s&uuml;tunlu gridde (<code>Col lg={6}</code>), her biri ikon ve renk kodlu de&gbreve;erle:</p>
+
+        <table>
+            <tr><th>#</th><th>Kart Ba&#351;l&inodot;&gbreve;&inodot;</th><th>Sahte De&gbreve;er</th><th>&#304;kon</th><th>Renk</th></tr>
+            <tr><td>1</td><td>Bekleyen Uyar&inodot;lar</td><td>2</td><td><code>AlertOutlined</code></td><td>Hata (k&inodot;rm&inodot;z&inodot;)</td></tr>
+            <tr><td>2</td><td>Aktif Testler</td><td>2</td><td><code>ExperimentOutlined</code></td><td>Uyar&inodot; (turuncu)</td></tr>
+            <tr><td>3</td><td>Tamamlanan Testler</td><td>15</td><td><code>CheckCircleOutlined</code></td><td>Ba&#351;ar&inodot;l&inodot; (ye&#351;il)</td></tr>
+            <tr><td>4</td><td>Bug&uuml;nk&uuml; Testler</td><td>8</td><td><code>ClockCircleOutlined</code></td><td>Birincil (mavi)</td></tr>
+        </table>
+
+        <h4>Veri Tablolar&inodot; (2 yan yana)</h4>
+        <p>&#304;statistiklerin alt&inodot;nda, iki tablo duyarl&inodot; 2 s&uuml;tunlu d&uuml;zende (<code>Col lg={12}</code>) yer al&inodot;r:</p>
+
+        <table>
+            <tr><th>Tablo</th><th>Kart Ba&#351;l&inodot;&gbreve;&inodot;</th><th>Rozet</th><th>S&uuml;tunlar</th><th>Sahte Sat&inodot;rlar</th></tr>
+            <tr><td><strong>Bekleyen Lab Uyar&inodot;lar&inodot;</strong></td><td>Bekleyen Lab Uyar&inodot;lar&inodot;</td><td><code>Acil</code> (k&inodot;rm&inodot;z&inodot; etiket)</td><td>Makine, Uyar&inodot;, Saat, &#304;&#351;lem</td><td>2 sat&inodot;r: Kabatel &Ccedil;ekme 01 (yeni &uuml;retim uyar&inodot;s&inodot;), Kalaylama 01 (yava&#351; mod onay&inodot;)</td></tr>
+            <tr><td><strong>Aktif Test S&uuml;re&ccedil;leri</strong></td><td>Aktif Test S&uuml;re&ccedil;leri</td><td><code>Devam Ediyor</code> (i&#351;lem etiketi)</td><td>Test Kodu, &Uuml;r&uuml;n, Durum, &Ouml;ncelik, &#304;&#351;lem</td><td>2 sat&inodot;r: SLHT001 - 1.8mm Tel (test ediliyor, y&uuml;ksek), SLDT002 - Kalay Tel (onay bekliyor, normal)</td></tr>
+        </table>
+
+        <p>Her tablonun bir eylem d&uuml;&gbreve;mesi s&uuml;tunu vard&inodot;r: uyar&inodot;lar i&ccedil;in &ldquo;Test Ba&#351;lat&rdquo;, aktif testler i&ccedil;in &ldquo;Onayla&rdquo;. Bu d&uuml;&gbreve;meler &#351;u anda i&#351;levsiz yer tutuculardir.</p>
+
+        <h3>6.4 Kimlik Do&gbreve;rulama Entegrasyonu</h3>
+        <p>Sahte olmas&inodot;na ra&gbreve;men, Dashboard zaten ger&ccedil;ek kimlik do&gbreve;rulama sistemiyle entegredir. Giri&#351; yapm&inodot;&#351; kullan&inodot;c&inodot;n&inodot;n ad&inodot;n&inodot; alt ba&#351;l&inodot;kta g&ouml;stermek i&ccedil;in <code>RealAuthService.getCurrentUser()</code> &ccedil;a&gbreve;r&inodot;r. Rota, rota yap&inodot;land&inodot;rmas&inodot;ndaki <code>canLab</code> yetkisiyle korunur.</p>
+
+        <h3>6.5 Yol Haritas&inodot;</h3>
+        <p>Ger&ccedil;ek API&rsquo;lere ba&gbreve;land&inodot;&gbreve;&inodot;nda, Dashboard canl&inodot; verileri &#351;uralardan &ccedil;ekecektir:</p>
+        <ul>
+            <li><code>GET /api/production/test-requests/all?status=pending</code> &rarr; Bekleyen say&inodot;s&inodot; ve uyar&inodot; tablosu</li>
+            <li><code>GET /api/production/test-requests/all?status=passed</code> &rarr; Tamamlanan say&inodot;s&inodot;</li>
+            <li>Test talebi zaman damgalar&inodot;ndan toplu g&uuml;nl&uuml;k istatistikler</li>
+            <li>Bildirim sistemiyle ger&ccedil;ek zamanl&inodot; uyar&inodot; entegrasyonu</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Neden sahte sayfa g&ouml;nderilir?</strong> Bir fabrika ERP&rsquo;sinde, dashboard d&uuml;zeni kullan&inodot;c&inodot; benimsemesi i&ccedil;in kritiktir. &Ouml;nce kabu&gbreve;u olu&#351;turmak &mdash; ger&ccedil;ek&ccedil;i sahte veriler ve tam kart/tablo yap&inodot;s&inodot;yla &mdash; herhangi bir backend &ccedil;al&inodot;&#351;mas&inodot; ba&gbreve;lanmadan &ouml;nce payda&#351;lar&inodot;n bilgi hiyerar&#351;isini do&gbreve;rulamas&inodot;na olanak tan&inodot;r. 133 sat&inodot;rl&inodot;k bile&#351;en, sahte verileri ger&ccedil;ek API &ccedil;a&gbreve;r&inodot;lar&inodot;yla de&gbreve;i&#351;tirmenin basit bir entegrasyon g&ouml;revi olmas&inodot; i&ccedil;in kasitl&inodot; olarak minimaldedir.</p>
         </div>
 
-        <div class="submod-card">
-            <div class="submod-num">6.2</div>
-            <div class="submod-body">
-                <h4>Test Y&ouml;netimi</h4>
-                <p>Temel Lab aray&uuml;z&uuml;. Dinamik &ouml;l&ccedil;&uuml;m formlar&inodot;, ge&ccedil;ti/kald&inodot; i&#351; ak&inodot;&#351;&inodot;, ba&#351;ar&inodot;s&inodot;zl&inodot;kta otomatik tekrar deneme, 5 saniyelik yoklama ve ba&gbreve;l&inodot; &ccedil;&inodot;k&inodot;&#351; izlenebilirli&gbreve;i ile &uuml;retim test talebi y&ouml;netimi.</p>
-                <div class="submod-tags">
-                    <span class="submod-tag">D&#304;NAM&#304;K FORMLAR</span>
-                    <span class="submod-tag">GE&Ccedil;T&#304;/KALDI</span>
-                    <span class="submod-tag">OTO-TEKRAR</span>
-                    <span class="submod-tag">YOKLAMA</span>
-                    <span class="submod-tag">BA&Gbreve;LI TESTLER</span>
-                    <span class="submod-tag">&#304;ZLENEB&#304;L&#304;RL&#304;K</span>
-                </div>
-            </div>
+        <!-- ============================================ -->
+        <h2 id="sec-7">7. TEST Y&Ouml;NET&#304;M&#304;</h2>
+        <!-- ============================================ -->
+
+        <h3>7.1 Ama&ccedil; ve &Ouml;l&ccedil;ek</h3>
+        <p>Test Y&ouml;netimi, Laboratuvar mod&uuml;l&uuml;n&uuml;n operasyonel kalbidir. <code>/lab/test</code> adresinde yer al&inodot;r ve lab kullan&inodot;c&inodot;lar&inodot;n&inodot;n fabrikan&inodot;n &ccedil;al&inodot;&#351;t&inodot;rd&inodot;&gbreve;&inodot; her kalite testini ald&inodot;&gbreve;&inodot;, y&uuml;r&uuml;tt&uuml;&gbreve;&uuml; ve kaydetti&gbreve;i yerdir. Frontend bile&#351;eni 803 sat&inodot;r React/TypeScript, backend rota dosyas&inodot; 745 sat&inodot;r Python/FastAPI&rsquo;dir ve birlikte 9 &uuml;retim entegreli API endpoint&rsquo;i ile 6 eski endpoint&rsquo;i y&ouml;netirler. &Uuml;retim ve Lab aras&inodot;ndaki her etkile&#351;im bu sayfa &uuml;zerinden akar.</p>
+
+        <h3>7.2 Sayfa Ba&#351;l&inodot;&gbreve;&inodot; ve Rozet</h3>
+        <p>Sayfa ba&#351;l&inodot;&gbreve;&inodot; &ldquo;Test Talepleri&rdquo;dir ve bir <code>PageContainer</code> i&ccedil;inde g&ouml;r&uuml;nt&uuml;lenir. Ba&#351;l&inodot;&gbreve;&inodot;n yan&inodot;nda canl&inodot; bir <code>Badge</code> bekleyen test say&inodot;s&inodot;n&inodot; g&ouml;sterir. Bu rozet verilerle birlikte her 5 saniyede g&uuml;ncellenir ve lab kullan&inodot;c&inodot;s&inodot;na sayfa kayd&inodot;rmadan anl&inodot;k g&ouml;rsel bir i&#351; y&uuml;k&uuml; ipucu verir.</p>
+
+        <h3>7.3 ProTable &mdash; 9 S&uuml;tunlu Test Kuyru&gbreve;u</h3>
+        <p>Sayfan&inodot;n &ccedil;ekirde&gbreve;i, yatay kayd&inodot;rma (<code>x: 1100</code>), yerle&#351;ik sayfalama, yo&gbreve;unluk ge&ccedil;i&#351;i, s&uuml;tun g&ouml;r&uuml;n&uuml;rl&uuml;k ayarlar&inodot; ve manuel yenileme ile yap&inodot;land&inodot;r&inodot;lm&inodot;&#351; Ant Design Pro <code>ProTable</code>&rsquo;&inodot;d&inodot;r. Tablo <code>GET /api/production/test-requests/all</code>&rsquo;dan 100&rsquo;e kadar kay&inodot;t &ccedil;eker ve 9 s&uuml;tunda g&ouml;r&uuml;nt&uuml;ler:</p>
+
+        <table>
+            <tr><th>#</th><th>S&uuml;tun</th><th>Geni&#351;lik</th><th>Sabit</th><th>G&ouml;r&uuml;nt&uuml;leme Detaylar&inodot;</th></tr>
+            <tr><td>1</td><td><strong>Kod</strong></td><td>70px</td><td>Sol</td><td>Mor monospace <code>Tag</code>: <code>L{id}</code>. Test talebi ba&#351;&inodot;na benzersiz tan&inodot;mlay&inodot;c&inodot;.</td></tr>
+            <tr><td>2</td><td><strong>Test</strong></td><td>otomatik</td><td>&mdash;</td><td>&#304;ki sat&inodot;r: <code>test_standard.test_name</code>&rsquo;den test ad&inodot; (kal&inodot;n), alt&inodot;nda k&uuml;&ccedil;&uuml;k gri metin olarak standart numaras&inodot;.</td></tr>
+            <tr><td>3</td><td><strong>&#304;&#351; Kart&inodot;</strong></td><td>80px</td><td>&mdash;</td><td>Mavi <code>Tag</code>: <code>#{work_card_id}</code>. Testi &uuml;retim i&#351; kart&inodot;na ba&gbreve;lar.</td></tr>
+            <tr><td>4</td><td><strong>Makine</strong></td><td>150px</td><td>&mdash;</td><td>Makine g&ouml;r&uuml;nt&uuml; ad&inodot;. Backend&rsquo;den <code>machine_name</code> (marka &ndash; model) kullan&inodot;r veya machine_type kodlar&inodot;n&inodot; T&uuml;rk&ccedil;e adlara e&#351;leyen istemci tarafl&inodot; aramaya d&uuml;&#351;er (Kabatel &Ccedil;ekme, Kalaylama, &#304;ncetel &Ccedil;ekme, Buncher, Extruder, E-Beam, Aktarma, Paletleme).</td></tr>
+            <tr><td>5</td><td><strong>Aral&inodot;k</strong></td><td>100px</td><td>&mdash;</td><td>Aral&inodot;k <code>Tag</code>&rsquo;i: <code>&uuml;retim_ba&#351;&inodot;</code> &rarr; &ldquo;&Uuml;retim Ba&#351;&inodot;&rdquo;, <code>her_sepet_sonu</code> &rarr; &ldquo;Her Sepet&rdquo;, <code>&uuml;retim_sonu</code> &rarr; &ldquo;&Uuml;retim Sonu&rdquo;.</td></tr>
+            <tr><td>6</td><td><strong>Talep</strong></td><td>130px</td><td>&mdash;</td><td>Talep zaman damgas&inodot; T&uuml;rkiye saat diliminde (<code>Europe/Istanbul</code>) <code>DD.MM.YY HH:mm</code> format&inodot;nda. UTC-yerel d&ouml;n&uuml;&#351;&uuml;m&uuml;yle <code>dayjs</code> kullan&inodot;r.</td></tr>
+            <tr><td>7</td><td><strong>Durum</strong></td><td>100px</td><td>&mdash;</td><td>Durum etiketi: <span style="color: orange;">Beklemede</span> (turuncu), <span style="color: green;">Onayland&inodot;</span> (ye&#351;il + &#10003; ikonu), <span style="color: red;">Ba&#351;ar&inodot;s&inodot;z</span> (k&inodot;rm&inodot;z&inodot; + X ikonu).</td></tr>
+            <tr><td>8</td><td><strong>Test Eden</strong></td><td>100px</td><td>&mdash;</td><td>Tamamland&inodot;ysa test edenin ad&inodot;, beklemedeyse &ldquo;&ndash;&rdquo;.</td></tr>
+            <tr><td>9</td><td><strong>&#304;&#351;lemler</strong></td><td>140px</td><td>Sa&gbreve;</td><td>Ko&#351;ullu d&uuml;&gbreve;meler: <code>ExperimentOutlined</code> (test ba&#351;lat &mdash; yaln&inodot;zca beklemede + lab_user), <code>EyeOutlined</code> (sonu&ccedil;lar&inodot; g&ouml;r &mdash; tamamlanm&inodot;&#351; testler), <code>DeleteOutlined</code> ile <code>Popconfirm</code> (yaln&inodot;zca super_admin).</td></tr>
+        </table>
+
+        <h3>7.4 &#304;stemci Tarafl&inodot; Arama</h3>
+        <p>Ara&ccedil; &ccedil;ubu&gbreve;u <code>SearchOutlined</code> ikonlu bir arama girdisi (200px geni&#351;, yuvarlat&inodot;lm&inodot;&#351;) g&ouml;r&uuml;nt&uuml;ler. Arama <code>useMemo</code> ile <strong>tamamen istemci tarafl&inodot;</strong>d&inodot;r: t&uuml;m veri setini 10&rsquo;dan fazla alana kar&#351;&inodot; e&#351; zamanl&inodot; filtreler:</p>
+        <ul>
+            <li>Test kodu (<code>L{id}</code>)</li>
+            <li>Test ad&inodot; ve standart numaras&inodot;</li>
+            <li>&#304;&#351; kart&inodot; ID</li>
+            <li>Makine ad&inodot; (API&rsquo;den) ve makine tipi (istemci tarafl&inodot; e&#351;lemeden)</li>
+            <li>Aral&inodot;k metni (T&uuml;rk&ccedil;e g&ouml;r&uuml;nt&uuml; adlar&inodot;)</li>
+            <li>Test eden ad&inodot;</li>
+            <li>T&uuml;rk&ccedil;e durum: &ldquo;beklemede&rdquo;, &ldquo;onayland&inodot;&rdquo;, &ldquo;ba&#351;ar&inodot;s&inodot;z&rdquo;</li>
+        </ul>
+
+        <h3>7.5 Ger&ccedil;ek Zamanl&inodot; Yoklama</h3>
+        <p>Bile&#351;en y&uuml;klendi&gbreve;inde <code>fetchTestRequests()</code>&rsquo;i &ccedil;a&gbreve;&inodot;r&inodot;r ve <strong>5 saniyelik</strong> aral&inodot;klarla bir <code>setInterval</code> ba&#351;lat&inodot;r. Temizleme fonksiyonu s&ouml;k&uuml;l&uuml;rken aral&inodot;&gbreve;&inodot; temizler. Bu, WebSocket karma&#351;&inodot;kl&inodot;&gbreve;&inodot; olmadan neredeyse ger&ccedil;ek zamanl&inodot; g&uuml;ncellemeler sa&gbreve;lar. &Uuml;retim&rsquo;den yeni bir test talebi geldi&gbreve;inde tabloda 5 saniye i&ccedil;inde g&ouml;r&uuml;n&uuml;r.</p>
+
+        <h3>7.6 Bildirim Derin Ba&gbreve;lant&inodot; Deste&gbreve;i</h3>
+        <p>Bile&#351;en y&uuml;klendi&gbreve;inde <code>useLocation()</code> ile URL sorgu parametrelerini okur. Lab kullan&inodot;c&inodot;s&inodot; bir bildirime t&inodot;klad&inodot;&gbreve;&inodot;nda (&ouml;rn. &ldquo;Test Talebi: Diren&ccedil; Testi&rdquo;), <code>/lab/test?test_request_id=42</code>&rsquo;ye y&ouml;nlendirilir. Sayfa bilgi mesaj&inodot; g&ouml;sterir: &ldquo;Test talebi g&ouml;r&uuml;nt&uuml;leniyor: #42&rdquo;. Bu, bildirimden eyleme kesintisiz bir ak&inodot;&#351; olu&#351;turur.</p>
+
+        <h3>7.7 Dinamik Test Formu</h3>
+        <p>Lab mod&uuml;l&uuml;n&uuml;n teknik olarak en geli&#351;mi&#351; k&inodot;sm&inodot; budur. Lab kullan&inodot;c&inodot;s&inodot; bekleyen bir testte deney ikonuna t&inodot;klad&inodot;&gbreve;&inodot;nda, ortal&inodot; bir <code>Modal</code> (700px geni&#351;, bulan&inodot;k arka plan) a&ccedil;&inodot;l&inodot;r. Modal ba&#351;l&inodot;&gbreve;&inodot; test ad&inodot;n&inodot;, alt ba&#351;l&inodot;k olarak &ldquo;&#304;&#351; Kart&inodot; #{work_card_id} &bull; {aral&inodot;k}&rdquo; g&ouml;sterir. Form tamamen <strong>test standard&inodot;n&inodot;n parametre tan&inodot;mlar&inodot;ndan</strong> &uuml;retilir.</p>
+
+        <h4>Ad&inodot;m 1: Test Standard&inodot;n&inodot; Getir</h4>
+        <p>Sistem, <code>parameter_order</code>&rsquo;a g&ouml;re s&inodot;ralanm&inodot;&#351; t&uuml;m parametreleri dahil tam test standard&inodot;n&inodot; almak i&ccedil;in <code>GET /api/teknik/standards/tests/{id}/full</code>&rsquo;u &ccedil;a&gbreve;&inodot;r&inodot;r. Y&uuml;klenirken &ldquo;Test standard&inodot; y&uuml;kleniyor...&rdquo; ile bir <code>Spin</code> bile&#351;eni g&ouml;r&uuml;nt&uuml;lenir.</p>
+
+        <h4>Ad&inodot;m 2: Form Alanlar&inodot;n&inodot; &Uuml;ret</h4>
+        <p>Form &uuml;retme algoritmas&inodot; <code>test_samples</code> (numune say&inodot;s&inodot;) &times; <code>parameters</code> (&ouml;l&ccedil;&uuml;m alanlar&inodot;) &uuml;zerinde yineler:</p>
+
+        <div class="code-block">
+            <pre>
+Her numune i&ccedil;in (1&rsquo;den test_samples&rsquo;a):
+  Birden fazla numune varsa &rarr; "&Ccedil;izgi" "Numune {n}" g&ouml;r&uuml;nt&uuml;le
+  test_standard.parameters i&ccedil;indeki her parametre i&ccedil;in:
+    InputNumber g&ouml;r&uuml;nt&uuml;le:
+      &bull; ad: "sample_{s}_param_{param.id}"
+      &bull; etiket: parameter_name (&ouml;rn. "&Ccedil;ap", "Diren&ccedil;")
+      &bull; addonAfter: parameter_unit (&ouml;rn. "mm", "&Omega;/km")
+      &bull; placeholder: "Hedef: {target_value}" tan&inodot;ml&inodot;ysa
+      &bull; parametre tan&inodot;m&inodot;ndan min/maks s&inodot;n&inodot;rlar
+      &bull; ad&inodot;m: 0.01
+      &bull; is_required bayra&gbreve;&inodot;
+      &bull; flex d&uuml;zen: 200px min geni&#351;lik, kayd&inodot;rmal&inodot;</pre>
         </div>
 
-        <!-- placeholder: B&ouml;l&uuml;m 6 derin incelemeler buraya eklenecek -->
+        <p>Bu, 3 parametreli ve 2 numuneli bir test standard&inodot;n&inodot;n 2 numune grubu boyunca 6 giri&#351; alan&inodot; &uuml;retti&gbreve;i anlam&inodot;na gelir. 1 parametreli ve 1 numuneli bir standart tek bir alan &uuml;retir. Form her zaman uyum sa&gbreve;lar &mdash; hi&ccedil;bir iki test formu birbirine benzemez.</p>
 
-        <!-- placeholder: B&ouml;l&uuml;m 7 SONU&Ccedil; buraya eklenecek -->
+        <h4>Ad&inodot;m 3: U&ccedil; Durumlar</h4>
+        <ul>
+            <li><strong>Parametre tan&inodot;mlanmam&inodot;&#351;:</strong> &ldquo;Bu test i&ccedil;in parametre tan&inodot;mlanmam&inodot;&#351;&rdquo; mesaj&inodot;n&inodot; yaln&inodot;zca test ad&inodot;yla g&ouml;sterir. Kullan&inodot;c&inodot; yine de &ouml;l&ccedil;&uuml;m olmadan testi ge&ccedil;irebilir/kalabilir.</li>
+            <li><strong>Standart bulunamad&inodot;:</strong> &ldquo;Test standard&inodot; bulunamad&inodot;&rdquo; g&ouml;sterir.</li>
+        </ul>
+
+        <h4>Ad&inodot;m 4: Notlar Alan&inodot;</h4>
+        <p>T&uuml;m &ouml;l&ccedil;&uuml;m alanlar&inodot;n&inodot;n alt&inodot;nda, &ldquo;Notlar&rdquo; etiketli ve &ldquo;Test ile ilgili notlar...&rdquo; yer tutuculu bir <code>TextArea</code> (2 sat&inodot;r) lab kullan&inodot;c&inodot;s&inodot;n&inodot;n g&ouml;zlem eklemesine olanak tan&inodot;r.</p>
+
+        <h4>Ad&inodot;m 5: Eylem D&uuml;&gbreve;meleri</h4>
+        <p>Altta flex sat&inodot;rda &uuml;&ccedil; d&uuml;&gbreve;me:</p>
+        <table>
+            <tr><th>D&uuml;&gbreve;me</th><th>Stil</th><th>&#304;kon</th><th>Eylem</th></tr>
+            <tr><td><strong>&#304;ptal</strong></td><td>Varsay&inodot;lan</td><td>&mdash;</td><td>Modal&inodot; kapat&inodot;r, formu s&inodot;f&inodot;rlar</td></tr>
+            <tr><td><strong>Ba&#351;ar&inodot;s&inodot;z</strong></td><td>Tehlike (k&inodot;rm&inodot;z&inodot;)</td><td><code>CloseCircleOutlined</code></td><td><code>handleTestComplete(false)</code> &ccedil;a&gbreve;&inodot;r&inodot;r</td></tr>
+            <tr><td><strong>Onayland&inodot;</strong></td><td>Birincil (ye&#351;il, <code>token.colorSuccess</code>)</td><td><code>CheckCircleOutlined</code></td><td><code>handleTestComplete(true)</code> &ccedil;a&gbreve;&inodot;r&inodot;r</td></tr>
+        </table>
+
+        <h3>7.8 Test Tamamlama ve &Ouml;l&ccedil;&uuml;m Montaj&inodot;</h3>
+        <p>Lab kullan&inodot;c&inodot;s&inodot; &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; veya &ldquo;Onayland&inodot;&rdquo;ya t&inodot;klad&inodot;&gbreve;&inodot;nda sistem:</p>
+        <ol>
+            <li><code>form.validateFields()</code> ile t&uuml;m zorunlu form alanlar&inodot;n&inodot; do&gbreve;rular</li>
+            <li>Dinamik alan adlar&inodot;ndan &ouml;l&ccedil;&uuml;m JSON&rsquo;&inodot;n&inodot; monte eder:
+                <div class="code-block">
+                    <pre>
+{
+  "samples": [
+    { "sample_num": 1, "params": { "&Ccedil;ap": 1.82, "Diren&ccedil;": 9.45 } },
+    { "sample_num": 2, "params": { "&Ccedil;ap": 1.81, "Diren&ccedil;": 9.52 } }
+  ]
+}</pre>
+                </div>
+            </li>
+            <li><code>POST /api/production/test-requests/{id}/complete</code>&rsquo;e <code>{ passed: true/false, measurements: {...}, notes: "..." }</code> g&ouml;nderir</li>
+            <li>Ba&#351;ar&inodot;l&inodot;ysa: &ldquo;Test onayland&inodot;&rdquo; veya &ldquo;Test ba&#351;ar&inodot;s&inodot;z&rdquo; g&ouml;sterir, modal&inodot; kapat&inodot;r, formu s&inodot;f&inodot;rlar, tabloyu yeniler</li>
+        </ol>
+
+        <h3>7.9 Ba&#351;ar&inodot;s&inodot;zl&inodot;kta Otomatik Tekrar Deneme</h3>
+        <p>Backend <code>passed: false</code> tamamlamas&inodot; ald&inodot;&gbreve;&inodot;nda, tek bir veritaban&inodot; i&#351;leminde <strong>&uuml;&ccedil; &#351;eyi atomik olarak</strong> yapar:</p>
+        <ol>
+            <li><strong>Orijinali g&uuml;nceller:</strong> Durumu <code>FAILED</code> yapar, test edeni, zaman damgas&inodot;n&inodot; ve &ouml;l&ccedil;&uuml;mleri kaydeder</li>
+            <li><strong>Tekrar olu&#351;turur:</strong> Ayn&inodot; <code>work_card_id</code>, <code>session_id</code>, <code>output_id</code>, <code>test_standard_id</code>, <code>machine_type</code> ve <code>test_interval</code> ile yeni bir <code>ProductionTestRequest</code> &mdash; ancak <code>retry_count = orijinal + 1</code> ve <code>parent_request_id = orijinal.id</code></li>
+            <li><strong>Bildirim g&ouml;nderir:</strong> Orijinal talep edene ve t&uuml;m super admin&rsquo;lere y&uuml;ksek &ouml;ncelikli bildirimler, test sayfas&inodot;na derin ba&gbreve;lant&inodot; ve ek veride <code>retry_request_id</code> ile</li>
+        </ol>
+        <p>Tekrar talebi 5 saniye i&ccedil;inde (sonraki yoklama d&ouml;ng&uuml;s&uuml;) Lab kuyru&gbreve;unda yeni bekleyen test olarak g&ouml;r&uuml;n&uuml;r. API yan&inodot;t&inodot; <code>retry_created: true</code> ve <code>retry_request_id</code> i&ccedil;erir.</p>
+
+        <h3>7.10 Tamamlanm&inodot;&#351; Test Sonu&ccedil;lar&inodot;n&inodot; G&ouml;r&uuml;nt&uuml;leme</h3>
+        <p>Tamamlanm&inodot;&#351; testler (ge&ccedil;ti veya ba&#351;ar&inodot;s&inodot;z) i&ccedil;in g&ouml;z ikonu salt okunur bir <code>Modal</code> (480px geni&#351;, bulan&inodot;k arka plan) a&ccedil;ar. Ba&#351;l&inodot;k, ge&ccedil;ti/kald&inodot; etiketiyle test ad&inodot;n&inodot;, art&inodot; meta verileri g&ouml;sterir: <code>L{id} &bull; #{work_card_id} &bull; GG.AA SS:dd</code>.</p>
+        <p>Sonu&ccedil; g&ouml;r&uuml;nt&uuml;s&uuml; kompakt bir &ouml;l&ccedil;&uuml;m tablosu sunar:</p>
+        <ul>
+            <li><strong>Ba&#351;l&inodot;k sat&inodot;r&inodot;:</strong> <code>#</code> s&uuml;tunu (numune numaras&inodot;) ard&inodot;ndan parametre ad&inodot; ba&#351;&inodot;na bir s&uuml;tun, birim alt&inodot;nda k&uuml;&ccedil;&uuml;k metinle</li>
+            <li><strong>Veri sat&inodot;rlar&inodot;:</strong> Numune ba&#351;&inodot;na bir sat&inodot;r, her parametrenin alt&inodot;nda hizalanm&inodot;&#351; monospace de&gbreve;erlerle</li>
+            <li><strong>Notlar:</strong> Lab kullan&inodot;c&inodot;s&inodot; not yazd&inodot;ysa tablonun alt&inodot;nda gri kutuda g&ouml;r&uuml;n&uuml;r</li>
+            <li><strong>&Ouml;l&ccedil;&uuml;m yok:</strong> Parametre &ouml;l&ccedil;&uuml;m&uuml; kaydedilmediyse &ldquo;Parametre &ouml;l&ccedil;&uuml;m&uuml; kaydedilmemi&#351;&rdquo; g&ouml;sterir</li>
+        </ul>
+
+        <h3>7.11 Silme &#304;&#351;levi</h3>
+        <p>Yaln&inodot;zca <code>super_admin</code> kullan&inodot;c&inodot;lar silme d&uuml;&gbreve;mesini (k&inodot;rm&inodot;z&inodot; &ccedil;&ouml;p ikonu) g&ouml;r&uuml;r. T&inodot;klamak bir <code>Popconfirm</code> g&ouml;sterir: &ldquo;Silmek istedi&gbreve;inize emin misiniz?&rdquo; Evet/Hay&inodot;r se&ccedil;enekleriyle. Onaylanan silmeler <code>DELETE /api/production/test-requests/{id}</code>&rsquo;yi &ccedil;a&gbreve;&inodot;r&inodot;r ve sat&inodot;r&inodot; iyimser bir &#351;ekilde state&rsquo;den kald&inodot;r&inodot;r.</p>
+
+        <h3>7.12 Yetki Modeli</h3>
+        <table>
+            <tr><th>Eylem</th><th>Gerekli Rol</th><th>Uygulama</th></tr>
+            <tr><td>Test listesini g&ouml;r&uuml;nt&uuml;le</td><td><code>canLab</code> yetkili herhangi bir kimlik do&gbreve;rulanm&inodot;&#351; kullan&inodot;c&inodot;</td><td><code>routes.ts</code>&rsquo;de rota korumas&inodot;</td></tr>
+            <tr><td>Test ba&#351;lat / tamamla</td><td><code>lab_user</code> veya <code>super_admin</code></td><td>Frontend: <code>isLabUser</code> kontrol&uuml; d&uuml;&gbreve;meyi gizler. Backend: <code>user_type not in [&rsquo;lab_user&rsquo;, &rsquo;super_admin&rsquo;]</code> 403 d&ouml;ner.</td></tr>
+            <tr><td>Test talebi sil</td><td><code>super_admin</code></td><td>Frontend: <code>isSuperAdmin</code> kontrol&uuml; d&uuml;&gbreve;meyi gizler. Backend: <code>user_type != &rsquo;super_admin&rsquo;</code> 403 d&ouml;ner.</td></tr>
+        </table>
+
+        <h3>7.13 Backend: &Uuml;retim Test Taleplerini Nas&inodot;l Olu&#351;turur</h3>
+        <p>Test talepleri Lab mod&uuml;l&uuml;nden de&gbreve;il, <strong>&Uuml;retim</strong> mod&uuml;l&uuml;nden kaynaklan&inodot;r. <code>POST /api/production/test-requests/create-for-interval</code> endpoint&rsquo;i oturum ya&#351;am d&ouml;ng&uuml;s&uuml;n&uuml;n &uuml;&ccedil; noktas&inodot;nda &ccedil;a&gbreve;r&inodot;l&inodot;r:</p>
+
+        <div class="flow">
+            <span class="flow-step">Oturum Ba&#351;lang&inodot;c&inodot;</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">work_card.material_details.tests oku</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&uuml;retim_ba&#351;&inodot; frekans&inodot;na g&ouml;re filtrele</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">E&#351;le&#351;me ba&#351;&inodot;na ProductionTestRequest olu&#351;tur</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">&Ccedil;&inodot;k&inodot;&#351; Kaydedildi</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">her_sepet_sonu frekans&inodot;na g&ouml;re filtrele</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">output_id ba&gbreve;lant&inodot;l&inodot; olu&#351;tur</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">T&uuml;m lab_user + super_admin&rsquo;e bildir</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Oturum Sonu</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&uuml;retim_sonu frekans&inodot;na g&ouml;re filtrele</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Lot testlerini linked_output_ids ile ba&gbreve;la</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Tam izlenebilirlik kuruldu</span>
+        </div>
+
+        <p>Frekans alan&inodot; virg&uuml;lle ayr&inodot;lm&inodot;&#351; de&gbreve;erleri destekler (&ouml;rn. <code>"&uuml;retim_ba&#351;&inodot;,her_sepet_sonu"</code>), yani tek bir test birden fazla aral&inodot;kta tetiklenebilir. Her e&#351;le&#351;en test i&ccedil;in sistem, talebi olu&#351;turmadan &ouml;nce <code>TestStandard</code>&rsquo;&inodot;n veritaban&inodot;nda var oldu&gbreve;unu do&gbreve;rular.</p>
+
+        <h3>7.14 Backend: &ldquo;T&uuml;m Testler&rdquo; Endpoint&rsquo;i</h3>
+        <p><code>GET /api/production/test-requests/all</code> endpoint&rsquo;i Lab sayfas&inodot;n&inodot; besler. Tek bir sorguda 5 ili&#351;kiyi eager-load eder (<code>test_standard</code>, <code>work_card</code>, <code>session</code>, <code>requester</code>, <code>tester</code>), durum filtrelemeyi destekler, varsay&inodot;lan 50 ile s&inodot;n&inodot;rlar (frontend 100 ister), ve oturumun <code>machine_id</code>&rsquo;sini <code>machine_type</code> i&ccedil;in do&gbreve;ru makine tablosuna bakarak makine adlar&inodot;n&inodot; &ccedil;&ouml;zer. Yan&inodot;t ayr&inodot;ca ba&#351;l&inodot;k rozeti i&ccedil;in genel <code>pending_count</code> i&ccedil;erir.</p>
+
+        <h3>7.15 Backend: Ba&gbreve;l&inodot; Test Sistemi</h3>
+        <p>&#304;ki endpoint ba&gbreve;l&inodot; test sorgular&inodot;na hizmet eder &mdash; &ccedil;&inodot;k&inodot;&#351; ID&rsquo;sine ve &ccedil;&inodot;k&inodot;&#351; koduna (&ouml;rn. X1, X2) g&ouml;re. Belirli bir &uuml;retim &ccedil;&inodot;k&inodot;&#351;&inodot;na uygulanan t&uuml;m testleri aral&inodot;&gbreve;a g&ouml;re gruplanm&inodot;&#351; olarak d&ouml;nerler. Ba&gbreve;lama mant&inodot;&gbreve;&inodot; &uuml;&ccedil; seviyeyi kontrol eder:</p>
+        <ol>
+            <li><strong>Do&gbreve;rudan ba&gbreve;:</strong> <code>output_id</code> e&#351;le&#351;ir &mdash; belirli bir sepet/makaraya ba&gbreve;l&inodot; <code>her_sepet_sonu</code> testleri</li>
+            <li><strong>Lot d&uuml;zeyinde ba&gbreve;:</strong> Ayn&inodot; oturum + aral&inodot;k <code>&uuml;retim_ba&#351;&inodot;</code> veya <code>&uuml;retim_sonu</code> &mdash; bu lot d&uuml;zeyindeki testler oturumdaki <em>her</em> &ccedil;&inodot;k&inodot;&#351;a uygulan&inodot;r</li>
+            <li><strong>Eski ba&gbreve;:</strong> Ayn&inodot; oturum + <code>output_id IS NULL</code> + <code>linked_output_ids IS NULL</code> &mdash; geriye d&ouml;n&uuml;k uyumluluk</li>
+        </ol>
+        <p>Yan&inodot;t testleri <code>{ "&uuml;retim_ba&#351;&inodot;": [...], "her_sepet_sonu": [...], "&uuml;retim_sonu": [...] }</code> &#351;eklinde gruplar ve aral&inodot;k ba&#351;&inodot;na say&inodot;lar i&ccedil;eren bir &ouml;zet nesnesi ile. Bu, herhangi bir t&uuml;keticiye (&Uuml;retim sayfas&inodot;, QR taray&inodot;c&inodot;, raporlar) tek bir &ccedil;&inodot;k&inodot;&#351; i&ccedil;in eksiksiz kalite tablosu sunar.</p>
+
+        <h3>7.16 CRUD Ak&inodot;&#351;&inodot;</h3>
+
+        <h4>OLU&#350;TUR (Test Talebi)</h4>
+        <ol>
+            <li>&Uuml;retim operat&ouml;r&uuml; oturum ba&#351;lat&inodot;r, &ccedil;&inodot;k&inodot;&#351; kaydeder veya oturumu bitirir</li>
+            <li>&Uuml;retim backend&rsquo;i <code>work_card.material_details.tests</code>&rsquo;i okur</li>
+            <li>Mevcut aral&inodot;&gbreve;&inodot;n frekans&inodot;na g&ouml;re filtreler</li>
+            <li><code>POST /api/production/test-requests/create-for-interval</code>&rsquo;i &ccedil;a&gbreve;&inodot;r&inodot;r</li>
+            <li>Her e&#351;le&#351;en test i&ccedil;in: <code>PENDING</code> durumlu <code>ProductionTestRequest</code> olu&#351;turur</li>
+            <li>T&uuml;m <code>lab_user</code> ve <code>super_admin</code>&rsquo;e y&uuml;ksek &ouml;ncelikli bildirimler g&ouml;nderir (talep eden hari&ccedil;)</li>
+            <li>Yeni talep 5 saniye i&ccedil;inde Lab kuyru&gbreve;unda g&ouml;r&uuml;n&uuml;r</li>
+        </ol>
+
+        <h4>OKU (Test Kuyru&gbreve;u ve Sonu&ccedil;lar)</h4>
+        <ol>
+            <li>Lab sayfas&inodot; y&uuml;klenir &rarr; <code>GET /api/production/test-requests/all?limit=100</code></li>
+            <li>Backend 5 ili&#351;kiyi eager-load eder, makine adlar&inodot;n&inodot; &ccedil;&ouml;zer</li>
+            <li>G&uuml;ncellemeler i&ccedil;in her 5 saniyede yoklar</li>
+            <li>&#304;stemci tarafl&inodot; arama ek API &ccedil;a&gbreve;r&inodot;s&inodot; olmadan 10&rsquo;dan fazla alanda filtreler</li>
+            <li>Bireysel test detaylar&inodot;: tam parametre listesiyle <code>GET /api/production/test-requests/{id}</code></li>
+            <li>&Ccedil;&inodot;k&inodot;&#351; ba&#351;&inodot;na ba&gbreve;l&inodot; testler: aral&inodot;&gbreve;a g&ouml;re gruplanm&inodot;&#351; <code>GET /bonded-tests/output/{id}</code></li>
+        </ol>
+
+        <h4>G&Uuml;NCELLE (Test Tamamlama)</h4>
+        <ol>
+            <li>Lab kullan&inodot;c&inodot;s&inodot; bekleyen testte deney ikonuna t&inodot;klar</li>
+            <li>Sistem <code>GET /api/teknik/standards/tests/{id}/full</code>&rsquo;dan parametrelerle tam test standard&inodot;n&inodot; getirir</li>
+            <li>Dinamik form g&ouml;r&uuml;nt&uuml;lenir: numuneler &times; parametreler &rarr; InputNumber alanlar&inodot;</li>
+            <li>Lab kullan&inodot;c&inodot;s&inodot; &ouml;l&ccedil;&uuml;mleri doldurur, iste&gbreve;e ba&gbreve;l&inodot; notlar ekler</li>
+            <li>&ldquo;Onayland&inodot;&rdquo; (ge&ccedil;ti) veya &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; (kald&inodot;) t&inodot;klar</li>
+            <li><code>POST /api/production/test-requests/{id}/complete</code> ile <code>{ passed, measurements, notes }</code></li>
+            <li>Backend do&gbreve;rular: beklemede olmal&inodot;, kullan&inodot;c&inodot; lab_user/super_admin olmal&inodot;</li>
+            <li>Durumu g&uuml;nceller, <code>tested_by</code>, <code>tested_at</code> kaydeder, &ouml;l&ccedil;&uuml;m JSON&rsquo;&inodot;n&inodot; saklar</li>
+            <li>Ba&#351;ar&inodot;s&inodot;zsa: atomik olarak tekrar talebi olu&#351;turur (retry_count + 1, parent_request_id ayarlan&inodot;r)</li>
+            <li>Talep edene + super admin&rsquo;lere bildirim g&ouml;nderir (ge&ccedil;ti i&ccedil;in orta, kald&inodot; i&ccedil;in y&uuml;ksek &ouml;ncelik)</li>
+            <li>Frontend tabloyu yeniler, modal kapan&inodot;r</li>
+        </ol>
+
+        <h4>S&#304;L</h4>
+        <ol>
+            <li>Super admin herhangi bir test talebinde &ccedil;&ouml;p ikonuna t&inodot;klar</li>
+            <li><code>Popconfirm</code>: &ldquo;Silmek istedi&gbreve;inize emin misiniz?&rdquo;</li>
+            <li>Onayland&inodot; &rarr; <code>DELETE /api/production/test-requests/{id}</code></li>
+            <li>Backend: <code>super_admin</code> do&gbreve;rular, kayd&inodot; siler</li>
+            <li>Frontend: sat&inodot;r&inodot; iyimser bir &#351;ekilde state&rsquo;den kald&inodot;r&inodot;r</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Dinamik formlar neden &ouml;nemlidir:</strong> Bir kablo fabrikas&inodot; d&uuml;zinelerce farkl&inodot; standart test eder &mdash; IEC 60228 iletken direncinden UL alev testlerine, &ouml;zel SLN fabrika &ouml;zelliklerine kadar. Her standard&inodot;n farkl&inodot; parametreleri, farkl&inodot; numune say&inodot;lar&inodot; ve farkl&inodot; birimleri vard&inodot;r. Her standart i&ccedil;in formlar&inodot; sabit kodlamak s&uuml;rd&uuml;r&uuml;lemez olurdu. Bunun yerine sistem, test standard&inodot; tan&inodot;m&inodot;n&inodot; (Teknik mod&uuml;l&uuml;nde saklan&inodot;r) okur ve formu &ccedil;al&inodot;&#351;ma zaman&inodot;nda &uuml;retir. Yeni parametrelerle yeni bir test standard&inodot; eklemek s&inodot;f&inodot;r frontend de&gbreve;i&#351;ikli&gbreve;i gerektirir &mdash; form veritaban&inodot; tan&inodot;m&inodot;ndan otomatik olarak uyum sa&gbreve;lar. Lab mod&uuml;l&uuml;n&uuml; herhangi bir say&inodot;da kalite standard&inodot;na &ouml;l&ccedil;eklenebilir k&inodot;lan budur.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-8">8. SONU&Ccedil;</h2>
+        <!-- ============================================ -->
+
+        <p>Laboratuvar mod&uuml;l&uuml; kapsam olarak aldat&inodot;c&inodot; bir &#351;ekilde basittir &mdash; iki sayfa, be&#351; tablo, on be&#351; endpoint &mdash; ancak orant&inodot;s&inodot;z bir sorumluluk ta&#351;&inodot;r. &ldquo;Evet, bu kablo standart&inodot; kar&#351;&inodot;l&inodot;yor&rdquo; veya &ldquo;hay&inodot;r, durun ve yeniden test edin&rdquo; diyebilen tek sistemdir. Onsuz, &uuml;retim &ccedil;&inodot;k&inodot;&#351;lar&inodot; do&gbreve;rulanmam&inodot;&#351; metaldir.</p>
+
+        <p>&Uuml;&ccedil; tasar&inodot;m karar&inodot; bu mod&uuml;l&uuml; tan&inodot;mlar:</p>
+
+        <ol>
+            <li><strong>Testler Teknik&rsquo;te tan&inodot;mlan&inodot;r, &Uuml;retim taraf&inodot;ndan tetiklenir, Lab taraf&inodot;ndan y&uuml;r&uuml;t&uuml;l&uuml;r.</strong> Bu sorumluluk ayr&inodot;m&inodot;, kimsenin gerekli bir testi atlayamayaca&gbreve;&inodot; anlam&inodot;na gelir &mdash; test gereksinimleri kablo tasar&inodot;m&inodot;n&inodot;n kendisine g&ouml;m&uuml;l&uuml;d&uuml;r ve her &uuml;retim aral&inodot;&gbreve;&inodot;nda otomatik olarak uygulan&inodot;r.</li>
+            <li><strong>Formlar veriden &uuml;retilir, kodlanmaz.</strong> Dinamik form sistemi, yeni parametreler, birimler ve numune say&inodot;lar&inodot;yla yeni bir test standard&inodot; eklemenin s&inodot;f&inodot;r frontend de&gbreve;i&#351;ikli&gbreve;i gerektirdi&gbreve;i anlam&inodot;na gelir. Form veritaban&inodot; tan&inodot;m&inodot;ndan g&ouml;r&uuml;nt&uuml;lenir, sistemi herhangi bir say&inodot;da kalite standard&inodot;na &ouml;l&ccedil;eklenebilir k&inodot;lar.</li>
+            <li><strong>Ba&#351;ar&inodot;s&inodot;z testler kendi haleflerini olu&#351;turur.</strong> <code>parent_request_id</code> zincirlemeyle otomatik tekrar mekanizmas&inodot;, ba&#351;ar&inodot;s&inodot;z bir testin asla unutulmamas&inodot;n&inodot; sa&gbreve;lar &mdash; kuyru&gbreve;a hemen yeni bir bekleyen talep g&ouml;r&uuml;n&uuml;r ve tam tekrar ge&ccedil;mi&#351;i denetim i&ccedil;in korunur.</li>
+        </ol>
+
+        <p>Mod&uuml;l &#351;u anda WebSocket yerine yoklama (5 saniyelik aral&inodot;klar) ile &ccedil;al&inodot;&#351;&inodot;r ve Dashboard sayfas&inodot; sahte veri kullan&inodot;r. Bunlar, erken da&gbreve;&inodot;t&inodot;m a&#351;amas&inodot;nda basitlik ve do&gbreve;rulu&gbreve;a &ouml;ncelik veren bilin&ccedil;li kararlard&inodot;r. Mimari, fabrikan&inodot;n test hacmi gerektirdi&gbreve;inde ger&ccedil;ek zamanl&inodot; y&uuml;kseltmelere ve canl&inodot; dashboard entegrasyonuna haz&inodot;rd&inodot;r.</p>
+
+        <p>Teknik (standartlar), &Uuml;retim (tetikleyiciler) ve Y&ouml;netim (yetkiler) ile birlikte Lab mod&uuml;l&uuml;, fabrikan&inodot;n IEC-EN, UL ve &ouml;zel SLN standartlar&inodot;na uyumlulu&gbreve;u kan&inodot;tlamas&inodot;na olanak tan&inodot;yan kalite g&uuml;vence d&ouml;ng&uuml;s&uuml;n&uuml; tamamlar &mdash; hammaddeden bitmi&#351; kabloya.</p>
 
     </main>
 </body>
