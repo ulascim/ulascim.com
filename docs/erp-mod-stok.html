@@ -1151,7 +1151,100 @@
             <p style="margin-bottom: 0;"><strong>Ürün Stok vs Hammadde Stok &mdash; same shell, different engine:</strong> The visual layout is nearly identical (Collapse panels, grouped tables, edit modal, refresh button), but the underlying data model is fundamentally different. Hammadde Stok reads from the Hammadde module's <code>materials</code> table with a single API call and groups by material category/name. Ürün Stok reads from its own <code>half_product_stock</code> table with 7 parallel API calls, groups by product_code, and adds the ORDER/STOCK allocation split, Lab test integration, source QR traceability, and production session linkage. Hammadde Stok is a read-only window into raw inputs. Ürün Stok is a read-and-manage window into production outputs with deep cross-module connections to Production, Lab, and Order modules.</p>
         </div>
 
-        <!-- placeholder: Section 7 CONCLUSION will be added here -->
+        <!-- ============================================ -->
+        <h2 id="sec-7" style="margin-top: 64px;">7. CONCLUSION</h2>
+        <!-- ============================================ -->
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Stock &amp; Inventory is not a module that creates data &mdash; it is the module that makes data from every other module visible, comparable, and actionable.</strong> Raw materials entered through Hammadde, production outputs recorded through &Uuml;retim, purchase orders tracked through Hammadde Sipari&#351;, work card requirements from the Order module &mdash; all of this converges here into three complementary views that answer the factory&rsquo;s most fundamental material questions.</p>
+        </div>
+
+        <h3>7.1 What This Document Covered</h3>
+
+        <p>This deep dive analyzed the Stock &amp; Inventory module across three submodules, each with a fundamentally different data strategy:</p>
+
+        <table>
+            <tr><th>Section</th><th>Submodule</th><th>Depth</th><th>Key Insight</th></tr>
+            <tr><td>6.1</td><td>Projeksiyon</td><td>Exhaustive</td><td>Computed-on-the-fly weekly forecast with no database table of its own; merges work card requirements (MINUS) with material order deliveries (PLUS) across 8 categories; hidden shortage detection within aggregate surpluses; material-specific heatmap normalization</td></tr>
+            <tr><td>6.2</td><td>Hammadde Stok</td><td>Full</td><td>Pure frontend view over Hammadde module&rsquo;s <code>materials</code> table; single API call with client-side grouping into 8 categories; conditional weight coloring for consumption tracking; minimal edit modal for stock-level corrections only</td></tr>
+            <tr><td>6.3</td><td>&Uuml;r&uuml;n Stok</td><td>Full</td><td>Own dedicated backend with 6 endpoints and own <code>half_product_stock</code> table; 7 parallel API calls by production step; ORDER/STOCK allocation split; bonded Lab test integration; source QR traceability chain; cascade delete with sequence reset</td></tr>
+        </table>
+
+        <h3>7.2 Architectural Principles</h3>
+
+        <p>Three design principles define this module and distinguish it from the rest of the ERP system:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Visibility, Not Ownership</h4>
+                <p>Stock &amp; Inventory owns almost no data. Hammadde Stok reads from the Hammadde module&rsquo;s <code>materials</code> table. Projeksiyon computes from <code>work_cards</code> and <code>material_orders</code> owned by Order and Hammadde respectively. Only &Uuml;r&uuml;n Stok has its own table, and even that is populated exclusively by the Production module. The Stock module&rsquo;s job is to <em>present</em> data that other modules create.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Three Lenses, One Reality</h4>
+                <p>The same physical factory inventory is visible through three different lenses: what raw materials exist <em>now</em> (Hammadde Stok), what production outputs exist <em>now</em> (&Uuml;r&uuml;n Stok), and what materials <em>will</em> exist in future weeks (Projeksiyon). No single view tells the complete story. Together they form a comprehensive material visibility layer that spans from the current warehouse snapshot to the multi-week forecast horizon.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Computation Over Storage</h4>
+                <p>Projeksiyon is the defining example: no dedicated database table, no caching, no materialized views. Every request recomputes the full projection from live data. This means projections are always consistent with the latest work cards and delivery records, at the cost of heavier computation per request. The same principle applies to Hammadde Stok&rsquo;s client-side grouping and &Uuml;r&uuml;n Stok&rsquo;s parallel aggregation &mdash; totals are always computed fresh, never stored.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Cross-Module Read Pattern</h4>
+                <p>Every submodule reads from at least one external module. Hammadde Stok reads Hammadde. Projeksiyon reads Hammadde Sipari&#351; + Order (work cards). &Uuml;r&uuml;n Stok reads Production (sessions, outputs) and Lab (bonded tests). This makes Stock the most dependency-heavy module in the system &mdash; it cannot function if any upstream module is broken.</p>
+            </div>
+        </div>
+
+        <h3>7.3 The Numbers</h3>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">3</div>
+                <div class="label">SUBMODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~14</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2</div>
+                <div class="label">OWN DB TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5,800+</div>
+                <div class="label">LINES OF CODE</div>
+            </div>
+        </div>
+
+        <h3>7.4 How Stock Reads the Factory</h3>
+
+        <div class="flow">
+            <span class="flow-step">Hammadde Module</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammadde Stok</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">&Uuml;retim (Production)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&Uuml;r&uuml;n Stok</span>
+            <span class="flow-arrow">&larr;</span>
+            <span class="flow-step">Lab (bonded tests)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Hammadde Sipari&#351; (PLUS)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Projeksiyon</span>
+            <span class="flow-arrow">&larr;</span>
+            <span class="flow-step">Work Cards (MINUS)</span>
+        </div>
+
+        <p>Unlike Teknik (which feeds downstream) or Hammadde (which records incoming), Stock <strong>reads from everywhere and writes almost nowhere</strong>. It is a convergence point where data from five different modules &mdash; Hammadde, Hammadde Sipari&#351;, Production, Lab, and Order &mdash; is pulled together into unified views. The only writes it performs are stock-level corrections (edit modals) and cascade deletes in &Uuml;r&uuml;n Stok.</p>
+
+        <p>This read-heavy architecture means Stock is the first module to break when upstream data is inconsistent. If a material order&rsquo;s <code>delivered_date</code> is wrong, Projeksiyon&rsquo;s forecast shifts. If Production doesn&rsquo;t update <code>remaining_weight_kg</code>, Hammadde Stok shows stale weights. If a production output is deleted outside of &Uuml;r&uuml;n Stok, orphaned stock records appear. Stock doesn&rsquo;t just display data &mdash; it exposes the integrity of the entire system.</p>
+
+        <h3>7.5 Final Word</h3>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;">The Stock &amp; Inventory module is the factory&rsquo;s material nervous system. It does not move materials, produce cables, or fulfill orders &mdash; but it tells everyone in the organization what exists, what is committed, what is free, and what will be available next week. Projeksiyon alerts purchasing before a shortage becomes critical. Hammadde Stok tells the warehouse what&rsquo;s physically on the shelves. &Uuml;r&uuml;n Stok tells production planners what semi-finished goods are ready for the next step. Three pages, two database tables, and five upstream dependencies &mdash; yet without this module, the factory operates blind. This document has traced every data source, every API call, every grouping algorithm, and every cross-module connection that makes that visibility possible.</p>
+        </div>
 
     </main>
 </body>

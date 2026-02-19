@@ -1146,7 +1146,100 @@
             <p style="margin-bottom: 0;"><strong>Ürün Stok vs Hammadde Stok &mdash; aynı kabuk, farklı motor:</strong> Görsel düzen neredeyse aynıdır (Collapse paneller, gruplu tablolar, düzenleme modalı, yenile butonu), ancak alttaki veri modeli temelden farklıdır. Hammadde Stok, Hammadde modülünün <code>materials</code> tablosundan tek bir API çağrısıyla okur ve malzeme kategorisi/adına göre gruplar. Ürün Stok, kendi <code>half_product_stock</code> tablosundan 7 paralel API çağrısıyla okur, product_code'a göre gruplar ve ORDER/STOCK tahsis ayrımı, Lab test entegrasyonu, kaynak QR izlenebilirliği ve üretim oturumu bağlantısını ekler. Hammadde Stok ham girdilere salt okunur bir penceredir. Ürün Stok, Üretim, Lab ve Sipariş modülleriyle derin çapraz modül bağlantılarına sahip üretim çıktılarına oku-ve-yönet bir penceredir.</p>
         </div>
 
-        <!-- placeholder: Bölüm 7 SONUÇ buraya eklenecek -->
+        <!-- ============================================ -->
+        <h2 id="sec-7" style="margin-top: 64px;">7. SONUÇ</h2>
+        <!-- ============================================ -->
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>Stok &amp; Envanter, veri oluşturan bir modül değildir &mdash; diğer tüm modüllerden gelen veriyi görünür, karşılaştırılabilir ve eyleme dönüştürülebilir kılan modüldür.</strong> Hammadde üzerinden girilen ham maddeler, Üretim üzerinden kaydedilen üretim çıktıları, Hammadde Siparişi üzerinden takip edilen satın alma siparişleri, Sipariş modülünden gelen iş kartı gereksinimleri &mdash; tüm bunlar burada, fabrikanın en temel malzeme sorularını yanıtlayan üç tamamlayıcı görünümde birleşir.</p>
+        </div>
+
+        <h3>7.1 Bu Dokümanın Kapsadıkları</h3>
+
+        <p>Bu derin dalış, Stok &amp; Envanter modülünü her biri temelden farklı bir veri stratejisine sahip üç alt modül üzerinden analiz etti:</p>
+
+        <table>
+            <tr><th>Bölüm</th><th>Alt Modül</th><th>Derinlik</th><th>Temel Bulgu</th></tr>
+            <tr><td>6.1</td><td>Projeksiyon</td><td>Kapsamlı</td><td>Kendi veritabanı tablosu olmayan, anında hesaplanan haftalık tahmin; iş kartı gereksinimlerini (EKSİ) malzeme siparişi teslimatlarıyla (ARTI) 8 kategori üzerinden birleştirir; toplam fazlalık içindeki gizli açık tespiti; malzemeye özgü ısı haritası normalizasyonu</td></tr>
+            <tr><td>6.2</td><td>Hammadde Stok</td><td>Tam</td><td>Hammadde modülünün <code>materials</code> tablosu üzerinde saf frontend görünümü; istemci tarafı gruplama ile tek API çağrısından 8 kategoriye; tüketim takibi için koşullu ağırlık renklendirmesi; yalnızca stok düzeyinde düzeltmeler için minimal düzenleme modalı</td></tr>
+            <tr><td>6.3</td><td>Ürün Stok</td><td>Tam</td><td>6 endpoint'li kendi özel backend'i ve <code>half_product_stock</code> tablosu; üretim adımına göre 7 paralel API çağrısı; ORDER/STOCK tahsis ayrımı; bağlı Lab test entegrasyonu; kaynak QR izlenebilirlik zinciri; dizi sıfırlama ile kademeli silme</td></tr>
+        </table>
+
+        <h3>7.2 Mimari Prensipler</h3>
+
+        <p>Üç tasarım prensibi bu modülü tanımlar ve ERP sisteminin geri kalanından ayırır:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box">
+                <h4>Görünürlük, Sahiplik Değil</h4>
+                <p>Stok &amp; Envanter neredeyse hiçbir veriye sahip değildir. Hammadde Stok, Hammadde modülünün <code>materials</code> tablosundan okur. Projeksiyon, sırasıyla Sipariş ve Hammadde'ye ait <code>work_cards</code> ve <code>material_orders</code>'dan hesaplar. Yalnızca Ürün Stok'un kendi tablosu vardır ve o bile yalnızca Üretim modülü tarafından doldurulur. Stok modülünün görevi, diğer modüllerin oluşturduğu veriyi <em>sunmak</em>tır.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Üç Mercek, Tek Gerçeklik</h4>
+                <p>Aynı fiziksel fabrika envanteri üç farklı mercekten görünür: şu an hangi ham maddeler var (Hammadde Stok), şu an hangi üretim çıktıları var (Ürün Stok) ve gelecek haftalarda hangi malzemeler mevcut olacak (Projeksiyon). Hiçbir tek görünüm hikayenin tamamını anlatmaz. Birlikte, mevcut depo anlık görüntüsünden çok haftalık tahmin ufkuna uzanan kapsamlı bir malzeme görünürlük katmanı oluştururlar.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Depolama Yerine Hesaplama</h4>
+                <p>Projeksiyon tanımlayıcı örnektir: özel veritabanı tablosu yok, önbellekleme yok, materyalize görünüm yok. Her istek tam projeksiyon'u canlı veriden yeniden hesaplar. Bu, projeksiyon'ların her zaman en son iş kartları ve teslimat kayıtlarıyla tutarlı olduğu anlamına gelir, istek başına daha ağır hesaplama maliyetiyle. Aynı prensip Hammadde Stok'un istemci tarafı gruplaması ve Ürün Stok'un paralel toplamasına da uygulanır &mdash; toplamlar her zaman taze hesaplanır, asla saklanmaz.</p>
+            </div>
+            <div class="arch-box">
+                <h4>Çapraz Modül Okuma Deseni</h4>
+                <p>Her alt modül en az bir harici modülden okur. Hammadde Stok, Hammadde'den okur. Projeksiyon, Hammadde Siparişi + Sipariş (iş kartları) okur. Ürün Stok, Üretim (oturumlar, çıktılar) ve Lab (bağlı testler) okur. Bu, Stok'u sistemdeki en çok bağımlılığa sahip modül yapar &mdash; herhangi bir üst akış modülü bozuksa çalışamaz.</p>
+            </div>
+        </div>
+
+        <h3>7.3 Rakamlar</h3>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">3</div>
+                <div class="label">ALT MODÜL</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~14</div>
+                <div class="label">API ENDPOINT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2</div>
+                <div class="label">KENDİ DB TABLOSU</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">5.800+</div>
+                <div class="label">SATIR KOD</div>
+            </div>
+        </div>
+
+        <h3>7.4 Stok Fabrikayı Nasıl Okur</h3>
+
+        <div class="flow">
+            <span class="flow-step">Hammadde Modülü</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Hammadde Stok</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Üretim</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Ürün Stok</span>
+            <span class="flow-arrow">&larr;</span>
+            <span class="flow-step">Lab (bağlı testler)</span>
+        </div>
+        <div class="flow" style="margin-top: 8px;">
+            <span class="flow-step">Hammadde Siparişi (ARTI)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Projeksiyon</span>
+            <span class="flow-arrow">&larr;</span>
+            <span class="flow-step">İş Kartları (EKSİ)</span>
+        </div>
+
+        <p>Alt akışı besleyen Teknik'in veya gelen malzemeleri kaydeden Hammadde'nin aksine, Stok <strong>her yerden okur ve neredeyse hiçbir yere yazmaz</strong>. Beş farklı modülden &mdash; Hammadde, Hammadde Siparişi, Üretim, Lab ve Sipariş &mdash; gelen verinin birleşik görünümlere çekildiği bir yakınsama noktasıdır. Gerçekleştirdiği tek yazma işlemleri, stok düzeyinde düzeltmeler (düzenleme modalları) ve Ürün Stok'taki kademeli silmelerdir.</p>
+
+        <p>Bu okuma ağırlıklı mimari, üst akış verisi tutarsız olduğunda ilk kırılan modülün Stok olduğu anlamına gelir. Bir malzeme siparişinin <code>delivered_date</code>'i yanlışsa, Projeksiyon'un tahmini kayar. Üretim <code>remaining_weight_kg</code>'yi güncellemezse, Hammadde Stok eski ağırlıkları gösterir. Bir üretim çıktısı Ürün Stok dışından silinirse, yetim stok kayıtları ortaya çıkar. Stok yalnızca veri göstermez &mdash; tüm sistemin bütünlüğünü açığa çıkarır.</p>
+
+        <h3>7.5 Son Söz</h3>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;">Stok &amp; Envanter modülü fabrikanın malzeme sinir sistemidir. Malzeme taşımaz, kablo üretmez, sipariş karşılamaz &mdash; ama organizasyondaki herkese neyin var olduğunu, neyin tahsis edildiğini, neyin serbest olduğunu ve gelecek hafta neyin mevcut olacağını söyler. Projeksiyon, bir açık kritik hale gelmeden önce satın almayı uyarır. Hammadde Stok, depoda fiziksel olarak raflarda ne olduğunu söyler. Ürün Stok, üretim plancılarına hangi yarı mamullerin bir sonraki adım için hazır olduğunu söyler. Üç sayfa, iki veritabanı tablosu ve beş üst akış bağımlılığı &mdash; ama bu modül olmadan fabrika kör çalışır. Bu doküman, bu görünürlüğü mümkün kılan her veri kaynağını, her API çağrısını, her gruplama algoritmasını ve her çapraz modül bağlantısını izlemiştir.</p>
+        </div>
 
     </main>
 </body>
