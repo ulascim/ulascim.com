@@ -153,8 +153,8 @@
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
                 <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> The Submodules</a>
                 <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Projeksiyon (Stock Projection)</a>
-                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 &Uuml;r&uuml;n Stok (Product Stock)</a>
-                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Stok (Raw Material Stock)</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Hammadde Stok (Raw Material Stock)</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 &Uuml;r&uuml;n Stok (Product Stock)</a>
                 <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Conclusion</a>
             </div>
         </div>
@@ -404,7 +404,268 @@
 
         <p>All three pages share the <code>canStok</code> route guard from <code>access.ts</code>. Button-level permissions are defined in the manifest but not currently enforced in the page components &mdash; the route-level guard is the active access control.</p>
 
-        <!-- placeholder: Section 6 submodules will be added here -->
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. THE SUBMODULES</h2>
+        <!-- ============================================ -->
+
+        <p>The Stock module has three submodules, ordered by complexity:</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Projeksiyon (Stock Projection)</h4>
+                <p>Week-by-week forecast of material supply and demand. 804-line backend service + 3,323-line frontend &mdash; the single largest React component in the entire ERP. Read-only: no CRUD, pure computation.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">3,323 LOC FRONTEND</span>
+                    <span class="submod-tag">804 LOC SERVICE</span>
+                    <span class="submod-tag">4 ENDPOINTS</span>
+                    <span class="submod-tag">3 CHART TYPES</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Hammadde Stok (Raw Material Stock)</h4>
+                <p>Live inventory of all raw materials (copper, tin, plastic, catalyst, dye, antirodent, palette, reel). Reads from the Hammadde module&rsquo;s <code>materials</code> table. 8 collapse panels, conditional weight coloring, edit/delete.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">676 LOC FRONTEND</span>
+                    <span class="submod-tag">8 MATERIAL CATEGORIES</span>
+                    <span class="submod-tag">SHARED API</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>&Uuml;r&uuml;n Stok (Product Stock)</h4>
+                <p>Live inventory of semi-finished and finished products across all production steps. 7 collapse panels organized by machine type, 3-level grouping, bonded test integration with Lab module.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">866 LOC FRONTEND</span>
+                    <span class="submod-tag">6 ENDPOINTS</span>
+                    <span class="submod-tag">7 PRODUCTION STEPS</span>
+                    <span class="submod-tag">LAB INTEGRATION</span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============================================= -->
+        <!--  6.1  PROJEKSİYON (Stock Projection)          -->
+        <!-- ============================================= -->
+
+        <h2 id="sec-6-1">6.1 &mdash; Projeksiyon (Stock Projection)</h2>
+
+        <h3>6.1.1 &mdash; Purpose and Business Context</h3>
+        <p>Projeksiyon answers the most forward-looking question in the factory: <strong>&ldquo;Week by week, will we have enough of each raw material, or will we run short?&rdquo;</strong> It is a read-only, computed view that blends two data streams &mdash; material consumption from production plans (work cards) and material arrivals from purchase orders &mdash; into a single, navigable weekly forecast spanning up to 5 years in either direction.</p>
+        <p>This is not a dashboard with pre-calculated snapshots. Every time the page loads, the backend queries ALL non-cancelled work cards and ALL non-cancelled material orders, computes a running cumulative balance across every week since the earliest data point, and returns the result for the user&rsquo;s 10-week view window. The projection is <strong>always fresh</strong> &mdash; no caching, no stored state, no stale data.</p>
+        <p>The page serves two audiences: the <strong>purchasing team</strong> (who need to know when to order more material) and the <strong>production planners</strong> (who need to know if upcoming work cards will cause a shortage). At 3,323 lines of frontend code and 804 lines of backend service, it is the single largest and most complex component in the entire ERP system.</p>
+
+        <h3>6.1.2 &mdash; The Two Data Streams</h3>
+        <p>Every piece of data in Projeksiyon comes from one of two sources:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box" style="border-left: 4px solid #dc2626;">
+                <h4>EKS&Idot; (MINUS) &mdash; Material Requirements</h4>
+                <p><strong>Source:</strong> <code>work_cards</code> table (Production module)</p>
+                <p><strong>Key field:</strong> <code>sevkiyat_week</code> (delivery week, e.g., &ldquo;2026-W12&rdquo;)</p>
+                <p><strong>What it extracts:</strong> Each work card carries a <code>material_details</code> JSON. The service maps 5 machine types to 8 material categories:</p>
+                <ul>
+                    <li><code>kabatel_cekme</code> &rarr; <code>copper_kg</code> (Filma&#351;in)</li>
+                    <li><code>kalaylama</code> &rarr; <code>tin_kg</code> (Kalay)</li>
+                    <li><code>extruder</code> &rarr; plastic, catalyst, dye, antirodent (from <code>insulation_materials[]</code> and <code>sheath_materials[]</code>)</li>
+                    <li><code>aktarma</code> &rarr; reels (from <code>makara_distributions[]</code>) &mdash; note: kangal (coilless) uses plastic packaging and is NOT tracked</li>
+                    <li><code>paletleme</code> &rarr; palettes (from <code>palettes[]</code>)</li>
+                </ul>
+                <p><strong>Includes:</strong> ALL statuses except CANCELLED &mdash; even completed work cards count because the plan happened.</p>
+            </div>
+
+            <div class="arch-box" style="border-left: 4px solid #16a34a;">
+                <h4>ARTI (PLUS) &mdash; Incoming Materials</h4>
+                <p><strong>Source:</strong> <code>material_orders</code> table (Hammadde module)</p>
+                <p><strong>Key field:</strong> <code>expected_date</code> or <code>delivered_date</code></p>
+                <p><strong>Dynamic switching:</strong> For pending/shipped orders, uses <code>expected_date</code> + <code>quantity</code> (the plan). For delivered orders, switches to <code>delivered_date</code> + <code>delivered_quantity</code> (the actual). This means the projection dynamically reflects reality as deliveries happen.</p>
+                <p><strong>Material resolution:</strong> The service resolves specific material names via the <code>supplier_material</code> relationship (e.g., not just &ldquo;plastic&rdquo; but &ldquo;HFX 500P&rdquo;). Defaults to category name if no supplier material linked.</p>
+                <p><strong>Includes:</strong> ALL statuses except CANCELLED.</p>
+            </div>
+        </div>
+
+        <h3>6.1.3 &mdash; The Cumulative Calculation Engine</h3>
+        <p>The core of Projeksiyon lives in <code>ProjeksiyonService.get_projeksiyon()</code>. The calculation is not a simple &ldquo;show this week&rsquo;s plus and minus&rdquo; &mdash; it is a <strong>full historical running total</strong>:</p>
+
+        <ol>
+            <li><strong>Find earliest data:</strong> <code>get_earliest_data_week_offset()</code> scans both work cards (<code>MIN(sevkiyat_week)</code>) and material orders (<code>MIN(expected_date)</code>, <code>MIN(delivered_date)</code>) to find the very first week that has any data. This might be in a previous year (e.g., 2025 orders still affect 2026 projection).</li>
+            <li><strong>Generate ALL weeks:</strong> From the earliest data week through the last week in the user&rsquo;s view (e.g., if earliest data is 2025-W40 and the user is viewing 2026-W05 to W14, the system generates weeks from W40 through W14 &mdash; 27 weeks of computation for a 10-week view).</li>
+            <li><strong>Fetch requirements and incoming for ALL weeks:</strong> Two bulk queries: one for work cards grouped by <code>sevkiyat_week</code>, one for material orders mapped to their respective weeks.</li>
+            <li><strong>Walk through every week in order:</strong> For each week, compute <code>weekly = plus - minus</code> per material category, and add it to the running <code>cumulative</code> total. Also track sub-material cumulatives (e.g., &ldquo;Filma&#351;in 8mm&rdquo; within Copper).</li>
+            <li><strong>Capture pre-view state:</strong> Before processing the first week in the user&rsquo;s view window, snapshot the current cumulative state into <code>pre_view_sub_material_cumulatives</code>. This is critical for the frontend&rsquo;s hidden shortage detection.</li>
+            <li><strong>Return only view weeks:</strong> Of all the weeks processed, only the 10 weeks the user is actually viewing are included in the response. But their cumulative values include ALL historical data.</li>
+        </ol>
+
+        <div class="warning">
+            <p style="margin-bottom: 0;"><strong>Why not just compute the view window?</strong> If you only compute weeks 5&ndash;14 and a massive copper delivery happened in week 2, the cumulative for week 5 would show 0 instead of +5000 kg. Historical context is essential for accurate cumulative balances. The trade-off is more computation per request, but the data volume (hundreds of work cards and orders, not millions) makes this approach viable without caching.</p>
+        </div>
+
+        <h3>6.1.4 &mdash; Detail Consolidation</h3>
+        <p>Both <code>get_requirements_by_week()</code> and <code>get_incoming_by_week()</code> produce not only aggregate totals per category but also <strong>detailed breakdowns by specific material name</strong>. For example, an Extruder work card might consume 200 kg of &ldquo;HFX 500P&rdquo; and 150 kg of &ldquo;HFFR 302&rdquo; &mdash; both are &ldquo;plastic&rdquo; but tracked individually.</p>
+        <p>After processing all cards/orders, the service <strong>consolidates</strong> duplicate names within each week. If two Extruder cards in the same week both consume &ldquo;HFX 500P&rdquo;, their quantities are merged into a single detail entry. This consolidation runs across all 8 detail arrays (copper_details, tin_details, plastic_details, catalyst_details, dye_details, antirodent_details, makara_details, palette_details).</p>
+
+        <h3>6.1.5 &mdash; API Endpoints</h3>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Parameters</th><th>Purpose</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon</code></td><td><code>weeks</code> (4&ndash;52, default 10), <code>offset</code> (&minus;260 to +260)</td><td>Main endpoint. Returns weekly breakdown with PLUS/MINUS/cumulative per material category, sub-material cumulatives per week, requirement and incoming detail arrays, work card and order counts, navigation metadata, and pre-view sub-material cumulatives for shortage detection.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/summary</code></td><td><code>weeks</code> (4&ndash;52, default 8)</td><td>Shortage alert endpoint. Scans all weeks for any material category with a negative cumulative, returns a flat list of shortage events with material key, label, week, cumulative value, and unit.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/material/{type}</code></td><td><code>type</code> (8 valid types), <code>weeks</code></td><td>Per-material detail. Returns week-by-week plus/minus/cumulative for a single material type. Includes plastic_details breakdown for the plastic type.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/debug</code></td><td>&mdash;</td><td>Debug endpoint. Shows unique <code>sevkiyat_week</code> values in the database, card counts per week, sample work cards with their <code>material_details</code> keys, and sample material orders. Used during development to verify data mapping.</td></tr>
+        </table>
+
+        <h3>6.1.6 &mdash; Frontend Architecture (3,323 Lines)</h3>
+        <p>The Projeksiyon page is a single React component with two tabs: <strong>Projeksiyon</strong> (table view) and <strong>Grafikler</strong> (charts view). Both tabs consume the same API response.</p>
+
+        <h4>State Management</h4>
+        <table>
+            <tr><th>State Variable</th><th>Type</th><th>Purpose</th></tr>
+            <tr><td><code>projeksiyonData</code></td><td><code>ProjeksiyonResponse | null</code></td><td>The entire API response, shared between both tabs</td></tr>
+            <tr><td><code>weekOffset</code></td><td><code>number</code></td><td>Current week offset from H01. Changed by navigation arrows. Triggers API refetch.</td></tr>
+            <tr><td><code>expandedMaterials</code></td><td><code>string[]</code></td><td>Which material columns are currently expanded to show sub-materials</td></tr>
+            <tr><td><code>knownSubMaterials</code></td><td><code>Record&lt;string, string[]&gt;</code></td><td>Persists discovered sub-material names across navigations so expand arrows don&rsquo;t disappear</td></tr>
+            <tr><td><code>graphType</code></td><td><code>'line' | 'heatmap' | 'waterfall'</code></td><td>Active chart type (waterfall is actually radar)</td></tr>
+            <tr><td><code>selectedGraphMaterials</code></td><td><code>string[]</code></td><td>Material filter for charts. Empty = &ldquo;T&uuml;m&uuml;&rdquo; (all). 1&ndash;3 = detail mode with sub-material breakdown.</td></tr>
+            <tr><td><code>radarViewMode</code></td><td><code>'merged' | 'individual'</code></td><td>Radar chart display mode: 4 weeks overlapping vs. paginated individual spiders</td></tr>
+            <tr><td><code>radarPage</code></td><td><code>number</code></td><td>Current page for individual radar mode pagination</td></tr>
+            <tr><td><code>activeTab</code></td><td><code>'projeksiyon' | 'grafikler'</code></td><td>Current tab</td></tr>
+        </table>
+
+        <h3>6.1.7 &mdash; Tab 1: The Projection Table</h3>
+        <p>The table is the primary interface. It displays 10 weeks as rows and 8 material categories as columns. The table is NOT an Ant Design <code>ProTable</code> &mdash; it is a plain <code>Table</code> with heavily customized column rendering.</p>
+
+        <h4>Column Structure</h4>
+        <p>Each material column renders three pieces of information per cell:</p>
+        <ul>
+            <li><strong>Incoming (PLUS):</strong> Green upward arrow with the amount of material arriving that week</li>
+            <li><strong>Consumption (MINUS):</strong> Red downward arrow with the amount of material being consumed</li>
+            <li><strong>Cumulative:</strong> A color-coded <code>Tag</code> showing the running total. Green if positive (surplus), red if negative (shortage), grey if zero.</li>
+        </ul>
+
+        <h4>Expandable Sub-Material Columns</h4>
+        <p>This is one of the most distinctive features. Each material column header has a small expand arrow. Clicking it reveals <strong>individual sub-material columns</strong> nested under the parent. For example, expanding &ldquo;Plastik&rdquo; might reveal columns for &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, and &ldquo;XLPE&rdquo; &mdash; each showing their own plus/minus/cumulative within that week.</p>
+        <p>Sub-material names are discovered from the API response&rsquo;s detail arrays and persisted in <code>knownSubMaterials</code> so they survive week navigation. When a column is NOT expanded, it collapses to a <strong>20px-wide color bar</strong> with a traffic-light indicator (green dot = all positive, red dot = any negative cumulative, yellow dot = mixed). This compact view lets users see all 8 materials at once without horizontal scrolling.</p>
+
+        <h4>Week Navigation</h4>
+        <p>Left/right arrows shift the 10-week window by 10 weeks at a time (via <code>weekOffset</code> state). A calendar icon resets to the current week (<code>offset = 0</code>). The API enforces limits of &minus;260 to +260 (5 years each direction). Each navigation triggers a new API call; the backend recalculates from scratch.</p>
+
+        <h4>Summary Row</h4>
+        <p>The last row of the table shows the final cumulative for each material across the entire view window. It serves as the &ldquo;bottom line&rdquo; &mdash; after all incoming and consumption for these 10 weeks, this is where each material stands.</p>
+
+        <h3>6.1.8 &mdash; Hidden Shortage Detection</h3>
+        <p>This is the most sophisticated feature in the entire Stock module. The problem it solves:</p>
+
+        <div class="finding">
+            <p><strong>Scenario:</strong> The aggregate &ldquo;Plastic&rdquo; cumulative for week H12 is <span class="good">+2,500 kg</span>. Everything looks fine. But hidden inside, sub-material &ldquo;HFX 500P&rdquo; is at <span class="bad">&minus;180 kg</span> while &ldquo;HFFR 302&rdquo; has <span class="good">+2,680 kg</span>. The surplus of one plastic masks the shortage of another. You cannot substitute HFFR for HFX &mdash; they are chemically different compounds.</p>
+        </div>
+
+        <p><strong>How it works:</strong></p>
+        <ol>
+            <li>The backend tracks <code>sub_material_cumulatives</code> as a dictionary keyed by <code>category_materialName</code> (e.g., <code>plastic_HFX 500P</code>). This is updated for EVERY week (not just the view window).</li>
+            <li>Each week in the response carries its own <code>sub_material_cumulatives</code> snapshot.</li>
+            <li>The frontend checks: if the parent category cumulative is &ge; 0 but ANY sub-material within that category has a negative cumulative, this is a <strong>hidden shortage</strong>.</li>
+            <li>Visual indicator: the cell gets a <span class="bad">red border</span> on a <span class="good">green background</span> with a warning tooltip listing which specific sub-materials are in deficit.</li>
+        </ol>
+        <p>This detection works across all three visualization modes (table, line chart, heatmap, radar). In the radar chart, hidden shortages are indicated by a special rich-text label style that combines green text with a red indicator.</p>
+
+        <h3>6.1.9 &mdash; Tab 2: Charts View</h3>
+        <p>The charts tab provides three interchangeable visualization types, all powered by <strong>ReactECharts</strong> (<code>echarts-for-react</code>). All share the same data from <code>projeksiyonData</code> and respond to the same week navigation and material filter controls.</p>
+
+        <h4>Material Filter Pills</h4>
+        <p>A row of clickable pills at the top allows filtering by material. Three modes:</p>
+        <ul>
+            <li><strong>T&uuml;m&uuml; (All):</strong> No filter selected. Charts show aggregate cumulative lines for all materials. No sub-material breakdown.</li>
+            <li><strong>1&ndash;3 materials selected (Detail Mode):</strong> Charts switch to showing sub-material stacked bars for consumption and incoming, with cumulative overlay lines per sub-material. This is where the hidden shortage detection becomes most visible.</li>
+            <li><strong>4+ materials:</strong> Not allowed. The UI enforces a maximum of 3 selections by deselecting the oldest when a 4th is clicked. This prevents chart overcrowding.</li>
+        </ul>
+
+        <h4>Chart Type 1: Line Chart</h4>
+        <p>Smooth cumulative lines with gradient area fill. In overview mode, each material gets its own line (copper=orange, tin=cyan, plastic=purple, etc.). A dashed red zero-line marks the shortage threshold. In detail mode, sub-materials get stacked bar charts for consumption (negative, red) and incoming (positive, green), with individual cumulative overlay lines.</p>
+        <p>The tooltip is extensively customized: it shows the week label, date range, sections for &ldquo;K&Uuml;M&Uuml;LAT&Idot;F&rdquo; (cumulative), &ldquo;KULLANILAN (Bu Hafta)&rdquo; (consumption), &ldquo;&Idot;HT&Idot;YA&Ccedil; (Eksik)&rdquo; (shortages), and &ldquo;GELEN (Bu Hafta)&rdquo; (incoming). Shortages use a 2-column grid layout when there are more than 6 items.</p>
+
+        <h4>Chart Type 2: Heatmap</h4>
+        <p>A grid with weeks on the x-axis and materials/sub-materials on the y-axis. Each cell is colored on a red-to-green gradient based on cumulative value. The coloring uses <strong>per-material normalization</strong> &mdash; each material row is normalized independently so a +5000 kg copper surplus and a +50 adet palette surplus both appear equally green.</p>
+        <p>Custom HTML axis tooltips appear on hover over material labels. These tooltips show detailed shortage information: which weeks this material first goes negative, whether the shortage is increasing or decreasing, and which specific sub-materials are affected. Shortage information is pre-calculated and stored in <code>heatmapShortageInfoRef</code> for efficient event handling.</p>
+
+        <h4>Chart Type 3: Radar Chart</h4>
+        <p>Operates in two modes:</p>
+        <ul>
+            <li><strong>Merged mode:</strong> Last 4 weeks overlapping on a single radar. Each week gets a different color (grey, amber, purple, cyan). Materials are positioned around the perimeter with rich-text labels showing the material name and cumulative value, colored green/red by sign. A dashed circle at the 50 mark represents the zero line (scale is normalized 0&ndash;100).</li>
+            <li><strong>Individual mode:</strong> Paginated display showing 4 weeks per page as separate spider diagrams side by side. Each has its own radar with the week label below. Left/right arrows paginate through weeks.</li>
+        </ul>
+        <p>In both modes, hidden shortages are visualized using a special label format: the material name appears with an amber/warning color and the value shows green with a red warning indicator.</p>
+
+        <h3>6.1.10 &mdash; Dashboard Statistics Cards</h3>
+        <p>Above the charts, 4 statistic cards provide a quick summary:</p>
+        <ul>
+            <li><strong>Toplam Gelen (Total Incoming):</strong> Sum of all PLUS across all materials and weeks</li>
+            <li><strong>Toplam &Idot;htiya&ccedil; (Total Consumption):</strong> Sum of all MINUS across all materials and weeks</li>
+            <li><strong>Net Bakiye (Net Balance):</strong> Total incoming minus total consumption. Green if positive, red if negative.</li>
+            <li><strong>Stok Sa&gbreve;l&inodot;&gbreve;&inodot; (Health Score):</strong> A percentage calculated as <code>(totalPlus / totalMinus) &times; 50</code>, capped at 0&ndash;100. Rendered as a Progress bar. Below 50% = red, 50&ndash;80% = yellow, above 80% = green.</li>
+        </ul>
+
+        <h3>6.1.11 &mdash; Extruder Material Extraction Logic</h3>
+        <p>The most complex material mapping is for Extruder work cards. A single Extruder card can consume multiple materials simultaneously because cable extrusion involves layered coatings:</p>
+
+        <ol>
+            <li><strong>Insulation materials</strong> (<code>insulation_materials[]</code>): Each entry has <code>material_name</code> (plastic type), <code>plastic_kg</code>, <code>catalyst_name</code>, <code>catalyst_kg</code>, and <code>dyes[]</code> array with <code>dye_name</code> and <code>dye_kg</code>.</li>
+            <li><strong>Sheath materials</strong> (<code>sheath_materials[]</code>): Same structure as insulation but also includes <code>antirodent_name</code> and <code>antirodent_kg</code> (only the outer sheath can have rodent repellent).</li>
+        </ol>
+        <p>The service walks through both arrays, extracting individual material names and quantities. This means a single Extruder work card can produce detail entries for 3&ndash;4 different plastics, 2 catalysts, 2 dyes, and 1 antirodent &mdash; all mapped to their respective category detail arrays and consolidated if the same material name appears in multiple cards for the same week.</p>
+
+        <h3>6.1.12 &mdash; Week Key System</h3>
+        <p>All temporal data in Projeksiyon uses ISO week keys in the format <code>YYYY-WNN</code> (e.g., &ldquo;2026-W12&rdquo;). The service provides utility functions:</p>
+        <ul>
+            <li><code>get_week_key(date)</code>: Converts a Python <code>date</code> to its ISO week key</li>
+            <li><code>week_key_to_offset(week_key)</code>: Converts a week key to an integer offset from H01 of the current year. Used to compare weeks across year boundaries (e.g., 2025-W52 = offset &minus;1 from 2026-W01).</li>
+            <li><code>generate_weeks(num_weeks, offset)</code>: Produces week metadata including week_key, week_label (H01&ndash;H52), date range in Turkish (e.g., &ldquo;06-12 Oca&rdquo;), and ISO start/end dates.</li>
+        </ul>
+        <p>The week labels displayed in the UI use <code>HNN</code> format (e.g., H01, H12, H52) with Turkish month abbreviations in the date range (Oca, &#350;ub, Mar, Nis, May, Haz, Tem, A&#287;u, Eyl, Eki, Kas, Ara).</p>
+
+        <h3>6.1.13 &mdash; What Changes the Projection</h3>
+        <p>Since the projection is computed on-the-fly, any change to its source data immediately affects the output:</p>
+        <table>
+            <tr><th>Action</th><th>Effect on Projection</th></tr>
+            <tr><td>New work card created</td><td>MINUS increases for the card&rsquo;s <code>sevkiyat_week</code></td></tr>
+            <tr><td>Work card&rsquo;s <code>sevkiyat_week</code> changed</td><td>MINUS moves from old week to new week</td></tr>
+            <tr><td>Work card cancelled</td><td>MINUS disappears (CANCELLED excluded from query)</td></tr>
+            <tr><td>New material order created</td><td>PLUS appears in the <code>expected_date</code> week</td></tr>
+            <tr><td>Material order&rsquo;s expected date changed</td><td>PLUS moves from old week to new week</td></tr>
+            <tr><td>Material order quantity changed</td><td>PLUS amount changes for that week</td></tr>
+            <tr><td>Material order delivered</td><td>PLUS switches from <code>expected_date</code>/<code>quantity</code> to <code>delivered_date</code>/<code>delivered_quantity</code> &mdash; week and amount may both shift</td></tr>
+            <tr><td>Material order cancelled</td><td>PLUS disappears entirely</td></tr>
+            <tr><td>Production physically completes</td><td><strong>No effect</strong> &mdash; completed work cards are still included</td></tr>
+        </table>
+
+        <h3>6.1.14 &mdash; Permission Model</h3>
+        <p>Projeksiyon uses the <code>canStok</code> route guard from <code>access.ts</code>. The permission manifest defines 4 buttons: <code>access_page</code>, <code>view_projections</code>, <code>create_projection</code>, <code>edit_projection</code>. However, since Projeksiyon is entirely read-only (no CRUD operations), the create and edit permissions are vestigial &mdash; there is nothing to create or edit. The effective access control is simply whether the user can access the Stock pages.</p>
+
+        <h3>6.1.15 &mdash; What This Submodule Does NOT Do</h3>
+        <ul>
+            <li>It does <strong>not</strong> store any data &mdash; no dedicated database table exists</li>
+            <li>It does <strong>not</strong> support CRUD &mdash; the projection is computed, not edited</li>
+            <li>It does <strong>not</strong> use WebSocket &mdash; data is fetched once per page load or navigation</li>
+            <li>It does <strong>not</strong> cache results &mdash; every request computes from scratch</li>
+            <li>It does <strong>not</strong> account for current physical stock &mdash; it only tracks planned consumption vs. planned/actual arrivals</li>
+            <li>It does <strong>not</strong> send alerts &mdash; shortage detection is visual only (the <code>/summary</code> endpoint exists but is not consumed by any notification system)</li>
+            <li>It does <strong>not</strong> track kangal (coilless cable packaging) &mdash; kangal uses plastic packaging which is not a tracked raw material</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>The design philosophy:</strong> Projeksiyon deliberately avoids storing its own state. By computing everything on-the-fly from work cards and material orders, it guarantees that the projection always reflects the absolute latest version of the plan. There is no synchronization problem, no stale cache, no &ldquo;last refreshed 2 hours ago&rdquo; warning. The price is computation per request, but the data scale (hundreds of records, not millions) makes this a good trade-off. If the factory grows to tens of thousands of work cards, a materialized view or caching layer can be added without changing the API contract.</p>
+        </div>
+
+
+        <!-- placeholder: 6.2 Hammadde Stok will be added here -->
+
+        <!-- placeholder: 6.3 Ürün Stok will be added here -->
 
         <!-- placeholder: Section 7 CONCLUSION will be added here -->
 

@@ -153,8 +153,8 @@
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Frontend</a>
                 <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Alt Mod&uuml;ller</a>
                 <a href="#sec-6-1" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.1 Projeksiyon (Stok Tahmini)</a>
-                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 &Uuml;r&uuml;n Stok</a>
-                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Hammadde Stok</a>
+                <a href="#sec-6-2" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.2 Hammadde Stok</a>
+                <a href="#sec-6-3" style="text-decoration: none; color: #555; display: block; padding-left: 16px;">6.3 Ürün Stok</a>
                 <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Sonuç</a>
             </div>
         </div>
@@ -404,7 +404,263 @@
 
         <p>Üç sayfanın tamamı <code>access.ts</code>&rsquo;den <code>canStok</code> route guard&rsquo;ını paylaşır. Buton düzeyi izinler manifest&rsquo;te tanımlıdır ancak şu an sayfa bileşenlerinde uygulanmamaktadır &mdash; route düzeyi guard aktif erişim kontrolüdür.</p>
 
-        <!-- placeholder: Bölüm 6 alt modüller buraya eklenecek -->
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. ALT MODÜLLER</h2>
+        <!-- ============================================ -->
+
+        <p>Stok modülünün karmaşıklık sırasına göre üç alt modülü vardır:</p>
+
+        <div class="submod-card">
+            <div class="submod-num">6.1</div>
+            <div class="submod-body">
+                <h4>Projeksiyon (Stok Tahmini)</h4>
+                <p>Malzeme arz ve talebinin haftalık tahmini. 804 satırlık backend servisi + 3.323 satırlık frontend &mdash; tüm ERP&rsquo;deki en büyük tekil React bileşeni. Salt okunur: CRUD yok, saf hesaplama.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">3.323 SATIR FRONTEND</span>
+                    <span class="submod-tag">804 SATIR SERVİS</span>
+                    <span class="submod-tag">4 ENDPOINT</span>
+                    <span class="submod-tag">3 GRAFİK TÜRÜ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.2</div>
+            <div class="submod-body">
+                <h4>Hammadde Stok</h4>
+                <p>Tüm hammaddelerin canlı envanteri (bakır, kalay, plastik, katalizör, boya, antirodent, palet, makara). Hammadde modülünün <code>materials</code> tablosundan okur. 8 collapse paneli, koşullu ağırlık renklendirmesi, düzenle/sil.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">676 SATIR FRONTEND</span>
+                    <span class="submod-tag">8 MALZEME KATEGORİSİ</span>
+                    <span class="submod-tag">PAYLAŞILAN API</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="submod-card">
+            <div class="submod-num">6.3</div>
+            <div class="submod-body">
+                <h4>Ürün Stok</h4>
+                <p>Tüm üretim adımlarındaki yarı mamul ve mamul ürünlerin canlı envanteri. Makine türüne göre düzenlenmiş 7 collapse paneli, 3 seviyeli gruplama, Lab modülüyle bağlı test entegrasyonu.</p>
+                <div class="submod-tags">
+                    <span class="submod-tag">866 SATIR FRONTEND</span>
+                    <span class="submod-tag">6 ENDPOINT</span>
+                    <span class="submod-tag">7 ÜRETİM ADIMI</span>
+                    <span class="submod-tag">LAB ENTEGRASYONU</span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============================================= -->
+        <!--  6.1  PROJEKSİYON (Stok Tahmini)              -->
+        <!-- ============================================= -->
+
+        <h2 id="sec-6-1">6.1 &mdash; Projeksiyon (Stok Tahmini)</h2>
+
+        <h3>6.1.1 &mdash; Amaç ve İş Bağlamı</h3>
+        <p>Projeksiyon, fabrikadaki en ileri görüşlü soruyu yanıtlar: <strong>&ldquo;Hafta hafta, her hammaddeden yeterince olacak mı, yoksa açık mı verecek?&rdquo;</strong> İki veri akışını &mdash; üretim planlarından (iş kartları) gelen malzeme tüketimini ve satın alma siparişlerinden gelen malzeme varışlarını &mdash; her iki yönde 5 yıla kadar uzanan, gezinilebilir tek bir haftalık tahmine harmanlayan salt okunur, hesaplanmış bir görünümdür.</p>
+        <p>Bu, önceden hesaplanmış anlık görüntülerle bir dashboard değildir. Sayfa her yüklendiğinde, backend iptal edilmemiş TÜM iş kartlarını ve iptal edilmemiş TÜM malzeme siparişlerini sorgular, en erken veri noktasından itibaren her hafta boyunca kümülatif bir bakiye hesaplar ve kullanıcının 10 haftalık görüntüleme penceresi için sonucu döndürür. Projeksiyon <strong>her zaman taze</strong>dir &mdash; önbellekleme yok, depolanmış durum yok, bayat veri yok.</p>
+        <p>Sayfa iki kitleye hizmet eder: <strong>satın alma ekibi</strong> (daha fazla malzeme sipariş etme zamanını bilmesi gereken) ve <strong>üretim planlayıcıları</strong> (yaklaşan iş kartlarının açık yaratıp yaratmayacağını bilmesi gereken). 3.323 satır frontend kodu ve 804 satır backend servisiyle, tüm ERP sistemindeki en büyük ve en karmaşık tekil bileşendir.</p>
+
+        <h3>6.1.2 &mdash; İki Veri Akışı</h3>
+        <p>Projeksiyon&rsquo;daki her veri parçası iki kaynaktan birinden gelir:</p>
+
+        <div class="arch-grid">
+            <div class="arch-box" style="border-left: 4px solid #dc2626;">
+                <h4>EKSİ (MINUS) &mdash; Malzeme Gereksinimleri</h4>
+                <p><strong>Kaynak:</strong> <code>work_cards</code> tablosu (Üretim modülü)</p>
+                <p><strong>Anahtar alan:</strong> <code>sevkiyat_week</code> (teslim haftası, örn. &ldquo;2026-W12&rdquo;)</p>
+                <p><strong>Ne çıkarır:</strong> Her iş kartı bir <code>material_details</code> JSON&rsquo;u taşır. Servis 5 makine türünü 8 malzeme kategorisine eşler:</p>
+                <ul>
+                    <li><code>kabatel_cekme</code> &rarr; <code>copper_kg</code> (Filamaşin)</li>
+                    <li><code>kalaylama</code> &rarr; <code>tin_kg</code> (Kalay)</li>
+                    <li><code>extruder</code> &rarr; plastik, katalizör, boya, antirodent (<code>insulation_materials[]</code> ve <code>sheath_materials[]</code>&rsquo;den)</li>
+                    <li><code>aktarma</code> &rarr; makara (<code>makara_distributions[]</code>&rsquo;den) &mdash; not: kangal plastik ambalaj kullanır ve İZLENMEZ</li>
+                    <li><code>paletleme</code> &rarr; palet (<code>palettes[]</code>&rsquo;den)</li>
+                </ul>
+                <p><strong>Dahil eder:</strong> CANCELLED dışındaki TÜM durumlar &mdash; tamamlanmış iş kartları bile sayılır çünkü plan gerçekleşmiştir.</p>
+            </div>
+
+            <div class="arch-box" style="border-left: 4px solid #16a34a;">
+                <h4>ARTI (PLUS) &mdash; Gelen Malzemeler</h4>
+                <p><strong>Kaynak:</strong> <code>material_orders</code> tablosu (Hammadde modülü)</p>
+                <p><strong>Anahtar alan:</strong> <code>expected_date</code> veya <code>delivered_date</code></p>
+                <p><strong>Dinamik geçiş:</strong> Bekleyen/sevk edilen siparişler için <code>expected_date</code> + <code>quantity</code> (plan) kullanır. Teslim edilen siparişler için <code>delivered_date</code> + <code>delivered_quantity</code>&rsquo;ye (gerçek) geçer. Bu, projeksiyonun teslimatlar gerçekleştikçe gerçekliği dinamik olarak yansıtması anlamına gelir.</p>
+                <p><strong>Malzeme çözümleme:</strong> Servis, <code>supplier_material</code> ilişkisi üzerinden belirli malzeme adlarını çözümler (örn. sadece &ldquo;plastik&rdquo; değil &ldquo;HFX 500P&rdquo;). Tedarikçi malzemesi bağlı değilse kategori adına düşer.</p>
+                <p><strong>Dahil eder:</strong> CANCELLED dışındaki TÜM durumlar.</p>
+            </div>
+        </div>
+
+        <h3>6.1.3 &mdash; Kümülatif Hesaplama Motoru</h3>
+        <p>Projeksiyon&rsquo;un çekirdeği <code>ProjeksiyonService.get_projeksiyon()</code>&rsquo;da yaşar. Hesaplama basit bir &ldquo;bu haftanın artı ve eksisini göster&rdquo; değildir &mdash; <strong>tam tarihsel kümülatif toplam</strong>dır:</p>
+
+        <ol>
+            <li><strong>En erken veriyi bul:</strong> <code>get_earliest_data_week_offset()</code> hem iş kartlarını (<code>MIN(sevkiyat_week)</code>) hem malzeme siparişlerini (<code>MIN(expected_date)</code>, <code>MIN(delivered_date)</code>) tarayarak herhangi bir verisi olan en ilk haftayı bulur. Bu bir önceki yılda olabilir (örn. 2025 siparişleri hâlâ 2026 projeksiyonunu etkiler).</li>
+            <li><strong>TÜM haftaları üret:</strong> En erken veri haftasından kullanıcının görüntüleme penceresindeki son haftaya kadar (örn. en erken veri 2025-W40 ve kullanıcı 2026-W05&ndash;W14 görüntülüyorsa, sistem W40&rsquo;tan W14&rsquo;e kadar haftalar üretir &mdash; 10 haftalık bir görünüm için 27 haftalık hesaplama).</li>
+            <li><strong>TÜM haftalar için gereksinimleri ve gelenleri çek:</strong> İki toplu sorgu: biri <code>sevkiyat_week</code>&rsquo;e göre gruplanmış iş kartları, biri ilgili haftalarına eşlenmiş malzeme siparişleri.</li>
+            <li><strong>Her haftayı sırayla işle:</strong> Her hafta için malzeme kategorisi başına <code>haftalık = artı - eksi</code> hesapla ve kümülatif toplama ekle. Ayrıca alt-malzeme kümülatiflerini de izle (örn. Bakır içindeki &ldquo;Filamaşin 8mm&rdquo;).</li>
+            <li><strong>Görüntüleme öncesi durumu yakala:</strong> Kullanıcının görüntüleme penceresindeki ilk haftayı işlemeden önce, mevcut kümülatif durumun anlık görüntüsünü <code>pre_view_sub_material_cumulatives</code>&rsquo;e al. Bu, frontend&rsquo;in gizli açık tespiti için kritiktir.</li>
+            <li><strong>Yalnızca görüntüleme haftalarını döndür:</strong> İşlenen tüm haftalardan yalnızca kullanıcının gerçekten görüntülediği 10 hafta yanıta dahil edilir. Ancak kümülatif değerleri TÜM tarihsel veriyi içerir.</li>
+        </ol>
+
+        <div class="warning">
+            <p style="margin-bottom: 0;"><strong>Neden sadece görüntüleme penceresini hesaplamıyoruz?</strong> Yalnızca 5&ndash;14 haftalarını hesaplarsanız ve 2. haftada büyük bir bakır teslimatı olduysa, 5. haftanın kümülatifi +5000 kg yerine 0 gösterir. Doğru kümülatif bakiyeler için tarihsel bağlam esastır. Ödün, istek başına daha fazla hesaplamadır, ancak veri hacmi (milyonlarca değil yüzlerce kayıt) bu yaklaşımı önbellekleme olmadan uygulanabilir kılar.</p>
+        </div>
+
+        <h3>6.1.4 &mdash; Detay Konsolidasyonu</h3>
+        <p>Hem <code>get_requirements_by_week()</code> hem <code>get_incoming_by_week()</code> kategori başına toplu toplamların yanı sıra <strong>belirli malzeme adına göre detaylı kırılımlar</strong> da üretir. Örneğin, bir Extruder iş kartı 200 kg &ldquo;HFX 500P&rdquo; ve 150 kg &ldquo;HFFR 302&rdquo; tüketebilir &mdash; ikisi de &ldquo;plastik&rdquo;tir ancak bireysel olarak izlenir.</p>
+        <p>Tüm kartları/siparişleri işledikten sonra, servis her hafta içindeki tekrarlanan adları <strong>birleştirir</strong>. Aynı haftadaki iki Extruder kartı da &ldquo;HFX 500P&rdquo; tüketiyorsa, miktarları tek bir detay girişinde birleştirilir. Bu konsolidasyon 8 detay dizisinin tamamında çalışır.</p>
+
+        <h3>6.1.5 &mdash; API Endpoint&rsquo;leri</h3>
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Parametreler</th><th>Amaç</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon</code></td><td><code>weeks</code> (4&ndash;52, varsayılan 10), <code>offset</code> (&minus;260 ile +260)</td><td>Ana endpoint. Malzeme kategorisi başına ARTI/EKSİ/kümülatif, hafta başına alt-malzeme kümülatifleri, gereksinim ve gelen detay dizileri, iş kartı ve sipariş sayıları, navigasyon metadata&rsquo;sı ve açık tespiti için görüntüleme öncesi alt-malzeme kümülatifleri ile haftalık kırılım döndürür.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/summary</code></td><td><code>weeks</code> (4&ndash;52, varsayılan 8)</td><td>Açık uyarı endpoint&rsquo;i. Negatif kümülatifi olan herhangi bir malzeme kategorisi için tüm haftaları tarar, malzeme anahtarı, etiketi, hafta, kümülatif değer ve birimle açık olaylarının düz bir listesini döndürür.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/material/{type}</code></td><td><code>type</code> (8 geçerli tür), <code>weeks</code></td><td>Malzeme bazlı detay. Tek bir malzeme türü için haftalık artı/eksi/kümülatif döndürür. Plastik türü için plastik detay kırılımını içerir.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/projeksiyon/debug</code></td><td>&mdash;</td><td>Debug endpoint&rsquo;i. Veritabanındaki benzersiz <code>sevkiyat_week</code> değerlerini, hafta başına kart sayısını, <code>material_details</code> anahtarlarıyla örnek iş kartlarını ve örnek malzeme siparişlerini gösterir.</td></tr>
+        </table>
+
+        <h3>6.1.6 &mdash; Frontend Mimarisi (3.323 Satır)</h3>
+        <p>Projeksiyon sayfası iki sekmeli tek bir React bileşenidir: <strong>Projeksiyon</strong> (tablo görünümü) ve <strong>Grafikler</strong> (grafik görünümü). Her iki sekme de aynı API yanıtını kullanır.</p>
+
+        <h4>Durum Yönetimi</h4>
+        <table>
+            <tr><th>Durum Değişkeni</th><th>Tip</th><th>Amaç</th></tr>
+            <tr><td><code>projeksiyonData</code></td><td><code>ProjeksiyonResponse | null</code></td><td>Tüm API yanıtı, her iki sekme arasında paylaşılır</td></tr>
+            <tr><td><code>weekOffset</code></td><td><code>number</code></td><td>H01&rsquo;den mevcut hafta ofseti. Navigasyon oklarıyla değişir. API yeniden çağrısını tetikler.</td></tr>
+            <tr><td><code>expandedMaterials</code></td><td><code>string[]</code></td><td>Hangi malzeme sütunlarının alt-malzemeleri göstermek için genişletildiği</td></tr>
+            <tr><td><code>knownSubMaterials</code></td><td><code>Record&lt;string, string[]&gt;</code></td><td>Keşfedilen alt-malzeme adlarını navigasyonlar boyunca kalıcı kılar, böylece genişletme okları kaybolmaz</td></tr>
+            <tr><td><code>graphType</code></td><td><code>'line' | 'heatmap' | 'waterfall'</code></td><td>Aktif grafik türü (waterfall aslında radar)</td></tr>
+            <tr><td><code>selectedGraphMaterials</code></td><td><code>string[]</code></td><td>Grafikler için malzeme filtresi. Boş = &ldquo;Tümü&rdquo;. 1&ndash;3 = alt-malzeme kırılımlı detay modu.</td></tr>
+            <tr><td><code>radarViewMode</code></td><td><code>'merged' | 'individual'</code></td><td>Radar grafik görüntüleme modu: 4 hafta üst üste vs. sayfalanmış bireysel örümcek ağları</td></tr>
+            <tr><td><code>radarPage</code></td><td><code>number</code></td><td>Bireysel radar modu sayfalama için mevcut sayfa</td></tr>
+            <tr><td><code>activeTab</code></td><td><code>'projeksiyon' | 'grafikler'</code></td><td>Mevcut sekme</td></tr>
+        </table>
+
+        <h3>6.1.7 &mdash; Sekme 1: Projeksiyon Tablosu</h3>
+        <p>Tablo birincil arayüzdür. 10 haftayı satır, 8 malzeme kategorisini sütun olarak gösterir. Tablo bir Ant Design <code>ProTable</code> DEĞİLDİR &mdash; yoğun şekilde özelleştirilmiş sütun renderlamasıyla düz bir <code>Table</code>&rsquo;dır.</p>
+
+        <h4>Sütun Yapısı</h4>
+        <p>Her malzeme sütunu hücre başına üç bilgi renderlar:</p>
+        <ul>
+            <li><strong>Gelen (ARTI):</strong> O hafta gelen malzeme miktarıyla yeşil yukarı ok</li>
+            <li><strong>Tüketim (EKSİ):</strong> Tüketilen malzeme miktarıyla kırmızı aşağı ok</li>
+            <li><strong>Kümülatif:</strong> Bakiyeyi gösteren renk kodlu <code>Tag</code>. Pozitifse (fazla) yeşil, negatifse (açık) kırmızı, sıfırsa gri.</li>
+        </ul>
+
+        <h4>Genişletilebilir Alt-Malzeme Sütunları</h4>
+        <p>En ayırt edici özelliklerden biri. Her malzeme sütun başlığında küçük bir genişletme oku vardır. Tıklamak, ana kategorinin altına yerleştirilmiş <strong>bireysel alt-malzeme sütunlarını</strong> açar. Örneğin, &ldquo;Plastik&rdquo;i genişletmek &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo; ve &ldquo;XLPE&rdquo; sütunlarını açabilir &mdash; her biri o hafta içinde kendi artı/eksi/kümülatifini gösterir.</p>
+        <p>Alt-malzeme adları API yanıtının detay dizilerinden keşfedilir ve <code>knownSubMaterials</code>&rsquo;de kalıcı kılınır, böylece hafta navigasyonunda kaybolmazlar. Bir sütun genişletilmediğinde, trafik ışığı göstergesiyle (yeşil nokta = hepsi pozitif, kırmızı nokta = herhangi biri negatif, sarı nokta = karışık) <strong>20px genişliğinde renk çubuğuna</strong> daraltılır.</p>
+
+        <h4>Hafta Navigasyonu</h4>
+        <p>Sol/sağ oklar 10 haftalık pencereyi bir seferde 10 hafta kaydırır (<code>weekOffset</code> durumu üzerinden). Bir takvim ikonu mevcut haftaya sıfırlar (<code>offset = 0</code>). API &minus;260 ile +260 sınırlarını zorlar (her yönde 5 yıl). Her navigasyon yeni bir API çağrısı tetikler; backend sıfırdan yeniden hesaplar.</p>
+
+        <h4>Özet Satırı</h4>
+        <p>Tablonun son satırı, tüm görüntüleme penceresi boyunca her malzeme için son kümülatifi gösterir.</p>
+
+        <h3>6.1.8 &mdash; Gizli Açık Tespiti</h3>
+        <p>Tüm Stok modülündeki en sofistike özellik. Çözdüğü problem:</p>
+
+        <div class="finding">
+            <p><strong>Senaryo:</strong> H12 haftası için toplam &ldquo;Plastik&rdquo; kümülatifi <span class="good">+2.500 kg</span>. Her şey yolunda görünüyor. Ama gizlice, alt-malzeme &ldquo;HFX 500P&rdquo; <span class="bad">&minus;180 kg</span>&rsquo;da, &ldquo;HFFR 302&rdquo; ise <span class="good">+2.680 kg</span>&rsquo;da. Bir plastiğin fazlası diğerinin açığını maskeliyor. HFFR&rsquo;yi HFX yerine kullanamazsınız &mdash; kimyasal olarak farklı bileşiklerdir.</p>
+        </div>
+
+        <p><strong>Nasıl çalışır:</strong></p>
+        <ol>
+            <li>Backend, <code>category_materialName</code> anahtarlı bir sözlük olarak <code>sub_material_cumulatives</code>&rsquo;i izler (örn. <code>plastic_HFX 500P</code>). Bu, yalnızca görüntüleme penceresi değil, HER hafta için güncellenir.</li>
+            <li>Yanıttaki her hafta kendi <code>sub_material_cumulatives</code> anlık görüntüsünü taşır.</li>
+            <li>Frontend kontrol eder: ana kategori kümülatifi &ge; 0 ama o kategori içindeki HERHANGİ bir alt-malzeme negatif kümülatife sahipse, bu bir <strong>gizli açık</strong>tır.</li>
+            <li>Görsel gösterge: hücre, hangi belirli alt-malzemelerin açıkta olduğunu listeleyen bir uyarı tooltip&rsquo;uyla <span class="good">yeşil arka plan</span> üzerinde <span class="bad">kırmızı kenarlık</span> alır.</li>
+        </ol>
+        <p>Bu tespit üç görselleştirme modunun tamamında (tablo, çizgi grafik, ısı haritası, radar) çalışır.</p>
+
+        <h3>6.1.9 &mdash; Sekme 2: Grafik Görünümü</h3>
+        <p>Grafikler sekmesi, tamamı <strong>ReactECharts</strong> (<code>echarts-for-react</code>) ile çalışan üç değiştirilebilir görselleştirme türü sunar. Hepsi <code>projeksiyonData</code>&rsquo;dan aynı veriyi paylaşır.</p>
+
+        <h4>Malzeme Filtre Tabletleri</h4>
+        <p>Üstteki tıklanabilir tabletler malzemeye göre filtrelemeye izin verir. Üç mod:</p>
+        <ul>
+            <li><strong>Tümü:</strong> Filtre seçili değil. Grafikler tüm malzemeler için toplam kümülatif çizgileri gösterir.</li>
+            <li><strong>1&ndash;3 malzeme seçili (Detay Modu):</strong> Grafikler tüketim ve gelen için alt-malzeme yığılmış çubuklar + alt-malzeme başına kümülatif üst katman çizgileri göstermeye geçer.</li>
+            <li><strong>4+ malzeme:</strong> İzin verilmez. UI 4. seçildiğinde en eskisini kaldırarak maksimum 3 seçimi zorlar.</li>
+        </ul>
+
+        <h4>Grafik Türü 1: Çizgi Grafik</h4>
+        <p>Gradyan alan dolgusuyla yumuşak kümülatif çizgiler. Genel bakış modunda her malzeme kendi çizgisini alır. Kesikli kırmızı sıfır çizgisi açık eşiğini işaretler. Detay modunda alt-malzemeler tüketim (negatif, kırmızı) ve gelen (pozitif, yeşil) için yığılmış çubuk grafikleri alır.</p>
+
+        <h4>Grafik Türü 2: Isı Haritası</h4>
+        <p>X ekseninde haftalar, y ekseninde malzemeler/alt-malzemeler olan bir ızgara. Her hücre kümülatif değere göre kırmızıdan yeşile gradyanla renklendirilir. Renklendirme <strong>malzeme başına normalizasyon</strong> kullanır &mdash; her malzeme satırı bağımsız olarak normalleştirilir. Özel HTML eksen tooltip&rsquo;ları detaylı açık bilgisi gösterir.</p>
+
+        <h4>Grafik Türü 3: Radar Grafik</h4>
+        <p>İki modda çalışır:</p>
+        <ul>
+            <li><strong>Birleşik mod:</strong> Son 4 hafta tek bir radar üzerinde üst üste. Her hafta farklı bir renk alır (gri, amber, mor, camgöbeği). Malzemeler çevrede zengin metin etiketleriyle konumlanır. 50 işaretinde kesikli daire sıfır çizgisini temsil eder (ölçek 0&ndash;100 normalleştirilmiş).</li>
+            <li><strong>Bireysel mod:</strong> Sayfa başına 4 hafta ayrı örümcek diyagramları olarak sayfalanmış görüntüleme. Sol/sağ oklar haftalar arasında sayfalandırır.</li>
+        </ul>
+
+        <h3>6.1.10 &mdash; Dashboard İstatistik Kartları</h3>
+        <p>Grafiklerin üzerinde 4 istatistik kartı hızlı bir özet sağlar:</p>
+        <ul>
+            <li><strong>Toplam Gelen:</strong> Tüm malzemeler ve haftalar genelinde tüm ARTI toplamı</li>
+            <li><strong>Toplam İhtiyaç:</strong> Tüm malzemeler ve haftalar genelinde tüm EKSİ toplamı</li>
+            <li><strong>Net Bakiye:</strong> Toplam gelen eksi toplam tüketim. Pozitifse yeşil, negatifse kırmızı.</li>
+            <li><strong>Stok Sağlığı:</strong> <code>(toplamArtı / toplamEksi) &times; 50</code> olarak hesaplanan, 0&ndash;100 ile sınırlanmış yüzde. Progress çubuğu olarak renderlanır.</li>
+        </ul>
+
+        <h3>6.1.11 &mdash; Extruder Malzeme Çıkarma Mantığı</h3>
+        <p>En karmaşık malzeme eşlemesi Extruder iş kartları içindir. Tek bir Extruder kartı aynı anda birden fazla malzeme tüketebilir çünkü kablo ekstrüzyonu katmanlı kaplamalar içerir:</p>
+        <ol>
+            <li><strong>Yalıtım malzemeleri</strong> (<code>insulation_materials[]</code>): Her girişin <code>material_name</code> (plastik türü), <code>plastic_kg</code>, <code>catalyst_name</code>, <code>catalyst_kg</code> ve <code>dye_name</code> ve <code>dye_kg</code> içeren <code>dyes[]</code> dizisi vardır.</li>
+            <li><strong>Kılıf malzemeleri</strong> (<code>sheath_materials[]</code>): Yalıtımla aynı yapı ama ayrıca <code>antirodent_name</code> ve <code>antirodent_kg</code> içerir (sadece dış kılıfta kemirgen kovucu olabilir).</li>
+        </ol>
+        <p>Servis her iki diziyi gezer, bireysel malzeme adlarını ve miktarlarını çıkarır. Tek bir Extruder kartı 3&ndash;4 farklı plastik, 2 katalizör, 2 boya ve 1 antirodent için detay girişleri üretebilir &mdash; hepsi ilgili kategori detay dizilerine eşlenir ve aynı malzeme adı aynı haftada birden fazla kartta görünürse konsolide edilir.</p>
+
+        <h3>6.1.12 &mdash; Hafta Anahtar Sistemi</h3>
+        <p>Projeksiyon&rsquo;daki tüm zamansal veriler <code>YYYY-WNN</code> formatında ISO hafta anahtarları kullanır (örn. &ldquo;2026-W12&rdquo;). Servis yardımcı fonksiyonlar sağlar:</p>
+        <ul>
+            <li><code>get_week_key(date)</code>: Python <code>date</code>&rsquo;ini ISO hafta anahtarına dönüştürür</li>
+            <li><code>week_key_to_offset(week_key)</code>: Bir hafta anahtarını mevcut yılın H01&rsquo;inden tamsayı ofsetine dönüştürür. Yıl sınırları ötesinde haftaları karşılaştırmak için kullanılır.</li>
+            <li><code>generate_weeks(num_weeks, offset)</code>: week_key, hafta etiketi (H01&ndash;H52), Türkçe tarih aralığı (örn. &ldquo;06-12 Oca&rdquo;) ve ISO başlangıç/bitiş tarihlerini içeren hafta metadata&rsquo;sı üretir.</li>
+        </ul>
+
+        <h3>6.1.13 &mdash; Projeksiyonu Ne Değiştirir</h3>
+        <p>Projeksiyon anlık olarak hesaplandığından, kaynak verisindeki herhangi bir değişiklik çıktıyı anında etkiler:</p>
+        <table>
+            <tr><th>Eylem</th><th>Projeksiyon Üzerindeki Etkisi</th></tr>
+            <tr><td>Yeni iş kartı oluşturuldu</td><td>Kartın <code>sevkiyat_week</code>&rsquo;i için EKSİ artar</td></tr>
+            <tr><td>İş kartının <code>sevkiyat_week</code>&rsquo;i değişti</td><td>EKSİ eski haftadan yeni haftaya taşınır</td></tr>
+            <tr><td>İş kartı iptal edildi</td><td>EKSİ kaybolur (CANCELLED sorgudan hariç)</td></tr>
+            <tr><td>Yeni malzeme siparişi oluşturuldu</td><td><code>expected_date</code> haftasında ARTI görünür</td></tr>
+            <tr><td>Malzeme siparişinin beklenen tarihi değişti</td><td>ARTI eski haftadan yeni haftaya taşınır</td></tr>
+            <tr><td>Malzeme sipariş miktarı değişti</td><td>O haftanın ARTI miktarı değişir</td></tr>
+            <tr><td>Malzeme siparişi teslim edildi</td><td>ARTI, <code>expected_date</code>/<code>quantity</code>&rsquo;den <code>delivered_date</code>/<code>delivered_quantity</code>&rsquo;ye geçer &mdash; hafta ve miktar ikisi de kayabilir</td></tr>
+            <tr><td>Malzeme siparişi iptal edildi</td><td>ARTI tamamen kaybolur</td></tr>
+            <tr><td>Üretim fiziksel olarak tamamlandı</td><td><strong>Etkisi yok</strong> &mdash; tamamlanmış iş kartları hâlâ dahil edilir</td></tr>
+        </table>
+
+        <h3>6.1.14 &mdash; Yetki Modeli</h3>
+        <p>Projeksiyon, <code>access.ts</code>&rsquo;den <code>canStok</code> route guard&rsquo;ını kullanır. Yetki manifest&rsquo;i 4 buton tanımlar: <code>access_page</code>, <code>view_projections</code>, <code>create_projection</code>, <code>edit_projection</code>. Ancak Projeksiyon tamamen salt okunur olduğundan (CRUD işlemi yok), oluşturma ve düzenleme yetkileri artıktır. Etkin erişim kontrolü basitçe kullanıcının Stok sayfalarına erişip erişemeyeceğidir.</p>
+
+        <h3>6.1.15 &mdash; Bu Alt Modülün Yapmadıkları</h3>
+        <ul>
+            <li>Herhangi bir veri <strong>depolamaz</strong> &mdash; ayrı bir veritabanı tablosu yoktur</li>
+            <li>CRUD <strong>desteklemez</strong> &mdash; projeksiyon hesaplanır, düzenlenmez</li>
+            <li>WebSocket <strong>kullanmaz</strong> &mdash; veri sayfa yüklendiğinde veya navigasyonda bir kez çekilir</li>
+            <li>Sonuçları <strong>önbelleklemez</strong> &mdash; her istek sıfırdan hesaplar</li>
+            <li>Mevcut fiziksel stoku <strong>hesaba katmaz</strong> &mdash; yalnızca planlanan tüketim ve planlanan/gerçek varışları izler</li>
+            <li>Uyarı <strong>göndermez</strong> &mdash; açık tespiti yalnızca görseldir</li>
+            <li>Kangal (makarasız kablo paketleme) <strong>izlemez</strong> &mdash; kangal izlenmeyen plastik ambalaj kullanır</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Tasarım felsefesi:</strong> Projeksiyon kasıtlı olarak kendi durumunu depolamaktan kaçınır. Her şeyi iş kartları ve malzeme siparişlerinden anlık olarak hesaplayarak, projeksiyonun her zaman planın mutlak en güncel halini yansıtmasını garanti eder. Senkronizasyon sorunu yok, bayat önbellek yok, &ldquo;son güncelleme 2 saat önce&rdquo; uyarısı yok. Bedel istek başına hesaplamadır, ancak veri ölçeği (milyonlarca değil yüzlerce kayıt) bunu iyi bir ödünleşim yapar.</p>
+        </div>
+
+
+        <!-- placeholder: 6.2 Hammadde Stok buraya eklenecek -->
+
+        <!-- placeholder: 6.3 Ürün Stok buraya eklenecek -->
 
         <!-- placeholder: Bölüm 7 SONUÇ buraya eklenecek -->
 
