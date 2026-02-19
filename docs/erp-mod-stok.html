@@ -1197,22 +1197,24 @@
 
         <div class="stat-grid">
             <div class="stat-box">
-                <div class="value" style="color: var(--accent);">3</div>
-                <div class="label">SUBMODULES</div>
+                <div class="value" style="color: var(--positive);">~1,050</div>
+                <div class="label">LINES BACKEND</div>
             </div>
             <div class="stat-box">
-                <div class="value" style="color: var(--turquoise);">~14</div>
-                <div class="label">API ENDPOINTS</div>
+                <div class="value" style="color: var(--negative);">~4,800</div>
+                <div class="label">LINES FRONTEND</div>
             </div>
             <div class="stat-box">
-                <div class="value">2</div>
-                <div class="label">OWN DB TABLES</div>
+                <div class="value" style="color: var(--accent);">5</div>
+                <div class="label">UPSTREAM MODULES</div>
             </div>
             <div class="stat-box">
-                <div class="value" style="color: var(--positive);">5,800+</div>
-                <div class="label">LINES OF CODE</div>
+                <div class="value" style="color: var(--turquoise);">0</div>
+                <div class="label">OWN WRITE ENDPOINTS</div>
             </div>
         </div>
+
+        <p style="font-size: 12px; opacity: 0.7; margin-top: -8px;">* Projeksiyon has zero persistent storage. Hammadde Stok has zero own endpoints. The only write-capable endpoints belong to &Uuml;r&uuml;n Stok (PUT + DELETE), and even those modify a table populated entirely by another module.</p>
 
         <h3>7.4 How Stock Reads the Factory</h3>
 
