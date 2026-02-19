@@ -375,7 +375,7 @@
         </ul>
 
         <h3>5.3 Projeksiyon &mdash; Frontend Öne Çıkanlar</h3>
-        <p>3.323 satırıyla Projeksiyon, ERP&rsquo;deki en karmaşık tekil React bileşenidir. İki sekmesi vardır:</p>
+        <p>3.323 satırıyla Projeksiyon, ERP&rsquo;deki en büyük React bileşenlerinden biridir. İki sekmesi vardır:</p>
 
         <p><strong>Sekme 1 &mdash; Tablo Görünümü:</strong> Hafta satırları ve 8 malzeme sütunuyla dinamik bir tablo. Her malzeme sütunu gelen (yeşil &uarr;), tüketim (kırmızı &darr;) ve kümülatif bakiye (renk kodlu Tag) gösterir. Sütunlar <strong>genişletilebilir</strong>: bir malzeme başlığına tıklamak bireysel alt-malzeme sütunlarını açar (örn. Bakır altında &ldquo;Filamaşin&rdquo;, Plastik altında &ldquo;HFX 500P&rdquo;). Genişletilmeyen malzemeler trafik ışığı göstergeleriyle 20px renk çubuklarına daraltılır. Hafta navigasyonu offset parametresiyle 10 haftalık pencereyi kaydırır. Özet satırı son kümülatifleri gösterir.</p>
 
@@ -414,7 +414,7 @@
             <div class="submod-num">6.1</div>
             <div class="submod-body">
                 <h4>Projeksiyon (Stok Tahmini)</h4>
-                <p>Malzeme arz ve talebinin haftalık tahmini. 804 satırlık backend servisi + 3.323 satırlık frontend &mdash; tüm ERP&rsquo;deki en büyük tekil React bileşeni. Salt okunur: CRUD yok, saf hesaplama.</p>
+                <p>Malzeme arz ve talebinin haftalık tahmini. 804 satırlık backend servisi + 3.323 satırlık frontend &mdash; ERP&rsquo;deki en büyük React bileşenlerinden biri. Salt okunur: CRUD yok, saf hesaplama.</p>
                 <div class="submod-tags">
                     <span class="submod-tag">3.323 SATIR FRONTEND</span>
                     <span class="submod-tag">804 SATIR SERVİS</span>
@@ -461,7 +461,7 @@
         <h3>6.1.1 &mdash; Amaç ve İş Bağlamı</h3>
         <p>Projeksiyon, fabrikadaki en ileri görüşlü soruyu yanıtlar: <strong>&ldquo;Hafta hafta, her hammaddeden yeterince olacak mı, yoksa açık mı verecek?&rdquo;</strong> İki veri akışını &mdash; üretim planlarından (iş kartları) gelen malzeme tüketimini ve satın alma siparişlerinden gelen malzeme varışlarını &mdash; her iki yönde 5 yıla kadar uzanan, gezinilebilir tek bir haftalık tahmine harmanlayan salt okunur, hesaplanmış bir görünümdür.</p>
         <p>Bu, önceden hesaplanmış anlık görüntülerle bir dashboard değildir. Sayfa her yüklendiğinde, backend iptal edilmemiş TÜM iş kartlarını ve iptal edilmemiş TÜM malzeme siparişlerini sorgular, en erken veri noktasından itibaren her hafta boyunca kümülatif bir bakiye hesaplar ve kullanıcının 10 haftalık görüntüleme penceresi için sonucu döndürür. Projeksiyon <strong>her zaman taze</strong>dir &mdash; önbellekleme yok, depolanmış durum yok, bayat veri yok.</p>
-        <p>Sayfa iki kitleye hizmet eder: <strong>satın alma ekibi</strong> (daha fazla malzeme sipariş etme zamanını bilmesi gereken) ve <strong>üretim planlayıcıları</strong> (yaklaşan iş kartlarının açık yaratıp yaratmayacağını bilmesi gereken). 3.323 satır frontend kodu ve 804 satır backend servisiyle, tüm ERP sistemindeki en büyük ve en karmaşık tekil bileşendir.</p>
+        <p>Sayfa iki kitleye hizmet eder: <strong>satın alma ekibi</strong> (daha fazla malzeme sipariş etme zamanını bilmesi gereken) ve <strong>üretim planlayıcıları</strong> (yaklaşan iş kartlarının açık yaratıp yaratmayacağını bilmesi gereken). 3.323 satır frontend kodu ve 804 satır backend servisiyle, Stok modülündeki en büyük ve en karmaşık bileşenlerden biridir.</p>
 
         <h3>6.1.2 &mdash; İki Veri Akışı</h3>
         <p>Projeksiyon&rsquo;daki her veri parçası iki kaynaktan birinden gelir:</p>

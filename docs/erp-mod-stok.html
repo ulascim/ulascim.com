@@ -359,7 +359,7 @@
 
         <table>
             <tr><th>Route</th><th>Component</th><th>Lines</th><th>Purpose</th></tr>
-            <tr><td><code>/stok/projeksiyon</code></td><td><code>Stok/Projeksiyon/index.tsx</code></td><td><strong>3,323</strong></td><td>The largest component in the entire ERP. Weekly forecast table with expandable sub-material columns + 3 chart types (Line, Heatmap, Radar). Material filtering, week navigation, hidden shortage detection.</td></tr>
+            <tr><td><code>/stok/projeksiyon</code></td><td><code>Stok/Projeksiyon/index.tsx</code></td><td><strong>3,323</strong></td><td>One of the largest components in the ERP. Weekly forecast table with expandable sub-material columns + 3 chart types (Line, Heatmap, Radar). Material filtering, week navigation, hidden shortage detection.</td></tr>
             <tr><td><code>/stok/urun-stok</code></td><td><code>Stok/UrunStok/index.tsx</code></td><td>866</td><td>Semi-finished product inventory. 7 Collapse panels (one per production step), 3-level table hierarchy (step &rarr; product group &rarr; individual item), edit/delete, bonded test viewing.</td></tr>
             <tr><td><code>/stok/hammadde-stok</code></td><td><code>Stok/HammaddeStok/index.tsx</code></td><td>676</td><td>Raw material inventory. 8 Collapse panels (one per material type), 3-level table hierarchy (type &rarr; material name &rarr; individual lot), conditional weight coloring, edit/delete.</td></tr>
         </table>
@@ -375,7 +375,7 @@
         </ul>
 
         <h3>5.3 Projeksiyon &mdash; Frontend Highlights</h3>
-        <p>At 3,323 lines, Projeksiyon is the single most complex React component in the ERP. It has two tabs:</p>
+        <p>At 3,323 lines, Projeksiyon is one of the largest React components in the ERP. It has two tabs:</p>
 
         <p><strong>Tab 1 &mdash; Table View:</strong> A dynamic table with week rows and 8 material columns. Each material column shows incoming (green &uarr;), consumption (red &darr;), and cumulative balance (color-coded Tag). Columns are <strong>expandable</strong>: clicking a material header reveals individual sub-material columns (e.g., &ldquo;Filma&#351;in&rdquo; under Copper, &ldquo;HFX 500P&rdquo; under Plastic). Non-expanded materials collapse to 20px color bars with traffic-light indicators. Week navigation shifts the 10-week window via offset parameter. A summary row shows final cumulatives.</p>
 
@@ -414,7 +414,7 @@
             <div class="submod-num">6.1</div>
             <div class="submod-body">
                 <h4>Projeksiyon (Stock Projection)</h4>
-                <p>Week-by-week forecast of material supply and demand. 804-line backend service + 3,323-line frontend &mdash; the single largest React component in the entire ERP. Read-only: no CRUD, pure computation.</p>
+                <p>Week-by-week forecast of material supply and demand. 804-line backend service + 3,323-line frontend &mdash; one of the largest React components in the ERP. Read-only: no CRUD, pure computation.</p>
                 <div class="submod-tags">
                     <span class="submod-tag">3,323 LOC FRONTEND</span>
                     <span class="submod-tag">804 LOC SERVICE</span>
@@ -461,7 +461,7 @@
         <h3>6.1.1 &mdash; Purpose and Business Context</h3>
         <p>Projeksiyon answers the most forward-looking question in the factory: <strong>&ldquo;Week by week, will we have enough of each raw material, or will we run short?&rdquo;</strong> It is a read-only, computed view that blends two data streams &mdash; material consumption from production plans (work cards) and material arrivals from purchase orders &mdash; into a single, navigable weekly forecast spanning up to 5 years in either direction.</p>
         <p>This is not a dashboard with pre-calculated snapshots. Every time the page loads, the backend queries ALL non-cancelled work cards and ALL non-cancelled material orders, computes a running cumulative balance across every week since the earliest data point, and returns the result for the user&rsquo;s 10-week view window. The projection is <strong>always fresh</strong> &mdash; no caching, no stored state, no stale data.</p>
-        <p>The page serves two audiences: the <strong>purchasing team</strong> (who need to know when to order more material) and the <strong>production planners</strong> (who need to know if upcoming work cards will cause a shortage). At 3,323 lines of frontend code and 804 lines of backend service, it is the single largest and most complex component in the entire ERP system.</p>
+        <p>The page serves two audiences: the <strong>purchasing team</strong> (who need to know when to order more material) and the <strong>production planners</strong> (who need to know if upcoming work cards will cause a shortage). At 3,323 lines of frontend code and 804 lines of backend service, it is one of the largest and most complex components in the Stock module.</p>
 
         <h3>6.1.2 &mdash; The Two Data Streams</h3>
         <p>Every piece of data in Projeksiyon comes from one of two sources:</p>
