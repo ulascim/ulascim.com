@@ -773,65 +773,41 @@
                 <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Makara (Reel)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>raw_reel</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PicCenterOutlined</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">#1abc9c (teal)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">adet</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">H</td></tr>
             </tbody>
         </table>
-        <p>The Collapse component uses a custom <code>expandIcon</code> &mdash; a <code>RightOutlined</code> icon that rotates 90&deg; when the panel opens. The entire Collapse sits inside a borderless <code>Card</code> with 12px border-radius for a clean look.</p>
+        <p>The categories and their visual identity are shared with Hammadde Giri&#351;i &mdash; a user sees the same colors and icons across both modules for consistency.</p>
 
         <h3>6.2.6 &mdash; Panel Header: Inline Statistics Dashboard</h3>
-        <p>Each panel header is not just a label &mdash; it is a mini dashboard that is visible even when the panel is collapsed. The header is a <code>flexbox</code> row with these elements from left to right:</p>
-        <ol>
-            <li><strong>Category icon:</strong> The material-specific icon, rendered at 18px font size in the category&rsquo;s color (e.g., bronze <code>MenuOutlined</code> for copper). The icon has a fixed 24px width for alignment across all panels.</li>
-            <li><strong>Category name:</strong> Bold text at 15px (e.g., &ldquo;Bak&#305;r&rdquo;, &ldquo;Plastik&rdquo;).</li>
-            <li><strong>Record count tag:</strong> An Ant Design <code>Tag</code> showing the total number of individual material records in this category (e.g., &ldquo;47 kay&#305;t&rdquo;). Only shown if the category has data.</li>
-            <li><strong>Three aggregate statistics</strong> (pushed to the right via <code>marginLeft: 'auto'</code>):</li>
-        </ol>
-        <p>The three statistics are each a small vertical block (label above, value below) with <code>textAlign: 'right'</code> and <code>minWidth: 90px</code>:</p>
+        <p>Each panel header is not just a label &mdash; it is a mini dashboard visible even when collapsed. From left to right it shows: the color-coded category icon, the category name, a record count tag (e.g., &ldquo;47 kay&#305;t&rdquo;), and three aggregate statistics pushed to the right:</p>
         <ul>
-            <li><strong>Toplam (Total):</strong> Plain text. For kg-based materials, this is the sum of <code>remaining_weight</code> (or <code>weight</code> if remaining is null). For palette/reel, it&rsquo;s the sum of <code>weight</code> (which represents quantity/count). The label is a 10px, 50% opacity text reading &ldquo;Toplam&rdquo;. The value is bold 13px with Turkish locale formatting (e.g., &ldquo;12.456,3 kg&rdquo;).</li>
-            <li><strong>Kullan&#305;mda (In Use):</strong> Blue <code>Tag</code>. Sum of quantities from items with <code>status === 'in_use'</code>. Label: 10px &ldquo;Kullan&#305;mda&rdquo;.</li>
-            <li><strong>Serbest (Available):</strong> Green <code>Tag</code>. Sum of quantities from items with <code>status === 'received'</code> or <code>status === 'available'</code>. Label: 10px &ldquo;Serbest&rdquo;.</li>
+            <li><strong>Toplam (Total):</strong> Sum of <code>remaining_weight</code> for kg-based materials (falls back to <code>weight</code> if remaining is null), sum of <code>weight</code> (count) for palette/reel. Turkish locale formatting (e.g., &ldquo;12.456,3 kg&rdquo;).</li>
+            <li><strong>Kullan&#305;mda (In Use):</strong> Blue tag. Sum from items where <code>status === 'in_use'</code> &mdash; materials currently on a production machine.</li>
+            <li><strong>Serbest (Available):</strong> Green tag. Sum from items where <code>status === 'received'</code> or <code>'available'</code> &mdash; materials ready for production to consume.</li>
         </ul>
-        <p>The <code>getCategoryTotals()</code> function computes these three numbers by iterating over all groups in the category and summing their <code>total_quantity</code>, <code>reserved_quantity</code>, and <code>available_quantity</code>. The unit is determined by the category key &mdash; &ldquo;adet&rdquo; for <code>raw_palette</code>/<code>raw_reel</code>, &ldquo;kg&rdquo; for everything else.</p>
+        <p>The <code>getCategoryTotals()</code> function computes these by iterating all groups and summing <code>total_quantity</code>, <code>reserved_quantity</code>, and <code>available_quantity</code>. Unit is &ldquo;adet&rdquo; for palette/reel, &ldquo;kg&rdquo; for everything else.</p>
 
         <h3>6.2.7 &mdash; Three-Level Table Hierarchy</h3>
         <p>The page implements a three-level drill-down that lets users navigate from high-level category totals down to individual lot details:</p>
 
         <p><strong>Level 1 &mdash; Category Panel (Collapse):</strong> The 8 Collapse panels themselves. Each panel header shows category name + icon + aggregate statistics. Opening a panel reveals the Level 2 table. Multiple panels can be open simultaneously &mdash; the <code>activePanels</code> state is an array of keys.</p>
 
-        <p><strong>Level 2 &mdash; Material Name Group Table:</strong> Inside each panel, a <code>Table</code> component groups materials by <code>material_name</code>. For example, under &ldquo;Plastik&rdquo;, you might see groups: &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo;, &ldquo;PVC 70&rdquo;. Each group row shows 4 columns:</p>
-        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-            <thead>
-                <tr style="background: var(--bg-secondary);">
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Column</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Width</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Rendering</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme Ad&#305; (Material Name)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">250px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Bold <code>fontWeight: 600</code> text + lot count in parentheses with <code>opacity: 0.5</code>, e.g. &ldquo;<strong>HFX 500P</strong> <span style="opacity:0.5">(12 lot)</span>&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Toplam (Total)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>fontWeight: 500</code>, Turkish locale number formatting with max 1 decimal, e.g. &ldquo;4.523,8 kg&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kullan&#305;mda (In Use)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue <code>Tag</code> with formatted quantity + unit</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Serbest (Available)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Green <code>Tag</code> with formatted quantity + unit</td></tr>
-            </tbody>
-        </table>
-        <p>The table uses <code>pagination={false}</code> (all groups visible), <code>size=&quot;small&quot;</code> for compact rows, and <code>scroll={{ x: 'max-content' }}</code> for horizontal overflow. If a material has no <code>material_name</code>, it falls into a fallback group named &ldquo;{Category} (&#304;simsiz)&rdquo;.</p>
+        <p><strong>Level 2 &mdash; Material Name Group Table:</strong> Inside each panel, materials are grouped by <code>material_name</code>. For example, under &ldquo;Plastik&rdquo;, you see groups: &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo;, &ldquo;PVC 70&rdquo;. Each group row shows: <strong>Malzeme Ad&#305;</strong> (bold name + lot count, e.g., &ldquo;HFX 500P (12 lot)&rdquo;), <strong>Toplam</strong> (aggregate weight/quantity), <strong>Kullan&#305;mda</strong> (blue tag, in-use total), <strong>Serbest</strong> (green tag, available total). If a material has no name, it falls into &ldquo;{Category} (&#304;simsiz)&rdquo;.</p>
 
-        <p><strong>Level 3 &mdash; Individual Lots (Expanded Row):</strong> Clicking the expand icon on a group row reveals a nested <code>Table</code> with the individual material entries. The nested table is rendered by <code>renderExpandedRow()</code> and uses a negative left margin (<code>margin: '8px 8px 8px -32px'</code>) to align with the parent table columns. If a group has no items, a centered message &ldquo;Detay bulunamad&#305;&rdquo; appears at 50% opacity. The detail table shows 7&ndash;8 columns:</p>
+        <p><strong>Level 3 &mdash; Individual Lots (Expanded Row):</strong> Expanding a group row reveals the individual material entries. The detail table shows 7&ndash;8 columns:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
                     <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Column</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Width</th>
                     <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Behavior</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed left (<code>fixed: 'left'</code>). Blue <code>Tag</code> showing the deterministic QR code (A1, B3, C12, etc.)</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Ouml;l&ccedil;&uuml;len / Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Title adapts: &ldquo;&Ouml;l&ccedil;&uuml;len&rdquo; (Measured) for kg types, &ldquo;Miktar&rdquo; (Quantity) for palette/reel. Shows <code>weight</code> field with locale formatting + unit.</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan (Remaining)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Conditionally included</strong> &mdash; column is completely absent for palette/reel (spread operator with empty array). Uses <code>remaining_weight ?? weight ?? 0</code> fallback. <strong>Color-coded</strong> (see 6.2.8).</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum (Status)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Color-coded Ant Design <code>Tag</code>: <span style="color:green">green</span>=Teslim Al&#305;nd&#305;, <span style="color:#2563eb">blue</span>=Mevcut, <span style="color:orange">orange</span>=Kullan&#305;mda, grey=T&uuml;kendi, <span style="color:red">red</span>=Reddedildi</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i (Supplier)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue <code>Tag</code> if supplier exists, plain &ldquo;-&rdquo; if null/undefined</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue <code>Tag</code> if lot number exists, plain &ldquo;-&rdquo; if null/undefined</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giri&#351; Tarihi (Entry Date)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">110px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Date rendered at <code>opacity: 0.8</code>. Uses <code>dayjs.utc(date).tz('Europe/Istanbul').format('DD.MM.YY')</code> &mdash; converts UTC server time to Turkey timezone.</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;&#351;lem (Actions)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">80px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Fixed right (<code>fixed: 'right'</code>). Two <code>Button</code> components: <code>EditOutlined</code> (default color) and <code>DeleteOutlined</code> (red <code>#ff4d4f</code>). Both are <code>type=&quot;text&quot;</code>, <code>size=&quot;small&quot;</code> with 4px spacing.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Blue tag showing the deterministic QR code (A1, B3, C12, etc.). Pinned left.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&Ouml;l&ccedil;&uuml;len / Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Original weight at entry. Title adapts: &ldquo;&Ouml;l&ccedil;&uuml;len&rdquo; for kg types, &ldquo;Miktar&rdquo; for palette/reel.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan (Remaining)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Current remaining weight after Production consumption. <strong>Absent</strong> for palette/reel. Uses <code>remaining_weight ?? weight</code> fallback. <strong>Color-coded</strong> (see 6.2.8).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum (Status)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Color-coded tag: green=Teslim Al&#305;nd&#305; (received), blue=Mevcut (available), orange=Kullan&#305;mda (in_use by Production), grey=T&uuml;kendi (consumed), red=Reddedildi (rejected by Lab)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarik&ccedil;i</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Supplier name from Tedarik&ccedil;i Y&ouml;netimi, or &ldquo;-&rdquo; if none</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot/batch number from Hammadde Giri&#351;i, or &ldquo;-&rdquo; if none</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giri&#351; Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Entry date, converted from UTC to Europe/Istanbul timezone. DD.MM.YY format.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">&#304;&#351;lem (Actions)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Edit and Delete buttons. Pinned right.</td></tr>
             </tbody>
         </table>
 
@@ -878,30 +854,18 @@
         </ol>
 
         <h3>6.2.11 &mdash; The Edit Modal</h3>
-        <p>The edit modal uses Ant Design&rsquo;s <code>Modal</code> + <code>Form</code> pattern. It is a single variant (unlike Hammaddeler Listesi&rsquo;s three variants) because this page provides a simplified stock-adjustment interface rather than full material editing:</p>
+        <p>The edit modal is deliberately minimal &mdash; a single variant, unlike Hammaddeler Listesi&rsquo;s three variants (copper/tin, lot-based, palette/reel). It provides only two fields:</p>
         <ul>
-            <li><strong>Title:</strong> &ldquo;D&uuml;zenle: {QR_CODE}&rdquo; (e.g., &ldquo;D&uuml;zenle: C8&rdquo;)</li>
-            <li><strong>Width:</strong> 400px (compact)</li>
-            <li><strong>Field 1 &mdash; Kalan A&#287;&#305;rl&#305;k (kg):</strong> <code>Form.Item</code> wrapping an <code>InputNumber</code> with <code>min={0}</code>, <code>step={0.1}</code>, <code>style={{ width: '100%' }}</code>. Pre-filled with <code>remaining_weight ?? weight</code>. <strong>Conditionally rendered</strong> &mdash; the entire <code>Form.Item</code> is wrapped in a check: <code>editingItem?.material_type !== 'raw_palette' &amp;&amp; editingItem?.material_type !== 'raw_reel'</code>. For palette/reel materials, only the status field appears.</li>
-            <li><strong>Field 2 &mdash; Durum (Status):</strong> <code>Form.Item</code> wrapping a <code>Select</code> with 5 options:
-                <ul>
-                    <li><code>received</code> &rarr; &ldquo;Teslim Al&#305;nd&#305;&rdquo;</li>
-                    <li><code>available</code> &rarr; &ldquo;Mevcut&rdquo;</li>
-                    <li><code>in_use</code> &rarr; &ldquo;Kullan&#305;mda&rdquo;</li>
-                    <li><code>consumed</code> &rarr; &ldquo;T&uuml;kendi&rdquo;</li>
-                    <li><code>rejected</code> &rarr; &ldquo;Reddedildi&rdquo;</li>
-                </ul>
-            </li>
-            <li><strong>OK button:</strong> Text &ldquo;G&uuml;ncelle&rdquo;. Triggers <code>form.submit()</code> which calls <code>handleUpdate()</code>.</li>
-            <li><strong>Cancel button:</strong> Text &ldquo;&#304;ptal&rdquo;. Closes modal, resets form, clears <code>editingItem</code>.</li>
+            <li><strong>Kalan A&#287;&#305;rl&#305;k (Remaining Weight):</strong> A numeric input pre-filled with the material&rsquo;s current <code>remaining_weight</code>. This is the field Production affects when consuming material, and this modal lets a stock manager manually correct it if the system value drifts from physical reality. <strong>Hidden</strong> for palette/reel since those are whole units.</li>
+            <li><strong>Durum (Status):</strong> Dropdown with 5 options: Teslim Al&#305;nd&#305; (received), Mevcut (available), Kullan&#305;mda (in_use), T&uuml;kendi (consumed), Reddedildi (rejected). This lets a manager manually override the lifecycle state &mdash; e.g., marking a damaged material as rejected, or correcting a status that Production failed to update.</li>
         </ul>
-        <p>Unlike the Hammaddeler Listesi edit modal, this modal does <strong>not</strong> allow editing QR codes, lot numbers, supplier names, or photos. It is strictly for stock-level adjustments: correcting remaining weight and updating status.</p>
+        <p>Unlike Hammaddeler Listesi, this modal does <strong>not</strong> allow editing QR codes, lot numbers, supplier names, or photos. Those belong to the Hammadde module&rsquo;s full edit flow. This modal is strictly for stock-level corrections: &ldquo;how much is actually left?&rdquo; and &ldquo;what state is it really in?&rdquo;</p>
 
         <h3>6.2.12 &mdash; Loading and Empty States</h3>
         <p>The page handles two empty-data scenarios:</p>
         <ul>
-            <li><strong>Loading state:</strong> While <code>loading</code> is true, each panel&rsquo;s content area shows a centered <code>Spin</code> component with &ldquo;Y&uuml;kleniyor...&rdquo; text below it (12px margin-top, 60% opacity). The &ldquo;Yenile&rdquo; button in the page header also shows a spinner via <code>loading={loading}</code>.</li>
-            <li><strong>Empty category:</strong> If a category has no materials (e.g., no antirodent in stock), the panel content shows Ant Design&rsquo;s <code>Empty</code> component with <code>description=&quot;Bu kategoride stok bulunamad&#305;&rdquo;</code> (No stock found in this category) and <code>PRESENTED_IMAGE_SIMPLE</code> (the minimal empty illustration).</li>
+            <li><strong>Loading state:</strong> While data is being fetched, each panel shows a spinner with &ldquo;Y&uuml;kleniyor...&rdquo;. The &ldquo;Yenile&rdquo; (Refresh) button in the page header also shows a loading state.</li>
+            <li><strong>Empty category:</strong> If a category has no materials (e.g., no antirodent currently in stock), the panel shows &ldquo;Bu kategoride stok bulunamad&#305;&rdquo; (No stock found in this category).</li>
         </ul>
 
         <h3>6.2.13 &mdash; Timezone Handling</h3>

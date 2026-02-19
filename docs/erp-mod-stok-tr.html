@@ -768,65 +768,41 @@
                 <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Makara</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>raw_reel</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>PicCenterOutlined</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">#1abc9c (deniz mavisi)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">adet</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">H</td></tr>
             </tbody>
         </table>
-        <p>Collapse bileşeni özel bir <code>expandIcon</code> kullanır &mdash; panel açıldığında 90&deg; dönen bir <code>RightOutlined</code> ikonu. Tüm Collapse, temiz bir görünüm için 12px border-radius ile kenarlıksız bir <code>Card</code> içinde yer alır.</p>
+        <p>Kategoriler ve görsel kimlikleri Hammadde Girişi ile paylaşılır &mdash; kullanıcı tutarlılık için her iki modülde de aynı renkleri ve ikonları görür.</p>
 
         <h3>6.2.6 &mdash; Panel Başlığı: Satır İçi İstatistik Panosu</h3>
-        <p>Her panel başlığı sadece bir etiket değildir &mdash; panel daraltılmış haldeyken bile görünen bir mini panodur. Başlık, soldan sağa şu elemanları içeren bir <code>flexbox</code> satırıdır:</p>
-        <ol>
-            <li><strong>Kategori ikonu:</strong> Malzemeye özel ikon, kategorinin renginde 18px font boyutunda renderlanır (örn. bakır için bronz <code>MenuOutlined</code>). İkon tüm panellerde hizalama için sabit 24px genişliğe sahiptir.</li>
-            <li><strong>Kategori adı:</strong> 15px&rsquo;de kalın metin (örn. &ldquo;Bakır&rdquo;, &ldquo;Plastik&rdquo;).</li>
-            <li><strong>Kayıt sayısı etiketi:</strong> Bu kategorideki toplam bireysel malzeme kayıt sayısını gösteren Ant Design <code>Tag</code>&rsquo;i (örn. &ldquo;47 kayıt&rdquo;). Yalnızca kategoride veri varsa gösterilir.</li>
-            <li><strong>Üç toplam istatistik</strong> (<code>marginLeft: 'auto'</code> ile sağa itilmiş):</li>
-        </ol>
-        <p>Üç istatistiğin her biri <code>textAlign: 'right'</code> ve <code>minWidth: 90px</code> ile küçük bir dikey bloktur (üstte etiket, altta değer):</p>
+        <p>Her panel başlığı sadece bir etiket değildir &mdash; daraltılmış haldeyken bile görünen bir mini panodur. Soldan sağa şunları gösterir: renk kodlu kategori ikonu, kategori adı, kayıt sayısı etiketi (örn. &ldquo;47 kayıt&rdquo;) ve sağa itilmiş üç toplam istatistik:</p>
         <ul>
-            <li><strong>Toplam:</strong> Düz metin. kg bazlı malzemeler için <code>remaining_weight</code> toplamı (veya remaining null ise <code>weight</code>). Palet/makara için <code>weight</code> toplamı (miktar/sayıyı temsil eder). Etiket %50 opaklıkta 10px &ldquo;Toplam&rdquo; metnidir. Değer Türkçe yerel biçimlendirmeyle kalın 13px&rsquo;dir (örn. &ldquo;12.456,3 kg&rdquo;).</li>
-            <li><strong>Kullanımda:</strong> Mavi <code>Tag</code>. <code>status === 'in_use'</code> olan öğelerden miktar toplamı. Etiket: 10px &ldquo;Kullanımda&rdquo;.</li>
-            <li><strong>Serbest:</strong> Yeşil <code>Tag</code>. <code>status === 'received'</code> veya <code>status === 'available'</code> olan öğelerden miktar toplamı. Etiket: 10px &ldquo;Serbest&rdquo;.</li>
+            <li><strong>Toplam:</strong> kg bazlı malzemeler için <code>remaining_weight</code> toplamı (remaining null ise <code>weight</code>&rsquo;e döner), palet/makara için <code>weight</code> (sayı) toplamı. Türkçe yerel biçimlendirme (örn. &ldquo;12.456,3 kg&rdquo;).</li>
+            <li><strong>Kullanımda:</strong> Mavi etiket. <code>status === 'in_use'</code> olan öğelerden toplam &mdash; şu an bir üretim makinesinde olan malzemeler.</li>
+            <li><strong>Serbest:</strong> Yeşil etiket. <code>status === 'received'</code> veya <code>'available'</code> olan öğelerden toplam &mdash; Üretim&rsquo;in tüketmeye hazır malzemeler.</li>
         </ul>
-        <p><code>getCategoryTotals()</code> fonksiyonu bu üç sayıyı kategorideki tüm gruplar üzerinde iterasyon yaparak ve <code>total_quantity</code>, <code>reserved_quantity</code>, <code>available_quantity</code> değerlerini toplayarak hesaplar. Birim kategori anahtarına göre belirlenir &mdash; <code>raw_palette</code>/<code>raw_reel</code> için &ldquo;adet&rdquo;, diğer her şey için &ldquo;kg&rdquo;.</p>
+        <p><code>getCategoryTotals()</code> fonksiyonu bunları tüm gruplar üzerinde iterasyon yaparak ve <code>total_quantity</code>, <code>reserved_quantity</code>, <code>available_quantity</code> toplayarak hesaplar. Birim palet/makara için &ldquo;adet&rdquo;, diğer her şey için &ldquo;kg&rdquo;dir.</p>
 
         <h3>6.2.7 &mdash; Üç Seviyeli Tablo Hiyerarşisi</h3>
         <p>Sayfa, kullanıcıların üst düzey kategori toplamlarından bireysel lot detaylarına inmesini sağlayan üç seviyeli bir detay görünümü uygular:</p>
 
         <p><strong>Seviye 1 &mdash; Kategori Paneli (Collapse):</strong> 8 Collapse panelinin kendileri. Her panel başlığı kategori adı + ikon + toplam istatistikleri gösterir. Bir paneli açmak Seviye 2 tablosunu açar. Birden fazla panel aynı anda açık olabilir &mdash; <code>activePanels</code> state&rsquo;i bir anahtar dizisidir.</p>
 
-        <p><strong>Seviye 2 &mdash; Malzeme Adı Grup Tablosu:</strong> Her panel içinde bir <code>Table</code> bileşeni malzemeleri <code>material_name</code>&rsquo;e göre gruplar. Örneğin, &ldquo;Plastik&rdquo; altında şu grupları görebilirsiniz: &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo;, &ldquo;PVC 70&rdquo;. Her grup satırı 4 sütun gösterir:</p>
-        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-            <thead>
-                <tr style="background: var(--bg-secondary);">
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Sütun</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Genişlik</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Renderlama</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Malzeme Adı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">250px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalın <code>fontWeight: 600</code> metin + parantez içinde <code>opacity: 0.5</code> ile lot sayısı, örn. &ldquo;<strong>HFX 500P</strong> <span style="opacity:0.5">(12 lot)</span>&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Toplam</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>fontWeight: 500</code>, Türkçe yerel sayı biçimlendirmesi maks 1 ondalık, örn. &ldquo;4.523,8 kg&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kullanımda</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Biçimlendirilmiş miktar + birimle mavi <code>Tag</code></td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Serbest</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Biçimlendirilmiş miktar + birimle yeşil <code>Tag</code></td></tr>
-            </tbody>
-        </table>
-        <p>Tablo <code>pagination={false}</code> (tüm gruplar görünür), kompakt satırlar için <code>size=&quot;small&quot;</code> ve yatay taşma için <code>scroll={{ x: 'max-content' }}</code> kullanır. Bir malzemenin <code>material_name</code>&rsquo;i yoksa &ldquo;{Kategori} (İsimsiz)&rdquo; yedek grubuna düşer.</p>
+        <p><strong>Seviye 2 &mdash; Malzeme Adı Grup Tablosu:</strong> Her panel içinde malzemeler <code>material_name</code>&rsquo;e göre gruplanır. Örneğin, &ldquo;Plastik&rdquo; altında şu grupları görürsünüz: &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo;, &ldquo;PVC 70&rdquo;. Her grup satırı gösterir: <strong>Malzeme Adı</strong> (kalın ad + lot sayısı, örn. &ldquo;HFX 500P (12 lot)&rdquo;), <strong>Toplam</strong> (toplam ağırlık/miktar), <strong>Kullanımda</strong> (mavi etiket, kullanımdaki toplam), <strong>Serbest</strong> (yeşil etiket, mevcut toplam). Bir malzemenin adı yoksa &ldquo;{Kategori} (İsimsiz)&rdquo; grubuna düşer.</p>
 
-        <p><strong>Seviye 3 &mdash; Bireysel Lotlar (Genişletilmiş Satır):</strong> Bir grup satırındaki genişletme ikonuna tıklamak bireysel malzeme girişlerini içeren iç içe bir <code>Table</code>&rsquo;ı açar. İç içe tablo <code>renderExpandedRow()</code> tarafından renderlanır ve üst tablo sütunlarıyla hizalanmak için negatif sol kenar boşluğu (<code>margin: '8px 8px 8px -32px'</code>) kullanır. Bir grubun öğesi yoksa %50 opaklıkta ortalanmış &ldquo;Detay bulunamadı&rdquo; mesajı görünür. Detay tablosu 7&ndash;8 sütun gösterir:</p>
+        <p><strong>Seviye 3 &mdash; Bireysel Lotlar (Genişletilmiş Satır):</strong> Bir grup satırını genişletmek bireysel malzeme girişlerini açar. Detay tablosu 7&ndash;8 sütun gösterir:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <thead>
                 <tr style="background: var(--bg-secondary);">
                     <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Sütun</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Genişlik</th>
                     <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color);">Davranış</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sabit sol (<code>fixed: 'left'</code>). Deterministik QR kodu gösteren mavi <code>Tag</code> (A1, B3, C12, vb.)</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Ölçülen / Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Başlık uyarlanır: kg türleri için &ldquo;Ölçülen&rdquo;, palet/makara için &ldquo;Miktar&rdquo;. Yerel biçimlendirme + birimle <code>weight</code> alanını gösterir.</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><strong>Koşullu dahil edilir</strong> &mdash; palet/makara için sütun tamamen yoktur (boş diziyle spread operatörü). <code>remaining_weight ?? weight ?? 0</code> yedeğini kullanır. <strong>Renk kodlu</strong> (bkz. 6.2.8).</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Renk kodlu Ant Design <code>Tag</code>: <span style="color:green">yeşil</span>=Teslim Alındı, <span style="color:#2563eb">mavi</span>=Mevcut, <span style="color:orange">turuncu</span>=Kullanımda, gri=Tükendi, <span style="color:red">kırmızı</span>=Reddedildi</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">120px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi varsa mavi <code>Tag</code>, null/undefined ise düz &ldquo;-&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">100px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot numarası varsa mavi <code>Tag</code>, null/undefined ise düz &ldquo;-&rdquo;</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giriş Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">110px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);"><code>opacity: 0.8</code> ile renderlanır. <code>dayjs.utc(date).tz('Europe/Istanbul').format('DD.MM.YY')</code> kullanır &mdash; UTC sunucu zamanını Türkiye zaman dilimine dönüştürür.</td></tr>
-                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">İşlem</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">80px</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Sabit sağ (<code>fixed: 'right'</code>). İki <code>Button</code>: <code>EditOutlined</code> (varsayılan renk) ve <code>DeleteOutlined</code> (kırmızı <code>#ff4d4f</code>). İkisi de <code>type=&quot;text&quot;</code>, <code>size=&quot;small&quot;</code>, 4px aralıklı.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Deterministik QR kodu gösteren mavi etiket (A1, B3, C12, vb.). Sola sabitlenmiş.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Ölçülen / Miktar</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Girişte orijinal ağırlık. Başlık uyarlanır: kg türleri için &ldquo;Ölçülen&rdquo;, palet/makara için &ldquo;Miktar&rdquo;.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Kalan</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Üretim tüketiminden sonra mevcut kalan ağırlık. Palet/makara için <strong>yok</strong>. <code>remaining_weight ?? weight</code> yedeği kullanır. <strong>Renk kodlu</strong> (bkz. 6.2.8).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Renk kodlu etiket: yeşil=Teslim Alındı (received), mavi=Mevcut (available), turuncu=Kullanımda (Üretim tarafından in_use), gri=Tükendi (consumed), kırmızı=Reddedildi (Lab tarafından rejected)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Tedarikçi Yönetimi&rsquo;nden tedarikçi adı, yoksa &ldquo;-&rdquo;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Lot No</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Hammadde Girişi&rsquo;nden lot/parti numarası, yoksa &ldquo;-&rdquo;</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giriş Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Giriş tarihi, UTC&rsquo;den Europe/Istanbul zaman dilimine dönüştürülmüş. GG.AA.YY formatında.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">İşlem</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color);">Düzenle ve Sil butonları. Sağa sabitlenmiş.</td></tr>
             </tbody>
         </table>
 
@@ -873,30 +849,18 @@
         </ol>
 
         <h3>6.2.11 &mdash; Düzenleme Modalı</h3>
-        <p>Düzenleme modalı Ant Design&rsquo;ın <code>Modal</code> + <code>Form</code> kalıbını kullanır. Tek varyantlıdır (Hammaddeler Listesi&rsquo;nin üç varyantının aksine) çünkü bu sayfa tam malzeme düzenleme yerine basitleştirilmiş bir stok ayarlama arayüzü sunar:</p>
+        <p>Düzenleme modalı kasıtlı olarak minimaldir &mdash; Hammaddeler Listesi&rsquo;nin üç varyantının (bakır/kalay, lot bazlı, palet/makara) aksine tek varyantlıdır. Yalnızca iki alan sunar:</p>
         <ul>
-            <li><strong>Başlık:</strong> &ldquo;Düzenle: {QR_CODE}&rdquo; (örn. &ldquo;Düzenle: C8&rdquo;)</li>
-            <li><strong>Genişlik:</strong> 400px (kompakt)</li>
-            <li><strong>Alan 1 &mdash; Kalan Ağırlık (kg):</strong> <code>min={0}</code>, <code>step={0.1}</code>, <code>style={{ width: '100%' }}</code> ile <code>InputNumber</code> saran <code>Form.Item</code>. <code>remaining_weight ?? weight</code> ile önceden doldurulur. <strong>Koşullu renderlanır</strong> &mdash; tüm <code>Form.Item</code> bir kontrolle sarılmıştır: <code>editingItem?.material_type !== 'raw_palette' &amp;&amp; editingItem?.material_type !== 'raw_reel'</code>. Palet/makara malzemeleri için yalnızca durum alanı görünür.</li>
-            <li><strong>Alan 2 &mdash; Durum:</strong> 5 seçenekli <code>Select</code> saran <code>Form.Item</code>:
-                <ul>
-                    <li><code>received</code> &rarr; &ldquo;Teslim Alındı&rdquo;</li>
-                    <li><code>available</code> &rarr; &ldquo;Mevcut&rdquo;</li>
-                    <li><code>in_use</code> &rarr; &ldquo;Kullanımda&rdquo;</li>
-                    <li><code>consumed</code> &rarr; &ldquo;Tükendi&rdquo;</li>
-                    <li><code>rejected</code> &rarr; &ldquo;Reddedildi&rdquo;</li>
-                </ul>
-            </li>
-            <li><strong>Tamam butonu:</strong> &ldquo;Güncelle&rdquo; metni. <code>form.submit()</code>&rsquo;i tetikler, o da <code>handleUpdate()</code>&rsquo;i çağırır.</li>
-            <li><strong>İptal butonu:</strong> &ldquo;İptal&rdquo; metni. Modalı kapatır, formu sıfırlar, <code>editingItem</code>&rsquo;i temizler.</li>
+            <li><strong>Kalan Ağırlık:</strong> Malzemenin mevcut <code>remaining_weight</code> değeriyle önceden doldurulmuş sayısal giriş. Bu, Üretim malzeme tükettiğinde etkilenen alandır ve bu modal bir stok yöneticisinin sistem değeri fiziksel gerçeklikten saptığında manuel olarak düzeltmesine izin verir. Palet/makara için <strong>gizli</strong>dir çünkü bunlar bütün birimlerdir.</li>
+            <li><strong>Durum:</strong> 5 seçenekli açılır liste: Teslim Alındı (received), Mevcut (available), Kullanımda (in_use), Tükendi (consumed), Reddedildi (rejected). Bu bir yöneticinin yaşam döngüsü durumunu manuel olarak geçersiz kılmasına izin verir &mdash; örn. hasarlı bir malzemeyi reddedildi olarak işaretleme veya Üretim&rsquo;in güncellemeyi başaramadığı bir durumu düzeltme.</li>
         </ul>
-        <p>Hammaddeler Listesi düzenleme modalının aksine, bu modal QR kodlarını, lot numaralarını, tedarikçi adlarını veya fotoğrafları düzenlemeye izin <strong>vermez</strong>. Yalnızca stok düzeyinde ayarlamalar içindir: kalan ağırlığı düzeltme ve durumu güncelleme.</p>
+        <p>Hammaddeler Listesi&rsquo;nin aksine, bu modal QR kodlarını, lot numaralarını, tedarikçi adlarını veya fotoğrafları düzenlemeye izin <strong>vermez</strong>. Bunlar Hammadde modülünün tam düzenleme akışına aittir. Bu modal yalnızca stok düzeyinde düzeltmeler içindir: &ldquo;gerçekte ne kadar kaldı?&rdquo; ve &ldquo;gerçek durumu ne?&rdquo;</p>
 
         <h3>6.2.12 &mdash; Yükleme ve Boş Durumlar</h3>
         <p>Sayfa iki boş veri senaryosunu yönetir:</p>
         <ul>
-            <li><strong>Yükleme durumu:</strong> <code>loading</code> true iken her panelin içerik alanı altında &ldquo;Yükleniyor...&rdquo; metniyle (12px margin-top, %60 opaklık) ortalanmış bir <code>Spin</code> bileşeni gösterir. Sayfa başlığındaki &ldquo;Yenile&rdquo; butonu da <code>loading={loading}</code> aracılığıyla bir spinner gösterir.</li>
-            <li><strong>Boş kategori:</strong> Bir kategoride malzeme yoksa (örn. stokta antirodent yok) panel içeriği <code>description=&quot;Bu kategoride stok bulunamadı&rdquo;</code> ve <code>PRESENTED_IMAGE_SIMPLE</code> (minimal boş illüstrasyon) ile Ant Design&rsquo;ın <code>Empty</code> bileşenini gösterir.</li>
+            <li><strong>Yükleme durumu:</strong> Veri çekilirken her panel &ldquo;Yükleniyor...&rdquo; ile bir spinner gösterir. Sayfa başlığındaki &ldquo;Yenile&rdquo; butonu da yükleme durumu gösterir.</li>
+            <li><strong>Boş kategori:</strong> Bir kategoride malzeme yoksa (örn. stokta şu an antirodent yok) panel &ldquo;Bu kategoride stok bulunamadı&rdquo; mesajını gösterir.</li>
         </ul>
 
         <h3>6.2.13 &mdash; Zaman Dilimi İşleme</h3>
