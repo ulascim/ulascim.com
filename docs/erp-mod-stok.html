@@ -927,7 +927,229 @@
             <p style="margin-bottom: 0;"><strong>Hammadde Stok vs Hammaddeler Listesi &mdash; same data, different purpose:</strong> Both pages read from the same <code>/api/materials/list</code> endpoint and display the same <code>materials</code> table data. The difference is perspective. Hammaddeler Listesi (in the Hammadde module) is the full-power admin view: 14 columns, lazy photos, WebSocket, bilingual search, three edit form variants, printing, 12 granular permissions. Hammadde Stok (in the Stock module) is the <strong>stock manager&rsquo;s view</strong>: grouped by category and material name, with aggregate totals front and center, optimized for answering &ldquo;how much do we have?&rdquo; rather than &ldquo;what is the full history of this lot?&rdquo; The edit modal here is deliberately minimal (weight + status only) because the full edit belongs in the Hammadde module.</p>
         </div>
 
-        <!-- placeholder: 6.3 Ürün Stok will be added here -->
+        <!-- ====== 6.3 ÜRÜN STOK ====== -->
+        <h2 id="sec-6-3">6.3 &mdash; Ürün Stok (Product Stock)</h2>
+        <p class="subtitle">Live inventory of semi-finished and finished products, organized by production step &mdash; the output side of the factory floor.</p>
+
+        <h3 id="urun-stok-purpose">6.3.1 &mdash; Purpose and Business Context</h3>
+        <p>Ürün Stok answers the question: <strong>"What did the factory produce and where is it now?"</strong></p>
+        <p>While Hammadde Stok tracks raw <em>inputs</em> waiting to be consumed, Ürün Stok tracks the <em>outputs</em>: every basket and reel that came off a production machine. Each item in this page was physically created during a <strong>Production Session</strong> &mdash; an operator ran a machine, recorded baskets of output, printed QR labels, and those baskets landed here. The page exists because:</p>
+        <ul>
+            <li><strong>Üretim Listesi</strong> (Production List) creates these items &mdash; when a production session records output baskets, each basket is simultaneously written to <code>production_outputs</code> and <code>half_product_stock</code>. This page is the <strong>read-only window</strong> into that accumulated inventory.</li>
+            <li><strong>Üretim Geçmişi</strong> (Production History) shows the same items from a session-centric perspective (which session produced what). Ürün Stok shows them from a <strong>stock-centric</strong> perspective (how much of each product code exists right now, regardless of which session made it).</li>
+            <li><strong>Order Module</strong> determines <strong>allocation</strong> &mdash; when a work card is opened for an order, baskets produced within the order's required quantity are marked <code>ORDER</code>. Any excess production becomes <code>STOCK</code> (free inventory). This allocation split is a core business concept visible in every group row.</li>
+            <li><strong>Lab Module</strong> (Test Yönetimi) bonds quality tests to specific production outputs. Ürün Stok lets stock managers view bonded test results directly from each item &mdash; the test icon on each row opens a modal showing test interval, name, standard number, and pass/fail status fetched from the Lab system.</li>
+            <li><strong>Source QR Traceability</strong> &mdash; each item stores <code>source_qr_codes</code>, a JSON array of input QR codes consumed to produce it. This chain (A1 copper &rarr; X1 kabatel &rarr; Y1 kalaylama &rarr; ...) is the factory's traceability backbone.</li>
+        </ul>
+
+        <h3 id="urun-stok-crud">6.3.2 &mdash; CRUD Flow</h3>
+        <p><strong>Create:</strong> This page does <strong>not</strong> create items. Half-product stock records are exclusively created by the <strong>Production module</strong> during active production sessions. When an operator records a basket output, the backend writes to both <code>production_outputs</code> and <code>half_product_stock</code> tables simultaneously. There is no "Add" button on this page.</p>
+        <p><strong>Read:</strong> On mount, the component fires <strong>7 parallel API requests</strong> &mdash; one for each production step (Kabatel, Kalaylama, İncetel, Buncher, Extruder, E-Beam, Aktarma). Each request hits <code>GET /api/stock/half-products/by-step/{step}?status_filter=available</code>. The backend queries the <code>half_product_stock</code> table filtered by <code>production_step</code> and <code>status</code>, joins with <code>production_sessions</code> to get operator name, and returns sorted results (newest first). The frontend then groups by <code>product_code</code>, calculates per-group totals, and builds the Collapse panel hierarchy.</p>
+        <p><strong>Update:</strong> Per-item edit via modal. Clicking the edit icon opens a form with three fields: <code>remaining_weight_kg</code> (required, InputNumber with min=0 and step=0.1), <code>allocation</code> (Select: ORDER or STOCK), and <code>notes</code> (TextArea). Submits <code>PUT /api/stock/half-products/{id}</code>. The backend whitelists only <code>remaining_weight_kg</code>, <code>status</code>, and <code>notes</code> for update (note: allocation is sent from frontend but the backend's <code>allowed_fields</code> list does not include it &mdash; potential inconsistency). After success, full data refresh.</p>
+        <p><strong>Delete:</strong> Confirmation modal with item QR code displayed. Calls <code>DELETE /api/stock/half-products/{id}</code>. The backend performs a <strong>cascading delete</strong>: (1) finds the linked <code>ProductionOutput</code> via <code>production_output_id</code> or fallback <code>output_code</code> matching and deletes it, (2) checks if the deleted item's QR number was the highest in its prefix sequence (e.g., X150 is the highest X-prefix) &mdash; if so, decrements <code>HalfProductSequence.last_number</code> to allow reuse, (3) deletes the stock record itself. This cascade ensures that deleting from stock doesn't leave orphaned production output records or broken QR sequences.</p>
+
+        <h3 id="urun-stok-api">6.3.3 &mdash; Data Source and API Architecture</h3>
+        <p>Unlike Hammadde Stok which borrows a single endpoint from the Hammadde module, Ürün Stok has its <strong>own dedicated backend</strong> at <code>api/stock/half_product_routes.py</code> with 6 endpoints:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Endpoint</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Method</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Purpose</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Used by frontend?</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/by-step/{step}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Primary data: all items for a step, with operator name. Joins <code>ProductionSession</code>.</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Yes (7 parallel calls on mount)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">PUT</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Update weight, status, notes</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Yes (edit modal)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DELETE</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Cascade delete: stock + production output + sequence reset</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Yes (delete confirmation)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">General listing with pagination, optional step/status filter</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">No (available for other consumers)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/summary</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Per-step counts and weights (available/total)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">No</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{qr_code}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Lookup by QR code</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">No</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Additionally, the <strong>bonded tests</strong> feature calls <code>GET /api/production/test-requests/bonded-tests/output/{output_id}</code> from the Production module's <code>test_integration_routes.py</code>. This cross-module call fetches Lab tests bonded to a specific production output, grouped by test interval (<code>üretim_başı</code>, <code>her_sepet_sonu</code>, <code>üretim_sonu</code>).</p>
+
+        <h3 id="urun-stok-db">6.3.4 &mdash; Database Schema: <code>half_product_stock</code> Table</h3>
+        <p>This is the <strong>dedicated</strong> table for this submodule &mdash; unlike Hammadde Stok which reads from the Hammadde module's <code>materials</code> table, Ürün Stok has its own table managed by <code>models/half_product_stock.py</code>.</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Column</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Type</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Business Meaning</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>qr_code</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50), unique</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Deterministic QR: X=Kabatel, Y=Kalaylama, Z=İncetel, T=Buncher, U=Extruder, G=E-Beam. Globally sequential per prefix.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>product_code</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(100)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Technical product identifier (e.g., KC_18, KL_18). Grouping key on frontend.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>production_step</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Which machine step produced this: <code>kabatel_cekme</code>, <code>kalaylama</code>, <code>incetel</code>, <code>buncher</code>, <code>extruder</code>, <code>ebeam</code>, <code>aktarma</code>.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>initial_weight_kg</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Float</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Weight when the basket came off the machine. Never changes.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>remaining_weight_kg</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Float</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Current weight after downstream consumption. Decreases as the next production step consumes this basket.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>basket_number</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Integer</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Sequential basket number within the production session.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>allocation</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(20)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>ORDER</code> = produced to fulfill a customer order. <code>STOCK</code> = excess production, free inventory.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>order_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; orders.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Which customer order this basket is allocated to (null if STOCK).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>status</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>available</code> &rarr; <code>in_use</code> &rarr; <code>consumed</code>. Also <code>reserved</code>, <code>shipped</code>, <code>defective</code>.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>production_output_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; production_outputs.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Links to the production output record. Used for bonded test lookup and cascade delete.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>session_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; production_sessions.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Which production session created this basket. Used to fetch operator name.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>work_card_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; work_cards.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Which work card (from the Order module) drove this production.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>source_qr_codes</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Text (JSON)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">JSON array of input QR codes consumed to produce this. E.g., <code>["A1","A3"]</code> for a Kabatel basket made from copper lots A1 and A3. This is the traceability chain.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>produced_at</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DateTime</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">When this basket was produced. Stored UTC, displayed as Europe/Istanbul.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>consumed_at</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DateTime, nullable</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">When this basket was fully consumed by the next production step.</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Key relationships in the ORM: <code>order</code> (Order), <code>production_output</code> (ProductionOutput), <code>session</code> (ProductionSession), <code>work_card</code> (WorkCardDB). Composite indexes on <code>(production_step, status)</code> and <code>(product_code, status)</code> optimize the primary query pattern.</p>
+        <p>The companion model <code>HalfProductSequence</code> (table <code>half_product_sequences</code>) tracks the last-used number for each prefix: <code>{'X': 150}</code> means X150 was the last Kabatel output. The prefix-to-machine mapping: <code>kabatel_cekme &rarr; X</code>, <code>kalaylama &rarr; Y</code>, <code>incetel &rarr; Z</code>, <code>buncher &rarr; T</code>, <code>extruder &rarr; U</code>, <code>ebeam &rarr; G</code>.</p>
+
+        <h3 id="urun-stok-state">6.3.5 &mdash; State Management Architecture</h3>
+        <p>The component uses 8 state variables:</p>
+        <ul>
+            <li><code>loading</code> (boolean) &mdash; global loading flag during the parallel fetch of all 7 steps</li>
+            <li><code>sectionData</code> (Record&lt;string, SectionData&gt;) &mdash; the main data store. Initialized with all 7 production step keys, each containing: <code>groups</code> (ProductGroupSummary[]), <code>loading</code>, <code>expandedKeys</code>, <code>totalItems</code>, and <code>grandTotals</code> (total/siparis/serbest). This is the heart of the page.</li>
+            <li><code>activePanels</code> (string[]) &mdash; which Collapse panels are currently open</li>
+            <li><code>editModalVisible</code> + <code>editingItem</code> &mdash; edit modal state</li>
+            <li><code>testsModalVisible</code> + <code>testsLoading</code> + <code>selectedTests</code> + <code>selectedOutputCode</code> &mdash; bonded tests modal state</li>
+        </ul>
+        <p>Data flow: <code>fetchAllData()</code> fires 7 parallel <code>request()</code> calls via <code>Promise.all()</code>. Each response is grouped by <code>product_code</code> on the client, with per-group allocation split (ORDER kg vs STOCK kg) and per-step grand totals calculated. The grouped results replace the entire <code>sectionData</code> state, preserving <code>expandedKeys</code> from the previous state so row expansions survive a refresh.</p>
+
+        <h3 id="urun-stok-panels">6.3.6 &mdash; The 7 Production Step Panels</h3>
+        <p>The page uses an Ant Design <code>Collapse</code> component with 7 panels, one for each production step. Unlike Hammadde Stok's 8 material categories (static names like "Bakır", "PVC"), these panels follow the <strong>cable manufacturing pipeline</strong>:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Key</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Label</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">QR Prefix</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">What it produces</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>kabatel_cekme</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kabatel</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">X (X1, X2...)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Raw copper drawn into 1.8mm wire</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>kalaylama</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kalaylama</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Y</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Tinned wire</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>incetel</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İncetel</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Z</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Fine wire (thinner gauge)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>buncher</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Buncher</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">T</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bundled wire strands</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>extruder</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Extruder</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">U</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Insulated cable</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>ebeam</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">E-Beam</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">G</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Electron-beam cross-linked cable</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>aktarma</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Aktarma</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">AK</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Material transfer / rewinding</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Each panel has a distinctive icon and color. The icon set uses Ant Design icons: ScissorOutlined (Kabatel), FireOutlined (Kalaylama), CompressOutlined (İncetel), ApartmentOutlined (Buncher), BuildOutlined (Extruder), ThunderboltOutlined (E-Beam), SwapOutlined (Aktarma).</p>
+
+        <h3 id="urun-stok-header-stats">6.3.7 &mdash; Panel Header: Three-Column Statistics</h3>
+        <p>Each panel header displays three right-aligned stat columns showing the <strong>allocation split</strong>:</p>
+        <ul>
+            <li><strong>Toplam (Total)</strong> &mdash; grand total kg of all available items in this production step</li>
+            <li><strong>Sipariş (Order)</strong> &mdash; total kg allocated to customer orders (green tag)</li>
+            <li><strong>Serbest (Free)</strong> &mdash; total kg of excess production / free stock (orange tag)</li>
+        </ul>
+        <p>The item count is also displayed as a tag next to the step label. When a step has no data, the stat columns remain visible but at reduced opacity, maintaining layout consistency across all panels.</p>
+
+        <h3 id="urun-stok-hierarchy">6.3.8 &mdash; Two-Level Table Hierarchy</h3>
+        <p>Inside each panel, data is displayed in a <strong>two-level hierarchy</strong> (compared to Hammadde Stok's three levels):</p>
+        <p><strong>Level 1 &mdash; Group Row (by product_code):</strong> Each row represents all baskets of a specific product code within this production step. Shows:</p>
+        <ul>
+            <li><strong>Ürün Kodu</strong> (Product Code) with item count</li>
+            <li><strong>Toplam</strong> (Total kg) &mdash; sum of all remaining weights</li>
+            <li><strong>Sipariş</strong> (Order kg) &mdash; sum of ORDER-allocated items (green tag)</li>
+            <li><strong>Serbest</strong> (Free kg) &mdash; sum of STOCK-allocated items (orange tag)</li>
+        </ul>
+        <p>Clicking the expand icon reveals...</p>
+        <p><strong>Level 2 &mdash; Individual Items:</strong> Each row is a single basket/reel with its full detail. Columns:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Column</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Description</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">The deterministic QR code (e.g., X5, Y12). Blue tag. Fixed left column.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Ağırlık</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Current remaining weight in kg (Turkish locale formatting).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Tahsis (Allocation)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">ORDER (green) or Stok (orange) tag.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Durum (Status)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Mevcut (available/green), Tüketildi (consumed/default), Rezerve (reserved/blue), Hatalı (defective/red).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İş Kartı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Work card ID as blue tag, linking this basket to its originating order task.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Üretim Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Production date/time. UTC &rarr; Europe/Istanbul conversion using dayjs plugins.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kaynak (Source)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Input QR codes (parsed from JSON). Shows first 2 codes + "..." if more. This is the traceability link to upstream materials.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Test</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Experiment icon button if <code>production_output_id</code> exists. Opens bonded tests modal.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İşlem (Actions)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Edit and Delete buttons. Fixed right column.</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3 id="urun-stok-allocation">6.3.9 &mdash; The Allocation System: ORDER vs STOCK</h3>
+        <p>This is a key concept that Ürün Stok exposes but does <strong>not</strong> control. The allocation is determined at <strong>production time</strong>, not at stock viewing time:</p>
+        <ul>
+            <li>When a production session runs against a work card, the backend tracks <strong>cumulative production</strong> against the order's required quantity.</li>
+            <li>Every basket produced while cumulative output is <strong>below</strong> the required quantity is marked <code>ORDER</code> and linked to the <code>order_id</code>.</li>
+            <li>Once cumulative output <strong>exceeds</strong> the required quantity, subsequent baskets are marked <code>STOCK</code> with null <code>order_id</code>.</li>
+        </ul>
+        <p>Ürün Stok displays this allocation split at every level: per-item (tag), per-group (two separate kg columns), and per-step (panel header stats). This gives stock managers immediate visibility into how much inventory is committed to orders versus how much is free for new orders or general use.</p>
+
+        <h3 id="urun-stok-bonded-tests">6.3.10 &mdash; Bonded Tests Modal: Lab Connection</h3>
+        <p>Items that have a <code>production_output_id</code> (virtually all items created through normal production flow) show an experiment icon in their row. Clicking it opens a modal that fetches <code>/api/production/test-requests/bonded-tests/output/{output_id}</code> and displays all quality tests bonded to that specific production output.</p>
+        <p>The response groups tests by interval:</p>
+        <ul>
+            <li><strong>Üretim Başı</strong> (Production Start) &mdash; tests run at the beginning of a session</li>
+            <li><strong>Her Sepet Sonu</strong> (Every Basket End) &mdash; per-basket tests, the most granular</li>
+            <li><strong>Üretim Sonu</strong> (Production End) &mdash; end-of-session validation tests</li>
+        </ul>
+        <p>Each test row shows: test ID (purple tag), test name, standard number (if any), interval label, and status with color-coded icon (green check for passed, red X for failed, yellow clock for pending). The data comes from the Lab module's test request system &mdash; this is a <strong>cross-module read</strong> that bridges Stock and Quality Control.</p>
+
+        <h3 id="urun-stok-source-traceability">6.3.11 &mdash; Source QR Traceability</h3>
+        <p>The <code>source_qr_codes</code> field stores a JSON array of QR codes that were consumed to produce this item. The frontend parses this JSON and displays the first 2 codes with an ellipsis if there are more. For example:</p>
+        <ul>
+            <li>A Kabatel basket X5 might show source <code>["A1", "A3"]</code> &mdash; the raw copper lots it consumed</li>
+            <li>A Kalaylama reel Y12 might show source <code>["X5", "X6"]</code> &mdash; the Kabatel outputs it consumed</li>
+        </ul>
+        <p>This creates a <strong>full material chain</strong>: raw copper (A-prefix) &rarr; kabatel wire (X-prefix) &rarr; tinned wire (Y-prefix) &rarr; fine wire (Z-prefix) &rarr; bundled wire (T-prefix) &rarr; insulated cable (U-prefix) &rarr; cross-linked cable (G-prefix). Each link is stored in <code>source_qr_codes</code>, making any basket traceable back to its raw material origin.</p>
+
+        <h3 id="urun-stok-grouping">6.3.12 &mdash; Client-Side Grouping Logic</h3>
+        <p>After the 7 parallel API responses arrive, <code>fetchAllData()</code> processes each step's data:</p>
+        <ol>
+            <li>Iterate over items, group into a <code>Record&lt;string, HalfProductStock[]&gt;</code> map by <code>product_code</code> (or "Unknown" fallback)</li>
+            <li>For each group, calculate <code>total_kg</code>, <code>siparis_kg</code> (ORDER allocation), and <code>serbest_kg</code> (STOCK allocation) by summing <code>remaining_weight_kg</code></li>
+            <li>Accumulate grand totals per step</li>
+            <li>Sort groups alphabetically by product code</li>
+            <li>Build the <code>SectionData</code> object, preserving existing <code>expandedKeys</code> so that expanded rows survive a data refresh</li>
+        </ol>
+        <p>Compared to Hammadde Stok's <code>processAndGroupMaterials()</code> function which groups by category then by material name (3 levels), Ürün Stok groups only by product_code within each step panel (2 levels), because the step panel itself acts as the top-level grouping.</p>
+
+        <h3 id="urun-stok-edit-modal">6.3.13 &mdash; The Edit Modal</h3>
+        <p>The edit modal allows modification of three fields: <code>remaining_weight_kg</code> (required numeric input with 0.1 step), <code>allocation</code> (ORDER/STOCK dropdown), and <code>notes</code> (free-text area). Compared to Hammadde Stok's 2-field modal (weight + status), this adds the allocation field. On submit, form values are sent to <code>PUT /api/stock/half-products/{id}</code>, then all data is refreshed.</p>
+        <p>Note: The backend's <code>allowed_fields</code> whitelist for the PUT endpoint is <code>['remaining_weight_kg', 'status', 'notes']</code> &mdash; it does not include <code>allocation</code>. The frontend sends allocation in the payload, but the backend silently ignores it. This means allocation is effectively <strong>read-only</strong> from this page, only changeable at production time.</p>
+
+        <h3 id="urun-stok-loading-empty">6.3.14 &mdash; Loading and Empty States</h3>
+        <p>During the parallel fetch, each panel's content area shows a centered <code>Spin</code> spinner with "Yükleniyor..." text. After loading completes, panels with no items for that production step display Ant Design's <code>Empty</code> component with the message "Bu kategoride stok bulunamadı".</p>
+
+        <h3 id="urun-stok-timezone">6.3.15 &mdash; Timezone Handling</h3>
+        <p>Identical pattern to Hammadde Stok: <code>dayjs</code> with <code>utc</code> and <code>timezone</code> plugins. All <code>produced_at</code> timestamps are stored UTC in the database and converted to <code>Europe/Istanbul</code> timezone on the frontend using <code>dayjs.utc(date).tz(TURKEY_TZ).format('DD.MM.YY HH:mm')</code>.</p>
+
+        <h3 id="urun-stok-connections">6.3.16 &mdash; Connection to Other Modules</h3>
+        <p>Ürün Stok is the most <strong>interconnected</strong> of the three Stock submodules. It touches every major module:</p>
+        <ul>
+            <li><strong>Production &rarr; Üretim Listesi (upstream writer):</strong> Every record in <code>half_product_stock</code> was created during a production session. The <code>session_id</code> and <code>production_output_id</code> columns directly link back to the Production module's data. The backend even joins with <code>ProductionSession</code> to return operator names.</li>
+            <li><strong>Production &rarr; Üretim Geçmişi (parallel view):</strong> Production History shows the same production outputs but organized by session and time. Ürün Stok reorganizes the same underlying data by <em>product code and step</em>, providing an inventory-centric rather than session-centric view.</li>
+            <li><strong>Production &rarr; Downstream consumption:</strong> When the <em>next</em> production step consumes a basket (e.g., Kalaylama consumes X-coded Kabatel output), the basket's <code>remaining_weight_kg</code> decreases, <code>status</code> changes to <code>in_use</code> or <code>consumed</code>, and <code>consumed_at</code> is filled. These items stop appearing on this page because the default filter is <code>status_filter=available</code>.</li>
+            <li><strong>Order Module (allocation source):</strong> The <code>allocation</code> (ORDER/STOCK) and <code>order_id</code> are set at production time based on cumulative output vs. order requirements. The <code>work_card_id</code> column traces each basket to its originating work card from the Order module.</li>
+            <li><strong>Lab Module &rarr; Test Yönetimi (quality bridge):</strong> The bonded tests modal fetches test results from the Lab's <code>test_integration_routes.py</code>. Tests are bonded to production outputs by the Lab system during or after production. Ürün Stok is the <strong>only Stock submodule</strong> that directly reads Lab data.</li>
+            <li><strong>Hammadde Module (source material):</strong> The <code>source_qr_codes</code> field contains references to raw material QR codes (A-prefix for copper, etc.) from the Hammadde module. While Ürün Stok doesn't query the <code>materials</code> table, the traceability chain connects the two modules at the data level.</li>
+        </ul>
+
+        <h3 id="urun-stok-not">6.3.17 &mdash; What This Submodule Does NOT Do</h3>
+        <ul>
+            <li>It does <strong>not</strong> create inventory &mdash; that happens exclusively in the Production module during active sessions.</li>
+            <li>It does <strong>not</strong> show consumed or shipped items &mdash; the default filter <code>status_filter=available</code> hides completed lifecycle items.</li>
+            <li>It does <strong>not</strong> have a search bar &mdash; navigation is done by expanding step panels and group rows.</li>
+            <li>It does <strong>not</strong> support bulk operations &mdash; no multi-select, no batch allocation change, no batch delete.</li>
+            <li>It does <strong>not</strong> actually modify allocation &mdash; while the edit modal presents an allocation dropdown, the backend silently ignores it (not in <code>allowed_fields</code>).</li>
+            <li>It does <strong>not</strong> use WebSocket or real-time updates &mdash; data is fetched on mount and manually via the Refresh button.</li>
+            <li>It does <strong>not</strong> display the <code>initial_weight_kg</code> &mdash; only <code>remaining_weight_kg</code> is shown, so there is no consumption percentage visualization (unlike Hammadde Stok's color-coded weight column).</li>
+            <li>It does <strong>not</strong> have conditional weight coloring &mdash; unlike Hammadde Stok which colors weights yellow/red based on consumption ratio, this page shows all weights in plain text.</li>
+            <li>It does <strong>not</strong> include the <code>aktarma</code> step in the backend's <code>ProductionStep</code> enum or <code>MACHINE_TO_PREFIX</code> mapping &mdash; the frontend defines 7 steps but the backend enum only has 6, suggesting Aktarma is a newer addition.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Ürün Stok vs Hammadde Stok &mdash; same shell, different engine:</strong> The visual layout is nearly identical (Collapse panels, grouped tables, edit modal, refresh button), but the underlying data model is fundamentally different. Hammadde Stok reads from the Hammadde module's <code>materials</code> table with a single API call and groups by material category/name. Ürün Stok reads from its own <code>half_product_stock</code> table with 7 parallel API calls, groups by product_code, and adds the ORDER/STOCK allocation split, Lab test integration, source QR traceability, and production session linkage. Hammadde Stok is a read-only window into raw inputs. Ürün Stok is a read-and-manage window into production outputs with deep cross-module connections to Production, Lab, and Order modules.</p>
+        </div>
 
         <!-- placeholder: Section 7 CONCLUSION will be added here -->
 
