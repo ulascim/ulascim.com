@@ -1220,7 +1220,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
 
         <h3>6.3.1 Purpose and Business Context</h3>
 
-        <p>The ERP includes an AI assistant currently powered by Google Gemini via API integration (with OpenAI and Anthropic Claude prepared for future activation). The assistant can answer questions about orders, materials, production, and inventory by calling internal APIs on behalf of users. <strong>AI Ayarlar&inodot;</strong> is the configuration and monitoring center for this assistant: API key management, model selection, parameter tuning, usage statistics, and a comprehensive audit trail of every AI interaction.</p>
+        <p>The ERP includes an AI assistant currently powered by Google Gemini via API integration (with OpenAI and Anthropic Claude fully integrated and ready). The assistant can answer questions about orders, materials, production, and inventory by calling internal APIs on behalf of users. <strong>AI Ayarlar&inodot;</strong> is the configuration and monitoring center for this assistant: API key management, model selection, parameter tuning, usage statistics, and a comprehensive audit trail of every AI interaction.</p>
 
         <p>The current API-based integration is a <strong>fast-track demo layer</strong> &mdash; it provides immediate AI capabilities while the long-term vision develops in parallel. The roadmap is to build and deploy <strong>custom, locally-hosted models</strong> across the entire factory: production optimization, quality control, predictive maintenance, anomaly detection &mdash; essentially invisible AI agents that monitor and control everything constantly. For the language/search component specifically, a lightweight ~1B parameter model (such as Qwen or similar) will be fine-tuned for ERP-specific search query understanding, replacing the external API dependency entirely. The multi-provider architecture in this settings page was designed with this transition in mind &mdash; swapping from an external API to a local model endpoint is a configuration change, not a rewrite.</p>
 
@@ -1320,8 +1320,8 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
         <table>
             <tr><th>Provider</th><th>Env Variable</th><th>Key Prefix</th><th>Models</th><th>Status</th></tr>
             <tr><td><strong>Google Gemini</strong></td><td><code>GEMINI_API_KEY</code></td><td><code>AIza</code></td><td>gemini-3-flash (recommended), gemini-3-pro, gemini-2.5-flash, gemini-2.5-pro</td><td>Active</td></tr>
-            <tr><td><strong>OpenAI</strong></td><td><code>OPENAI_API_KEY</code></td><td><code>sk-</code></td><td>gpt-5.2 (recommended), gpt-5-mini, o3, gpt-4.1</td><td>Coming Soon</td></tr>
-            <tr><td><strong>Anthropic Claude</strong></td><td><code>ANTHROPIC_API_KEY</code></td><td><code>sk-ant-</code></td><td>claude-sonnet-4-5 (recommended), claude-opus-4-5, claude-haiku-4-5</td><td>Coming Soon</td></tr>
+            <tr><td><strong>OpenAI</strong></td><td><code>OPENAI_API_KEY</code></td><td><code>sk-</code></td><td>gpt-5.2 (recommended), gpt-5-mini, o3, gpt-4.1</td><td>Active</td></tr>
+            <tr><td><strong>Anthropic Claude</strong></td><td><code>ANTHROPIC_API_KEY</code></td><td><code>sk-ant-</code></td><td>claude-sonnet-4-5 (recommended), claude-opus-4-5, claude-haiku-4-5</td><td>Active</td></tr>
         </table>
 
         <h4>Key Storage Architecture</h4>
@@ -1382,7 +1382,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
             </div>
             <div class="arch-box">
                 <h4>Tab 2: API Anahtarlar&inodot; (API Keys)</h4>
-                <p>3 provider cards (Gemini, OpenAI, Claude) each with: provider logo, &ldquo;Aktif&rdquo;/&ldquo;Yak&inodot;nda&rdquo; tag, masked key display, password input, save/test/delete buttons, and link to provider&rsquo;s API console. Plus AI service account status card.</p>
+                <p>3 provider cards (Gemini, OpenAI, Claude) each with: provider logo, &ldquo;Aktif&rdquo; status tag, masked key display, password input, save/test/delete buttons, and link to provider&rsquo;s API console. Plus AI service account status card.</p>
             </div>
             <div class="arch-box">
                 <h4>Tab 3: Model Ayarlar&inodot; (Model Settings)</h4>
@@ -1422,7 +1422,7 @@ lpoptions -p Printer_192_168_0_182 -o media=A6</pre>
         </div>
 
         <div class="discovery">
-            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The AI system follows a <em>control plane / data plane</em> separation. The control plane (this settings page) manages configuration, keys, and monitoring. The data plane (the external <code>SolenAIAgent</code>) handles actual query processing. This separation means the AI agent can be upgraded, swapped, or scaled independently of the ERP backend. The 47-column audit log is deliberately over-engineered &mdash; it captures far more context than needed for basic logging, because AI forensics requires understanding not just <em>what</em> the AI did, but <em>why</em> it chose that action and what alternatives it considered. The multi-provider architecture (Gemini active, OpenAI/Claude ready) means switching AI providers is a configuration change, not a code change.</p>
+            <p style="margin-bottom: 0;"><strong>Architecture insight:</strong> The AI system follows a <em>control plane / data plane</em> separation. The control plane (this settings page) manages configuration, keys, and monitoring. The data plane (the external <code>SolenAIAgent</code>) handles actual query processing. This separation means the AI agent can be upgraded, swapped, or scaled independently of the ERP backend. The 47-column audit log is deliberately over-engineered &mdash; it captures far more context than needed for basic logging, because AI forensics requires understanding not just <em>what</em> the AI did, but <em>why</em> it chose that action and what alternatives it considered. The multi-provider architecture (all 3 providers &mdash; Gemini, OpenAI, and Claude &mdash; fully integrated with 30+ models available) means switching AI providers is a configuration change, not a code change.</p>
         </div>
 
         <!-- ============================================ -->
