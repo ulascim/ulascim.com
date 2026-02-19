@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratory Module | Cable Factory ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body { font-family: 'IBM Plex Mono', monospace; background: var(--bg); color: var(--fg); font-size: 12px; line-height: 1.3; }
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report h4 { font-size: 12px; margin-top: 14px; margin-bottom: 6px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report ol { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report ol li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 2px solid #000; }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .decorator { color: #dcdcaa; }
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+        .report .philosophy { background: #faf5ff; padding: 12px; margin: 12px 0; border: 1px solid #7c3aed; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
+        .flow { display: flex; align-items: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .flow-box { padding: 8px 14px; border: 2px solid #000; font-size: 12px; font-weight: 700; text-align: center; min-width: 100px; }
+        .flow-arrow { font-size: 18px; font-weight: 700; }
+        .flow-box.done { background: #dcfce7; border-color: #16a34a; }
+        .flow-box.active { background: #dbeafe; border-color: #2563eb; }
+        .flow-box.pending { background: #f3f4f6; }
+        .arch-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .arch-box h4 { font-size: 14px; margin-bottom: 8px; margin-top: 0; }
+        .arch-box p { font-size: 12px; line-height: 1.5; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+
+        .submod-card { background: #fff; border: 2px solid #000; padding: 16px; margin: 10px 0; display: flex; align-items: flex-start; gap: 16px; }
+        .submod-num { background: #000; color: #fff; font-size: 13px; font-weight: 700; min-width: 36px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .submod-body { flex: 1; }
+        .submod-body h4 { font-size: 14px; margin: 0 0 4px 0; }
+        .submod-body p { font-size: 12px; color: #555; margin: 0 0 6px 0; line-height: 1.4; }
+        .submod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .submod-tag { font-size: 10px; padding: 2px 6px; background: #f3f4f6; border: 1px solid #d1d5db; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { flex-direction: column; align-items: stretch; }
+            .flow-arrow { transform: rotate(90deg); text-align: center; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-mod-lab-tr.html" class="nav-link-small">TR</a>
+                <span class="nav-divider">|</span>
+                <a href="erp-mod-lab.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
+        <h1>LABORATORY &mdash; QUALITY TESTING &amp; COMPLIANCE</h1>
+        <p class="subtitle">The quality gatekeeper of the factory. Every cable produced must pass through lab testing at defined intervals before it can move to the next production step or ship to a customer. The Lab module bridges Teknik (test standards), Production (test requests), and Quality (pass/fail with measurements).</p>
+        <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
+
+        <div class="abstract">
+            <p style="margin-bottom: 0;"><strong>The Laboratory module is the factory&rsquo;s quality conscience.</strong> It does not create work &mdash; it receives work from Production in the form of test requests that are automatically generated at three critical intervals: production start, after every basket/reel output, and production end. These intervals are not arbitrary; they are defined in the cable design during the Teknik phase and embedded into work cards. When a test request arrives, a lab user opens a dynamically-generated measurement form whose fields, units, sample counts, and parameters are all pulled from the test standard &mdash; no two test forms look alike. The lab user records measurements, marks the test as passed or failed, and the system notifies the production operator. If a test fails, the system automatically creates a retry request. Tests are bonded to specific production outputs, creating full traceability from a finished cable reel back to every quality check it underwent. The Lab module is the reason the factory can prove compliance to IEC-EN, UL, and custom SLN standards.</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value" style="color: var(--accent);">2</div>
+                <div class="label">PAGES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--turquoise);">~20</div>
+                <div class="label">API ENDPOINTS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">5</div>
+                <div class="label">DATABASE TABLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" style="color: var(--positive);">1900+</div>
+                <div class="label">LINES OF CODE</div>
+            </div>
+        </div>
+
+        <!-- TABLE OF CONTENTS -->
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> What Laboratory Does</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> The Data Flow</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> The Database Layer</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> The Backend Architecture</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> The Frontend</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Lab Panel (Dashboard)</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Test Y&ouml;netimi (Test Management)</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Conclusion</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. WHAT LABORATORY DOES</h2>
+        <!-- ============================================ -->
+
+        <p>The Laboratory module answers four questions that the entire production system depends on:</p>
+
+        <ol>
+            <li><strong>&ldquo;Does this material meet the standard?&rdquo;</strong> &mdash; Every cable design specifies which tests must be performed and at what frequency. The Lab executes these tests and records quantitative measurements against defined parameters.</li>
+            <li><strong>&ldquo;Can production continue?&rdquo;</strong> &mdash; Production pages poll test status every 5 seconds. If tests for a given interval are still pending or have failed, the operator sees the status. Passing all tests clears the path for the next step.</li>
+            <li><strong>&ldquo;What happened when a test failed?&rdquo;</strong> &mdash; Failed tests automatically create retry requests. The retry chain is tracked via <code>parent_request_id</code>, so the system knows this is the 2nd or 3rd attempt at the same test for the same output.</li>
+            <li><strong>&ldquo;Can we prove compliance?&rdquo;</strong> &mdash; Every test result is permanently linked to the specific production output (basket/reel) it covers. Tests are bonded to outputs either directly (<code>output_id</code>) or at the lot level (<code>linked_output_ids</code>). This creates an unbroken traceability chain from finished product back through every quality check.</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Key architectural insight:</strong> The Lab module does not define what tests to run &mdash; that comes from the Teknik module&rsquo;s test standards and the cable design. The Lab module does not decide when to run them &mdash; that comes from the Production module which creates test requests at design-specified intervals. The Lab module&rsquo;s sole responsibility is <em>execution and recording</em>: receive a test request, generate the measurement form, capture results, and report back. This separation makes it impossible for production to skip a required test, because the tests are embedded in the design itself.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. THE DATA FLOW</h2>
+        <!-- ============================================ -->
+
+        <p>The Lab module sits at the intersection of three other modules. Data flows <em>into</em> Lab from Teknik and Production, and results flow <em>out</em> back to Production and the notification system.</p>
+
+        <h3>2.1 The Test Request Lifecycle</h3>
+
+        <div class="flow">
+            <span class="flow-step">Cable Design (Teknik)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Tests embedded in Work Card</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Production starts session</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&uuml;retim_ba&#351;&inodot; tests created</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Output recorded (basket)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">her_sepet_sonu tests created</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Notification &rarr; Lab users</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Lab executes test</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Production ends session</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">&uuml;retim_sonu tests created</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">All tests bonded to outputs</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Full traceability</span>
+        </div>
+
+        <h3>2.2 The Three Test Intervals</h3>
+
+        <table>
+            <tr><th>Interval</th><th>Turkish Name</th><th>When Created</th><th>Scope</th><th>Bonding</th></tr>
+            <tr><td><strong>&uuml;retim_ba&#351;&inodot;</strong></td><td>&Uuml;retim Ba&#351;&inodot;</td><td>Session start</td><td>Entire production lot</td><td>Linked to first output (or all outputs via <code>linked_output_ids</code>)</td></tr>
+            <tr><td><strong>her_sepet_sonu</strong></td><td>Her Sepet Sonu</td><td>After each output</td><td>Specific basket/reel</td><td>Directly linked via <code>output_id</code></td></tr>
+            <tr><td><strong>&uuml;retim_sonu</strong></td><td>&Uuml;retim Sonu</td><td>Session end</td><td>Entire production lot</td><td>Linked to last output (or all outputs via <code>linked_output_ids</code>)</td></tr>
+        </table>
+
+        <p>These intervals are not hard-coded in the Lab module. They come from the cable design&rsquo;s <code>material_details.tests[].frequency</code> field, which supports comma-separated values (e.g., <code>"&uuml;retim_ba&#351;&inodot;,her_sepet_sonu"</code> means a test runs both at start and after every basket).</p>
+
+        <h3>2.3 What Happens When a Test Fails</h3>
+
+        <div class="flow">
+            <span class="flow-step">Lab marks test FAILED</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">System creates retry request</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">retry_count + 1, parent_request_id set</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Notification &rarr; Operator + Admins</span>
+        </div>
+
+        <p>The retry mechanism is automatic. When a lab user marks a test as failed, the backend immediately creates a new <code>ProductionTestRequest</code> with <code>retry_count = original + 1</code> and <code>parent_request_id = original.id</code>. This chains retries together for full audit history. The new request appears in the Lab&rsquo;s pending queue, and the production operator receives a high-priority notification.</p>
+
+        <h3>2.4 The Notification Bridge</h3>
+
+        <table>
+            <tr><th>Event</th><th>Recipients</th><th>Priority</th><th>Deep Link</th></tr>
+            <tr><td>Test request created</td><td>All <code>lab_user</code> + <code>super_admin</code> (excludes requester)</td><td>High</td><td><code>/lab/test</code> with session_id, work_card_id</td></tr>
+            <tr><td>Test passed</td><td>Requester + <code>super_admin</code> (excludes tester)</td><td>Medium</td><td><code>/lab/test</code> with test_request_id</td></tr>
+            <tr><td>Test failed</td><td>Requester + <code>super_admin</code> (excludes tester)</td><td>High</td><td><code>/lab/test</code> with test_request_id, retry_request_id</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. THE DATABASE LAYER</h2>
+        <!-- ============================================ -->
+
+        <p>The Lab module uses 5 tables. Two are the core test request tables (legacy + production-integrated), and three come from the Teknik module&rsquo;s test standards system.</p>
+
+        <h3>3.1 production_test_requests (20 columns) &mdash; The Primary Table</h3>
+
+        <p>This is the real workhorse. Every test request created by Production lives here.</p>
+
+        <table>
+            <tr><th>Column</th><th>Type</th><th>Details</th></tr>
+            <tr><td><code>id</code></td><td>Integer PK</td><td>Auto-increment, indexed</td></tr>
+            <tr><td><code>work_card_id</code></td><td>Integer FK</td><td>References <code>work_cards.id</code>, indexed</td></tr>
+            <tr><td><code>session_id</code></td><td>Integer FK</td><td>References <code>production_sessions.id</code>, indexed</td></tr>
+            <tr><td><code>output_id</code></td><td>Integer FK</td><td>References <code>production_outputs.id</code> &mdash; set for <code>her_sepet_sonu</code> tests</td></tr>
+            <tr><td><code>linked_output_ids</code></td><td>JSON</td><td>Array of output IDs for lot-level tests (&uuml;retim_ba&#351;&inodot;, &uuml;retim_sonu)</td></tr>
+            <tr><td><code>test_standard_id</code></td><td>Integer FK</td><td>References <code>test_standards.id</code></td></tr>
+            <tr><td><code>machine_type</code></td><td>String(50)</td><td>Which machine: kabatel_cekme, kalaylama, incetel_cekme, buncher, extruder, ebeam</td></tr>
+            <tr><td><code>test_interval</code></td><td>String(50)</td><td><code>&uuml;retim_ba&#351;&inodot;</code> / <code>her_sepet_sonu</code> / <code>&uuml;retim_sonu</code></td></tr>
+            <tr><td><code>input_slot</code></td><td>Integer</td><td>0 or 1 for parallel production mode</td></tr>
+            <tr><td><code>retry_count</code></td><td>Integer</td><td>Default 0. Incremented on each retry.</td></tr>
+            <tr><td><code>parent_request_id</code></td><td>Integer FK</td><td>Self-reference &mdash; points to original failed test</td></tr>
+            <tr><td><code>status</code></td><td>Enum</td><td><code>PENDING</code> / <code>PASSED</code> / <code>FAILED</code></td></tr>
+            <tr><td><code>measurements</code></td><td>JSON</td><td>Structure: <code>{ samples: [{ sample_num, params: { name: value } }] }</code></td></tr>
+            <tr><td><code>requested_by</code></td><td>Integer FK</td><td>User who triggered creation (usually production operator)</td></tr>
+            <tr><td><code>requested_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>tested_by</code></td><td>Integer FK</td><td>Lab user who completed the test</td></tr>
+            <tr><td><code>tested_at</code></td><td>DateTime</td><td>When test was completed</td></tr>
+            <tr><td><code>notes</code></td><td>Text</td><td>Lab user notes</td></tr>
+            <tr><td><code>created_at</code></td><td>DateTime</td><td>UTC</td></tr>
+            <tr><td><code>updated_at</code></td><td>DateTime</td><td>Auto-updated</td></tr>
+        </table>
+
+        <h3>3.2 test_requests (15 columns) &mdash; Legacy Table</h3>
+        <p>The original test request system, still operational for backward compatibility. Uses <code>material_id</code> and <code>material_qr</code> instead of work card/session linkage. Status enum differs: <code>test_bekleniyor</code>, <code>test_basarili</code>, <code>test_basarisiz</code>, <code>iptal</code>. The production-integrated <code>production_test_requests</code> table is the primary system going forward.</p>
+
+        <h3>3.3 test_standards (from Teknik module)</h3>
+        <p>Defines <em>what</em> to test. Each standard has a category (IEC-EN, UL, SLN), test name, number of required samples, test method, and a set of parameters. Lab reads this to generate dynamic measurement forms.</p>
+
+        <table>
+            <tr><th>Column</th><th>Details</th></tr>
+            <tr><td><code>standard_category</code></td><td>IEC-EN, UL, or SLN (custom factory standard)</td></tr>
+            <tr><td><code>test_name</code> / <code>test_name_en</code></td><td>Turkish and English test names</td></tr>
+            <tr><td><code>standard_number</code></td><td>Reference standard (e.g., &ldquo;IEC 60228&rdquo;)</td></tr>
+            <tr><td><code>test_samples</code></td><td>Number of samples required (&ge; 1)</td></tr>
+            <tr><td><code>test_method</code></td><td>Description of how to perform the test</td></tr>
+        </table>
+
+        <h3>3.4 test_parameters (from Teknik module)</h3>
+        <p>Each test standard has one or more parameters. These are the actual measurement fields that appear in the lab&rsquo;s dynamic form.</p>
+
+        <table>
+            <tr><th>Column</th><th>Details</th></tr>
+            <tr><td><code>parameter_name</code></td><td>e.g., &ldquo;Diameter&rdquo;, &ldquo;Resistance&rdquo;, &ldquo;Tensile Strength&rdquo;</td></tr>
+            <tr><td><code>parameter_unit</code></td><td>e.g., &ldquo;mm&rdquo;, &ldquo;&Omega;/km&rdquo;, &ldquo;N/mm&sup2;&rdquo;</td></tr>
+            <tr><td><code>parameter_order</code></td><td>Display order in the form</td></tr>
+            <tr><td><code>is_required</code></td><td>Whether measurement is mandatory</td></tr>
+        </table>
+
+        <h3>3.5 test_results (from Teknik module)</h3>
+        <p>Stores historical test results linked to cable batches. Includes <code>pass_fail</code> status (PASS/FAIL/PENDING), <code>measurements</code> JSON, and links to the test standard and production session.</p>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Dual-system architecture:</strong> The database has both <code>test_requests</code> (legacy, material-based) and <code>production_test_requests</code> (current, production-based). The legacy system was the first implementation, linking tests to raw materials. The production system evolved to link tests to work cards, sessions, and specific outputs. Both coexist &mdash; the legacy endpoints are still functional but the production-integrated system is what drives the factory floor today.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. THE BACKEND ARCHITECTURE</h2>
+        <!-- ============================================ -->
+
+        <h3>4.1 Route Files</h3>
+
+        <table>
+            <tr><th>File</th><th>Lines</th><th>Prefix</th><th>Endpoints</th><th>Purpose</th></tr>
+            <tr><td><code>test_routes.py</code></td><td>318</td><td><code>/api/test-requests</code></td><td>6</td><td>Legacy test request CRUD. Create, list, get, complete, update, delete.</td></tr>
+            <tr><td><code>test_integration_routes.py</code></td><td>745</td><td><code>/api/production/test-requests</code></td><td>9</td><td>Production-integrated test system. Create for interval, check status, pending, all, details, complete, delete, bonded tests by output ID and output code.</td></tr>
+        </table>
+
+        <h3>4.2 API Contract &mdash; Production Test Endpoints (9)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/production/test-requests/create-for-interval</code></td><td>authenticated</td><td>Create test requests for a specific interval. Reads tests from work card&rsquo;s <code>material_details.tests</code>, filters by frequency, creates <code>ProductionTestRequest</code> per matching test. Sends notifications to lab users.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/check-status/{session_id}/{interval}</code></td><td>authenticated</td><td>Check if all tests for an interval are passed. Returns <code>all_passed</code> boolean, pending/failed/passed counts, and lists of pending/failed tests. Used by production frontend for status polling.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/pending/{session_id}</code></td><td>authenticated</td><td>Get all pending tests for a session. Eager-loads test_standard and requester.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/all</code></td><td>authenticated</td><td>Get all production test requests (for Lab page). Includes machine names, test standard info. Filterable by status. Limit default 50.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/{test_id}</code></td><td>authenticated</td><td>Get a specific test request with full details: test standard with sorted parameters, work card info.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/production/test-requests/{test_id}/complete</code></td><td>lab_user, super_admin</td><td>Complete a test. Sets status to PASSED or FAILED, stores measurements JSON, records tester. If failed: auto-creates retry request. Sends notifications.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/production/test-requests/{test_id}</code></td><td>super_admin</td><td>Delete a test request.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/bonded-tests/output/{output_id}</code></td><td>authenticated</td><td>Get all tests bonded to a specific output. Includes direct (output_id match), lot-level (linked_output_ids contains), and legacy (session match). Groups by interval.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/production/test-requests/bonded-tests/output-code/{output_code}</code></td><td>authenticated</td><td>Same as above but by output code (e.g., X1, X2). Resolves code to ID internally.</td></tr>
+        </table>
+
+        <h3>4.3 Legacy Test Endpoints (6)</h3>
+
+        <table>
+            <tr><th>Method</th><th>Path</th><th>Permission</th><th>What It Does</th></tr>
+            <tr><td><code>POST</code></td><td><code>/api/test-requests/</code></td><td>authenticated</td><td>Create legacy test request (material-based).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/test-requests/</code></td><td>authenticated</td><td>List legacy test requests with filters.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/test-requests/{id}</code></td><td>authenticated</td><td>Get specific legacy test request.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/test-requests/{id}/complete</code></td><td>lab_user, super_admin</td><td>Complete legacy test with pass/fail and results.</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/test-requests/{id}</code></td><td>super_admin</td><td>Update legacy test request.</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/test-requests/{id}</code></td><td>super_admin</td><td>Delete legacy test request.</td></tr>
+        </table>
+
+        <h3>4.4 How Production Creates Test Requests</h3>
+
+        <p>Test requests are <strong>not</strong> created by the Lab module. They are created by <strong>Production</strong> at three points in the session lifecycle:</p>
+
+        <ol>
+            <li><strong>Session start</strong> (<code>POST /api/production/start-session</code>): reads <code>work_card.material_details.tests</code>, filters for <code>&uuml;retim_ba&#351;&inodot;</code> frequency, creates one <code>ProductionTestRequest</code> per matching test (one per slot in parallel mode).</li>
+            <li><strong>Output recording</strong> (<code>POST /api/production/record-output</code>): filters for <code>her_sepet_sonu</code> frequency, creates test requests linked to the specific <code>output_id</code>.</li>
+            <li><strong>Session end</strong> (<code>POST /api/production/end-session</code>): filters for <code>&uuml;retim_sonu</code> frequency, creates test requests, then links lot-level tests (&uuml;retim_ba&#351;&inodot; and &uuml;retim_sonu) to all relevant outputs via <code>linked_output_ids</code>.</li>
+        </ol>
+
+        <h3>4.5 The Bonded Tests System</h3>
+
+        <p>Tests are bonded to production outputs in three ways, checked in this order:</p>
+
+        <ol>
+            <li><strong>Direct bond:</strong> <code>output_id</code> matches the output &mdash; used for <code>her_sepet_sonu</code> tests that apply to a single basket/reel.</li>
+            <li><strong>Lot-level bond:</strong> <code>session_id</code> matches AND <code>test_interval</code> is <code>&uuml;retim_ba&#351;&inodot;</code> or <code>&uuml;retim_sonu</code> &mdash; these lot-level tests apply to all outputs in the session.</li>
+            <li><strong>Legacy bond:</strong> <code>session_id</code> matches AND <code>output_id IS NULL</code> AND <code>linked_output_ids IS NULL</code> &mdash; backward compatibility for old test requests.</li>
+        </ol>
+
+        <p>The <code>GET /bonded-tests/output/{output_id}</code> endpoint returns tests grouped by interval, giving a complete quality picture for any single output.</p>
+
+        <h3>4.6 Parallel Production Support</h3>
+
+        <p>Some machines (e.g., OTOMEC Kalaylama, CGN E-beam) support parallel processing with two input slots. The Lab module handles this through the <code>input_slot</code> field (0 or 1). At session start and end, one test request is created per slot for lot-level tests. Slot-specific outputs are linked via <code>source_qr_codes</code> in <code>HalfProductStock</code>.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. THE FRONTEND</h2>
+        <!-- ============================================ -->
+
+        <h3>5.1 Page Structure</h3>
+
+        <table>
+            <tr><th>Route</th><th>Component</th><th>Lines</th><th>Purpose</th></tr>
+            <tr><td><code>/lab/dashboard</code></td><td><code>Lab/Dashboard/index.tsx</code></td><td>133</td><td>Overview panel with statistics cards and alert/test tables. Currently uses mock data &mdash; will be connected to real APIs.</td></tr>
+            <tr><td><code>/lab/test</code></td><td><code>Lab/Test/index.tsx</code></td><td>803</td><td>The primary Lab page. ProTable of all production test requests with dynamic measurement forms, completion workflow, and result viewing.</td></tr>
+        </table>
+
+        <h3>5.2 The Test Page &mdash; Core Lab Interface</h3>
+
+        <p>This is where lab users spend most of their time. It shows all production test requests in a ProTable with 9 columns and supports the complete test lifecycle.</p>
+
+        <h4>ProTable Columns (9)</h4>
+        <table>
+            <tr><th>#</th><th>Column</th><th>Width</th><th>Details</th></tr>
+            <tr><td>1</td><td>Kod</td><td>70px, fixed left</td><td>Purple tag: <code>L{id}</code></td></tr>
+            <tr><td>2</td><td>Test</td><td>auto</td><td>Test name + standard number</td></tr>
+            <tr><td>3</td><td>&#304;&#351; Kart&inodot;</td><td>80px</td><td>Blue tag: <code>#{work_card_id}</code></td></tr>
+            <tr><td>4</td><td>Makine</td><td>150px</td><td>Machine name (Turkish)</td></tr>
+            <tr><td>5</td><td>Aral&inodot;k</td><td>100px</td><td>Interval tag: &Uuml;retim Ba&#351;&inodot; / Her Sepet / &Uuml;retim Sonu</td></tr>
+            <tr><td>6</td><td>Talep</td><td>130px</td><td>Requested at (DD.MM.YY HH:mm, Turkey timezone)</td></tr>
+            <tr><td>7</td><td>Durum</td><td>100px</td><td>Status tag: Beklemede (orange), Onayland&inodot; (green + check), Ba&#351;ar&inodot;s&inodot;z (red + X)</td></tr>
+            <tr><td>8</td><td>Test Eden</td><td>100px</td><td>Tester name or &ldquo;-&rdquo;</td></tr>
+            <tr><td>9</td><td>&#304;&#351;lemler</td><td>140px, fixed right</td><td>Conditional: &ldquo;Test Ba&#351;lat&rdquo; (pending + lab_user), &ldquo;G&ouml;r&uuml;nt&uuml;le&rdquo; (completed), Delete (super_admin)</td></tr>
+        </table>
+
+        <h4>Dynamic Test Forms</h4>
+        <p>When a lab user clicks &ldquo;Test Ba&#351;lat&rdquo;, the system fetches the full test standard from <code>GET /api/teknik/standards/tests/{id}/full</code> including all parameters. The form is generated dynamically:</p>
+
+        <ul>
+            <li>For each <strong>sample</strong> (1 to <code>test_samples</code>): a divider &ldquo;Numune {n}&rdquo;</li>
+            <li>For each <strong>parameter</strong> within each sample: an <code>InputNumber</code> field with the parameter name as label, unit as addon, min/max bounds, step 0.01, and required flag</li>
+            <li>A <strong>notes</strong> textarea at the bottom</li>
+            <li>Three action buttons: Cancel, <span class="bad">Ba&#351;ar&inodot;s&inodot;z</span> (Failed, danger), <span class="good">Onayland&inodot;</span> (Passed, primary)</li>
+        </ul>
+
+        <p>The measurement data is assembled into a structured JSON: <code>{ samples: [{ sample_num: 1, params: { "Diameter": 1.82, "Resistance": 9.45 } }] }</code></p>
+
+        <h4>Real-Time Updates</h4>
+        <p>The test list polls every <strong>5 seconds</strong> via <code>setInterval(fetchTestRequests, 5000)</code>. No WebSocket is used for the Lab page &mdash; polling was chosen for simplicity and reliability.</p>
+
+        <h4>Result Viewing</h4>
+        <p>Clicking &ldquo;G&ouml;r&uuml;nt&uuml;le&rdquo; on a completed test opens a read-only modal with a compact measurement table: column headers are parameter names (with units), rows are samples, cells are recorded values. Notes are shown below the table.</p>
+
+        <h3>5.3 The Dashboard &mdash; Overview Panel</h3>
+
+        <p>Currently shows 4 statistic cards (Pending Alerts, Active Tests, Completed Tests, Today&rsquo;s Tests) and two tables (Pending Lab Alerts, Active Test Processes). All data is currently <strong>mock/hardcoded</strong> &mdash; this is a prepared shell that will be connected to real APIs as the Lab module matures.</p>
+
+        <h3>5.4 Client-Side Search</h3>
+        <p>The Test page implements comprehensive client-side search filtering across: test code (<code>L{id}</code>), test name, standard number, work card ID, machine name/type, interval text, tester name, and status (in Turkish).</p>
+
+        <h3>5.5 Permission System</h3>
+
+        <table>
+            <tr><th>Page</th><th>Route Guard</th><th>Buttons in Manifest</th></tr>
+            <tr><td>Lab Dashboard</td><td><code>canLab</code></td><td><code>access_page</code>, <code>view_stats</code></td></tr>
+            <tr><td>Lab Test</td><td><code>canLab</code></td><td><code>access_page</code>, <code>create_test</code>, <code>view_tests</code></td></tr>
+        </table>
+
+        <p>User type checks in the Test page: <code>isLabUser</code> (lab_user or super_admin) can start/complete tests. <code>isSuperAdmin</code> can delete test requests. Regular users have read-only access.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. LAB PANEL (DASHBOARD)</h2>
+        <!-- ============================================ -->
+
+        <h3>6.1 Purpose</h3>
+        <p>The Lab Panel is the landing page for laboratory users at <code>/lab/dashboard</code>. Its purpose is to provide an at-a-glance overview of the lab&rsquo;s workload: how many alerts are pending, how many tests are active, how many were completed, and what happened today. It is the first thing a lab user sees after logging in.</p>
+
+        <h3>6.2 Current Status &mdash; Prepared Shell</h3>
+        <p>The Dashboard is currently a <strong>prepared shell with mock data</strong>. All statistics and table rows are hardcoded &mdash; no API calls are made. This is intentional: the shell was built first to define the layout and information architecture, and will be connected to real endpoints as the Lab module matures. The component is 133 lines of clean React code, fully styled and ready for integration.</p>
+
+        <h3>6.3 Layout &amp; Components</h3>
+        <p>The page uses Ant Design&rsquo;s grid system with a <code>PageContainer</code> wrapper that displays the title &ldquo;Lab Kontrol Paneli&rdquo; and a personalized greeting showing the logged-in user&rsquo;s name.</p>
+
+        <h4>Statistics Row (4 cards)</h4>
+        <p>Four <code>Statistic</code> cards in a responsive 4-column grid (<code>Col lg={6}</code>), each with an icon and color-coded value:</p>
+
+        <table>
+            <tr><th>#</th><th>Card Title</th><th>Mock Value</th><th>Icon</th><th>Color</th></tr>
+            <tr><td>1</td><td>Bekleyen Uyar&inodot;lar (Pending Alerts)</td><td>2</td><td><code>AlertOutlined</code></td><td>Error (red)</td></tr>
+            <tr><td>2</td><td>Aktif Testler (Active Tests)</td><td>2</td><td><code>ExperimentOutlined</code></td><td>Warning (orange)</td></tr>
+            <tr><td>3</td><td>Tamamlanan Testler (Completed Tests)</td><td>15</td><td><code>CheckCircleOutlined</code></td><td>Success (green)</td></tr>
+            <tr><td>4</td><td>Bug&uuml;nk&uuml; Testler (Today&rsquo;s Tests)</td><td>8</td><td><code>ClockCircleOutlined</code></td><td>Primary (blue)</td></tr>
+        </table>
+
+        <h4>Data Tables (2 side-by-side)</h4>
+        <p>Below the stats, two tables sit in a responsive 2-column layout (<code>Col lg={12}</code>):</p>
+
+        <table>
+            <tr><th>Table</th><th>Card Header</th><th>Badge</th><th>Columns</th><th>Mock Rows</th></tr>
+            <tr><td><strong>Bekleyen Lab Uyar&inodot;lar&inodot;</strong></td><td>Pending Lab Alerts</td><td><code>Acil</code> (red tag)</td><td>Makine, Uyar&inodot;, Saat, &#304;&#351;lem</td><td>2 rows: Kabatel &Ccedil;ekme 01 (new production alert), Kalaylama 01 (slow mode approval)</td></tr>
+            <tr><td><strong>Aktif Test S&uuml;re&ccedil;leri</strong></td><td>Active Test Processes</td><td><code>Devam Ediyor</code> (processing tag)</td><td>Test Kodu, &Uuml;r&uuml;n, Durum, &Ouml;ncelik, &#304;&#351;lem</td><td>2 rows: SLHT001 - 1.8mm Tel (testing, high priority), SLDT002 - Kalay Tel (awaiting approval, normal)</td></tr>
+        </table>
+
+        <p>Each table has an action button column: &ldquo;Test Ba&#351;lat&rdquo; for alerts, &ldquo;Onayla&rdquo; for active tests. These buttons are currently non-functional placeholders.</p>
+
+        <h3>6.4 Authentication Integration</h3>
+        <p>Despite being mock, the Dashboard already integrates with the real auth system. It calls <code>RealAuthService.getCurrentUser()</code> to display the logged-in user&rsquo;s name in the subtitle. The route is guarded by the <code>canLab</code> permission in the route configuration.</p>
+
+        <h3>6.5 Roadmap</h3>
+        <p>When connected to real APIs, the Dashboard will pull live data from:</p>
+        <ul>
+            <li><code>GET /api/production/test-requests/all?status=pending</code> &rarr; Pending count and alert table</li>
+            <li><code>GET /api/production/test-requests/all?status=passed</code> &rarr; Completed count</li>
+            <li>Aggregated daily statistics from test request timestamps</li>
+            <li>Real-time alert integration with the notification system</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why ship a mock page?</strong> In a factory ERP, the dashboard layout is critical for user adoption. Building the shell first &mdash; with realistic mock data and the exact card/table structure &mdash; allows stakeholders to validate the information hierarchy before any backend work is connected. The 133-line component is intentionally minimal so that swapping mock data for real API calls is a straightforward integration task.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-7">7. TEST Y&Ouml;NET&#304;M&#304; (TEST MANAGEMENT)</h2>
+        <!-- ============================================ -->
+
+        <h3>7.1 Purpose &amp; Scale</h3>
+        <p>Test Y&ouml;netimi is the operational heart of the Laboratory module. Located at <code>/lab/test</code>, it is where lab users receive, execute, and record every quality test the factory runs. The frontend component is 803 lines of React/TypeScript, the backend route file is 745 lines of Python/FastAPI, and together they handle 9 production-integrated API endpoints plus 6 legacy endpoints. Every interaction between Production and the Lab flows through this page.</p>
+
+        <h3>7.2 Page Title &amp; Badge</h3>
+        <p>The page title is &ldquo;Test Talepleri&rdquo; (Test Requests), rendered inside a <code>PageContainer</code>. Next to the title, a live <code>Badge</code> shows the count of pending tests. This badge updates every 5 seconds alongside the data, giving the lab user an immediate visual cue of their workload without scrolling.</p>
+
+        <h3>7.3 The ProTable &mdash; 9-Column Test Queue</h3>
+        <p>The core of the page is an Ant Design Pro <code>ProTable</code> configured with horizontal scroll (<code>x: 1100</code>), built-in pagination, density toggle, column visibility settings, and manual reload. The table fetches up to 100 records from <code>GET /api/production/test-requests/all</code> and displays them in 9 columns:</p>
+
+        <table>
+            <tr><th>#</th><th>Column</th><th>Width</th><th>Fixed</th><th>Rendering Details</th></tr>
+            <tr><td>1</td><td><strong>Kod</strong></td><td>70px</td><td>Left</td><td>Purple monospace <code>Tag</code>: <code>L{id}</code>. Unique identifier per test request.</td></tr>
+            <tr><td>2</td><td><strong>Test</strong></td><td>auto</td><td>&mdash;</td><td>Two lines: test name (bold) from <code>test_standard.test_name</code>, standard number below in smaller gray text.</td></tr>
+            <tr><td>3</td><td><strong>&#304;&#351; Kart&inodot;</strong></td><td>80px</td><td>&mdash;</td><td>Blue <code>Tag</code>: <code>#{work_card_id}</code>. Links the test to its production work card.</td></tr>
+            <tr><td>4</td><td><strong>Makine</strong></td><td>150px</td><td>&mdash;</td><td>Machine display name. Uses <code>machine_name</code> from backend (brand &ndash; model) or falls back to a client-side lookup mapping machine_type codes to Turkish names (Kabatel &Ccedil;ekme, Kalaylama, &#304;ncetel &Ccedil;ekme, Buncher, Extruder, E-Beam, Aktarma, Paletleme).</td></tr>
+            <tr><td>5</td><td><strong>Aral&inodot;k</strong></td><td>100px</td><td>&mdash;</td><td>Interval <code>Tag</code>: maps <code>&uuml;retim_ba&#351;&inodot;</code> &rarr; &ldquo;&Uuml;retim Ba&#351;&inodot;&rdquo;, <code>her_sepet_sonu</code> &rarr; &ldquo;Her Sepet&rdquo;, <code>&uuml;retim_sonu</code> &rarr; &ldquo;&Uuml;retim Sonu&rdquo;.</td></tr>
+            <tr><td>6</td><td><strong>Talep</strong></td><td>130px</td><td>&mdash;</td><td>Requested timestamp formatted as <code>DD.MM.YY HH:mm</code> in Turkey timezone (<code>Europe/Istanbul</code>). Uses <code>dayjs</code> with UTC-to-local conversion.</td></tr>
+            <tr><td>7</td><td><strong>Durum</strong></td><td>100px</td><td>&mdash;</td><td>Status tag: <span style="color: orange;">Beklemede</span> (orange), <span style="color: green;">Onayland&inodot;</span> (green + check icon), <span style="color: red;">Ba&#351;ar&inodot;s&inodot;z</span> (red + X icon).</td></tr>
+            <tr><td>8</td><td><strong>Test Eden</strong></td><td>100px</td><td>&mdash;</td><td>Tester&rsquo;s name if completed, or &ldquo;&ndash;&rdquo; if still pending.</td></tr>
+            <tr><td>9</td><td><strong>&#304;&#351;lemler</strong></td><td>140px</td><td>Right</td><td>Conditional buttons: <code>ExperimentOutlined</code> (start test &mdash; pending + lab_user only), <code>EyeOutlined</code> (view results &mdash; completed tests), <code>DeleteOutlined</code> with <code>Popconfirm</code> (super_admin only).</td></tr>
+        </table>
+
+        <h3>7.4 Client-Side Search</h3>
+        <p>The toolbar renders a search input with <code>SearchOutlined</code> icon (200px wide, rounded). Search is <strong>entirely client-side</strong> using <code>useMemo</code>: it filters the full dataset against 10+ fields simultaneously:</p>
+        <ul>
+            <li>Test code (<code>L{id}</code>)</li>
+            <li>Test name and standard number</li>
+            <li>Work card ID</li>
+            <li>Machine name (from API) and machine type (from client-side mapping)</li>
+            <li>Interval text (Turkish display names)</li>
+            <li>Tester name</li>
+            <li>Status in Turkish: &ldquo;beklemede&rdquo;, &ldquo;onayland&inodot;&rdquo;, &ldquo;ba&#351;ar&inodot;s&inodot;z&rdquo;</li>
+        </ul>
+
+        <h3>7.5 Real-Time Polling</h3>
+        <p>On mount, the component calls <code>fetchTestRequests()</code> and starts a <code>setInterval</code> at <strong>5-second</strong> intervals. The cleanup function clears the interval on unmount. This provides near-real-time updates without WebSocket complexity. When a new test request arrives from Production, it appears in the table within 5 seconds.</p>
+
+        <h3>7.6 Notification Deep-Link Support</h3>
+        <p>The component reads URL query parameters on mount via <code>useLocation()</code>. When a lab user clicks a notification (e.g., &ldquo;Test Talebi: Diren&ccedil; Testi&rdquo;), they are navigated to <code>/lab/test?test_request_id=42</code>. The page displays an info message: &ldquo;Test talebi g&ouml;r&uuml;nt&uuml;leniyor: #42&rdquo;. This creates a seamless flow from notification to action.</p>
+
+        <h3>7.7 The Dynamic Test Form</h3>
+        <p>This is the most technically sophisticated part of the Lab module. When a lab user clicks the experiment icon on a pending test, a centered <code>Modal</code> (700px wide, blurred backdrop) opens. The modal title shows the test name with a subtitle: &ldquo;&#304;&#351; Kart&inodot; #{work_card_id} &bull; {interval}&rdquo;. The form is generated <strong>entirely from the test standard&rsquo;s parameter definitions</strong>.</p>
+
+        <h4>Step 1: Fetch Test Standard</h4>
+        <p>The system calls <code>GET /api/teknik/standards/tests/{id}/full</code> to retrieve the complete test standard including all parameters sorted by <code>parameter_order</code>. While loading, a <code>Spin</code> component with &ldquo;Test standard&inodot; y&uuml;kleniyor...&rdquo; is displayed.</p>
+
+        <h4>Step 2: Generate Form Fields</h4>
+        <p>The form generation algorithm iterates over <code>test_samples</code> (number of samples) &times; <code>parameters</code> (measurement fields):</p>
+
+        <div class="code-block">
+            <pre>
+For each sample (1 to test_samples):
+  If multiple samples &rarr; render Divider "Numune {n}"
+  For each parameter in test_standard.parameters:
+    Render InputNumber with:
+      &bull; name: "sample_{s}_param_{param.id}"
+      &bull; label: parameter_name (e.g. "Diameter", "Resistance")
+      &bull; addonAfter: parameter_unit (e.g. "mm", "&Omega;/km")
+      &bull; placeholder: "Hedef: {target_value}" if defined
+      &bull; min/max bounds from parameter definition
+      &bull; step: 0.01
+      &bull; required flag from is_required
+      &bull; flex layout: 200px min-width, wrapping</pre>
+        </div>
+
+        <p>This means a test standard with 3 parameters and 2 samples generates 6 input fields across 2 sample groups. A standard with 1 parameter and 1 sample generates a single field. The form always adapts &mdash; no two test forms look alike.</p>
+
+        <h4>Step 3: Edge Cases</h4>
+        <ul>
+            <li><strong>No parameters defined:</strong> Shows message &ldquo;Bu test i&ccedil;in parametre tan&inodot;mlanmam&inodot;&#351;&rdquo; with just the test name. The user can still pass/fail the test without measurements.</li>
+            <li><strong>Standard not found:</strong> Shows &ldquo;Test standard&inodot; bulunamad&inodot;&rdquo;.</li>
+        </ul>
+
+        <h4>Step 4: Notes Field</h4>
+        <p>Below all measurement fields, a <code>TextArea</code> (2 rows) labeled &ldquo;Notlar&rdquo; with placeholder &ldquo;Test ile ilgili notlar...&rdquo; allows the lab user to add observations.</p>
+
+        <h4>Step 5: Action Buttons</h4>
+        <p>Three buttons in a flex row at the bottom:</p>
+        <table>
+            <tr><th>Button</th><th>Style</th><th>Icon</th><th>Action</th></tr>
+            <tr><td><strong>&#304;ptal</strong></td><td>Default</td><td>&mdash;</td><td>Closes modal, resets form</td></tr>
+            <tr><td><strong>Ba&#351;ar&inodot;s&inodot;z</strong></td><td>Danger (red)</td><td><code>CloseCircleOutlined</code></td><td>Calls <code>handleTestComplete(false)</code></td></tr>
+            <tr><td><strong>Onayland&inodot;</strong></td><td>Primary (green, uses <code>token.colorSuccess</code>)</td><td><code>CheckCircleOutlined</code></td><td>Calls <code>handleTestComplete(true)</code></td></tr>
+        </table>
+
+        <h3>7.8 Test Completion &amp; Measurement Assembly</h3>
+        <p>When the lab user clicks either &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; or &ldquo;Onayland&inodot;&rdquo;, the system:</p>
+        <ol>
+            <li>Validates all required form fields via <code>form.validateFields()</code></li>
+            <li>Assembles the measurement JSON from the dynamic field names:
+                <div class="code-block">
+                    <pre>
+{
+  "samples": [
+    { "sample_num": 1, "params": { "Diameter": 1.82, "Resistance": 9.45 } },
+    { "sample_num": 2, "params": { "Diameter": 1.81, "Resistance": 9.52 } }
+  ]
+}</pre>
+                </div>
+            </li>
+            <li>Sends <code>POST /api/production/test-requests/{id}/complete</code> with <code>{ passed: true/false, measurements: {...}, notes: "..." }</code></li>
+            <li>On success: shows &ldquo;Test onayland&inodot;&rdquo; or &ldquo;Test ba&#351;ar&inodot;s&inodot;z&rdquo;, closes modal, resets form, refreshes the table</li>
+        </ol>
+
+        <h3>7.9 Auto-Retry on Failure</h3>
+        <p>When the backend receives a <code>passed: false</code> completion, it does <strong>three things atomically</strong> in a single database transaction:</p>
+        <ol>
+            <li><strong>Updates the original:</strong> Sets status to <code>FAILED</code>, records tester, timestamp, and measurements</li>
+            <li><strong>Creates a retry:</strong> A new <code>ProductionTestRequest</code> with identical <code>work_card_id</code>, <code>session_id</code>, <code>output_id</code>, <code>test_standard_id</code>, <code>machine_type</code>, and <code>test_interval</code> &mdash; but with <code>retry_count = original + 1</code> and <code>parent_request_id = original.id</code></li>
+            <li><strong>Sends notifications:</strong> High-priority notifications to the original requester and all super admins, with deep link to the test page and <code>retry_request_id</code> in extra data</li>
+        </ol>
+        <p>The retry request appears in the Lab queue as a new pending test within 5 seconds (next poll cycle). The API response includes <code>retry_created: true</code> and <code>retry_request_id</code> so the frontend knows a retry was spawned.</p>
+
+        <h3>7.10 Viewing Completed Test Results</h3>
+        <p>For completed tests (passed or failed), the eye icon opens a read-only <code>Modal</code> (480px wide, blurred backdrop). The title shows the test name with a pass/fail tag, plus metadata: <code>L{id} &bull; #{work_card_id} &bull; DD.MM HH:mm</code>.</p>
+
+        <p>The result display renders a compact measurement table:</p>
+        <ul>
+            <li><strong>Header row:</strong> Column <code>#</code> (sample number) followed by one column per parameter name, with the unit shown in smaller text below</li>
+            <li><strong>Data rows:</strong> One row per sample, with monospace values aligned under each parameter</li>
+            <li><strong>Notes:</strong> If the lab user wrote notes, they appear in a gray box below the table</li>
+            <li><strong>No measurements:</strong> If no parameter measurements were recorded, shows &ldquo;Parametre &ouml;l&ccedil;&uuml;m&uuml; kaydedilmemi&#351;&rdquo;</li>
+        </ul>
+
+        <h3>7.11 Delete Functionality</h3>
+        <p>Only <code>super_admin</code> users see the delete button (red trash icon). Clicking it shows a <code>Popconfirm</code>: &ldquo;Silmek istedi&gbreve;inize emin misiniz?&rdquo; with Evet/Hay&inodot;r options. Confirmed deletions call <code>DELETE /api/production/test-requests/{id}</code> and optimistically remove the row from state.</p>
+
+        <h3>7.12 Permission Model</h3>
+        <table>
+            <tr><th>Action</th><th>Required Role</th><th>Implementation</th></tr>
+            <tr><td>View test list</td><td>Any authenticated user with <code>canLab</code></td><td>Route guard in <code>routes.ts</code></td></tr>
+            <tr><td>Start / complete a test</td><td><code>lab_user</code> or <code>super_admin</code></td><td>Frontend: <code>isLabUser</code> check hides button. Backend: <code>user_type not in [&rsquo;lab_user&rsquo;, &rsquo;super_admin&rsquo;]</code> returns 403.</td></tr>
+            <tr><td>Delete a test request</td><td><code>super_admin</code></td><td>Frontend: <code>isSuperAdmin</code> check hides button. Backend: <code>user_type != &rsquo;super_admin&rsquo;</code> returns 403.</td></tr>
+        </table>
+
+        <h3>7.13 Backend: How Production Creates Test Requests</h3>
+        <p>Test requests originate from the <strong>Production</strong> module, not from Lab. The <code>POST /api/production/test-requests/create-for-interval</code> endpoint is called at three lifecycle points:</p>
+
+        <div class="flow">
+            <span class="flow-step">Session Start</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Read work_card.material_details.tests</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Filter by &uuml;retim_ba&#351;&inodot; frequency</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Create ProductionTestRequest per match</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Output Recorded</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Filter by her_sepet_sonu frequency</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Create with output_id linked</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Notify all lab_user + super_admin</span>
+        </div>
+        <div class="flow">
+            <span class="flow-step">Session End</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Filter by &uuml;retim_sonu frequency</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Link lot tests via linked_output_ids</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-step">Full traceability established</span>
+        </div>
+
+        <p>The frequency field supports comma-separated values (e.g., <code>"&uuml;retim_ba&#351;&inodot;,her_sepet_sonu"</code>), meaning a single test can be triggered at multiple intervals. For each matching test, the system verifies the <code>TestStandard</code> exists in the database before creating the request.</p>
+
+        <h3>7.14 Backend: The &ldquo;All Tests&rdquo; Endpoint</h3>
+        <p>The <code>GET /api/production/test-requests/all</code> endpoint powers the Lab page. It eager-loads 5 relationships (<code>test_standard</code>, <code>work_card</code>, <code>session</code>, <code>requester</code>, <code>tester</code>) in a single query, supports status filtering, limits to 50 by default (frontend requests 100), and resolves machine names by looking up the session&rsquo;s <code>machine_id</code> against the correct machine table for the <code>machine_type</code>. The response also includes a global <code>pending_count</code> for the title badge.</p>
+
+        <h3>7.15 Backend: The Bonded Tests System</h3>
+        <p>Two endpoints serve bonded test queries &mdash; by output ID and by output code (e.g., X1, X2). They return all tests that apply to a specific production output, grouped by interval. The bonding logic checks three levels:</p>
+
+        <ol>
+            <li><strong>Direct bond:</strong> <code>output_id</code> matches &mdash; <code>her_sepet_sonu</code> tests tied to a specific basket/reel</li>
+            <li><strong>Lot-level bond:</strong> Same session + interval is <code>&uuml;retim_ba&#351;&inodot;</code> or <code>&uuml;retim_sonu</code> &mdash; these lot-level tests apply to <em>every</em> output in the session</li>
+            <li><strong>Legacy bond:</strong> Same session + <code>output_id IS NULL</code> + <code>linked_output_ids IS NULL</code> &mdash; backward compatibility</li>
+        </ol>
+
+        <p>The response groups tests into <code>{ "&uuml;retim_ba&#351;&inodot;": [...], "her_sepet_sonu": [...], "&uuml;retim_sonu": [...] }</code> with a summary object containing counts per interval. This gives any consumer (Production page, QR scanner, reports) a complete quality picture for a single output.</p>
+
+        <h3>7.16 CRUD Flow</h3>
+
+        <h4>CREATE (Test Request)</h4>
+        <ol>
+            <li>Production operator starts a session, records an output, or ends a session</li>
+            <li>Production backend reads <code>work_card.material_details.tests</code></li>
+            <li>Filters by the current interval&rsquo;s frequency</li>
+            <li>Calls <code>POST /api/production/test-requests/create-for-interval</code></li>
+            <li>For each matching test: creates <code>ProductionTestRequest</code> with status <code>PENDING</code></li>
+            <li>Sends high-priority notifications to all <code>lab_user</code> and <code>super_admin</code> (excluding requester)</li>
+            <li>New request appears in Lab queue within 5 seconds</li>
+        </ol>
+
+        <h4>READ (Test Queue &amp; Results)</h4>
+        <ol>
+            <li>Lab page loads &rarr; <code>GET /api/production/test-requests/all?limit=100</code></li>
+            <li>Backend eager-loads 5 relationships, resolves machine names</li>
+            <li>Polls every 5 seconds for updates</li>
+            <li>Client-side search filters across 10+ fields without additional API calls</li>
+            <li>Individual test details: <code>GET /api/production/test-requests/{id}</code> with full parameter list</li>
+            <li>Bonded tests per output: <code>GET /bonded-tests/output/{id}</code> grouped by interval</li>
+        </ol>
+
+        <h4>UPDATE (Test Completion)</h4>
+        <ol>
+            <li>Lab user clicks experiment icon on pending test</li>
+            <li>System fetches full test standard with parameters from <code>GET /api/teknik/standards/tests/{id}/full</code></li>
+            <li>Dynamic form renders: samples &times; parameters &rarr; InputNumber fields</li>
+            <li>Lab user fills measurements, adds optional notes</li>
+            <li>Clicks &ldquo;Onayland&inodot;&rdquo; (passed) or &ldquo;Ba&#351;ar&inodot;s&inodot;z&rdquo; (failed)</li>
+            <li><code>POST /api/production/test-requests/{id}/complete</code> with <code>{ passed, measurements, notes }</code></li>
+            <li>Backend validates: must be pending, user must be lab_user/super_admin</li>
+            <li>Updates status, records <code>tested_by</code>, <code>tested_at</code>, stores measurement JSON</li>
+            <li>If failed: creates retry request atomically (retry_count + 1, parent_request_id set)</li>
+            <li>Sends notifications to requester + super admins (medium priority for pass, high for fail)</li>
+            <li>Frontend refreshes table, modal closes</li>
+        </ol>
+
+        <h4>DELETE</h4>
+        <ol>
+            <li>Super admin clicks trash icon on any test request</li>
+            <li><code>Popconfirm</code>: &ldquo;Silmek istedi&gbreve;inize emin misiniz?&rdquo;</li>
+            <li>Confirmed &rarr; <code>DELETE /api/production/test-requests/{id}</code></li>
+            <li>Backend: verifies <code>super_admin</code>, deletes record</li>
+            <li>Frontend: optimistically removes row from state</li>
+        </ol>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Why dynamic forms matter:</strong> A cable factory tests dozens of different standards &mdash; from IEC 60228 conductor resistance to UL flame tests to custom SLN factory specs. Each standard has different parameters, different sample counts, and different units. Hardcoding forms for each standard would be unmaintainable. Instead, the system reads the test standard definition (stored in the Teknik module) and generates the form at runtime. Adding a new test standard with new parameters requires zero frontend changes &mdash; the form adapts automatically. This is what makes the Lab module scalable to any number of quality standards.</p>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-8">8. CONCLUSION</h2>
+        <!-- ============================================ -->
+
+        <p>The Laboratory module is deceptively simple in scope &mdash; two pages, five tables, fifteen endpoints &mdash; but it carries an outsized responsibility. It is the only system that can say &ldquo;yes, this cable meets the standard&rdquo; or &ldquo;no, stop and retest.&rdquo; Without it, production outputs are unverified metal.</p>
+
+        <p>Three design decisions define this module:</p>
+
+        <ol>
+            <li><strong>Tests are defined in Teknik, triggered by Production, executed by Lab.</strong> This separation of concerns means that no one can skip a required test &mdash; the test requirements are embedded in the cable design itself and automatically enforced at each production interval.</li>
+            <li><strong>Forms are generated from data, not coded.</strong> The dynamic form system means adding a new test standard (with new parameters, units, and sample counts) requires zero frontend changes. The form renders from the database definition, making the system scalable to any number of quality standards.</li>
+            <li><strong>Failed tests create their own successors.</strong> The auto-retry mechanism with <code>parent_request_id</code> chaining ensures that a failed test is never forgotten &mdash; a new pending request immediately appears in the queue, and the full retry history is preserved for audit.</li>
+        </ol>
+
+        <p>The module currently operates with polling (5-second intervals) rather than WebSockets, and the Dashboard page uses mock data. These are conscious decisions that prioritize simplicity and correctness in the early deployment phase. The architecture is ready for real-time upgrades and live dashboard integration when the factory&rsquo;s testing volume demands it.</p>
+
+        <p>Together with Teknik (standards), Production (triggers), and Admin (permissions), the Lab module completes the quality assurance loop that allows the factory to prove compliance to IEC-EN, UL, and custom SLN standards &mdash; from raw material to finished cable.</p>
+
+    </main>
+</body>
+</html>
