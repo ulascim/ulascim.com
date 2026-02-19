@@ -670,9 +670,15 @@
         <h2 id="sec-6-2">6.2 &mdash; Hammadde Stok (Raw Material Stock)</h2>
 
         <h3>6.2.1 &mdash; Purpose and Business Context</h3>
-        <p>Hammadde Stok answers the question <strong>&ldquo;What raw materials do we physically have in the warehouse right now?&rdquo;</strong> It is the live, real-time inventory of all 8 raw material categories &mdash; copper wire rod, tin, plastic granules, catalyst, dye, antirodent compound, palettes, and reels. Every kilogram and every piece that entered through the Hammadde Giri&#351;i (Material Entry) module appears here with its QR code, supplier, lot number, weight, and status.</p>
-        <p>Unlike Projeksiyon which computes a forecast, Hammadde Stok reads directly from the <code>materials</code> table (owned by the Hammadde module). It does not have its own backend routes &mdash; it shares the Hammadde module&rsquo;s <code>/api/materials/list</code> endpoint. This makes it a <strong>pure frontend view</strong> over existing data, with client-side grouping, filtering, and status aggregation.</p>
-        <p>The page is implemented as a single React component (<code>HammaddeStok</code>) in <code>src/pages/Stok/HammaddeStok/index.tsx</code> (676 lines). It uses Ant Design&rsquo;s <code>Collapse</code> as the primary layout element, with nested <code>Table</code> components for the grouped and detail views. The entire page is wrapped in a <code>ConfigProvider</code> with Turkish locale (<code>trTR</code>) for consistent number formatting (e.g., <code>1.234,5</code> instead of <code>1,234.5</code>) and date display.</p>
+        <p>Hammadde Stok answers the question <strong>&ldquo;What raw materials do we physically have in the warehouse right now, and how much of each is still available?&rdquo;</strong></p>
+        <p>This page exists because of a specific business need: the Hammadde module already has <strong>Hammaddeler Listesi</strong> (Materials List) &mdash; a flat, 14-column admin table that shows every individual material record with photos, WebSocket real-time updates, bilingual search, and granular edit forms. But Hammaddeler Listesi is a <em>record-level</em> view. A stock manager doesn&rsquo;t want to scroll through 500 individual QR-coded entries to answer &ldquo;how many kilograms of HFX 500P plastic do we have?&rdquo; They need an <em>aggregated category-level</em> view that groups materials by type and name, shows totals, and highlights what&rsquo;s available vs. what&rsquo;s in use.</p>
+        <p>The data that populates this page comes from two upstream flows:</p>
+        <ul>
+            <li><strong>Hammadde Giri&#351;i (Material Entry)</strong> creates the records &mdash; every time raw material arrives at the factory, an operator scans it through one of four entry archetypes (copper, tin, lot-based, count-based), and it enters the <code>materials</code> table with <code>status = 'received'</code> and <code>remaining_weight = weight</code>.</li>
+            <li><strong>&Uuml;retim (Production)</strong> consumes the records &mdash; when Production modules (especially Kabatel &Ccedil;ekme / wire drawing) use a raw material, they select it by QR code and deduct from its <code>remaining_weight</code>. A 1,000 kg copper rod (A1) that goes through wire drawing comes back as 980 kg. Production also changes <code>status</code>: <code>received</code> &rarr; <code>in_use</code> (material is currently on a machine) &rarr; <code>consumed</code> (fully depleted). This is exactly what the &ldquo;Kalan&rdquo; (Remaining) column and the conditional coloring (yellow/red) are designed to show.</li>
+        </ul>
+        <p>So Hammadde Stok sits at the intersection: Hammadde Giri&#351;i fills it, Production drains it, and this page visualizes the current balance. It reads directly from the <code>materials</code> table (owned by the Hammadde module) via the shared <code>/api/materials/list</code> endpoint &mdash; it has no backend routes of its own. All grouping and aggregation happens client-side.</p>
+        <p>The page is implemented as a single React component (<code>HammaddeStok</code>) in <code>src/pages/Stok/HammaddeStok/index.tsx</code> (676 lines), using Ant Design&rsquo;s <code>Collapse</code> with nested <code>Table</code> components, wrapped in a <code>ConfigProvider</code> with Turkish locale (<code>trTR</code>).</p>
 
         <h3>6.2.2 &mdash; CRUD Flow</h3>
 
@@ -907,14 +913,25 @@
         </ul>
 
         <h3>6.2.14 &mdash; Connection to Other Modules</h3>
-        <p>Hammadde Stok is the <strong>read side</strong> of the Hammadde module&rsquo;s write operations:</p>
+        <p>Hammadde Stok does not exist in isolation &mdash; it is essentially a <strong>read-only window</strong> into data that is created, modified, and consumed by other modules. Understanding those connections is key to understanding this page:</p>
+
+        <p><strong>Upstream: Who fills the inventory?</strong></p>
         <ul>
-            <li><strong>Hammadde Giri&#351;i (upstream)</strong> &mdash; the sole data source. Every row in every table was created by one of the four material entry archetypes (copper, tin, lot-based, count-based). This page cannot create materials.</li>
-            <li><strong>Tedarik&ccedil;i Y&ouml;netimi (upstream)</strong> &mdash; determines the <code>supplier_name</code> shown in each detail row. The supplier association is set at entry time.</li>
-            <li><strong>Hammadde Sipari&#351; (upstream)</strong> &mdash; provides the order linkage. Materials entered with an order link carry that traceability, though the order group code is not displayed on this page (it is displayed in Hammaddeler Listesi&rsquo;s &ldquo;Sipari&#351; No&rdquo; column instead).</li>
-            <li><strong>Production System (downstream)</strong> &mdash; production modules read from this same <code>materials</code> table, select materials by QR code for consumption, and update <code>remaining_weight</code> and <code>status</code> as they use materials. Those changes are reflected here on the next manual refresh.</li>
-            <li><strong>Hammaddeler Listesi (sibling)</strong> &mdash; both this page and Hammaddeler Listesi read from the same <code>/api/materials/list</code> endpoint. Hammaddeler Listesi is the full-featured view (14 columns, photos, WebSocket, search), while this page is the grouped stock summary view.</li>
-            <li><strong>Projeksiyon (sibling)</strong> &mdash; Projeksiyon also uses this same material data, but for forecasting. Projeksiyon calculates what the stock <em>will be</em> in future weeks; this page shows what it <em>is right now</em>.</li>
+            <li><strong>Hammadde Giri&#351;i (Material Entry)</strong> &mdash; the sole creator. Every single row visible on this page was created through one of the four entry archetypes in Hammadde Giri&#351;i. When a copper wire rod arrives, an operator weighs it, scans photos, assigns QR code A{n}, and it enters the <code>materials</code> table with <code>status = 'received'</code> and <code>remaining_weight = weight</code>. That record immediately becomes visible here under the &ldquo;Bak&#305;r&rdquo; panel. Hammadde Stok cannot create, only view.</li>
+            <li><strong>Hammadde Sipari&#351; (Material Orders)</strong> &mdash; the reason materials arrive in the first place. When a purchase order is fulfilled and materials are delivered, the entry operator can link the material to the order group code (R1, R2, etc.). This traceability exists in the data but is <strong>not displayed</strong> on this page &mdash; it&rsquo;s visible on Hammaddeler Listesi&rsquo;s &ldquo;Sipari&#351; No&rdquo; column instead.</li>
+            <li><strong>Tedarik&ccedil;i Y&ouml;netimi (Supplier Management)</strong> &mdash; defines the supplier names that appear in the detail rows. The supplier association is set at entry time and is read-only here.</li>
+        </ul>
+
+        <p><strong>Downstream: Who drains the inventory?</strong></p>
+        <ul>
+            <li><strong>&Uuml;retim / Production (especially Kabatel &Ccedil;ekme)</strong> &mdash; the primary consumer. When Production starts a work card, it selects raw materials by QR code. For wire drawing (Kabatel &Ccedil;ekme), an operator picks a copper rod (e.g., A7) and feeds it into the machine. Production then updates the material record: <code>status</code> changes from <code>received</code>/<code>available</code> to <code>in_use</code>, and <code>remaining_weight</code> decreases as material is consumed. When the rod is fully used, <code>status</code> becomes <code>consumed</code>. This is the entire reason the &ldquo;Kalan&rdquo; column exists with its yellow/red coloring &mdash; it visualizes how much Production has consumed. Similarly, plastic granules, tin, catalysts, and dyes are consumed by their respective production steps (extrusion, tinning, etc.).</li>
+            <li><strong>Lab (indirect)</strong> &mdash; Lab tests may result in a material being <code>rejected</code>, which changes its status and effectively removes it from the &ldquo;Serbest&rdquo; (Available) count on this page.</li>
+        </ul>
+
+        <p><strong>Sibling views over the same data:</strong></p>
+        <ul>
+            <li><strong>Hammaddeler Listesi (in Hammadde module)</strong> &mdash; reads from the exact same <code>/api/materials/list</code> endpoint. It is the full-power admin view: 14 columns, lazy-loaded photos, WebSocket real-time sync, bilingual search, three edit form variants, QR label printing, 12 granular permissions. This page is the <em>record-level</em> view; Hammadde Stok is the <em>stock-level</em> view. Together they cover different user needs over identical data.</li>
+            <li><strong>Projeksiyon (in Stock module)</strong> &mdash; also uses material data, but for a completely different purpose. Projeksiyon computes what the stock <em>will be</em> in future weeks by combining current inventory + incoming orders &minus; production requirements. Hammadde Stok shows what the stock <em>is right now</em>. They are complementary: one is a live snapshot, the other is a weekly forecast.</li>
         </ul>
 
         <h3>6.2.15 &mdash; Permission Model</h3>

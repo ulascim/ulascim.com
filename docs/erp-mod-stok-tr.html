@@ -665,9 +665,15 @@
         <h2 id="sec-6-2">6.2 &mdash; Hammadde Stok</h2>
 
         <h3>6.2.1 &mdash; Amaç ve İş Bağlamı</h3>
-        <p>Hammadde Stok, <strong>&ldquo;Depoda şu an fiziksel olarak hangi hammaddeler var?&rdquo;</strong> sorusunu yanıtlar. 8 hammadde kategorisinin tamamının canlı, gerçek zamanlı envanteri &mdash; bakır filamaşin, kalay, plastik granül, katalizör, boya, antirodent bileşik, palet ve makara. Hammadde Girişi modülü aracılığıyla giren her kilogram ve her adet, QR kodu, tedarikçisi, lot numarası, ağırlığı ve durumuyla burada görünür.</p>
-        <p>Tahmin hesaplayan Projeksiyon&rsquo;dan farklı olarak, Hammadde Stok doğrudan <code>materials</code> tablosundan (Hammadde modülüne ait) okur. Kendi backend route&rsquo;ları yoktur &mdash; Hammadde modülünün <code>/api/materials/list</code> endpoint&rsquo;ini paylaşır. Bu onu mevcut veriler üzerinde istemci tarafı gruplama, filtreleme ve durum toplamlamasıyla <strong>saf bir frontend görünümü</strong> yapar.</p>
-        <p>Sayfa, <code>src/pages/Stok/HammaddeStok/index.tsx</code> dosyasında tek bir React bileşeni (<code>HammaddeStok</code>) olarak uygulanmıştır (676 satır). Birincil düzen elemanı olarak Ant Design&rsquo;ın <code>Collapse</code> bileşenini, gruplanmış ve detay görünümleri için iç içe <code>Table</code> bileşenlerini kullanır. Sayfanın tamamı, tutarlı sayı biçimlendirmesi (örn. <code>1.234,5</code>) ve tarih gösterimi için Türkçe yerel ayarıyla (<code>trTR</code>) bir <code>ConfigProvider</code> içine sarılmıştır.</p>
+        <p>Hammadde Stok, <strong>&ldquo;Depoda şu an fiziksel olarak hangi hammaddeler var ve her birinden ne kadar hâlâ kullanılabilir?&rdquo;</strong> sorusunu yanıtlar.</p>
+        <p>Bu sayfa belirli bir iş ihtiyacı nedeniyle var: Hammadde modülünde zaten <strong>Hammaddeler Listesi</strong> var &mdash; her bireysel malzeme kaydını fotoğraflar, WebSocket gerçek zamanlı güncellemeler, iki dilli arama ve ayrıntılı düzenleme formlarıyla gösteren düz, 14 sütunlu bir yönetici tablosu. Ama Hammaddeler Listesi bir <em>kayıt düzeyinde</em> görünümdür. Bir stok yöneticisi &ldquo;ne kadar HFX 500P plastik var?&rdquo; sorusunu yanıtlamak için 500 bireysel QR kodlu girişi kaydırmak istemez. Malzemeleri türe ve ada göre gruplayan, toplamları gösteren ve neyin serbest neyin kullanımda olduğunu vurgulayan <em>toplu kategori düzeyinde</em> bir görünüme ihtiyaç duyar.</p>
+        <p>Bu sayfayı dolduran veriler iki yukarı akış sürecinden gelir:</p>
+        <ul>
+            <li><strong>Hammadde Girişi</strong> kayıtları oluşturur &mdash; fabrikaya hammadde geldiğinde bir operatör dört giriş arketipinden biriyle (bakır, kalay, lot bazlı, sayım bazlı) tarar ve <code>materials</code> tablosuna <code>status = 'received'</code> ve <code>remaining_weight = weight</code> ile girer.</li>
+            <li><strong>Üretim (Production)</strong> kayıtları tüketir &mdash; Üretim modülleri (özellikle Kabatel Çekme / tel çekme) bir hammadde kullandığında QR koduna göre seçer ve <code>remaining_weight</code>&rsquo;ten düşer. Tel çekiminden geçen 1.000 kg&rsquo;lık bir bakır filamaşin (A1) 980 kg olarak döner. Üretim ayrıca <code>status</code>&rsquo;u değiştirir: <code>received</code> &rarr; <code>in_use</code> (malzeme şu an makinede) &rarr; <code>consumed</code> (tamamen tükenmiş). &ldquo;Kalan&rdquo; sütununun ve koşullu renklendirmenin (sarı/kırmızı) tam olarak göstermeye tasarlandığı şey budur.</li>
+        </ul>
+        <p>Yani Hammadde Stok kesişim noktasında durur: Hammadde Girişi doldurur, Üretim boşaltır ve bu sayfa mevcut bakiyeyi görselleştirir. Doğrudan <code>materials</code> tablosundan (Hammadde modülüne ait) paylaşılan <code>/api/materials/list</code> endpoint&rsquo;i aracılığıyla okur &mdash; kendine ait backend route&rsquo;u yoktur. Tüm gruplama ve toplama istemci tarafında gerçekleşir.</p>
+        <p>Sayfa, <code>src/pages/Stok/HammaddeStok/index.tsx</code> dosyasında tek bir React bileşeni (<code>HammaddeStok</code>, 676 satır) olarak uygulanmıştır. Ant Design&rsquo;ın <code>Collapse</code> bileşenini iç içe <code>Table</code>&rsquo;larla kullanır, Türkçe yerel ayarıyla (<code>trTR</code>) <code>ConfigProvider</code> içine sarılmıştır.</p>
 
         <h3>6.2.2 &mdash; CRUD Akışı</h3>
 
@@ -902,14 +908,25 @@
         </ul>
 
         <h3>6.2.14 &mdash; Diğer Modüllerle Bağlantı</h3>
-        <p>Hammadde Stok, Hammadde modülünün yazma işlemlerinin <strong>okuma tarafı</strong>dır:</p>
+        <p>Hammadde Stok izole bir şekilde var olmaz &mdash; esasen diğer modüller tarafından oluşturulan, değiştirilen ve tüketilen verilere <strong>salt okunur bir pencere</strong>dir. Bu bağlantıları anlamak bu sayfayı anlamanın anahtarıdır:</p>
+
+        <p><strong>Yukarı Akış: Envanteri kim doldurur?</strong></p>
         <ul>
-            <li><strong>Hammadde Girişi (yukarı akış)</strong> &mdash; tek veri kaynağı. Her tablodaki her satır dört malzeme giriş arketipinden (bakır, kalay, lot bazlı, sayım bazlı) biri tarafından oluşturulmuştur. Bu sayfa malzeme oluşturamaz.</li>
-            <li><strong>Tedarikçi Yönetimi (yukarı akış)</strong> &mdash; her detay satırında gösterilen <code>supplier_name</code>&rsquo;i belirler. Tedarikçi ilişkilendirmesi giriş anında yapılır.</li>
-            <li><strong>Hammadde Sipariş (yukarı akış)</strong> &mdash; sipariş bağlantısını sağlar. Sipariş bağlantısıyla girilen malzemeler bu izlenebilirliği taşır, ancak sipariş grup kodu bu sayfada gösterilmez (onun yerine Hammaddeler Listesi&rsquo;nin &ldquo;Sipariş No&rdquo; sütununda gösterilir).</li>
-            <li><strong>Üretim Sistemi (aşağı akış)</strong> &mdash; üretim modülleri aynı <code>materials</code> tablosundan okur, tüketim için QR koduna göre malzeme seçer ve malzemeleri kullanırken <code>remaining_weight</code> ile <code>status</code>&rsquo;u günceller. Bu değişiklikler bir sonraki manuel yenilemede burada yansır.</li>
-            <li><strong>Hammaddeler Listesi (kardeş)</strong> &mdash; hem bu sayfa hem de Hammaddeler Listesi aynı <code>/api/materials/list</code> endpoint&rsquo;inden okur. Hammaddeler Listesi tam özellikli görünümdür (14 sütun, fotoğraflar, WebSocket, arama), bu sayfa ise gruplanmış stok özet görünümüdür.</li>
-            <li><strong>Projeksiyon (kardeş)</strong> &mdash; Projeksiyon da aynı malzeme verisini kullanır, ama tahmin için. Projeksiyon gelecek haftalarda stoğun <em>ne olacağını</em> hesaplar; bu sayfa <em>şu an ne olduğunu</em> gösterir.</li>
+            <li><strong>Hammadde Girişi</strong> &mdash; tek oluşturucu. Bu sayfada görünen her satır Hammadde Girişi&rsquo;ndeki dört giriş arketipinden biri aracılığıyla oluşturulmuştur. Bakır filamaşin geldiğinde operatör tartar, fotoğraf çeker, QR kodu A{n} atar ve <code>materials</code> tablosuna <code>status = 'received'</code> ve <code>remaining_weight = weight</code> ile girer. O kayıt anında burada &ldquo;Bakır&rdquo; paneli altında görünür hale gelir. Hammadde Stok oluşturamaz, yalnızca görüntüleyebilir.</li>
+            <li><strong>Hammadde Sipariş</strong> &mdash; malzemelerin gelmesinin asıl sebebi. Bir satın alma siparişi karşılanıp malzemeler teslim edildiğinde, giriş operatörü malzemeyi sipariş grup koduna (R1, R2, vb.) bağlayabilir. Bu izlenebilirlik veride mevcuttur ama bu sayfada <strong>gösterilmez</strong> &mdash; onun yerine Hammaddeler Listesi&rsquo;nin &ldquo;Sipariş No&rdquo; sütununda görünür.</li>
+            <li><strong>Tedarikçi Yönetimi</strong> &mdash; detay satırlarında görünen tedarikçi adlarını tanımlar. Tedarikçi ilişkilendirmesi giriş anında yapılır ve burada salt okunurdur.</li>
+        </ul>
+
+        <p><strong>Aşağı Akış: Envanteri kim tüketir?</strong></p>
+        <ul>
+            <li><strong>Üretim / Production (özellikle Kabatel Çekme)</strong> &mdash; birincil tüketici. Üretim bir iş kartı başlattığında QR koduna göre hammadde seçer. Tel çekme (Kabatel Çekme) için operatör bir bakır filamaşin (örn. A7) alır ve makineye besler. Üretim ardından malzeme kaydını günceller: <code>status</code>, <code>received</code>/<code>available</code>&rsquo;dan <code>in_use</code>&rsquo;a değişir ve malzeme tüketildikçe <code>remaining_weight</code> azalır. Filamaşin tamamen kullanıldığında <code>status</code>, <code>consumed</code> olur. &ldquo;Kalan&rdquo; sütununun sarı/kırmızı renklendirmesiyle var olmasının tüm sebebi budur &mdash; Üretim&rsquo;in ne kadar tükettiğini görselleştirir. Benzer şekilde plastik granüller, kalay, katalizörler ve boyalar kendi üretim adımları (ekstrüzyon, kalaylama, vb.) tarafından tüketilir.</li>
+            <li><strong>Laboratuvar (dolaylı)</strong> &mdash; Lab testleri bir malzemenin <code>rejected</code> (reddedildi) durumuna düşmesine neden olabilir, bu da durumunu değiştirir ve bu sayfadaki &ldquo;Serbest&rdquo; sayısından etkin bir şekilde çıkarır.</li>
+        </ul>
+
+        <p><strong>Aynı veri üzerindeki kardeş görünümler:</strong></p>
+        <ul>
+            <li><strong>Hammaddeler Listesi (Hammadde modülünde)</strong> &mdash; tam olarak aynı <code>/api/materials/list</code> endpoint&rsquo;inden okur. Tam güçlü yönetici görünümüdür: 14 sütun, tembel yüklenen fotoğraflar, WebSocket gerçek zamanlı senkronizasyon, iki dilli arama, üç düzenleme form varyantı, QR etiket yazdırma, 12 granüler yetki. O sayfa <em>kayıt düzeyinde</em> görünümdür; Hammadde Stok <em>stok düzeyinde</em> görünümdür. Birlikte aynı veri üzerinde farklı kullanıcı ihtiyaçlarını karşılarlar.</li>
+            <li><strong>Projeksiyon (Stok modülünde)</strong> &mdash; malzeme verisini kullanır ama tamamen farklı bir amaç için. Projeksiyon mevcut envanter + gelen siparişler &minus; üretim gereksinimleri birleştirerek stoğun gelecek haftalarda <em>ne olacağını</em> hesaplar. Hammadde Stok stoğun <em>şu an ne olduğunu</em> gösterir. Tamamlayıcıdırlar: biri canlı anlık görüntü, diğeri haftalık tahmin.</li>
         </ul>
 
         <h3>6.2.15 &mdash; Yetki Modeli</h3>
