@@ -663,7 +663,167 @@
         </div>
 
 
-        <!-- placeholder: 6.2 Hammadde Stok will be added here -->
+        <!-- ============================================= -->
+        <!--  6.2  HAMMADDE STOK (Raw Material Stock)       -->
+        <!-- ============================================= -->
+
+        <h2 id="sec-6-2">6.2 &mdash; Hammadde Stok (Raw Material Stock)</h2>
+
+        <h3>6.2.1 &mdash; Purpose and Business Context</h3>
+        <p>Hammadde Stok answers the question <strong>&ldquo;What raw materials do we physically have in the warehouse right now?&rdquo;</strong> It is the live, real-time inventory of all 8 raw material categories &mdash; copper wire rod, tin, plastic granules, catalyst, dye, antirodent compound, palettes, and reels. Every kilogram and every piece that entered through the Hammadde Giri&#351;i (Material Entry) module appears here with its QR code, supplier, lot number, weight, and status.</p>
+        <p>Unlike Projeksiyon which computes a forecast, Hammadde Stok reads directly from the <code>materials</code> table (owned by the Hammadde module). It does not have its own backend routes &mdash; it shares the Hammadde module&rsquo;s <code>/api/materials/list</code> endpoint. This makes it a <strong>pure frontend view</strong> over existing data, with client-side grouping, filtering, and status aggregation.</p>
+
+        <h3>6.2.2 &mdash; CRUD Flow</h3>
+
+        <p><strong>Read (Primary Operation):</strong></p>
+        <ol>
+            <li>Page loads &rarr; single <code>GET /api/materials/list</code> call fetches ALL raw materials regardless of type</li>
+            <li>Frontend groups materials client-side into 8 categories by <code>material_type</code> field</li>
+            <li>Within each category, materials are grouped by <code>material_name</code> (e.g., all &ldquo;HFX 500P&rdquo; lots together)</li>
+            <li>User clicks a Collapse panel to see the grouped table for that category</li>
+            <li>User clicks a group row to expand and see individual lots with QR codes, weights, supplier, status</li>
+        </ol>
+
+        <p><strong>Update:</strong></p>
+        <ol>
+            <li>Click the edit icon on any individual item row</li>
+            <li>Modal opens with two fields: <code>remaining_weight</code> (kg, not shown for palette/reel) and <code>status</code> (dropdown: Teslim Al&inodot;nd&inodot;, Mevcut, Kullan&inodot;mda, T&uuml;kendi, Reddedildi)</li>
+            <li>On submit: <code>PUT /api/materials/update/{id}</code></li>
+            <li>On success: toast &rarr; modal closes &rarr; full data refetch</li>
+        </ol>
+
+        <p><strong>Delete:</strong></p>
+        <ol>
+            <li>Click the delete icon on any individual item row</li>
+            <li>Confirmation modal: &ldquo;{QR_CODE} kodlu malzemeyi silmek istedi&#287;inize emin misiniz?&rdquo;</li>
+            <li>On confirm: <code>DELETE /api/materials/{id}/hard-delete</code></li>
+            <li>Hard delete &mdash; material and associated photos permanently removed</li>
+            <li>On success: toast &rarr; full data refetch</li>
+        </ol>
+
+        <p><strong>Create:</strong> Not available on this page. Material creation happens exclusively through the Hammadde Giri&#351;i (Material Entry) page in the Hammadde module.</p>
+
+        <h3>6.2.3 &mdash; Data Source and API</h3>
+        <p>Hammadde Stok uses a single API call:</p>
+        <table>
+            <tr><th>Method</th><th>Path</th><th>What It Returns</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/materials/list</code></td><td>ALL raw materials as a flat array. Each item includes: <code>id</code>, <code>qr_code</code>, <code>material_type</code>, <code>material_name</code>, <code>supplier_name</code>, <code>lot_number</code>, <code>weight</code> (original), <code>remaining_weight</code>, <code>form_weight</code>, <code>quantity</code>, <code>received_date</code>, <code>status</code></td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/materials/update/{id}</code></td><td>Updates <code>remaining_weight</code> and/or <code>status</code> on a single material</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/materials/{id}/hard-delete</code></td><td>Permanently removes the material and associated photos</td></tr>
+        </table>
+        <p>This endpoint is owned by the Hammadde module (<code>material_routes.py</code>), not the Stock module. Hammadde Stok is purely a consumer.</p>
+
+        <h3>6.2.4 &mdash; The 8 Category Panels</h3>
+        <p>The page renders an Ant Design <code>Collapse</code> with 8 panels, one per material category. Each panel has a color-coded icon matching the Hammadde Giri&#351;i page&rsquo;s card colors:</p>
+
+        <table>
+            <tr><th>Category</th><th>Key</th><th>Icon Color</th><th>Unit</th><th>QR Prefix</th></tr>
+            <tr><td>Bak&inodot;r (Copper)</td><td><code>raw_copper</code></td><td>#cd7f32 (bronze)</td><td>kg</td><td>A</td></tr>
+            <tr><td>Kalay (Tin)</td><td><code>raw_tin</code></td><td>#c0c0c0 (silver)</td><td>kg</td><td>B</td></tr>
+            <tr><td>Plastik (Plastic)</td><td><code>raw_plastic</code></td><td>#3498db (blue)</td><td>kg</td><td>C</td></tr>
+            <tr><td>Kataliz&ouml;r (Catalyst)</td><td><code>raw_catalyst</code></td><td>#9b59b6 (purple)</td><td>kg</td><td>D</td></tr>
+            <tr><td>Boya (Dye)</td><td><code>raw_dye</code></td><td>#e74c3c (red)</td><td>kg</td><td>E</td></tr>
+            <tr><td>Antirodent</td><td><code>raw_antirodent</code></td><td>#27ae60 (green)</td><td>kg</td><td>F</td></tr>
+            <tr><td>Palet (Palette)</td><td><code>raw_palette</code></td><td>#f39c12 (orange)</td><td>adet</td><td>I</td></tr>
+            <tr><td>Makara (Reel)</td><td><code>raw_reel</code></td><td>#1abc9c (teal)</td><td>adet</td><td>H</td></tr>
+        </table>
+
+        <h3>6.2.5 &mdash; Panel Header Statistics</h3>
+        <p>Each panel header (visible even when collapsed) shows three aggregate statistics calculated client-side from all items in that category:</p>
+        <ul>
+            <li><strong>Toplam (Total):</strong> Sum of <code>remaining_weight</code> for kg-based materials, sum of <code>weight</code> (quantity) for palette/reel</li>
+            <li><strong>Kullan&inodot;mda (In Use):</strong> Blue tag showing total from items with <code>status = 'in_use'</code></li>
+            <li><strong>Serbest (Available):</strong> Green tag showing total from items with <code>status = 'received'</code> or <code>status = 'available'</code></li>
+        </ul>
+        <p>A record count tag (e.g., &ldquo;47 kay&inodot;t&rdquo;) also appears next to the category name.</p>
+
+        <h3>6.2.6 &mdash; Three-Level Table Hierarchy</h3>
+        <p>Each category panel contains a two-level expandable table:</p>
+
+        <p><strong>Level 1 &mdash; Category Panel:</strong> The Collapse panel header (Bak&inodot;r, Plastik, etc.) with aggregate totals.</p>
+
+        <p><strong>Level 2 &mdash; Material Name Group:</strong> Within each panel, materials are grouped by <code>material_name</code>. For example, under &ldquo;Plastik&rdquo;, you might see groups for &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo;. Each group row shows:</p>
+        <ul>
+            <li><strong>Malzeme Ad&inodot; (Material Name):</strong> Bold text with lot count in parentheses, e.g., &ldquo;HFX 500P (12 lot)&rdquo;</li>
+            <li><strong>Toplam (Total):</strong> Aggregate weight/quantity for all lots of this material</li>
+            <li><strong>Kullan&inodot;mda (In Use):</strong> Blue tag with reserved total</li>
+            <li><strong>Serbest (Available):</strong> Green tag with available total</li>
+        </ul>
+        <p>If a material has no name, it falls into a &ldquo;{Category} (&Idot;simsiz)&rdquo; fallback group.</p>
+
+        <p><strong>Level 3 &mdash; Individual Lots:</strong> Expanding a group row reveals the individual material entries. Each row has 7&ndash;8 columns:</p>
+        <table>
+            <tr><th>Column</th><th>Description</th><th>Notes</th></tr>
+            <tr><td>QR Kod</td><td>Material QR code (A1, C5, etc.)</td><td>Blue tag, fixed left</td></tr>
+            <tr><td>&Ouml;l&ccedil;&uuml;len (Measured)</td><td>Original weight at entry</td><td>For palette/reel shows &ldquo;Miktar&rdquo; (Quantity) instead</td></tr>
+            <tr><td>Kalan (Remaining)</td><td>Current remaining weight</td><td><strong>Not shown</strong> for palette/reel. Conditional coloring (see below)</td></tr>
+            <tr><td>Durum (Status)</td><td>Current status</td><td>Color-coded Tag: green=received, blue=available, orange=in_use, grey=consumed, red=rejected</td></tr>
+            <tr><td>Tedarik&ccedil;i (Supplier)</td><td>Supplier name</td><td>Blue tag, or &ldquo;-&rdquo; if none</td></tr>
+            <tr><td>Lot No</td><td>Lot number</td><td>Blue tag, or &ldquo;-&rdquo; if none</td></tr>
+            <tr><td>Giri&#351; Tarihi (Entry Date)</td><td>When the material was received</td><td>DD.MM.YY format, converted to Europe/Istanbul timezone</td></tr>
+            <tr><td>&Idot;&#351;lem (Actions)</td><td>Edit and delete buttons</td><td>Fixed right</td></tr>
+        </table>
+
+        <h3>6.2.7 &mdash; Conditional Weight Coloring</h3>
+        <p>The &ldquo;Kalan&rdquo; (Remaining) column uses conditional coloring to give instant visual feedback about material consumption:</p>
+        <ul>
+            <li><strong>Normal (no color):</strong> <code>remaining_weight &ge; 95%</code> of original weight &mdash; barely touched</li>
+            <li><strong style="color: #faad14;">Yellow (#faad14):</strong> <code>remaining_weight &lt; 95%</code> of original &mdash; partially consumed, bold text</li>
+            <li><strong style="color: #ff4d4f;">Red (#ff4d4f):</strong> <code>remaining_weight &lt; 20%</code> of original &mdash; critically low, bold text</li>
+        </ul>
+        <p>The thresholds are: <code>isReduced = current &lt; original &times; 0.95</code> and <code>isLow = current &lt; original &times; 0.2</code>. This means a 1000 kg barrel of plastic turns yellow at 949 kg and red at 199 kg.</p>
+
+        <h3>6.2.8 &mdash; Unit Adaptation</h3>
+        <p>The page dynamically adapts units based on material type:</p>
+        <ul>
+            <li><strong>Palette and Reel (<code>raw_palette</code>, <code>raw_reel</code>):</strong> Unit is &ldquo;adet&rdquo; (pieces). The &ldquo;Kalan&rdquo; column is completely hidden since pieces don&rsquo;t have partial consumption. The edit modal also hides the weight field for these types.</li>
+            <li><strong>All other materials:</strong> Unit is &ldquo;kg&rdquo;. Both measured and remaining weight columns are shown. The edit modal includes a weight adjustment field.</li>
+        </ul>
+
+        <h3>6.2.9 &mdash; Client-Side Grouping Logic</h3>
+        <p>The <code>processAndGroupMaterials()</code> function handles all data transformation client-side:</p>
+        <ol>
+            <li>Filter the flat material array by <code>material_type</code> for each of the 8 categories</li>
+            <li>Group items within each category by <code>material_name</code>. If <code>material_name</code> is null/empty, use &ldquo;{Category} (&Idot;simsiz)&rdquo;</li>
+            <li>For each group, calculate: <code>total_quantity</code> (sum of remaining weights or quantities), <code>reserved_quantity</code> (sum where status is &ldquo;in_use&rdquo;), <code>available_quantity</code> (sum where status is &ldquo;received&rdquo; or &ldquo;available&rdquo;)</li>
+            <li>Store groups in <code>sectionData</code> state, preserving any existing <code>expandedKeys</code> so open groups stay open after a data refetch</li>
+        </ol>
+
+        <h3>6.2.10 &mdash; Edit Modal</h3>
+        <p>The edit modal is minimal and focused:</p>
+        <ul>
+            <li><strong>Title:</strong> &ldquo;D&uuml;zenle: {QR_CODE}&rdquo;</li>
+            <li><strong>Field 1:</strong> &ldquo;Kalan A&#287;&inodot;rl&inodot;k (kg)&rdquo; &mdash; <code>InputNumber</code> with min=0, step=0.1. <strong>Hidden</strong> for palette/reel types.</li>
+            <li><strong>Field 2:</strong> &ldquo;Durum&rdquo; &mdash; <code>Select</code> with 5 options: Teslim Al&inodot;nd&inodot; (received), Mevcut (available), Kullan&inodot;mda (in_use), T&uuml;kendi (consumed), Reddedildi (rejected).</li>
+            <li>Pre-filled from the selected item&rsquo;s current values. Calls <code>PUT /api/materials/update/{id}</code> on submit.</li>
+        </ul>
+
+        <h3>6.2.11 &mdash; Connection to Hammadde Module</h3>
+        <p>Hammadde Stok is the <strong>read side</strong> of the Hammadde module&rsquo;s write operations:</p>
+        <ul>
+            <li><strong>Hammadde Giri&#351;i</strong> (Material Entry) creates the records that appear here</li>
+            <li><strong>Tedarik&ccedil;i Y&ouml;netimi</strong> (Supplier Management) determines the <code>supplier_name</code> shown in the detail rows</li>
+            <li><strong>Hammadde Sipari&#351;</strong> (Material Orders) provides the order linkage &mdash; materials entered with an order link carry that traceability</li>
+        </ul>
+        <p>All data flows are one-way into Hammadde Stok. The only write operations from this page are weight updates and hard deletes.</p>
+
+        <h3>6.2.12 &mdash; Permission Model</h3>
+        <p>Uses the <code>canStok</code> route guard from <code>access.ts</code>. The manifest defines 5 buttons: <code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code>. However, the page does not enforce button-level permissions &mdash; the edit and delete buttons are always visible to any user who can access the Stock pages.</p>
+
+        <h3>6.2.13 &mdash; What This Submodule Does NOT Do</h3>
+        <ul>
+            <li>It does <strong>not</strong> have its own backend routes &mdash; it shares the Hammadde module&rsquo;s API</li>
+            <li>It does <strong>not</strong> support material creation &mdash; that happens in Hammadde Giri&#351;i</li>
+            <li>It does <strong>not</strong> use WebSocket &mdash; data is fetched once on mount, refreshed on user action</li>
+            <li>It does <strong>not</strong> have server-side filtering or pagination &mdash; all grouping and aggregation is client-side</li>
+            <li>It does <strong>not</strong> show photos &mdash; material photos are only visible in Hammaddeler Listesi</li>
+            <li>It does <strong>not</strong> track consumption history &mdash; it only shows the current snapshot</li>
+            <li>It does <strong>not</strong> integrate with Lab or Production &mdash; it is a pure inventory view</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Design choice &mdash; client-side grouping:</strong> Fetching all materials in a single API call and grouping client-side is a deliberate trade-off. The alternative &mdash; 8 separate API calls with server-side grouping &mdash; would require 8 round trips and complex server-side aggregation logic. Since the raw material inventory is typically in the hundreds to low thousands of records (not millions), the single-fetch approach keeps the backend simple and the UI responsive. If the factory scales to tens of thousands of material entries, a grouped endpoint could be added without changing the frontend contract.</p>
+        </div>
 
         <!-- placeholder: 6.3 Ürün Stok will be added here -->
 

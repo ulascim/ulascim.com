@@ -658,7 +658,166 @@
         </div>
 
 
-        <!-- placeholder: 6.2 Hammadde Stok buraya eklenecek -->
+        <!-- ============================================= -->
+        <!--  6.2  HAMMADDE STOK                            -->
+        <!-- ============================================= -->
+
+        <h2 id="sec-6-2">6.2 &mdash; Hammadde Stok</h2>
+
+        <h3>6.2.1 &mdash; Amaç ve İş Bağlamı</h3>
+        <p>Hammadde Stok, <strong>&ldquo;Depoda şu an fiziksel olarak hangi hammaddeler var?&rdquo;</strong> sorusunu yanıtlar. 8 hammadde kategorisinin tamamının canlı, gerçek zamanlı envanteri &mdash; bakır filamaşin, kalay, plastik granül, katalizör, boya, antirodent bileşik, palet ve makara. Hammadde Girişi modülü aracılığıyla giren her kilogram ve her adet, QR kodu, tedarikçisi, lot numarası, ağırlığı ve durumuyla burada görünür.</p>
+        <p>Tahmin hesaplayan Projeksiyon&rsquo;dan farklı olarak, Hammadde Stok doğrudan <code>materials</code> tablosundan (Hammadde modülüne ait) okur. Kendi backend route&rsquo;ları yoktur &mdash; Hammadde modülünün <code>/api/materials/list</code> endpoint&rsquo;ini paylaşır. Bu onu mevcut veriler üzerinde istemci tarafı gruplama, filtreleme ve durum toplamlamasıyla <strong>saf bir frontend görünümü</strong> yapar.</p>
+
+        <h3>6.2.2 &mdash; CRUD Akışı</h3>
+
+        <p><strong>Okuma (Birincil İşlem):</strong></p>
+        <ol>
+            <li>Sayfa yüklenir &rarr; türden bağımsız olarak TÜM hammaddeleri çeken tek bir <code>GET /api/materials/list</code> çağrısı</li>
+            <li>Frontend malzemeleri <code>material_type</code> alanına göre istemci tarafında 8 kategoriye gruplar</li>
+            <li>Her kategori içinde malzemeler <code>material_name</code>&rsquo;e göre gruplanır (örn. tüm &ldquo;HFX 500P&rdquo; lotları birlikte)</li>
+            <li>Kullanıcı o kategorinin gruplanmış tablosunu görmek için bir Collapse paneline tıklar</li>
+            <li>Kullanıcı QR kodları, ağırlıklar, tedarikçi, durum ile bireysel lotları görmek için bir grup satırına tıklar</li>
+        </ol>
+
+        <p><strong>Güncelleme:</strong></p>
+        <ol>
+            <li>Herhangi bir bireysel öğe satırındaki düzenle ikonuna tıklayın</li>
+            <li>İki alanlı modal açılır: <code>remaining_weight</code> (kg, palet/makara için gösterilmez) ve <code>status</code> (açılır liste)</li>
+            <li>Gönderimde: <code>PUT /api/materials/update/{id}</code></li>
+            <li>Başarıda: bildirim &rarr; modal kapanır &rarr; tam veri yeniden çekilir</li>
+        </ol>
+
+        <p><strong>Silme:</strong></p>
+        <ol>
+            <li>Herhangi bir bireysel öğe satırındaki sil ikonuna tıklayın</li>
+            <li>Onay modalı: &ldquo;{QR_CODE} kodlu malzemeyi silmek istediğinize emin misiniz?&rdquo;</li>
+            <li>Onayda: <code>DELETE /api/materials/{id}/hard-delete</code></li>
+            <li>Kalıcı silme &mdash; malzeme ve ilişkili fotoğraflar kalıcı olarak kaldırılır</li>
+            <li>Başarıda: bildirim &rarr; tam veri yeniden çekilir</li>
+        </ol>
+
+        <p><strong>Oluşturma:</strong> Bu sayfada mevcut değil. Malzeme oluşturma yalnızca Hammadde modülündeki Hammadde Girişi sayfasından yapılır.</p>
+
+        <h3>6.2.3 &mdash; Veri Kaynağı ve API</h3>
+        <p>Hammadde Stok tek bir API çağrısı kullanır:</p>
+        <table>
+            <tr><th>Metot</th><th>Yol</th><th>Ne Döndürür</th></tr>
+            <tr><td><code>GET</code></td><td><code>/api/materials/list</code></td><td>Düz bir dizi olarak TÜM hammaddeler. Her öğe: <code>id</code>, <code>qr_code</code>, <code>material_type</code>, <code>material_name</code>, <code>supplier_name</code>, <code>lot_number</code>, <code>weight</code>, <code>remaining_weight</code>, <code>form_weight</code>, <code>quantity</code>, <code>received_date</code>, <code>status</code> içerir</td></tr>
+            <tr><td><code>PUT</code></td><td><code>/api/materials/update/{id}</code></td><td>Tek bir malzemede <code>remaining_weight</code> ve/veya <code>status</code> günceller</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/api/materials/{id}/hard-delete</code></td><td>Malzemeyi ve ilişkili fotoğrafları kalıcı olarak kaldırır</td></tr>
+        </table>
+        <p>Bu endpoint Hammadde modülüne (<code>material_routes.py</code>) aittir, Stok modülüne değil. Hammadde Stok tamamen bir tüketicidir.</p>
+
+        <h3>6.2.4 &mdash; 8 Kategori Paneli</h3>
+        <p>Sayfa, her malzeme kategorisi için bir tane olmak üzere 8 panelli bir Ant Design <code>Collapse</code> renderlar. Her panel Hammadde Girişi sayfasının kart renkleriyle eşleşen renk kodlu bir ikona sahiptir:</p>
+
+        <table>
+            <tr><th>Kategori</th><th>Anahtar</th><th>İkon Rengi</th><th>Birim</th><th>QR Ön Eki</th></tr>
+            <tr><td>Bakır</td><td><code>raw_copper</code></td><td>#cd7f32 (bronz)</td><td>kg</td><td>A</td></tr>
+            <tr><td>Kalay</td><td><code>raw_tin</code></td><td>#c0c0c0 (gümüş)</td><td>kg</td><td>B</td></tr>
+            <tr><td>Plastik</td><td><code>raw_plastic</code></td><td>#3498db (mavi)</td><td>kg</td><td>C</td></tr>
+            <tr><td>Katalizör</td><td><code>raw_catalyst</code></td><td>#9b59b6 (mor)</td><td>kg</td><td>D</td></tr>
+            <tr><td>Boya</td><td><code>raw_dye</code></td><td>#e74c3c (kırmızı)</td><td>kg</td><td>E</td></tr>
+            <tr><td>Antirodent</td><td><code>raw_antirodent</code></td><td>#27ae60 (yeşil)</td><td>kg</td><td>F</td></tr>
+            <tr><td>Palet</td><td><code>raw_palette</code></td><td>#f39c12 (turuncu)</td><td>adet</td><td>I</td></tr>
+            <tr><td>Makara</td><td><code>raw_reel</code></td><td>#1abc9c (deniz mavisi)</td><td>adet</td><td>H</td></tr>
+        </table>
+
+        <h3>6.2.5 &mdash; Panel Başlık İstatistikleri</h3>
+        <p>Her panel başlığı (daraltılmış haldeyken bile görünür) o kategorideki tüm öğelerden istemci tarafında hesaplanan üç toplam istatistik gösterir:</p>
+        <ul>
+            <li><strong>Toplam:</strong> kg bazlı malzemeler için <code>remaining_weight</code> toplamı, palet/makara için <code>weight</code> (miktar) toplamı</li>
+            <li><strong>Kullanımda:</strong> <code>status = 'in_use'</code> olan öğelerden toplamı gösteren mavi etiket</li>
+            <li><strong>Serbest:</strong> <code>status = 'received'</code> veya <code>status = 'available'</code> olan öğelerden toplamı gösteren yeşil etiket</li>
+        </ul>
+        <p>Kategori adının yanında bir kayıt sayısı etiketi de görünür (örn. &ldquo;47 kayıt&rdquo;).</p>
+
+        <h3>6.2.6 &mdash; Üç Seviyeli Tablo Hiyerarşisi</h3>
+        <p>Her kategori paneli iki seviyeli genişletilebilir bir tablo içerir:</p>
+
+        <p><strong>Seviye 1 &mdash; Kategori Paneli:</strong> Toplam değerlerle Collapse panel başlığı (Bakır, Plastik, vb.).</p>
+
+        <p><strong>Seviye 2 &mdash; Malzeme Adı Grubu:</strong> Her panel içinde malzemeler <code>material_name</code>&rsquo;e göre gruplanır. Örneğin, &ldquo;Plastik&rdquo; altında &ldquo;HFX 500P&rdquo;, &ldquo;HFFR 302&rdquo;, &ldquo;XLPE 2003&rdquo; grupları görebilirsiniz. Her grup satırı gösterir:</p>
+        <ul>
+            <li><strong>Malzeme Adı:</strong> Parantez içinde lot sayısıyla kalın metin, örn. &ldquo;HFX 500P (12 lot)&rdquo;</li>
+            <li><strong>Toplam:</strong> Bu malzemenin tüm lotları için toplam ağırlık/miktar</li>
+            <li><strong>Kullanımda:</strong> Rezerve toplamla mavi etiket</li>
+            <li><strong>Serbest:</strong> Mevcut toplamla yeşil etiket</li>
+        </ul>
+
+        <p><strong>Seviye 3 &mdash; Bireysel Lotlar:</strong> Bir grup satırını genişletmek bireysel malzeme girişlerini açar. Her satırda 7&ndash;8 sütun vardır:</p>
+        <table>
+            <tr><th>Sütun</th><th>Açıklama</th><th>Notlar</th></tr>
+            <tr><td>QR Kod</td><td>Malzeme QR kodu (A1, C5, vb.)</td><td>Mavi etiket, sabit sol</td></tr>
+            <tr><td>Ölçülen</td><td>Girişte orijinal ağırlık</td><td>Palet/makara için &ldquo;Miktar&rdquo; gösterir</td></tr>
+            <tr><td>Kalan</td><td>Mevcut kalan ağırlık</td><td>Palet/makara için <strong>gösterilmez</strong>. Koşullu renklendirme</td></tr>
+            <tr><td>Durum</td><td>Mevcut durum</td><td>Renk kodlu Tag: yeşil=teslim alındı, mavi=mevcut, turuncu=kullanımda, gri=tükendi, kırmızı=reddedildi</td></tr>
+            <tr><td>Tedarikçi</td><td>Tedarikçi adı</td><td>Mavi etiket veya yoksa &ldquo;-&rdquo;</td></tr>
+            <tr><td>Lot No</td><td>Lot numarası</td><td>Mavi etiket veya yoksa &ldquo;-&rdquo;</td></tr>
+            <tr><td>Giriş Tarihi</td><td>Malzemenin alındığı tarih</td><td>DD.MM.YY formatında, Europe/Istanbul zaman dilimine dönüştürülmüş</td></tr>
+            <tr><td>İşlem</td><td>Düzenle ve sil butonları</td><td>Sabit sağ</td></tr>
+        </table>
+
+        <h3>6.2.7 &mdash; Koşullu Ağırlık Renklendirmesi</h3>
+        <p>&ldquo;Kalan&rdquo; sütunu malzeme tüketimi hakkında anında görsel geri bildirim vermek için koşullu renklendirme kullanır:</p>
+        <ul>
+            <li><strong>Normal (renksiz):</strong> <code>remaining_weight &ge; %95</code> orijinal ağırlık &mdash; neredeyse dokunulmamış</li>
+            <li><strong style="color: #faad14;">Sarı (#faad14):</strong> <code>remaining_weight &lt; %95</code> orijinal &mdash; kısmen tüketilmiş, kalın metin</li>
+            <li><strong style="color: #ff4d4f;">Kırmızı (#ff4d4f):</strong> <code>remaining_weight &lt; %20</code> orijinal &mdash; kritik düşük, kalın metin</li>
+        </ul>
+        <p>Eşikler: <code>isReduced = mevcut &lt; orijinal &times; 0.95</code> ve <code>isLow = mevcut &lt; orijinal &times; 0.2</code>. Bu, 1000 kg&rsquo;lık bir plastik varili 949 kg&rsquo;da sarıya, 199 kg&rsquo;da kırmızıya döner.</p>
+
+        <h3>6.2.8 &mdash; Birim Uyarlaması</h3>
+        <p>Sayfa birimleri malzeme türüne göre dinamik olarak uyarlar:</p>
+        <ul>
+            <li><strong>Palet ve Makara:</strong> Birim &ldquo;adet&rdquo;. &ldquo;Kalan&rdquo; sütunu tamamen gizlenir çünkü parçalar kısmi tüketim yaşamaz. Düzenleme modalı da bu türler için ağırlık alanını gizler.</li>
+            <li><strong>Diğer tüm malzemeler:</strong> Birim &ldquo;kg&rdquo;. Hem ölçülen hem kalan ağırlık sütunları gösterilir. Düzenleme modalı ağırlık ayarlama alanı içerir.</li>
+        </ul>
+
+        <h3>6.2.9 &mdash; İstemci Tarafı Gruplama Mantığı</h3>
+        <p><code>processAndGroupMaterials()</code> fonksiyonu tüm veri dönüşümünü istemci tarafında yönetir:</p>
+        <ol>
+            <li>8 kategorinin her biri için düz malzeme dizisini <code>material_type</code>&rsquo;a göre filtrele</li>
+            <li>Her kategori içindeki öğeleri <code>material_name</code>&rsquo;e göre grupla. <code>material_name</code> null/boşsa &ldquo;{Kategori} (İsimsiz)&rdquo; kullan</li>
+            <li>Her grup için hesapla: <code>total_quantity</code> (kalan ağırlıklar veya miktarlar toplamı), <code>reserved_quantity</code> (durumu &ldquo;in_use&rdquo; olanların toplamı), <code>available_quantity</code> (durumu &ldquo;received&rdquo; veya &ldquo;available&rdquo; olanların toplamı)</li>
+            <li>Grupları <code>sectionData</code> durumunda depola, mevcut <code>expandedKeys</code>&rsquo;i koru böylece açık gruplar veri yeniden çekildiğinde açık kalır</li>
+        </ol>
+
+        <h3>6.2.10 &mdash; Düzenleme Modalı</h3>
+        <p>Düzenleme modalı minimal ve odaklıdır:</p>
+        <ul>
+            <li><strong>Başlık:</strong> &ldquo;Düzenle: {QR_CODE}&rdquo;</li>
+            <li><strong>Alan 1:</strong> &ldquo;Kalan Ağırlık (kg)&rdquo; &mdash; min=0, step=0.1 ile <code>InputNumber</code>. Palet/makara türleri için <strong>gizli</strong>.</li>
+            <li><strong>Alan 2:</strong> &ldquo;Durum&rdquo; &mdash; 5 seçenekli <code>Select</code>: Teslim Alındı, Mevcut, Kullanımda, Tükendi, Reddedildi.</li>
+            <li>Seçilen öğenin mevcut değerlerinden önceden doldurulur. Gönderimde <code>PUT /api/materials/update/{id}</code> çağırır.</li>
+        </ul>
+
+        <h3>6.2.11 &mdash; Hammadde Modülüyle Bağlantı</h3>
+        <p>Hammadde Stok, Hammadde modülünün yazma işlemlerinin <strong>okuma tarafı</strong>dır:</p>
+        <ul>
+            <li><strong>Hammadde Girişi</strong> burada görünen kayıtları oluşturur</li>
+            <li><strong>Tedarikçi Yönetimi</strong> detay satırlarında gösterilen <code>supplier_name</code>&rsquo;i belirler</li>
+            <li><strong>Hammadde Sipariş</strong> sipariş bağlantısını sağlar &mdash; sipariş bağlantısıyla girilen malzemeler bu izlenebilirliği taşır</li>
+        </ul>
+        <p>Tüm veri akışları Hammadde Stok&rsquo;a tek yönlüdür. Bu sayfadaki tek yazma işlemleri ağırlık güncellemeleri ve kalıcı silmelerdir.</p>
+
+        <h3>6.2.12 &mdash; Yetki Modeli</h3>
+        <p><code>access.ts</code>&rsquo;den <code>canStok</code> route guard&rsquo;ını kullanır. Manifest 5 buton tanımlar: <code>access_page</code>, <code>view_table</code>, <code>view_details</code>, <code>edit_stock</code>, <code>adjust_quantity</code>. Ancak sayfa buton düzeyinde yetkileri uygulamaz &mdash; düzenle ve sil butonları Stok sayfalarına erişebilen her kullanıcıya her zaman görünürdür.</p>
+
+        <h3>6.2.13 &mdash; Bu Alt Modülün Yapmadıkları</h3>
+        <ul>
+            <li>Kendi backend route&rsquo;ları <strong>yoktur</strong> &mdash; Hammadde modülünün API&rsquo;sini paylaşır</li>
+            <li>Malzeme oluşturmayı <strong>desteklemez</strong> &mdash; o Hammadde Girişi&rsquo;nde yapılır</li>
+            <li>WebSocket <strong>kullanmaz</strong> &mdash; veri mount&rsquo;ta bir kez çekilir, kullanıcı eylemiyle yenilenir</li>
+            <li>Sunucu tarafı filtreleme veya sayfalama <strong>yoktur</strong> &mdash; tüm gruplama ve toplama istemci tarafındadır</li>
+            <li>Fotoğrafları <strong>göstermez</strong> &mdash; malzeme fotoğrafları yalnızca Hammaddeler Listesi&rsquo;nde görünür</li>
+            <li>Tüketim geçmişini <strong>izlemez</strong> &mdash; yalnızca mevcut anlık görüntüyü gösterir</li>
+            <li>Lab veya Üretim ile <strong>entegre olmaz</strong> &mdash; saf bir envanter görünümüdür</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Tasarım tercihi &mdash; istemci tarafı gruplama:</strong> Tüm malzemeleri tek bir API çağrısında çekip istemci tarafında gruplamak bilinçli bir ödünleşmedir. Alternatif &mdash; sunucu tarafı gruplamayla 8 ayrı API çağrısı &mdash; 8 gidiş-dönüş ve karmaşık sunucu tarafı toplama mantığı gerektirir. Hammadde envanteri tipik olarak yüzlerle binler arasında kayıt olduğundan (milyonlarca değil), tek çekim yaklaşımı backend&rsquo;i basit ve UI&rsquo;ı duyarlı tutar.</p>
+        </div>
 
         <!-- placeholder: 6.3 Ürün Stok buraya eklenecek -->
 
