@@ -116,11 +116,11 @@
     <main class="report">
         <a href="erp-deep-dives-tr.html" class="back-link">Mod&uuml;llere D&ouml;n</a>
         <h1>STOK &amp; ENVANTER &mdash; &Ccedil;İFT MANTIKLI MALZEME G&Ouml;R&Uuml;N&Uuml;RL&Uuml;ĞÜ</h1>
-        <p class="subtitle">İki paralel sistem, iki farklı soruyu yanıtlıyor: &ldquo;Şu an elimizde ne var?&rdquo; ve &ldquo;Gelecekte elimizde ne olacak?&rdquo; &mdash; canlı envanter ve kalıcı projeksiyon planı, yerleşik bir çapraz doğrulama mekanizması olarak yan yana çalışıyor.</p>
+        <p class="subtitle">İki paralel sistem, iki farklı soruyu yanıtlıyor: &ldquo;Şu an elimizde ne var?&rdquo; ve &ldquo;Gelecekte elimizde ne olacak?&rdquo; &mdash; canlı envanter ve dinamik projeksiyon tahmini, yerleşik bir çapraz doğrulama mekanizması olarak yan yana çalışıyor.</p>
         <p class="authors">Şubat 2026 &bull; Solen Kablo &bull; Canlı Belge</p>
 
         <div class="abstract">
-            <p style="margin-bottom: 0;"><strong>Stok &amp; Envanter modülü temel bir ikilik üzerine çalışır.</strong> Üç sayfasından ikisi &mdash; Ürün Stok ve Hammadde Stok &mdash; fabrikanın bu andaki fiziksel gerçekliğini gösterir: her sepet bakır tel, her makara ekstrüde kablo, depodaki her kilogram ham plastik. Bunlar, Üretim her çıktı kaydettiğinde veya bir malzeme tüketildiğinde değişir. Üçüncü sayfa &mdash; Projeksiyon &mdash; fiziksel gerçekliği tamamen göz ardı eder ve bunun yerine <em>planı</em> gösterir: iş kartlarından (EKSİ) ne kadar malzeme gerekeceğinin ve satın alma siparişlerinden (ARTI) ne kadar geleceğinin haftalık tahmini. Projeksiyon, malzemeler fiziksel olarak geldiğinde veya üretim tamamlandığında değişmez; yalnızca planın kendisi değiştiğinde değişir. Bu ikilik kasıtlıdır &mdash; canlı envanterin projeksiyonu doğruladığı ve projeksiyonun canlı envanterin henüz göremediği gelecekteki açıkları önceden uyardığı yerleşik bir çapraz doğrulama mekanizması oluşturur.</p>
+            <p style="margin-bottom: 0;"><strong>Stok &amp; Envanter modülü temel bir ikilik üzerine çalışır.</strong> Üç sayfasından ikisi &mdash; Ürün Stok ve Hammadde Stok &mdash; fabrikanın bu andaki fiziksel gerçekliğini gösterir: her sepet bakır tel, her makara ekstrüde kablo, depodaki her kilogram ham plastik. Bunlar, Üretim her çıktı kaydettiğinde veya bir malzeme tüketildiğinde değişir. Üçüncü sayfa &mdash; Projeksiyon &mdash; fiziksel gerçekliği tamamen göz ardı eder ve bunun yerine <em>planı</em> gösterir: iş kartlarından (EKSİ) ne kadar malzeme gerekeceğinin ve satın alma siparişlerinden (ARTI) ne kadar geleceğinin haftalık tahmini. Projeksiyon plan değişikliklerine dinamik olarak tepki verir &mdash; bir malzeme siparişi teslim edildiğinde, beklenen tarih/miktardan gerçek teslim tarihi/miktarına geçiş yapar ve projeksiyonu buna göre kaydırır. Ayrıca iş kartları oluşturulduğunda, değiştirildiğinde veya iptal edildiğinde güncellenir. Bu ikilik kasıtlıdır &mdash; canlı envanterin projeksiyonu doğruladığı ve projeksiyonun canlı envanterin henüz göremediği gelecekteki açıkları önceden uyardığı yerleşik bir çapraz doğrulama mekanizması oluşturur.</p>
         </div>
 
         <div class="stat-grid">
@@ -176,8 +176,8 @@
             <tr><th>Boyut</th><th>Canlı Envanter (Ürün + Hammadde Stok)</th><th>Projeksiyon</th></tr>
             <tr><td><strong>Veri kaynağı</strong></td><td><code>half_product_stock</code> tablosu + <code>materials</code> tablosu</td><td><code>work_cards</code> (EKSİ) + <code>material_orders</code> (ARTI)</td></tr>
             <tr><td><strong>Zaman ekseni</strong></td><td>Şimdi (t=0)</td><td>Geleceğe doğru haftalar (H01&ndash;H52+)</td></tr>
-            <tr><td><strong>Ne zaman değişir</strong></td><td>Üretim çıktı kaydeder, malzeme tüketilir/alınır</td><td>Plan değişir: sipariş teslim haftası, kablo miktarı, malzeme sipariş tarihi/miktarı, iptal</td></tr>
-            <tr><td><strong>Ne zaman DEĞİŞMEZ</strong></td><td>&mdash;</td><td>Malzemeler fiziksel olarak geldiğinde, üretim tamamlandığında</td></tr>
+            <tr><td><strong>Ne zaman değişir</strong></td><td>Üretim çıktı kaydeder, malzeme tüketilir/alınır</td><td>Plan değişir: iş kartı oluşturulur/değiştirilir/iptal edilir, malzeme siparişi teslim edilir (gerçek tarih &amp; miktara geçer), sipariş tarihi/miktarı değişir, sipariş iptal edilir</td></tr>
+            <tr><td><strong>Ne zaman DEĞİŞMEZ</strong></td><td>&mdash;</td><td>Üretim fiziksel olarak tamamlandığında (tamamlanmış iş kartları hâlâ planda sayılır)</td></tr>
             <tr><td><strong>CRUD</strong></td><td>Tam (görüntüle, ağırlık/durum düzenle, sil)</td><td>Salt okunur (projeksiyon hesaplanır, düzenlenmez)</td></tr>
         </table>
 
@@ -227,7 +227,7 @@
             <tr><td>Paletleme</td><td>Palet (adet)</td><td><code>palettes[].quantity</code></td></tr>
         </table>
 
-        <p><code>CANCELLED</code> dışındaki tüm iş kartları dahil edilir &mdash; tamamlanmış olanlar bile. Bunun nedeni Projeksiyon&rsquo;un mevcut durumu değil, <strong>kalıcı planı</strong> temsil etmesidir.</p>
+        <p><code>CANCELLED</code> dışındaki tüm iş kartları dahil edilir &mdash; tamamlanmış olanlar bile, çünkü Projeksiyon tam plan geçmişini izler. Gelen tarafında, bir sipariş teslim edildiğinde servis <code>expected_date</code>/<code>quantity</code>&rsquo;den <code>delivered_date</code>/<code>delivered_quantity</code>&rsquo;ye geçiş yapar, böylece projeksiyon gerçek teslim zamanlamasını ve miktarlarını dinamik olarak yansıtır.</p>
 
         <h4>ARTI Tarafı: Gelen Malzeme Siparişleri</h4>
         <p>Her malzeme siparişinin bir <code>material_type</code>, <code>quantity</code> ve <code>expected_date</code> alanı vardır. Teslim edilen siparişlerde sistem bunun yerine <code>delivered_date</code> ve <code>delivered_quantity</code> kullanır. Malzeme adları, mevcut olduğunda tedarikçinin malzeme kataloğundan çözümlenir. <code>CANCELLED</code> dışındaki tüm siparişler dahil edilir.</p>

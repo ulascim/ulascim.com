@@ -116,11 +116,11 @@
     <main class="report">
         <a href="erp-deep-dives.html" class="back-link">Back to Modules</a>
         <h1>STOCK &amp; INVENTORY &mdash; DUAL-LOGIC MATERIAL VISIBILITY</h1>
-        <p class="subtitle">Two parallel systems answering two different questions: &ldquo;What do we have right now?&rdquo; and &ldquo;What will we have in the future?&rdquo; &mdash; the live inventory and the permanent projection plan, running side by side as a built-in double-check mechanism.</p>
+        <p class="subtitle">Two parallel systems answering two different questions: &ldquo;What do we have right now?&rdquo; and &ldquo;What will we have in the future?&rdquo; &mdash; the live inventory and the dynamic projection forecast, running side by side as a built-in double-check mechanism.</p>
         <p class="authors">February 2026 &bull; Solen Kablo &bull; Living Document</p>
 
         <div class="abstract">
-            <p style="margin-bottom: 0;"><strong>The Stock &amp; Inventory module operates on a fundamental duality.</strong> Two of its three pages &mdash; &Uuml;r&uuml;n Stok and Hammadde Stok &mdash; show the physical reality of the factory at this exact moment: every basket of copper wire, every reel of extruded cable, every kilogram of raw plastic sitting in the warehouse. These change every time Production records an output or a material is consumed. The third page &mdash; Projeksiyon &mdash; ignores physical reality entirely and instead shows the <em>plan</em>: a week-by-week forecast of what materials will be needed (from work cards) versus what materials are coming in (from purchase orders). Projeksiyon does not change when materials arrive or production completes; it only changes when the plan itself changes. This duality is intentional &mdash; it creates a built-in cross-verification mechanism where the live inventory validates the projection, and the projection warns about future shortages that the live inventory cannot yet see.</p>
+            <p style="margin-bottom: 0;"><strong>The Stock &amp; Inventory module operates on a fundamental duality.</strong> Two of its three pages &mdash; &Uuml;r&uuml;n Stok and Hammadde Stok &mdash; show the physical reality of the factory at this exact moment: every basket of copper wire, every reel of extruded cable, every kilogram of raw plastic sitting in the warehouse. These change every time Production records an output or a material is consumed. The third page &mdash; Projeksiyon &mdash; ignores physical reality entirely and instead shows the <em>plan</em>: a week-by-week forecast of what materials will be needed (from work cards) versus what materials are coming in (from purchase orders). Projeksiyon dynamically reacts to plan changes &mdash; when a material order is delivered, it switches from the expected date/quantity to the actual delivered date/quantity, shifting the projection accordingly. It also updates when work cards are created, modified, or cancelled. This duality is intentional &mdash; it creates a built-in cross-verification mechanism where the live inventory validates the projection, and the projection warns about future shortages that the live inventory cannot yet see.</p>
         </div>
 
         <div class="stat-grid">
@@ -176,8 +176,8 @@
             <tr><th>Aspect</th><th>Live Inventory (&Uuml;r&uuml;n + Hammadde Stok)</th><th>Projection (Projeksiyon)</th></tr>
             <tr><td><strong>Data source</strong></td><td><code>half_product_stock</code> table + <code>materials</code> table</td><td><code>work_cards</code> (MINUS) + <code>material_orders</code> (PLUS)</td></tr>
             <tr><td><strong>Time axis</strong></td><td>Now (t=0)</td><td>Weeks into the future (H01&ndash;H52+)</td></tr>
-            <tr><td><strong>Changes when</strong></td><td>Production records output, materials consumed/received</td><td>Plan changes: order delivery week, cable quantity, material order date/qty, cancellation</td></tr>
-            <tr><td><strong>Does NOT change when</strong></td><td>&mdash;</td><td>Materials physically arrive, production completes</td></tr>
+            <tr><td><strong>Changes when</strong></td><td>Production records output, materials consumed/received</td><td>Plan changes: work card created/modified/cancelled, material order delivered (switches to actual date &amp; quantity), order date/qty changed, order cancelled</td></tr>
+            <tr><td><strong>Does NOT change when</strong></td><td>&mdash;</td><td>Production physically completes (completed work cards still counted in plan)</td></tr>
             <tr><td><strong>CRUD</strong></td><td>Full (view, edit weight/status, delete)</td><td>Read-only (projection is calculated, not edited)</td></tr>
         </table>
 
@@ -227,7 +227,7 @@
             <tr><td>Paletleme</td><td>Palettes (adet)</td><td><code>palettes[].quantity</code></td></tr>
         </table>
 
-        <p>All work cards except <code>CANCELLED</code> are included &mdash; even completed ones. This is because Projeksiyon represents the <strong>permanent plan</strong>, not the current state.</p>
+        <p>All work cards except <code>CANCELLED</code> are included &mdash; even completed ones, because Projeksiyon tracks the full plan history. On the incoming side, when an order is delivered, the service switches from <code>expected_date</code>/<code>quantity</code> to <code>delivered_date</code>/<code>delivered_quantity</code>, so the projection dynamically reflects actual delivery timing and amounts.</p>
 
         <h4>PLUS Side: Material Order Incoming</h4>
         <p>Each material order has a <code>material_type</code>, <code>quantity</code>, and <code>expected_date</code>. For delivered orders, the system uses <code>delivered_date</code> and <code>delivered_quantity</code> instead. Material names are resolved from the supplier&rsquo;s material catalog when available. All orders except <code>CANCELLED</code> are included.</p>
