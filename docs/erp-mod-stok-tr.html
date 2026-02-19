@@ -922,7 +922,229 @@
             <p style="margin-bottom: 0;"><strong>Hammadde Stok vs Hammaddeler Listesi &mdash; aynı veri, farklı amaç:</strong> Her iki sayfa da aynı <code>/api/materials/list</code> endpoint&rsquo;inden okur ve aynı <code>materials</code> tablosu verisini görüntüler. Fark bakış açısındadır. Hammaddeler Listesi (Hammadde modülünde) tam güçlü yönetici görünümüdür: 14 sütun, tembel fotoğraflar, WebSocket, iki dilli arama, üç düzenleme form varyantı, yazdırma, 12 granüler yetki. Hammadde Stok (Stok modülünde) <strong>stok yöneticisinin görünümü</strong>dür: kategoriye ve malzeme adına göre gruplanmış, toplam değerler ön planda, &ldquo;bu lotun tam geçmişi ne?&rdquo; yerine &ldquo;ne kadarımız var?&rdquo; sorusunu yanıtlamak için optimize edilmiş. Buradaki düzenleme modalı kasıtlı olarak minimaldir (yalnızca ağırlık + durum) çünkü tam düzenleme Hammadde modülüne aittir.</p>
         </div>
 
-        <!-- placeholder: 6.3 Ürün Stok buraya eklenecek -->
+        <!-- ====== 6.3 ÜRÜN STOK ====== -->
+        <h2 id="sec-6-3">6.3 &mdash; Ürün Stok (Ürün Stoğu)</h2>
+        <p class="subtitle">Üretim adımına göre düzenlenmiş yarı mamul ve mamul ürünlerin canlı envanteri &mdash; fabrika üretim hattının çıktı tarafı.</p>
+
+        <h3 id="urun-stok-purpose">6.3.1 &mdash; Amaç ve İş Bağlamı</h3>
+        <p>Ürün Stok şu soruyu yanıtlar: <strong>"Fabrika ne üretti ve şu an nerede?"</strong></p>
+        <p>Hammadde Stok tüketilmeyi bekleyen ham <em>girdileri</em> takip ederken, Ürün Stok <em>çıktıları</em> takip eder: bir üretim makinesinden çıkan her sepet ve makara. Bu sayfadaki her kayıt fiziksel olarak bir <strong>Üretim Oturumu</strong> sırasında oluşturulmuştur &mdash; bir operatör makineyi çalıştırmış, çıktı sepetlerini kaydetmiş, QR etiketleri basmış ve bu sepetler buraya düşmüştür. Sayfanın var olma nedenleri:</p>
+        <ul>
+            <li><strong>Üretim Listesi</strong> bu kayıtları oluşturur &mdash; bir üretim oturumu çıktı sepetlerini kaydettiğinde, her sepet aynı anda hem <code>production_outputs</code> hem de <code>half_product_stock</code> tablolarına yazılır. Bu sayfa, biriken envanterin <strong>salt okunur penceresi</strong>dir.</li>
+            <li><strong>Üretim Geçmişi</strong> aynı kayıtları oturum merkezli bir perspektiften gösterir (hangi oturum ne üretti). Ürün Stok ise bunları <strong>stok merkezli</strong> bir perspektiften gösterir (hangi oturum ürettiğinden bağımsız olarak, her ürün kodundan şu an ne kadar mevcut).</li>
+            <li><strong>Sipariş Modülü</strong> <strong>tahsisi</strong> belirler &mdash; bir sipariş için iş kartı açıldığında, siparişin gerektirdiği miktarın altında üretilen sepetler <code>ORDER</code> olarak işaretlenir. Fazla üretim <code>STOCK</code> (serbest envanter) olur. Bu tahsis ayrımı, her grup satırında görünen temel bir iş kavramıdır.</li>
+            <li><strong>Laboratuvar Modülü</strong> (Test Yönetimi) kalite testlerini belirli üretim çıktılarına bağlar. Ürün Stok, stok yöneticilerinin bağlı test sonuçlarını doğrudan her kayıttan görüntülemesine olanak tanır &mdash; satırdaki test ikonu, Lab sisteminden alınan test aralığı, adı, standart numarası ve geçti/kaldı durumunu gösteren bir modal açar.</li>
+            <li><strong>Kaynak QR İzlenebilirlik</strong> &mdash; her kayıt, üretiminde tüketilen girdi QR kodlarının JSON dizisini <code>source_qr_codes</code> alanında saklar. Bu zincir (A1 bakır &rarr; X1 kabatel &rarr; Y1 kalaylama &rarr; ...) fabrikanın izlenebilirlik omurgasıdır.</li>
+        </ul>
+
+        <h3 id="urun-stok-crud">6.3.2 &mdash; CRUD Akışı</h3>
+        <p><strong>Oluşturma (Create):</strong> Bu sayfa kayıt <strong>oluşturmaz</strong>. Yarı mamul stok kayıtları yalnızca <strong>Üretim modülü</strong> tarafından aktif üretim oturumları sırasında oluşturulur. Bir operatör sepet çıktısı kaydettiğinde, backend aynı anda hem <code>production_outputs</code> hem de <code>half_product_stock</code> tablolarına yazar. Bu sayfada "Ekle" butonu yoktur.</p>
+        <p><strong>Okuma (Read):</strong> Sayfa yüklendiğinde bileşen <strong>7 paralel API isteği</strong> atar &mdash; her üretim adımı için bir tane (Kabatel, Kalaylama, İncetel, Buncher, Extruder, E-Beam, Aktarma). Her istek <code>GET /api/stock/half-products/by-step/{step}?status_filter=available</code> endpoint'ine gider. Backend, <code>half_product_stock</code> tablosunu <code>production_step</code> ve <code>status</code>'a göre filtreler, operatör adını almak için <code>production_sessions</code> ile birleştirir ve en yeniden eskiye sıralı sonuçlar döner. Frontend daha sonra <code>product_code</code>'a göre gruplar, grup başına toplamları hesaplar ve Collapse panel hiyerarşisini oluşturur.</p>
+        <p><strong>Güncelleme (Update):</strong> Kayıt başına modal ile düzenleme. Düzenle ikonuna tıklamak üç alanlı bir form açar: <code>remaining_weight_kg</code> (zorunlu, min=0, adım=0.1 InputNumber), <code>allocation</code> (Select: ORDER veya STOCK), ve <code>notes</code> (TextArea). <code>PUT /api/stock/half-products/{id}</code> ile gönderilir. Backend yalnızca <code>remaining_weight_kg</code>, <code>status</code> ve <code>notes</code> alanlarını güncellemeye izin verir (not: allocation frontend'den gönderilir ama backend'in <code>allowed_fields</code> listesinde yoktur &mdash; potansiyel tutarsızlık). Başarı sonrası tam veri yenileme.</p>
+        <p><strong>Silme (Delete):</strong> QR kodu görüntülenen onay modalı. <code>DELETE /api/stock/half-products/{id}</code> çağırır. Backend <strong>kademeli silme</strong> gerçekleştirir: (1) <code>production_output_id</code> veya yedek <code>output_code</code> eşleşmesi ile bağlı <code>ProductionOutput</code> kaydını bulur ve siler, (2) silinen kaydın QR numarasının prefix dizisindeki en yüksek numara olup olmadığını kontrol eder (örn. X150 en yüksek X-prefix ise) &mdash; öyleyse yeniden kullanıma izin vermek için <code>HalfProductSequence.last_number</code>'ı azaltır, (3) stok kaydını siler. Bu kademe, stoktan silmenin yetim üretim çıktı kayıtları veya bozuk QR dizileri bırakmamasını sağlar.</p>
+
+        <h3 id="urun-stok-api">6.3.3 &mdash; Veri Kaynağı ve API Mimarisi</h3>
+        <p>Hammadde modülünden tek bir endpoint ödünç alan Hammadde Stok'un aksine, Ürün Stok'un <code>api/stock/half_product_routes.py</code> dosyasında 6 endpoint'li <strong>kendi özel backend'i</strong> vardır:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Endpoint</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Metod</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Amaç</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Frontend kullanıyor mu?</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/by-step/{step}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Birincil veri: bir adımdaki tüm kayıtlar, operatör adı ile. <code>ProductionSession</code> birleştirmesi.</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Evet (yüklemede 7 paralel çağrı)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">PUT</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Ağırlık, durum, notları güncelle</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Evet (düzenleme modalı)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{id}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DELETE</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kademeli silme: stok + üretim çıktısı + dizi sıfırlama</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Evet (silme onayı)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Sayfalı genel listeleme, opsiyonel adım/durum filtresi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Hayır (diğer tüketiciler için mevcut)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/summary</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Adım başına sayı ve ağırlıklar (mevcut/toplam)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Hayır</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>/api/stock/half-products/{qr_code}</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">GET</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">QR koda göre arama</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Hayır</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Ayrıca <strong>bağlı testler</strong> özelliği, Üretim modülünün <code>test_integration_routes.py</code> dosyasından <code>GET /api/production/test-requests/bonded-tests/output/{output_id}</code> endpoint'ini çağırır. Bu çapraz modül çağrısı, belirli bir üretim çıktısına bağlı Lab testlerini test aralığına göre gruplandırarak (<code>üretim_başı</code>, <code>her_sepet_sonu</code>, <code>üretim_sonu</code>) getirir.</p>
+
+        <h3 id="urun-stok-db">6.3.4 &mdash; Veritabanı Şeması: <code>half_product_stock</code> Tablosu</h3>
+        <p>Bu alt modülün <strong>özel</strong> tablosudur &mdash; Hammadde modülünün <code>materials</code> tablosundan okuyan Hammadde Stok'un aksine, Ürün Stok'un <code>models/half_product_stock.py</code> tarafından yönetilen kendi tablosu vardır.</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Sütun</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Tip</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">İş Anlamı</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>qr_code</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50), benzersiz</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Deterministik QR: X=Kabatel, Y=Kalaylama, Z=İncetel, T=Buncher, U=Extruder, G=E-Beam. Prefix başına global sıralı.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>product_code</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(100)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Teknik ürün tanımlayıcı (örn. KC_18, KL_18). Frontend'de gruplama anahtarı.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>production_step</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Hangi makine adımı üretti: <code>kabatel_cekme</code>, <code>kalaylama</code>, <code>incetel</code>, <code>buncher</code>, <code>extruder</code>, <code>ebeam</code>, <code>aktarma</code>.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>initial_weight_kg</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Float</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Sepetin makineden çıktığı andaki ağırlık. Asla değişmez.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>remaining_weight_kg</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Float</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Alt akış tüketimi sonrası güncel ağırlık. Sonraki üretim adımı bu sepeti tükettiğinde azalır.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>basket_number</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Integer</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Üretim oturumu içindeki sıralı sepet numarası.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>allocation</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(20)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>ORDER</code> = müşteri siparişini karşılamak için üretildi. <code>STOCK</code> = fazla üretim, serbest envanter.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>order_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; orders.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bu sepetin tahsis edildiği müşteri siparişi (STOCK ise null).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>status</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">String(50)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>available</code> &rarr; <code>in_use</code> &rarr; <code>consumed</code>. Ayrıca <code>reserved</code>, <code>shipped</code>, <code>defective</code>.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>production_output_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; production_outputs.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Üretim çıktı kaydına bağlantı. Bağlı test sorgusu ve kademeli silme için kullanılır.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>session_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; production_sessions.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bu sepeti hangi üretim oturumu oluşturdu. Operatör adını çekmek için kullanılır.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>work_card_id</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">FK &rarr; work_cards.id</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bu üretimi yönlendiren iş kartı (Sipariş modülünden).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>source_qr_codes</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Text (JSON)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bu ürünü üretmek için tüketilen girdi QR kodlarının JSON dizisi. Örn. Kabatel sepeti için <code>["A1","A3"]</code> bakır lotları. İzlenebilirlik zinciri.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>produced_at</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DateTime</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Sepetin üretildiği zaman. UTC olarak saklanır, Europe/Istanbul olarak gösterilir.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>consumed_at</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">DateTime, nullable</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Bu sepetin sonraki üretim adımı tarafından tamamen tüketildiği zaman.</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>ORM'deki temel ilişkiler: <code>order</code> (Order), <code>production_output</code> (ProductionOutput), <code>session</code> (ProductionSession), <code>work_card</code> (WorkCardDB). <code>(production_step, status)</code> ve <code>(product_code, status)</code> üzerindeki bileşik indeksler birincil sorgu kalıbını optimize eder.</p>
+        <p>Eşlik eden <code>HalfProductSequence</code> modeli (<code>half_product_sequences</code> tablosu) her prefix için kullanılan son numarayı takip eder: <code>{'X': 150}</code>, X150'nin son Kabatel çıktısı olduğu anlamına gelir. Prefix-makine eşlemesi: <code>kabatel_cekme &rarr; X</code>, <code>kalaylama &rarr; Y</code>, <code>incetel &rarr; Z</code>, <code>buncher &rarr; T</code>, <code>extruder &rarr; U</code>, <code>ebeam &rarr; G</code>.</p>
+
+        <h3 id="urun-stok-state">6.3.5 &mdash; Durum Yönetimi Mimarisi</h3>
+        <p>Bileşen 8 durum değişkeni kullanır:</p>
+        <ul>
+            <li><code>loading</code> (boolean) &mdash; 7 adımın paralel getirimi sırasındaki global yükleme bayrağı</li>
+            <li><code>sectionData</code> (Record&lt;string, SectionData&gt;) &mdash; ana veri deposu. 7 üretim adımı anahtarıyla başlatılır, her biri şunları içerir: <code>groups</code> (ProductGroupSummary[]), <code>loading</code>, <code>expandedKeys</code>, <code>totalItems</code> ve <code>grandTotals</code> (toplam/sipariş/serbest). Sayfanın kalbi budur.</li>
+            <li><code>activePanels</code> (string[]) &mdash; şu an açık olan Collapse panelleri</li>
+            <li><code>editModalVisible</code> + <code>editingItem</code> &mdash; düzenleme modalı durumu</li>
+            <li><code>testsModalVisible</code> + <code>testsLoading</code> + <code>selectedTests</code> + <code>selectedOutputCode</code> &mdash; bağlı testler modalı durumu</li>
+        </ul>
+        <p>Veri akışı: <code>fetchAllData()</code>, <code>Promise.all()</code> ile 7 paralel <code>request()</code> çağrısı atar. Her yanıt client tarafında <code>product_code</code>'a göre gruplandırılır, grup başına tahsis ayrımı (ORDER kg vs STOCK kg) ve adım başına genel toplamlar hesaplanır. Gruplandırılmış sonuçlar tüm <code>sectionData</code> durumunu değiştirir, önceki durumdan <code>expandedKeys</code>'i koruyarak satır açılımlarının yenileme sırasında kaybolmamasını sağlar.</p>
+
+        <h3 id="urun-stok-panels">6.3.6 &mdash; 7 Üretim Adımı Paneli</h3>
+        <p>Sayfa, her üretim adımı için bir panel olmak üzere 7 panelli bir Ant Design <code>Collapse</code> bileşeni kullanır. Hammadde Stok'un 8 malzeme kategorisinin (statik isimler: "Bakır", "PVC") aksine, bu paneller <strong>kablo üretim hattını</strong> takip eder:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Anahtar</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Etiket</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">QR Prefix</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Ne üretir</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>kabatel_cekme</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kabatel</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">X (X1, X2...)</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Ham bakırdan çekilen 1.8mm tel</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>kalaylama</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kalaylama</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Y</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kalaylanmış tel</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>incetel</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İncetel</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Z</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İnce tel (daha küçük çap)</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>buncher</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Buncher</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">T</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Demet halinde tel telleri</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>extruder</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Extruder</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">U</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Yalıtılmış kablo</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>ebeam</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">E-Beam</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">G</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Elektron ışını ile çapraz bağlanmış kablo</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>aktarma</code></td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Aktarma</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">AK</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Malzeme aktarma / yeniden sarım</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Her panelin kendine özgü ikonu ve rengi vardır. İkon seti Ant Design ikonları kullanır: ScissorOutlined (Kabatel), FireOutlined (Kalaylama), CompressOutlined (İncetel), ApartmentOutlined (Buncher), BuildOutlined (Extruder), ThunderboltOutlined (E-Beam), SwapOutlined (Aktarma).</p>
+
+        <h3 id="urun-stok-header-stats">6.3.7 &mdash; Panel Başlığı: Üç Sütunlu İstatistik</h3>
+        <p>Her panel başlığı, <strong>tahsis ayrımını</strong> gösteren sağa hizalı üç istatistik sütunu görüntüler:</p>
+        <ul>
+            <li><strong>Toplam</strong> &mdash; bu üretim adımındaki tüm mevcut kayıtların toplam kg'ı</li>
+            <li><strong>Sipariş</strong> &mdash; müşteri siparişlerine tahsis edilmiş toplam kg (yeşil etiket)</li>
+            <li><strong>Serbest</strong> &mdash; fazla üretim / serbest stok toplam kg'ı (turuncu etiket)</li>
+        </ul>
+        <p>Kayıt sayısı da adım etiketinin yanında bir tag olarak gösterilir. Bir adımda veri olmadığında, istatistik sütunları düşük opaklıkta görünür kalarak tüm panellerde düzen tutarlılığını korur.</p>
+
+        <h3 id="urun-stok-hierarchy">6.3.8 &mdash; İki Seviyeli Tablo Hiyerarşisi</h3>
+        <p>Her panel içinde veriler <strong>iki seviyeli bir hiyerarşide</strong> görüntülenir (Hammadde Stok'un üç seviyesine kıyasla):</p>
+        <p><strong>Seviye 1 &mdash; Grup Satırı (product_code'a göre):</strong> Her satır, bu üretim adımındaki belirli bir ürün kodunun tüm sepetlerini temsil eder. Gösterir:</p>
+        <ul>
+            <li><strong>Ürün Kodu</strong> kayıt sayısı ile</li>
+            <li><strong>Toplam</strong> (Toplam kg) &mdash; tüm kalan ağırlıkların toplamı</li>
+            <li><strong>Sipariş</strong> (Sipariş kg) &mdash; ORDER tahsisli kayıtların toplamı (yeşil etiket)</li>
+            <li><strong>Serbest</strong> (Serbest kg) &mdash; STOCK tahsisli kayıtların toplamı (turuncu etiket)</li>
+        </ul>
+        <p>Genişletme ikonuna tıklamak açılır...</p>
+        <p><strong>Seviye 2 &mdash; Bireysel Kayıtlar:</strong> Her satır, tam detayıyla tek bir sepet/makaradır. Sütunlar:</p>
+        <div style="overflow-x:auto">
+        <table style="width:100%; border-collapse: collapse; margin: 12px 0">
+            <thead><tr style="background: var(--bg-secondary)">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Sütun</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border-color)">Açıklama</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">QR Kod</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Deterministik QR kodu (örn. X5, Y12). Mavi etiket. Sabit sol sütun.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Ağırlık</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Güncel kalan ağırlık kg cinsinden (Türkçe yerel formatlaması).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Tahsis</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">ORDER (yeşil) veya Stok (turuncu) etiketi.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Durum</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Mevcut (available/yeşil), Tüketildi (consumed/varsayılan), Rezerve (reserved/mavi), Hatalı (defective/kırmızı).</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İş Kartı</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İş kartı ID'si mavi etiket olarak, bu sepeti kaynak sipariş görevine bağlar.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Üretim Tarihi</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Üretim tarih/saati. UTC &rarr; Europe/Istanbul dönüşümü dayjs eklentileriyle.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Kaynak</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Girdi QR kodları (JSON'dan ayrıştırılır). İlk 2 kodu gösterir + daha fazlası varsa "...". Üst akış malzemelerine izlenebilirlik bağlantısı.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Test</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)"><code>production_output_id</code> varsa deney ikonu butonu. Bağlı testler modalını açar.</td></tr>
+                <tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">İşlem</td><td style="padding: 6px 8px; border-bottom: 1px solid var(--border-color)">Düzenle ve Sil butonları. Sabit sağ sütun.</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3 id="urun-stok-allocation">6.3.9 &mdash; Tahsis Sistemi: ORDER vs STOCK</h3>
+        <p>Ürün Stok'un görüntülediği ancak <strong>kontrol etmediği</strong> temel bir kavramdır. Tahsis, stok görüntüleme zamanında değil <strong>üretim zamanında</strong> belirlenir:</p>
+        <ul>
+            <li>Bir üretim oturumu iş kartına karşı çalıştığında, backend <strong>kümülatif üretimi</strong> siparişin gerektirdiği miktarla karşılaştırarak takip eder.</li>
+            <li>Kümülatif çıktı gerekli miktarın <strong>altında</strong>yken üretilen her sepet <code>ORDER</code> olarak işaretlenir ve <code>order_id</code>'ye bağlanır.</li>
+            <li>Kümülatif çıktı gerekli miktarı <strong>aştığında</strong>, sonraki sepetler null <code>order_id</code> ile <code>STOCK</code> olarak işaretlenir.</li>
+        </ul>
+        <p>Ürün Stok bu tahsis ayrımını her seviyede görüntüler: kayıt başına (etiket), grup başına (iki ayrı kg sütunu) ve adım başına (panel başlık istatistikleri). Bu, stok yöneticilerine envanterin ne kadarının siparişlere tahsis edildiğini ve ne kadarının yeni siparişler veya genel kullanım için serbest olduğunu anında gösterir.</p>
+
+        <h3 id="urun-stok-bonded-tests">6.3.10 &mdash; Bağlı Testler Modalı: Lab Bağlantısı</h3>
+        <p><code>production_output_id</code>'si olan kayıtlar (normal üretim akışıyla oluşturulan neredeyse tüm kayıtlar) satırlarında bir deney ikonu gösterir. Tıklamak <code>/api/production/test-requests/bonded-tests/output/{output_id}</code> endpoint'ini çağıran ve belirli üretim çıktısına bağlı tüm kalite testlerini görüntüleyen bir modal açar.</p>
+        <p>Yanıt testleri aralığa göre gruplandırır:</p>
+        <ul>
+            <li><strong>Üretim Başı</strong> &mdash; oturum başında yapılan testler</li>
+            <li><strong>Her Sepet Sonu</strong> &mdash; sepet başına testler, en ayrıntılı seviye</li>
+            <li><strong>Üretim Sonu</strong> &mdash; oturum sonu doğrulama testleri</li>
+        </ul>
+        <p>Her test satırı gösterir: test ID'si (mor etiket), test adı, standart numarası (varsa), aralık etiketi ve renk kodlu ikon ile durum (geçti için yeşil onay, kaldı için kırmızı X, bekliyor için sarı saat). Veri Lab modülünün test istek sisteminden gelir &mdash; bu, Stok ve Kalite Kontrolü arasında köprü kuran bir <strong>çapraz modül okuma</strong>dır.</p>
+
+        <h3 id="urun-stok-source-traceability">6.3.11 &mdash; Kaynak QR İzlenebilirliği</h3>
+        <p><code>source_qr_codes</code> alanı, bu ürünü üretmek için tüketilen QR kodlarının JSON dizisini saklar. Frontend bu JSON'u ayrıştırır ve daha fazlası varsa üç nokta ile ilk 2 kodu gösterir. Örneğin:</p>
+        <ul>
+            <li>Bir Kabatel sepeti X5 kaynak olarak <code>["A1", "A3"]</code> gösterebilir &mdash; tükettiği ham bakır lotları</li>
+            <li>Bir Kalaylama makarası Y12 kaynak olarak <code>["X5", "X6"]</code> gösterebilir &mdash; tükettiği Kabatel çıktıları</li>
+        </ul>
+        <p>Bu, <strong>tam bir malzeme zinciri</strong> oluşturur: ham bakır (A-prefix) &rarr; kabatel teli (X-prefix) &rarr; kalaylanmış tel (Y-prefix) &rarr; ince tel (Z-prefix) &rarr; demet tel (T-prefix) &rarr; yalıtılmış kablo (U-prefix) &rarr; çapraz bağlanmış kablo (G-prefix). Her bağlantı <code>source_qr_codes</code>'da saklanır ve herhangi bir sepeti ham madde kaynağına kadar izlenebilir kılar.</p>
+
+        <h3 id="urun-stok-grouping">6.3.12 &mdash; İstemci Tarafı Gruplama Mantığı</h3>
+        <p>7 paralel API yanıtı geldikten sonra <code>fetchAllData()</code> her adımın verisini işler:</p>
+        <ol>
+            <li>Kayıtlar üzerinde döner, <code>product_code</code>'a göre (veya "Unknown" yedek değeri) bir <code>Record&lt;string, HalfProductStock[]&gt;</code> haritasına gruplar</li>
+            <li>Her grup için <code>remaining_weight_kg</code> toplayarak <code>total_kg</code>, <code>siparis_kg</code> (ORDER tahsisi) ve <code>serbest_kg</code> (STOCK tahsisi) hesaplar</li>
+            <li>Adım başına genel toplamları biriktirir</li>
+            <li>Grupları ürün koduna göre alfabetik sıralar</li>
+            <li><code>SectionData</code> nesnesini oluşturur, mevcut <code>expandedKeys</code>'i koruyarak açılmış satırların veri yenilemesi sırasında kaybolmamasını sağlar</li>
+        </ol>
+        <p>Hammadde Stok'un kategoriye sonra malzeme adına göre gruplayan <code>processAndGroupMaterials()</code> fonksiyonuyla (3 seviye) karşılaştırıldığında, Ürün Stok her adım paneli içinde yalnızca product_code'a göre gruplar (2 seviye), çünkü adım panelinin kendisi üst seviye gruplama görevi görür.</p>
+
+        <h3 id="urun-stok-edit-modal">6.3.13 &mdash; Düzenleme Modalı</h3>
+        <p>Düzenleme modalı üç alanın değiştirilmesine izin verir: <code>remaining_weight_kg</code> (zorunlu sayısal girdi, 0.1 adımlı), <code>allocation</code> (ORDER/STOCK açılır menü) ve <code>notes</code> (serbest metin alanı). Hammadde Stok'un 2 alanlı modalıyla (ağırlık + durum) karşılaştırıldığında, bu tahsis alanını ekler. Gönderimde form değerleri <code>PUT /api/stock/half-products/{id}</code>'ye gönderilir, ardından tüm veriler yenilenir.</p>
+        <p>Not: Backend'in PUT endpoint'i için <code>allowed_fields</code> beyaz listesi <code>['remaining_weight_kg', 'status', 'notes']</code>'dır &mdash; <code>allocation</code> içermez. Frontend allocation'ı payload'da gönderir ama backend bunu sessizce yok sayar. Bu, tahsisin bu sayfadan etkin bir şekilde <strong>salt okunur</strong> olduğu, yalnızca üretim zamanında değiştirilebildiği anlamına gelir.</p>
+
+        <h3 id="urun-stok-loading-empty">6.3.14 &mdash; Yükleme ve Boş Durumlar</h3>
+        <p>Paralel getirme sırasında her panelin içerik alanı "Yükleniyor..." metinli bir <code>Spin</code> döndürücüsü gösterir. Yükleme tamamlandıktan sonra, o üretim adımı için kayıt bulunmayan paneller "Bu kategoride stok bulunamadı" mesajlı Ant Design <code>Empty</code> bileşeni gösterir.</p>
+
+        <h3 id="urun-stok-timezone">6.3.15 &mdash; Saat Dilimi İşleme</h3>
+        <p>Hammadde Stok ile aynı kalıp: <code>dayjs</code> ile <code>utc</code> ve <code>timezone</code> eklentileri. Tüm <code>produced_at</code> zaman damgaları veritabanında UTC olarak saklanır ve frontend'de <code>dayjs.utc(date).tz(TURKEY_TZ).format('DD.MM.YY HH:mm')</code> kullanılarak <code>Europe/Istanbul</code> saat dilimine dönüştürülür.</p>
+
+        <h3 id="urun-stok-connections">6.3.16 &mdash; Diğer Modüllerle Bağlantılar</h3>
+        <p>Ürün Stok, üç Stok alt modülü arasında en çok <strong>bağlantılı</strong> olanıdır. Her büyük modüle dokunur:</p>
+        <ul>
+            <li><strong>Üretim &rarr; Üretim Listesi (üst akış yazıcı):</strong> <code>half_product_stock</code>'taki her kayıt bir üretim oturumu sırasında oluşturulmuştur. <code>session_id</code> ve <code>production_output_id</code> sütunları doğrudan Üretim modülünün verisine bağlanır. Backend, operatör adlarını döndürmek için <code>ProductionSession</code> ile birleştirme bile yapar.</li>
+            <li><strong>Üretim &rarr; Üretim Geçmişi (paralel görünüm):</strong> Üretim Geçmişi aynı üretim çıktılarını oturum ve zamana göre düzenlenmiş olarak gösterir. Ürün Stok aynı temel veriyi <em>ürün kodu ve adıma</em> göre yeniden düzenleyerek oturum merkezli değil envanter merkezli bir görünüm sağlar.</li>
+            <li><strong>Üretim &rarr; Alt akış tüketimi:</strong> <em>Sonraki</em> üretim adımı bir sepeti tükettiğinde (örn. Kalaylama X-kodlu Kabatel çıktısını tüketir), sepetin <code>remaining_weight_kg</code>'si azalır, <code>status</code>'u <code>in_use</code> veya <code>consumed</code>'a değişir ve <code>consumed_at</code> doldurulur. Varsayılan filtre <code>status_filter=available</code> olduğundan bu kayıtlar artık bu sayfada görünmez.</li>
+            <li><strong>Sipariş Modülü (tahsis kaynağı):</strong> <code>allocation</code> (ORDER/STOCK) ve <code>order_id</code>, kümülatif çıktının sipariş gereksinimlerine oranına göre üretim zamanında belirlenir. <code>work_card_id</code> sütunu her sepeti Sipariş modülündeki kaynak iş kartına izler.</li>
+            <li><strong>Laboratuvar Modülü &rarr; Test Yönetimi (kalite köprüsü):</strong> Bağlı testler modalı, Lab'ın <code>test_integration_routes.py</code> dosyasından test sonuçlarını getirir. Testler, üretim sırasında veya sonrasında Lab sistemi tarafından üretim çıktılarına bağlanır. Ürün Stok, doğrudan Lab verisi okuyan <strong>tek Stok alt modülü</strong>dür.</li>
+            <li><strong>Hammadde Modülü (kaynak malzeme):</strong> <code>source_qr_codes</code> alanı Hammadde modülünden ham malzeme QR kodlarına (bakır için A-prefix vb.) referanslar içerir. Ürün Stok <code>materials</code> tablosunu sorgulamasa da, izlenebilirlik zinciri iki modülü veri düzeyinde birbirine bağlar.</li>
+        </ul>
+
+        <h3 id="urun-stok-not">6.3.17 &mdash; Bu Alt Modülün Yapmadıkları</h3>
+        <ul>
+            <li>Envanter <strong>oluşturmaz</strong> &mdash; bu yalnızca Üretim modülünde aktif oturumlar sırasında gerçekleşir.</li>
+            <li>Tüketilmiş veya sevk edilmiş kayıtları <strong>göstermez</strong> &mdash; varsayılan <code>status_filter=available</code> filtresi tamamlanmış yaşam döngüsü kayıtlarını gizler.</li>
+            <li>Arama çubuğu <strong>yoktur</strong> &mdash; gezinme adım panellerini ve grup satırlarını açarak yapılır.</li>
+            <li>Toplu işlem <strong>desteklemez</strong> &mdash; çoklu seçim, toplu tahsis değişikliği veya toplu silme yoktur.</li>
+            <li>Tahsisi gerçekten <strong>değiştirmez</strong> &mdash; düzenleme modalı bir tahsis açılır menüsü sunsa da, backend bunu sessizce yok sayar (<code>allowed_fields</code>'da yok).</li>
+            <li>WebSocket veya gerçek zamanlı güncelleme <strong>kullanmaz</strong> &mdash; veri yüklemede ve Yenile butonu ile manuel olarak çekilir.</li>
+            <li><code>initial_weight_kg</code>'yi <strong>göstermez</strong> &mdash; yalnızca <code>remaining_weight_kg</code> gösterilir, bu nedenle tüketim yüzdesi görselleştirmesi yoktur (Hammadde Stok'un renk kodlu ağırlık sütununun aksine).</li>
+            <li>Koşullu ağırlık renklendirmesi <strong>yoktur</strong> &mdash; Hammadde Stok tüketim oranına göre ağırlıkları sarı/kırmızı renklendirirken, bu sayfa tüm ağırlıkları düz metin olarak gösterir.</li>
+            <li><code>aktarma</code> adımı backend'in <code>ProductionStep</code> enum'unda veya <code>MACHINE_TO_PREFIX</code> eşlemesinde <strong>yoktur</strong> &mdash; frontend 7 adım tanımlar ama backend enum'u yalnızca 6 içerir, bu da Aktarma'nın daha yeni bir ekleme olduğunu düşündürür.</li>
+        </ul>
+
+        <div class="insight">
+            <p style="margin-bottom: 0;"><strong>Ürün Stok vs Hammadde Stok &mdash; aynı kabuk, farklı motor:</strong> Görsel düzen neredeyse aynıdır (Collapse paneller, gruplu tablolar, düzenleme modalı, yenile butonu), ancak alttaki veri modeli temelden farklıdır. Hammadde Stok, Hammadde modülünün <code>materials</code> tablosundan tek bir API çağrısıyla okur ve malzeme kategorisi/adına göre gruplar. Ürün Stok, kendi <code>half_product_stock</code> tablosundan 7 paralel API çağrısıyla okur, product_code'a göre gruplar ve ORDER/STOCK tahsis ayrımı, Lab test entegrasyonu, kaynak QR izlenebilirliği ve üretim oturumu bağlantısını ekler. Hammadde Stok ham girdilere salt okunur bir penceredir. Ürün Stok, Üretim, Lab ve Sipariş modülleriyle derin çapraz modül bağlantılarına sahip üretim çıktılarına oku-ve-yönet bir penceredir.</p>
+        </div>
 
         <!-- placeholder: Bölüm 7 SONUÇ buraya eklenecek -->
 
