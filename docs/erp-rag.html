@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP RAG System | UG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+            --amber: #f59e0b;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* NAVIGATION */
+        .nav { position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--fg); background: var(--bg); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 64px; height: 56px; display: flex; align-items: center; }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: var(--fg); }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+
+        /* REPORT */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px 80px; }
+        .report h1 { font-size: 28px; margin-bottom: 4px; letter-spacing: 2px; }
+        .report .page-subtitle { font-size: 12px; color: #666; margin-bottom: 32px; line-height: 1.6; }
+        .report h2 { font-size: 18px; margin-top: 48px; margin-bottom: 16px; border-bottom: 2px solid #000; padding-bottom: 4px; letter-spacing: 1px; }
+        .report h3 { font-size: 14px; margin-top: 24px; margin-bottom: 8px; font-weight: 700; }
+        .report p { font-size: 13px; line-height: 1.7; margin-bottom: 12px; }
+        .report ul, .report ol { font-size: 13px; margin: 12px 0; padding-left: 24px; }
+        .report li { margin-bottom: 6px; line-height: 1.6; }
+        .report code { background: #e5e7eb; padding: 2px 6px; font-size: 12px; }
+        .report pre { background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0; overflow-x: auto; font-size: 11px; line-height: 1.5; border: 2px solid #000; }
+        .report pre code { background: none; padding: 0; color: inherit; }
+
+        /* PIPELINE DIAGRAM */
+        .pipeline { background: #fff; border: 2px solid #000; padding: 32px; margin: 24px 0; }
+        .pipeline-step { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+        .pipeline-arrow { font-size: 16px; color: #888; margin: 4px 0 4px 24px; }
+        .step-badge { min-width: 28px; height: 28px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+        .step-badge.retry { background: var(--amber); }
+        .step-badge.killed { background: var(--negative); text-decoration: line-through; }
+        .step-label { font-size: 13px; font-weight: 600; }
+        .step-detail { font-size: 11px; color: #666; }
+        .step-time { font-size: 11px; color: var(--positive); font-weight: 600; margin-left: auto; }
+
+        /* STATS GRID */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+        .stat-card { background: #fff; border: 2px solid #000; padding: 16px; }
+        .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+        .stat-label { font-size: 11px; color: #666; margin-top: 4px; }
+        .stat-value.green { color: var(--positive); }
+        .stat-value.red { color: var(--negative); }
+        .stat-value.blue { color: var(--accent); }
+        .stat-value.amber { color: var(--amber); }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+        th { background: #000; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; letter-spacing: 0.5px; }
+        td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f0f0f0; }
+        .pass { color: var(--positive); font-weight: 700; }
+        .fail { color: var(--negative); font-weight: 700; }
+        .champion { background: #ecfdf5; }
+        .killed-row { background: #fef2f2; text-decoration: line-through; color: #999; }
+
+        /* QUOTE */
+        .quote { border-left: 4px solid #000; padding: 12px 20px; margin: 16px 0; background: #fff; font-style: italic; font-size: 13px; }
+
+        /* FILE TREE */
+        .file-tree { background: #1a1a2e; color: #a0e0a0; padding: 20px; margin: 12px 0; font-size: 11px; line-height: 1.6; border: 2px solid #000; }
+        .file-tree .dir { color: #60a5fa; font-weight: 600; }
+        .file-tree .file { color: #e0e0e0; }
+        .file-tree .test { color: #fbbf24; }
+
+        /* PHASE TAG */
+        .phase-tag { display: inline-block; background: #000; color: #fff; font-size: 10px; padding: 4px 10px; font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+        .phase-tag.active { background: var(--positive); }
+        .phase-tag.killed { background: var(--negative); }
+        .phase-tag.experimental { background: var(--amber); }
+
+        /* TOC */
+        .toc { background: #fff; border: 2px solid #000; padding: 24px; margin: 24px 0; }
+        .toc-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; letter-spacing: 1px; }
+        .toc a { color: var(--fg); text-decoration: none; font-size: 12px; display: block; padding: 4px 0; border-bottom: 1px dotted #ddd; }
+        .toc a:hover { color: var(--accent); }
+        .toc .toc-sub { padding-left: 16px; font-size: 11px; color: #666; }
+
+        @media (max-width: 768px) {
+            .report { padding: 16px; }
+            .nav-container { padding: 0 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .pipeline { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index.html" style="font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9;">UG</a>
+                <a href="erp-system.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="erp-system.html" class="nav-link-small">&larr; ERP SYSTEM</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <span class="phase-tag active">ACTIVE RESEARCH &bull; FEB 2026</span>
+        <h1>LOCAL RAG SYSTEM FOR ERP</h1>
+        <p class="page-subtitle">Building a fully local, private RAG (Retrieval-Augmented Generation) system that answers questions about the Solen ERP using a 522MB language model. Zero cloud dependency. Zero cost. Runs on a MacBook Air.</p>
+
+        <!-- TABLE OF CONTENTS -->
+        <div class="toc">
+            <div class="toc-title">CONTENTS</div>
+            <a href="#overview">1. System Overview</a>
+            <a href="#architecture">2. Architecture &amp; Pipeline</a>
+            <a href="#ingestion">3. Data Ingestion</a>
+            <a href="#bm25">4. BM25 Keyword Index</a>
+            <a href="#chromadb">5. ChromaDB Vector Store</a>
+            <a href="#hybrid">6. Hybrid Search &amp; RRF</a>
+            <a href="#reranker">7. Cross-Encoder Reranker (Killed)</a>
+            <a href="#tournament">8. The Grand Model Tournament</a>
+            <a href="#generation">9. Generation Layer</a>
+            <a href="#prompts">10. Prompt Engineering</a>
+            <a href="#retry">11. Fallback Retry Mechanism</a>
+            <a href="#benchmarks">12. Benchmarks vs OpenAI</a>
+            <a href="#thermal">13. Thermal Management</a>
+            <a href="#codebase">14. Complete Codebase</a>
+            <a href="#results">15. Final Results &amp; Findings</a>
+        </div>
+
+        <!-- 1. OVERVIEW -->
+        <h2 id="overview">1. SYSTEM OVERVIEW</h2>
+        <p>The ERP system has 8 modules, 200+ API endpoints, 50+ database tables, and bilingual documentation (EN/TR). We built a RAG system that lets any user &mdash; technical or not &mdash; ask questions in natural language and get accurate, sourced answers.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value green">522MB</div>
+                <div class="stat-label">MODEL SIZE (qwen3:0.6b)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue">~3.5s</div>
+                <div class="stat-label">AVG RESPONSE TIME</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">106ms</div>
+                <div class="stat-label">AVG RETRIEVAL TIME</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">$0</div>
+                <div class="stat-label">COST PER QUERY</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">309</div>
+                <div class="stat-label">INDEXED CHUNKS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~90</div>
+                <div class="stat-label">TOKENS/SEC</div>
+            </div>
+        </div>
+
+        <!-- 2. ARCHITECTURE -->
+        <h2 id="architecture">2. ARCHITECTURE &amp; PIPELINE</h2>
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <div class="step-badge">Q</div>
+                <div><span class="step-label">User Query</span><br><span class="step-detail">Any language, any charset. "projeksiyon nasil calisiyor"</span></div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge">1</div>
+                <div><span class="step-label">BM25 Keyword Search</span><br><span class="step-detail">rank_bm25 &middot; custom bilingual tokenizer &middot; 309 documents</span></div>
+                <div class="step-time">~20ms</div>
+            </div>
+            <div class="pipeline-arrow">&darr; parallel</div>
+            <div class="pipeline-step">
+                <div class="step-badge">2</div>
+                <div><span class="step-label">ChromaDB Vector Search</span><br><span class="step-detail">BAAI/bge-m3 embeddings &middot; 1024-dim &middot; cosine similarity</span></div>
+                <div class="step-time">~80ms</div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge">3</div>
+                <div><span class="step-label">Reciprocal Rank Fusion (RRF)</span><br><span class="step-detail">k=60 &middot; merges keyword + semantic rankings</span></div>
+                <div class="step-time">&lt;1ms</div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge killed">4</div>
+                <div><span class="step-label" style="text-decoration: line-through;">Cross-Encoder Reranker</span><br><span class="step-detail" style="color: var(--negative);">KILLED &mdash; 7s latency for marginal quality gain</span></div>
+                <div class="step-time" style="color: var(--negative);">REMOVED</div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge">5</div>
+                <div><span class="step-label">Top-3 Chunks &rarr; Prompt</span><br><span class="step-detail">Lean context format &middot; [Module > Section] tags &middot; best-first ordering</span></div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge">6</div>
+                <div><span class="step-label">qwen3:0.6b Generation</span><br><span class="step-detail">Chain-of-thought enabled &middot; num_ctx=2048 &middot; num_predict=800</span></div>
+                <div class="step-time">~3.5s</div>
+            </div>
+            <div class="pipeline-arrow">&darr; "no info" detected?</div>
+            <div class="pipeline-step">
+                <div class="step-badge retry">R</div>
+                <div><span class="step-label">Fallback Retry with 5 Chunks</span><br><span class="step-detail">Automatic &middot; only triggers when model says "I don't know"</span></div>
+                <div class="step-time">+3.5s</div>
+            </div>
+            <div class="pipeline-arrow">&darr;</div>
+            <div class="pipeline-step">
+                <div class="step-badge" style="background: var(--positive);">A</div>
+                <div><span class="step-label">Answer + Sources</span><br><span class="step-detail">User-friendly language &middot; no jargon &middot; breadcrumb citations</span></div>
+            </div>
+        </div>
+
+        <!-- 3. INGESTION -->
+        <h2 id="ingestion">3. DATA INGESTION</h2>
+        <p>The ERP documentation exists as HTML files &mdash; one per module, bilingual (EN/TR). The ingestion pipeline parses these into structured chunks with rich metadata.</p>
+
+        <h3>Ingestion Pipeline</h3>
+        <ol>
+            <li><strong>HTML Parsing</strong> &mdash; <code>html_parser.py</code> extracts sections from the documentation HTML files, preserving heading hierarchy, code blocks, tables, and API endpoint patterns.</li>
+            <li><strong>Chunking</strong> &mdash; <code>chunker.py</code> splits sections into chunks (target ~500 tokens each). Each chunk carries: <code>module</code>, <code>language</code>, <code>breadcrumb</code>, <code>section_id</code>, <code>has_api_endpoints</code>, <code>has_table</code>, <code>has_code</code>, <code>db_tables</code>, <code>api_endpoints</code>.</li>
+            <li><strong>Output</strong> &mdash; 309 chunks saved as <code>all_chunks.json</code> with a <code>manifest.json</code> summarizing the ingestion.</li>
+        </ol>
+
+        <h3>Quality Assurance: 3 Test Levels</h3>
+        <table>
+            <tr><th>TEST</th><th>FILE</th><th>CHECKS</th><th>RESULT</th></tr>
+            <tr><td>L1: Data Quality</td><td>test_data_quality.py</td><td>Schema, types, ranges, duplicates</td><td class="pass">ALL PASS</td></tr>
+            <tr><td>L2: Deep Quality</td><td>test_data_quality_l2.py</td><td>Metadata coherence, cross-references</td><td class="pass">ALL PASS</td></tr>
+            <tr><td>Final Boss</td><td>test_final_boss.py</td><td>66 ground-truth assertions</td><td class="pass">66/66 PASS</td></tr>
+        </table>
+
+        <!-- 4. BM25 -->
+        <h2 id="bm25">4. BM25 KEYWORD INDEX</h2>
+        <p>Okapi BM25 for keyword-level matching. Critical for exact terms like table names (<code>half_product_stock</code>), API paths, and Turkish technical terms that embedding models may miss.</p>
+
+        <h3>Custom Tokenizer</h3>
+        <p>Built a bilingual tokenizer that:</p>
+        <ul>
+            <li>Preserves underscores (critical for <code>table_names</code> and <code>api_endpoints</code>)</li>
+            <li>Handles Turkish characters (&ccedil;, &gbreve;, &iota;, &ouml;, &scedil;, &uuml;)</li>
+            <li>Removes EN + TR stop words (70+ words combined)</li>
+            <li>Minimum token length: 2 characters</li>
+        </ul>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">309</div>
+                <div class="stat-label">DOCUMENTS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8,447</div>
+                <div class="stat-label">VOCABULARY SIZE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~20ms</div>
+                <div class="stat-label">SEARCH LATENCY</div>
+            </div>
+        </div>
+
+        <!-- 5. CHROMADB -->
+        <h2 id="chromadb">5. CHROMADB VECTOR STORE</h2>
+        <p>Semantic search using <code>BAAI/bge-m3</code> (multilingual, 1024-dimensional embeddings) stored in a persistent ChromaDB collection with cosine similarity.</p>
+
+        <h3>The $contains Bug</h3>
+        <p>ChromaDB 1.5.x's <code>$contains</code> operator does NOT perform substring matching despite its name. Discovered this through test failures. Fixed by implementing Python-side substring resolution in <code>_resolve_modules()</code> that converts to <code>$in</code> with exact module names.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">1024</div>
+                <div class="stat-label">EMBEDDING DIMENSIONS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~80ms</div>
+                <div class="stat-label">SEARCH LATENCY</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~2.3GB</div>
+                <div class="stat-label">EMBEDDING MODEL RAM</div>
+            </div>
+        </div>
+
+        <!-- 6. HYBRID SEARCH -->
+        <h2 id="hybrid">6. HYBRID SEARCH &amp; RECIPROCAL RANK FUSION</h2>
+        <p>BM25 catches exact keywords. ChromaDB catches semantic meaning. Neither alone is sufficient. RRF merges their ranked lists into a single ranking without needing to normalize their incompatible score scales.</p>
+
+        <h3>RRF Formula</h3>
+        <pre><code>score(d) = &Sigma; 1 / (k + rank_i(d))    where k = 60</code></pre>
+        <p>Documents that appear in <strong>both</strong> rankings get boosted. Documents that appear in only one still contribute. The k=60 constant (from Cormack et al., 2009) prevents top-1 results from dominating.</p>
+
+        <h3>Retrieval Final Boss Test</h3>
+        <p>A 6-phase test suite validating the full BM25 + ChromaDB pipeline:</p>
+        <table>
+            <tr><th>PHASE</th><th>DESCRIPTION</th><th>RESULT</th></tr>
+            <tr><td>1. BM25 Ground Truth</td><td>Known queries must find known chunks</td><td class="pass">PASS</td></tr>
+            <tr><td>2. ChromaDB Semantic</td><td>Meaning-based queries find relevant docs</td><td class="pass">PASS</td></tr>
+            <tr><td>3. Cross-Engine Consistency</td><td>Both engines agree on top results</td><td class="pass">PASS</td></tr>
+            <tr><td>4. Filter Integrity</td><td>Language/module filters work correctly</td><td class="pass">PASS</td></tr>
+            <tr><td>5. Edge Cases</td><td>Empty queries, special chars, long queries</td><td class="pass">PASS</td></tr>
+            <tr><td>6. Latency</td><td>Search completes under 500ms</td><td class="pass">PASS</td></tr>
+        </table>
+
+        <!-- 7. RERANKER (KILLED) -->
+        <h2 id="reranker">7. CROSS-ENCODER RERANKER <span class="phase-tag killed">KILLED</span></h2>
+        <p>We built a cross-encoder reranking stage using <code>BAAI/bge-reranker-v2-m3</code> (~1.1GB). It sees query+document together for more accurate scoring than bi-encoder similarity alone.</p>
+
+        <div class="quote">Killed after A/B testing showed 90% of retrieval time for marginal quality improvement. On a MacBook Air with no fan, 7 seconds per query is unacceptable.</div>
+
+        <h3>A/B Test Results</h3>
+        <table>
+            <tr><th>METRIC</th><th>WITHOUT RERANKER</th><th>WITH RERANKER</th></tr>
+            <tr><td>Retrieval latency</td><td class="pass">~150ms</td><td class="fail">~7,000ms</td></tr>
+            <tr><td>Quality (manual eval)</td><td>Good</td><td>Slightly better</td></tr>
+            <tr><td>RAM usage</td><td>~2.3GB</td><td>~3.4GB (+1.1GB)</td></tr>
+        </table>
+        <p>The reranker code remains in <code>retrieve/reranker.py</code> for future use on a server with proper cooling. For interactive local use: killed.</p>
+
+        <!-- 8. TOURNAMENT -->
+        <h2 id="tournament">8. THE GRAND MODEL TOURNAMENT</h2>
+        <p>Before choosing the generation model, we ran a rigorous tournament: 9 models, 29 test cases, covering hallucination resistance, Turkish language, precision, instruction following, multi-hop reasoning, and adversarial prompts.</p>
+
+        <h3>Contestants</h3>
+        <table>
+            <tr><th>MODEL</th><th>SIZE</th><th>PASSED</th><th>AVG LATENCY</th><th>TOK/S</th></tr>
+            <tr class="champion"><td><strong>gemma3:4b</strong></td><td>3.3 GB</td><td class="pass">27/29</td><td>4,831ms</td><td>62</td></tr>
+            <tr><td>qwen3:4b</td><td>2.6 GB</td><td class="pass">26/29</td><td>3,773ms</td><td>82</td></tr>
+            <tr><td>phi4-mini</td><td>2.5 GB</td><td class="pass">25/29</td><td>4,226ms</td><td>74</td></tr>
+            <tr><td>qwen3:1.7b</td><td>1.1 GB</td><td class="pass">25/29</td><td>2,175ms</td><td>110</td></tr>
+            <tr class="champion" style="background: #eff6ff;"><td><strong>qwen3:0.6b &larr; CHOSEN</strong></td><td>522 MB</td><td class="pass">24/29</td><td>1,488ms</td><td>125</td></tr>
+            <tr><td>qwen2.5:3b</td><td>1.9 GB</td><td>23/29</td><td>3,432ms</td><td>82</td></tr>
+            <tr><td>llama3.2:3b</td><td>2.0 GB</td><td>22/29</td><td>2,861ms</td><td>94</td></tr>
+            <tr><td>gemma3:1b</td><td>815 MB</td><td>21/29</td><td>1,220ms</td><td>143</td></tr>
+            <tr><td>llama3.2:1b</td><td>1.3 GB</td><td>19/29</td><td>1,306ms</td><td>133</td></tr>
+        </table>
+
+        <h3>Why qwen3:0.6b?</h3>
+        <div class="quote">"As an engineer, I like hard problems. Taking the smallest best one and creating a perfect pipeline to boost its performance is more intriguing to me."</div>
+        <ul>
+            <li><strong>24/29 tests passed</strong> &mdash; only 3 fewer than the 4B champion, at 1/6th the size</li>
+            <li><strong>522MB</strong> &mdash; fits in memory alongside the ERP system and embedding model</li>
+            <li><strong>125 tok/s</strong> &mdash; fastest quality model in the tournament</li>
+            <li><strong>Chain-of-thought</strong> &mdash; uses <code>&lt;think&gt;</code> tokens internally, punching above its weight</li>
+        </ul>
+
+        <h3>Test Categories (29 tests)</h3>
+        <table>
+            <tr><th>CATEGORY</th><th>COUNT</th><th>WHAT IT TESTS</th></tr>
+            <tr><td>HALL (Hallucination)</td><td>3</td><td>Refuses to answer when context lacks info</td></tr>
+            <tr><td>TR (Turkish)</td><td>3</td><td>Turkish input/output without special chars</td></tr>
+            <tr><td>ADV (Adversarial)</td><td>3</td><td>Prompt injection, override attempts</td></tr>
+            <tr><td>NUM (Precision)</td><td>3</td><td>Exact numbers, counts, specific values</td></tr>
+            <tr><td>LONG (Long Context)</td><td>3</td><td>Multi-paragraph reasoning</td></tr>
+            <tr><td>INST (Instructions)</td><td>3</td><td>Format compliance (list, single-line, etc.)</td></tr>
+            <tr><td>HOP (Multi-hop)</td><td>3</td><td>Chaining facts across context sections</td></tr>
+            <tr><td>AMB (Ambiguity)</td><td>3</td><td>Contradictory info, missing data handling</td></tr>
+            <tr><td>CODE (Technical)</td><td>3</td><td>SQL, API path extraction, code understanding</td></tr>
+            <tr><td>DEG (Degenerate)</td><td>2</td><td>Empty context, gibberish input</td></tr>
+        </table>
+
+        <!-- 9. GENERATION -->
+        <h2 id="generation">9. GENERATION LAYER</h2>
+        <p>The generation layer wraps Ollama's API with thermal-aware settings optimized for the M4 MacBook Air.</p>
+
+        <h3>LLM Configuration</h3>
+        <table>
+            <tr><th>PARAMETER</th><th>VALUE</th><th>REASON</th></tr>
+            <tr><td>model</td><td>qwen3:0.6b</td><td>Best quality-to-size ratio from tournament</td></tr>
+            <tr><td>temperature</td><td>0.1</td><td>Low creativity, high accuracy for RAG</td></tr>
+            <tr><td>num_predict</td><td>800</td><td>Room for thinking tokens + answer</td></tr>
+            <tr><td>num_ctx</td><td>2048</td><td>We only use ~1000 tokens input; reduces CPU load</td></tr>
+        </table>
+
+        <h3>The Thinking Token Discovery</h3>
+        <p>qwen3 models use internal <code>&lt;think&gt;...&lt;/think&gt;</code> chains. Ollama strips these from visible output but still counts them in <code>eval_count</code>. With <code>num_predict=400</code>, some answers were empty because all tokens went to thinking.</p>
+        <p>Solution: increase to 800. The model self-regulates &mdash; simple questions use ~150 tokens total, complex ones use ~400. The higher ceiling only activates when needed.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">167</div>
+                <div class="stat-label">AVG TOKENS (SIMPLE Q)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">400</div>
+                <div class="stat-label">AVG TOKENS (COMPLEX Q)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">Self-regulates</div>
+                <div class="stat-label">MODEL STOPS WHEN DONE</div>
+            </div>
+        </div>
+
+        <!-- 10. PROMPTS -->
+        <h2 id="prompts">10. PROMPT ENGINEERING</h2>
+        <p>Three iterations of system prompt design, each driven by test failures.</p>
+
+        <h3>Iteration 1: Developer Mode (Abandoned)</h3>
+        <pre><code>"Answer from context only. If not found, say 'Not in context.' Cite sources as [Module > Section]. Be concise."</code></pre>
+        <p>Problem: Answers were too technical. Users aren't developers.</p>
+
+        <h3>Iteration 2: Heavy Rules (Failed)</h3>
+        <pre><code>"You are a friendly ERP helper for office workers.
+Rules:
+1) Explain step-by-step: which screen, which button, what to type.
+2) NEVER say: API, endpoint, database, JWT, token, backend...
+3) If context mentions '/api/...' translate it..."</code></pre>
+        <p>Problem: <strong>Catastrophic.</strong> The 0.6B model couldn't handle the complex system prompt. Three different questions all returned "Go to Suppliers page and click Delete" &mdash; the model latched onto a template and repeated it regardless of the question.</p>
+
+        <h3>Iteration 3: Slim Prompt (Current)</h3>
+        <pre><code>"You help office workers use the ERP system. Use simple language. No technical jargon. If not found, say 'I don't have information about that.'"</code></pre>
+        <p><strong>Key insight:</strong> For a 0.6B model, less instruction = better output. A heavy prompt chokes the tiny brain. A light one lets it use its capacity for actual reasoning.</p>
+
+        <h3>Context Format</h3>
+        <pre><code>--- [Stock &amp; Inventory > Projeksiyon Data Flow] (en) ---
+The core of Projeksiyon lives in ProjeksiyonService.get_projeksiyon().
+It reads every non-cancelled Work Card and Material Order...
+
+--- [Hammadde > Supplier Management] (tr) ---
+DELETE /api/suppliers/{id}/hard-delete endpoint...</code></pre>
+        <p>Each chunk gets a lean <code>[Module > Section] (lang)</code> tag. Chunks ordered by relevance (best first) to combat the model's last-chunk-blindness.</p>
+
+        <!-- 11. RETRY -->
+        <h2 id="retry">11. FALLBACK RETRY MECHANISM</h2>
+        <p>When the model says "I don't have information about that," the system automatically retries with 5 chunks instead of 3. This catches cases where the answer lives in chunk #4 or #5.</p>
+
+        <h3>Detection Patterns</h3>
+        <pre><code>NO_CONTEXT_PATTERNS = [
+    "not in context",
+    "don't have information",
+    "bilgim yok",
+    "bağlamda .* yok",
+    "bulunamadı",
+    ...
+]</code></pre>
+
+        <h3>Why Not Always Use 5 Chunks?</h3>
+        <p>A/B testing showed that 5 chunks <strong>reduces</strong> quality for the 0.6B model:</p>
+        <table>
+            <tr><th>METRIC</th><th>3 CHUNKS</th><th>5 CHUNKS</th></tr>
+            <tr><td>Correct answers</td><td class="pass">9/10</td><td>8/10</td></tr>
+            <tr><td>Hallucinations</td><td class="pass">0</td><td class="fail">2</td></tr>
+            <tr><td>Avg speed</td><td class="pass">3.7s</td><td>4.3s</td></tr>
+        </table>
+        <p>More context = more confusion for a tiny model. The irrelevant chunks become noise. With 5 chunks, the model hallucinated on two questions that it answered correctly (or honestly refused) with 3 chunks.</p>
+        <p>The retry mechanism gives us the best of both worlds: precision-first with 3 chunks, recall as fallback with 5.</p>
+
+        <!-- 12. BENCHMARKS -->
+        <h2 id="benchmarks">12. BENCHMARKS VS OPENAI</h2>
+        <p>Same 10 questions, same 3 chunks of context, same system prompt. Local qwen3:0.6b vs OpenAI cloud models.</p>
+
+        <table>
+            <tr><th>MODEL</th><th>CORRECT</th><th>HALLUCINATIONS</th><th>AVG LATENCY</th><th>COST/QUERY</th><th>OFFLINE</th></tr>
+            <tr><td><strong>qwen3:0.6b (local)</strong></td><td>8/10</td><td>1</td><td>3,491ms</td><td class="pass">$0</td><td class="pass">YES</td></tr>
+            <tr><td>gpt-4.1-nano</td><td>7/10</td><td>0</td><td>2,087ms</td><td>~$0.0002</td><td class="fail">NO</td></tr>
+            <tr><td>gpt-4o-mini</td><td>8/10</td><td>0</td><td>2,564ms</td><td>~$0.0002</td><td class="fail">NO</td></tr>
+            <tr><td>gpt-4.1-mini</td><td>8/10</td><td>0</td><td>3,039ms</td><td>~$0.0003</td><td class="fail">NO</td></tr>
+        </table>
+
+        <h3>Key Findings</h3>
+        <ul>
+            <li><strong>Quality is tied.</strong> A 522MB local model matches GPT-4o-mini at 8/10 correct answers.</li>
+            <li><strong>Different failure modes:</strong> Cloud models are more conservative (refuse when uncertain). Qwen is more aggressive (infers, but occasionally hallucinates).</li>
+            <li><strong>Latency is comparable.</strong> Local 3.5s vs cloud 2-3s. Network overhead vs faster compute &mdash; essentially the same user experience.</li>
+            <li><strong>The killer difference:</strong> Local is free, offline, private. ERP data never leaves the machine.</li>
+        </ul>
+
+        <p>GPT-5 series models (reasoning models with internal chain-of-thought) were tested but required 2000+ completion tokens and 5-10s per query. Not practical for RAG.</p>
+
+        <!-- 13. THERMAL -->
+        <h2 id="thermal">13. THERMAL MANAGEMENT</h2>
+        <p>The M4 MacBook Air has passive cooling (no fan). Running the embedding model + LLM + ERP system pushes CPU to 99&deg;C. Three mitigations:</p>
+
+        <table>
+            <tr><th>FIX</th><th>IMPACT</th></tr>
+            <tr><td><code>num_ctx: 2048</code> (was 32K default)</td><td>Massive reduction in KV cache memory and compute</td></tr>
+            <tr><td><code>num_predict: 800</code> (was 2000)</td><td>Model generates less = less sustained GPU load</td></tr>
+            <tr><td>1s sleep between batch queries</td><td>Lets passive cooling catch up between requests</td></tr>
+        </table>
+
+        <p>For production use, this should run on the ERP server (with proper cooling), not the development laptop.</p>
+
+        <!-- 14. CODEBASE -->
+        <h2 id="codebase">14. COMPLETE CODEBASE</h2>
+
+        <div class="file-tree">
+<span class="dir">erp_rag/</span>
+├── <span class="file">__init__.py</span>
+├── <span class="file">cli.py</span>                    <span style="color:#888">CLI: ask + chat modes</span>
+├── <span class="file">config.yaml</span>
+├── <span class="file">ingest_cli.py</span>
+│
+├── <span class="dir">generate/</span>                  <span style="color:#888">Generation layer</span>
+│   ├── <span class="file">answerer.py</span>            <span style="color:#888">Full RAG pipeline with retry</span>
+│   ├── <span class="file">llm.py</span>                 <span style="color:#888">Ollama LLM abstraction</span>
+│   ├── <span class="file">prompts.py</span>             <span style="color:#888">User-friendly prompt templates</span>
+│   ├── <span class="test">test_model_tournament.py</span> <span style="color:#888">9 models × 29 tests</span>
+│   └── <span class="test">test_qwen_stress.py</span>    <span style="color:#888">Stress test suite</span>
+│
+├── <span class="dir">retrieve/</span>                  <span style="color:#888">Retrieval layer</span>
+│   ├── <span class="file">hybrid_search.py</span>       <span style="color:#888">BM25 + ChromaDB + RRF</span>
+│   ├── <span class="file">pipeline.py</span>            <span style="color:#888">Full pipeline orchestration</span>
+│   └── <span class="file">reranker.py</span>            <span style="color:#888">Cross-encoder (disabled)</span>
+│
+├── <span class="dir">index/</span>                     <span style="color:#888">Search indices</span>
+│   ├── <span class="file">bm25_index.py</span>          <span style="color:#888">BM25Okapi with bilingual tokenizer</span>
+│   ├── <span class="file">vector_store.py</span>        <span style="color:#888">ChromaDB + bge-m3 embeddings</span>
+│   ├── <span class="test">test_bm25.py</span>
+│   ├── <span class="test">test_chroma.py</span>
+│   └── <span class="test">test_final_boss_retrieval.py</span>
+│
+├── <span class="dir">ingest/</span>                    <span style="color:#888">Data ingestion</span>
+│   ├── <span class="file">chunker.py</span>             <span style="color:#888">HTML → structured chunks</span>
+│   ├── <span class="file">html_parser.py</span>         <span style="color:#888">Section extraction</span>
+│   ├── <span class="test">test_data_quality.py</span>
+│   ├── <span class="test">test_data_quality_l2.py</span>
+│   └── <span class="test">test_final_boss.py</span>     <span style="color:#888">66 ground-truth assertions</span>
+│
+└── <span class="dir">data/</span>                      <span style="color:#888">Persisted data</span>
+    ├── <span class="file">tournament_results.json</span>
+    ├── <span class="dir">chunks/</span>
+    │   ├── <span class="file">manifest.json</span>
+    │   └── <span class="file">all_chunks.json</span>    <span style="color:#888">309 chunks</span>
+    ├── <span class="file">bm25_index.pkl</span>
+    └── <span class="dir">chroma_db/</span>             <span style="color:#888">Persistent vector store</span>
+        </div>
+
+        <!-- 15. FINAL RESULTS -->
+        <h2 id="results">15. FINAL RESULTS &amp; FINDINGS</h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value green">9/10</div>
+                <div class="stat-label">CORRECT ANSWERS (USER MODE)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">0</div>
+                <div class="stat-label">HALLUCINATIONS (3 CHUNKS)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue">~3.5s</div>
+                <div class="stat-label">AVG TOTAL LATENCY</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">~3GB</div>
+                <div class="stat-label">TOTAL RAM USAGE</div>
+            </div>
+        </div>
+
+        <h3>What We Learned</h3>
+        <ol>
+            <li><strong>Less is more for small models.</strong> A complex system prompt destroys a 0.6B model. A slim one lets it think. 3 chunks beat 5 chunks. Shorter context = fewer hallucinations.</li>
+            <li><strong>Chain-of-thought is the secret weapon.</strong> qwen3:0.6b's internal thinking is why it competes with 3B+ models. Killing it (via /nothink) would cripple quality.</li>
+            <li><strong>Hybrid search is non-negotiable.</strong> BM25 alone misses semantic matches. Vector search alone misses exact keywords. RRF fusion combines them cleanly.</li>
+            <li><strong>The reranker is a trap.</strong> Sounds great in theory. In practice: 90% of pipeline latency for marginal quality gain. Killed.</li>
+            <li><strong>Retry-on-refusal is cheap and effective.</strong> Only triggers ~10% of queries. Adds 3.5s only when needed. Recovers answers that would otherwise be "I don't know."</li>
+            <li><strong>Local matches cloud.</strong> A 522MB model on a laptop ties with GPT-4o-mini on answer quality. The engineering matters more than the model size.</li>
+            <li><strong>Thermal awareness is real engineering.</strong> On fanless hardware, <code>num_ctx</code> and <code>num_predict</code> settings directly affect whether the machine throttles.</li>
+        </ol>
+
+        <h3>What's Next</h3>
+        <ul>
+            <li>FastAPI service for the ERP frontend to call</li>
+            <li>WebSocket streaming for real-time answer display</li>
+            <li>User feedback loop to improve retrieval</li>
+            <li>Deploy to the ERP server (proper cooling, dedicated resources)</li>
+        </ul>
+
+        <p style="margin-top: 48px; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 16px;">Built by Ulas Cim &middot; February 2026 &middot; Zero cloud, zero cost, zero compromises.</p>
+    </main>
+</body>
+</html>
