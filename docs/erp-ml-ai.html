@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="../favicon.png">
     <link rel="apple-touch-icon" href="../apple-touch-icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP System | UG</title>
+    <title>ML &amp; AI Integration | Cable Factory ERP</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -61,6 +61,10 @@
         .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
         .report h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
         .report .page-subtitle { font-size: 12px; color: #666; margin-bottom: 0; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
 
         /* RESEARCH CARDS */
         .research-grid {
@@ -148,27 +152,6 @@
         .coming-soon .card-tag {
             background: #888;
         }
-        .research-card.in-progress {
-            border: 3px solid #f59e0b;
-            background: #fffbeb;
-        }
-        .research-card.in-progress .card-tag {
-            background: #f59e0b;
-        }
-        .research-card.in-progress:hover {
-            background: #f59e0b;
-            color: #fff;
-        }
-        .research-card.in-progress:hover .card-subtitle {
-            color: rgba(255,255,255,0.7);
-        }
-        .research-card.in-progress:hover .card-tag {
-            background: #fff;
-            color: #f59e0b;
-        }
-        .research-card.in-progress:hover .card-meta {
-            border-top-color: rgba(255,255,255,0.3);
-        }
 
         @media (max-width: 768px) {
             .report { padding: 16px; }
@@ -181,86 +164,58 @@
     <nav class="nav">
         <div class="nav-container">
             <div class="nav-left">
-                <a href="index.html" style="font-size: 20px; font-weight: 700; letter-spacing: 2px; text-decoration: none; color: #6b8dc9;">UG</a>
-                <a href="erp-system.html" class="nav-logo">RESEARCH</a>
+                <a href="erp-system.html" class="nav-logo">ERP SYSTEM</a>
             </div>
             <div class="nav-right">
-                <a href="erp-system-tr.html" class="nav-link-small">TR</a>
-                <span class="nav-divider">|</span>
-                <a href="erp-system.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+                <a href="erp-ml-ai.html" class="nav-link-small" style="font-weight: 700;">EN</a>
             </div>
         </div>
     </nav>
 
     <main class="report">
-        <h1>BUILDING CABLE FACTORY ERP SYSTEM</h1>
-        <p class="page-subtitle">One developer, one factory, one year. Digitizing the entire production flow of a solar cable manufacturer &mdash; from raw copper to shipment.</p>
+        <a href="erp-system.html" class="back-link">Back to Research</a>
+        <h1>ML &amp; AI INTEGRATION</h1>
+        <p class="page-subtitle">Where machine learning meets manufacturing. Predictive quality, production optimization, and the bridge between this ERP and the Token Sequencer project.</p>
 
         <div class="research-grid">
-            <a href="erp-understanding.html" class="research-card">
-                <span class="card-tag">PHASE 0 &bull; PUBLISHED</span>
-                <h2 class="card-title">UNDERSTANDING THE PROBLEM</h2>
-                <p class="card-subtitle">What does a solar cable factory actually do? 8 production steps, 7 machines, 20+ test types, verified production constants, and cable design notation. The domain knowledge that took 7 months to acquire.</p>
+            <a href="erp-rag.html" class="research-card">
+                <span class="card-tag">RAG &bull; PUBLISHED</span>
+                <h2 class="card-title">LOCAL RAG SYSTEM</h2>
+                <p class="card-subtitle">Fully local retrieval-augmented generation for the ERP. BM25 + ChromaDB hybrid search, RRF fusion, qwen3:0.6b generation. 522MB model that matches GPT-4o-mini at zero cost.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">10 SECTIONS</span>
-                        <span class="card-stat">20+ TESTS</span>
+                        <span class="card-stat">15 SECTIONS</span>
+                        <span class="card-stat">522MB MODEL</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
 
-            <a href="erp-architecture.html" class="research-card">
-                <span class="card-tag">PHASE 1 &bull; PUBLISHED</span>
-                <h2 class="card-title">ARCHITECTURE &amp; DESIGN</h2>
-                <p class="card-subtitle">Why a modular monolith. FastAPI + React + Ant Design Pro. Design rules, API patterns, database strategy, AI integration, and the evolution path.</p>
+            <div class="research-card coming-soon">
+                <span class="card-tag">PREDICTION &bull; COMING SOON</span>
+                <h2 class="card-title">PREDICTIVE QUALITY</h2>
+                <p class="card-subtitle">Using production data to predict quality test outcomes before they happen. Reducing waste and catching defects earlier in the production line.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">9 SECTIONS</span>
-                        <span class="card-stat">MODULAR MONOLITH</span>
+                        <span class="card-stat">ML MODELS</span>
+                        <span class="card-stat">QUALITY</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
-            </a>
+            </div>
 
-            <a href="erp-modules.html" class="research-card">
-                <span class="card-tag">PHASE 2 &bull; PUBLISHED</span>
-                <h2 class="card-title">THE MODULE MAP</h2>
-                <p class="card-subtitle">8 core modules, 200+ API endpoints, 50+ database tables. Every module, every submodule, every connection between them &mdash; the complete system overview before the deep dives.</p>
+            <div class="research-card coming-soon">
+                <span class="card-tag">OPTIMIZATION &bull; COMING SOON</span>
+                <h2 class="card-title">PRODUCTION OPTIMIZATION</h2>
+                <p class="card-subtitle">Scheduling, resource allocation, and throughput optimization. The bridge between this ERP and the Token Sequencer project.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">8 MODULES</span>
-                        <span class="card-stat">11 SECTIONS</span>
+                        <span class="card-stat">SCHEDULING</span>
+                        <span class="card-stat">THROUGHPUT</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
-            </a>
-
-            <a href="erp-deep-dives.html" class="research-card">
-                <span class="card-tag">PHASE 3+ &bull; 7 MODULES</span>
-                <h2 class="card-title">MODULE DEEP DIVES</h2>
-                <p class="card-subtitle">Each module gets its own document &mdash; Teknik, Hammadde, Sipari&scedil;, &Uuml;retim, Stok, Lab, Admin. Database schemas, API contracts, code walkthroughs, and the decisions made while building.</p>
-                <div class="card-meta">
-                    <div class="card-stats">
-                        <span class="card-stat">7 MODULES</span>
-                        <span class="card-stat">~220 ENDPOINTS</span>
-                    </div>
-                    <span class="card-arrow">&rarr;</span>
-                </div>
-            </a>
-
-            <a href="erp-ml-ai.html" class="research-card">
-                <span class="card-tag">FINAL PHASE &bull; IN PROGRESS</span>
-                <h2 class="card-title">ML &amp; AI INTEGRATION</h2>
-                <p class="card-subtitle">Where machine learning meets manufacturing. Predictive quality, production optimization, and the bridge between this ERP and the Token Sequencer project.</p>
-                <div class="card-meta">
-                    <div class="card-stats">
-                        <span class="card-stat">PREDICTION</span>
-                        <span class="card-stat">OPTIMIZATION</span>
-                    </div>
-                    <span class="card-arrow">&rarr;</span>
-                </div>
-            </a>
+            </div>
         </div>
     </main>
 
