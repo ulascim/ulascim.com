@@ -73,11 +73,16 @@
         .stat-value.blue { color: var(--accent); }
         .stat-value.amber { color: var(--amber); }
 
-        /* TABLE */
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
-        th { background: #000; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; letter-spacing: 0.5px; }
-        td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
-        tr:hover { background: #f0f0f0; }
+        /* TABLE — matches erp-mod-stok style */
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; color: #000; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report tr:not(:first-child):hover { background: rgba(0,0,0,0.02); }
         .pass { color: var(--positive); font-weight: 700; }
         .fail { color: var(--negative); font-weight: 700; }
         .champion { background: #ecfdf5; }
