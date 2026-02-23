@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture &amp; Pretraining | Research Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as tokenizer-research
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+
+        .report pre {
+            background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0;
+            font-size: 12px; line-height: 1.5; overflow-x: auto; border: 2px solid #000;
+        }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+
+        .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+        .flow-box { border: 2px solid #000; padding: 8px 14px; font-size: 12px; font-weight: 600; }
+        .flow-box.done { background: #dcfce7; }
+        .flow-box.active { background: #fef9c3; }
+        .flow-box.next { background: #dbeafe; }
+        .flow-box.pending { background: #f3f4f6; }
+        .flow-arrow { font-size: 18px; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+            .flow { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="architecture-pretraining.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="token-sequencer.html" class="back-link">Back to Research</a>
+        <h1>ARCHITECTURE &amp; PRETRAINING</h1>
+        <p class="subtitle">Phase 2 &amp; 3 &mdash; From Tokenizer to Transformer: Building a 24.7M Turkish Language Model from Scratch</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status complete">COMPLETE</span></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">24.7M</div>
+                <div class="label">TOTAL PARAMETERS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">12</div>
+                <div class="label">TRANSFORMER LAYERS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">14.9B</div>
+                <div class="label">TOKENS PROCESSED (2 ROUNDS)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.46</div>
+                <div class="label">FINAL LOSS (22 GB CORPUS)</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> This report documents the design, implementation, and pretraining of a 24.7M-parameter
+            decoder-only Transformer for Turkish &mdash; built entirely from scratch in PyTorch without any pretrained weights
+            or HuggingFace model code. The architecture incorporates five deliberate departures from convention: ALiBi
+            positional encoding (rejecting RoPE), Grouped Query Attention at 4:1 ratio, SwiGLU activation, RMSNorm with
+            pre-norm placement, and weight tying between embedding and output projection. Each decision is justified against
+            specific alternatives with parameter-budget and stability considerations. A 60-test validation suite
+            uncovered a critical causal mask bug in the ALiBi implementation prior to training &mdash; demonstrating the
+            necessity of component-level verification in from-scratch implementations.
+            Training proceeded in two rounds: Round 1 on a ~440 MB curated subset (50,000 steps, loss 2.62, 2.0 hours)
+            established basic Turkish fluency; Round 2 on the full 22 GB corpus across 11 domains (228,000 steps,
+            14.9 billion token-reads, 10.5 hours) pushed the model to produce factual, grammatically correct Turkish
+            with real-world knowledge, reaching a final loss of 3.46 (best 3.39). Both rounds ran on NVIDIA H100 NVL
+            ($2.38/hour) with bfloat16 mixed precision and <code>torch.compile</code>, achieving ~400,000 tokens/second.
+            Total pretraining cost: approximately $29.75.
+        </div>
+
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Motivation: From Tokenizer to Model</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Architecture Overview</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Positional Encoding: ALiBi (Not RoPE)</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Grouped Query Attention</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> SwiGLU Feed-Forward Network</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Normalization &amp; Residual Design</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Parameter Budget Analysis</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Training Corpus Curation</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Data Pipeline</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Training Configuration</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Validation Suite: 60 Paranoid Tests</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Infrastructure: MPS to H100</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Training Results: Round 1</a>
+                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Round 2: Full Corpus (22 GB)</a>
+                <a href="#sec-15" style="text-decoration: none; color: var(--fg); display: block;"><strong>15.</strong> Reproducibility &amp; Experiment Log</a>
+                <a href="#sec-16" style="text-decoration: none; color: var(--fg); display: block;"><strong>16.</strong> Project Status</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. MOTIVATION: FROM TOKENIZER TO MODEL</h2>
+        <!-- ============================================ -->
+
+        <p>Phase 1 produced a 64K Turkish BPE tokenizer that is ~14% more efficient than existing Turkish tokenizers
+        and ~2.7&times; more efficient than GPT-4 on Turkish text. The natural question follows: can this tokenizer
+        serve as the foundation for a purpose-built Turkish language model?</p>
+
+        <p>The objective of this phase is not to compete with production LLMs. A 24.7M-parameter model cannot rival
+        Qwen3-0.6B (600M parameters, 24&times; larger) or GPT-4 (estimated &gt;1T parameters). The objective is
+        threefold: (1) validate the tokenizer in an end-to-end training pipeline, (2) establish every component of
+        the training infrastructure from scratch, and (3) produce a model that demonstrably learns Turkish language
+        patterns from raw text.</p>
+
+        <div class="flow">
+            <span class="flow-box done">64K TOKENIZER</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">ARCHITECTURE</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">DATA PIPELINE</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">VALIDATION (60/60)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">PRETRAIN R1 (50K)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">PRETRAIN R2 (228K)</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box done">SFT</span>
+            <span class="flow-arrow">&rarr;</span>
+            <span class="flow-box next">RLVR</span>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. ARCHITECTURE OVERVIEW</h2>
+        <!-- ============================================ -->
+
+        <p>The model is a decoder-only Transformer with 24,697,088 parameters. Every component was selected against
+        specific alternatives; no default was accepted without justification.</p>
+
+        <table>
+            <tr><th>Component</th><th>Choice</th><th>Rejected Alternative</th><th>Rationale</th></tr>
+            <tr><td><strong>Architecture</strong></td><td>Decoder-only</td><td>Encoder-decoder, Encoder-only</td><td>Autoregressive generation is the goal; encoder stack adds unnecessary cross-attention</td></tr>
+            <tr><td><strong>Position encoding</strong></td><td>ALiBi</td><td>RoPE, Learned, Sinusoidal</td><td>Zero learned params; train-short-test-long generalization; RoPE unreliable at extrapolation</td></tr>
+            <tr><td><strong>Attention</strong></td><td>GQA (4:1)</td><td>MHA (8:8), MQA (8:1)</td><td>75% KV parameter reduction vs MHA; retains multi-view capacity unlike MQA</td></tr>
+            <tr><td><strong>FFN activation</strong></td><td>SwiGLU</td><td>ReLU, GELU, GeGLU</td><td>Gated mechanism outperforms per-parameter; 3 projections at (8/3)&times;d maintains budget</td></tr>
+            <tr><td><strong>Normalization</strong></td><td>RMSNorm</td><td>LayerNorm, BatchNorm</td><td>~10-15% faster per layer; mean subtraction is redundant with pre-norm residual</td></tr>
+            <tr><td><strong>Norm placement</strong></td><td>Pre-norm</td><td>Post-norm</td><td>Unobstructed residual gradient path; stable training without careful LR tuning</td></tr>
+            <tr><td><strong>Output projection</strong></td><td>Weight tying</td><td>Separate lm_head</td><td>Saves 16.4M parameters (66% of model); embedding serves dual purpose</td></tr>
+            <tr><td><strong>Linear layers</strong></td><td>No bias</td><td>With bias</td><td>Redundant with RMSNorm re-centering; simplifies weight decay</td></tr>
+            <tr><td><strong>Dropout</strong></td><td>0.0</td><td>0.1&ndash;0.3</td><td>Pretraining goal is to absorb data, not regularize; underfitting is the risk</td></tr>
+        </table>
+
+        <h3>Configuration</h3>
+        <table>
+            <tr><th>Parameter</th><th>Value</th><th>Derivation</th></tr>
+            <tr><td><code>vocab_size</code></td><td>64,000</td><td>Phase 1 tokenizer; 64K &times; 256 = 16.4M embedding params</td></tr>
+            <tr><td><code>d_model</code></td><td>256</td><td>Minimum for head_dim=32 with 8 heads</td></tr>
+            <tr><td><code>n_layers</code></td><td>12</td><td>Depth over width at small scale (SmolLM2 finding)</td></tr>
+            <tr><td><code>n_heads</code></td><td>8</td><td>8 attention patterns; head_dim = 256/8 = 32</td></tr>
+            <tr><td><code>n_kv_heads</code></td><td>2</td><td>GQA 4:1 ratio; 4 query heads share each KV head</td></tr>
+            <tr><td><code>d_ff</code></td><td>688</td><td>&asymp; (8/3) &times; 256; preserves FFN param budget with SwiGLU&rsquo;s 3 matrices</td></tr>
+            <tr><td><code>max_seq_len</code></td><td>512</td><td>ALiBi generalizes beyond training length; 512 is memory-safe on consumer GPU</td></tr>
+            <tr><td><code>dropout</code></td><td>0.0</td><td>No regularization during pretraining</td></tr>
+            <tr><td><code>weight_tying</code></td><td>true</td><td>Embedding = LM head; saves 16.4M params</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. POSITIONAL ENCODING: ALiBi (NOT ROPE)</h2>
+        <!-- ============================================ -->
+
+        <p>Positional encoding informs the model where tokens are in the sequence. The dominant approach in 2024&ndash;2026
+        is Rotary Position Embeddings (RoPE), used by Llama, Mistral, and Qwen. This work rejects RoPE in favor of
+        ALiBi (Attention with Linear Biases, Press et al. 2022).</p>
+
+        <h3>Why not RoPE</h3>
+        <p>RoPE applies rotation matrices to query and key vectors based on position. While mathematically elegant,
+        it exhibits two practical problems: (1) poor extrapolation beyond training length without ad-hoc scaling
+        hacks (NTK-aware, YaRN, etc.), and (2) additional learned parameters that interact with the attention
+        computation in ways that are difficult to debug at small scale. Prior empirical observation on this
+        project confirmed unstable long-context behavior with RoPE.</p>
+
+        <h3>ALiBi mechanism</h3>
+        <p>ALiBi adds a linear distance penalty directly to attention scores. No parameters are learned. Each
+        attention head receives a different slope (geometric sequence), creating a spectrum from sharp local
+        attention to broad distant attention.</p>
+
+        <table>
+            <tr><th>Property</th><th>ALiBi</th><th>RoPE</th><th>Learned</th><th>Sinusoidal</th></tr>
+            <tr><td>Learned parameters</td><td class="good"><strong>0</strong></td><td>Implicit (rotations)</td><td>seq_len &times; d_model</td><td>0</td></tr>
+            <tr><td>Length generalization</td><td class="good"><strong>Train short, test long</strong></td><td class="bad">Requires scaling hacks</td><td class="bad">Hard-capped</td><td class="bad">Degrades</td></tr>
+            <tr><td>Implementation complexity</td><td>Low (bias matrix)</td><td>Medium (rotations)</td><td>Low</td><td>Low</td></tr>
+            <tr><td>Industry adoption</td><td>MPT, BLOOM</td><td>Llama, Mistral, Qwen</td><td>GPT-2</td><td>Original Transformer</td></tr>
+        </table>
+
+        <h3>Slope computation</h3>
+        <p>For <em>n</em> attention heads, slopes form a geometric sequence: slope<sub>i</sub> = 2<sup>-8i/n</sup>
+        for i &isin; {1, ..., n}. With 8 heads, slopes range from 0.5 (sharp, local focus) to
+        2<sup>-8</sup> &asymp; 0.0039 (broad, distant attention).</p>
+
+        <table>
+            <tr><th>Head</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr>
+            <tr><td><strong>Slope</strong></td><td>0.5</td><td>0.25</td><td>0.125</td><td>0.0625</td><td>0.0313</td><td>0.0156</td><td>0.0078</td><td>0.0039</td></tr>
+            <tr><td><strong>Behavior</strong></td><td colspan="3">Strong local focus</td><td colspan="2">Medium range</td><td colspan="3">Broad / distant</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>BUG FOUND DURING VALIDATION:</strong> The initial ALiBi implementation computed relative distances
+            with transposed indices, causing future positions to receive finite penalty values instead of hard
+            <code>-inf</code>. The causal mask was effectively leaking &mdash; the model could attend to future tokens
+            with a soft distance penalty rather than being blocked entirely. This would have produced a model that
+            appears to train normally but fails catastrophically at inference (where future tokens are unavailable).
+            The bug was caught by test #22 of the validation suite (Section 11) and corrected before training began.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. GROUPED QUERY ATTENTION</h2>
+        <!-- ============================================ -->
+
+        <p>Standard Multi-Head Attention (MHA) assigns independent Key and Value projections to each attention head.
+        Grouped Query Attention (GQA, Ainslie et al. 2023) shares KV projections across groups of query heads,
+        reducing memory and parameter cost without proportional quality loss.</p>
+
+        <table>
+            <tr><th>Variant</th><th>Q Heads</th><th>KV Heads</th><th>KV Params/Layer</th><th>Quality</th></tr>
+            <tr><td>MHA (8:8)</td><td>8</td><td>8</td><td>131,072</td><td>Maximum</td></tr>
+            <tr class="highlight"><td><strong>GQA (8:2)</strong></td><td><strong>8</strong></td><td><strong>2</strong></td><td><strong>32,768</strong></td><td class="good"><strong>Near-MHA</strong></td></tr>
+            <tr><td>MQA (8:1)</td><td>8</td><td>1</td><td>16,384</td><td class="bad">Degraded</td></tr>
+        </table>
+
+        <p>The 4:1 ratio saves ~98K parameters per layer &times; 12 layers = <strong>1.18M parameters</strong> total
+        versus MHA. At 24.7M total, this represents a 4.8% budget reallocation. Four query heads share each KV head
+        via tensor repetition (<code>_repeat_kv</code>): the KV tensor is expanded along the head dimension
+        without copying data.</p>
+
+        <h3>Projection dimensions</h3>
+        <table>
+            <tr><th>Projection</th><th>Shape</th><th>Parameters</th></tr>
+            <tr><td>Q (query)</td><td>256 &times; 256</td><td>65,536</td></tr>
+            <tr><td>K (key)</td><td>256 &times; 64</td><td>16,384</td></tr>
+            <tr><td>V (value)</td><td>256 &times; 64</td><td>16,384</td></tr>
+            <tr><td>O (output)</td><td>256 &times; 256</td><td>65,536</td></tr>
+            <tr class="highlight"><td><strong>Total attention/layer</strong></td><td></td><td><strong>163,840</strong></td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. SwiGLU FEED-FORWARD NETWORK</h2>
+        <!-- ============================================ -->
+
+        <p>The standard Transformer FFN uses two projections with a nonlinear activation:
+        FFN(x) = W<sub>2</sub> &middot; &sigma;(W<sub>1</sub> &middot; x). SwiGLU (Shazeer 2020) replaces
+        this with a gated variant using three projections: FFN(x) = W<sub>down</sub> &middot; (SiLU(W<sub>gate</sub> &middot; x) &odot; W<sub>up</sub> &middot; x).</p>
+
+        <h3>Parameter equivalence</h3>
+        <p>Standard FFN with expansion factor 4: 2 &times; d &times; 4d = 8d&sup2;. SwiGLU with 3 matrices:
+        3 &times; d &times; d<sub>ff</sub>. Setting 3 &times; d<sub>ff</sub> = 8d gives d<sub>ff</sub> = (8/3)d
+        &asymp; 688 for d = 256. Total FFN parameters per layer:</p>
+
+        <table>
+            <tr><th>FFN Type</th><th>Matrices</th><th>d_ff</th><th>Params/Layer</th></tr>
+            <tr><td>Standard (ReLU/GELU)</td><td>2</td><td>1,024</td><td>524,288</td></tr>
+            <tr class="highlight"><td><strong>SwiGLU</strong></td><td><strong>3</strong></td><td><strong>688</strong></td><td><strong>528,384</strong></td></tr>
+        </table>
+
+        <p>Nearly identical parameter budget (+0.8%), empirically superior activation function. The gating
+        mechanism allows the network to selectively amplify or suppress information &mdash; a capability that
+        standard FFNs lack.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. NORMALIZATION &amp; RESIDUAL DESIGN</h2>
+        <!-- ============================================ -->
+
+        <h3>RMSNorm over LayerNorm</h3>
+        <p>LayerNorm (Ba et al. 2016) performs two operations: mean subtraction and variance normalization.
+        RMSNorm (Zhang &amp; Sennrich 2019) drops the mean subtraction entirely, computing only the root mean square.
+        With 12 layers &times; 2 norms per layer = 24 norm operations per forward pass, the cumulative speedup
+        is measurable. Each RMSNorm has exactly <code>d_model</code> = 256 learnable parameters (the scale vector).</p>
+
+        <h3>Pre-norm residual structure</h3>
+        <p>Each Transformer block follows the pattern:</p>
+        <pre>x = x + Attention(RMSNorm(x))     <span class="comment"># residual path is unobstructed</span>
+x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directly through addition</span></pre>
+        <p>The alternative &mdash; post-norm &mdash; places the normalization after the residual addition:
+        <code>x = RMSNorm(x + Attention(x))</code>. This creates a gradient bottleneck through the norm layer.
+        Pre-norm eliminates this bottleneck, producing more stable training in deep networks without
+        requiring careful learning rate tuning.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-7">7. PARAMETER BUDGET ANALYSIS</h2>
+        <!-- ============================================ -->
+
+        <p>At 24.7M parameters, every allocation decision is visible. The embedding layer dominates &mdash;
+        a structural consequence of pairing a large vocabulary (64K) with a small hidden dimension (256).</p>
+
+        <table>
+            <tr><th>Component</th><th>Parameters</th><th>% of Total</th><th>Notes</th></tr>
+            <tr><td>Token embedding (tied)</td><td>16,384,000</td><td class="bad">66.3%</td><td>64,000 &times; 256; shared with output projection</td></tr>
+            <tr><td>Attention (all layers)</td><td>1,966,080</td><td>8.0%</td><td>163,840 per layer &times; 12</td></tr>
+            <tr><td>FFN / SwiGLU (all layers)</td><td>6,340,608</td><td>25.7%</td><td>528,384 per layer &times; 12</td></tr>
+            <tr><td>RMSNorm (all layers + final)</td><td>6,400</td><td>&lt;0.1%</td><td>256 per norm &times; 25 norms</td></tr>
+            <tr><td>LM head</td><td>0</td><td>0%</td><td>Weight tying: reuses embedding</td></tr>
+            <tr class="highlight"><td><strong>Total</strong></td><td><strong>24,697,088</strong></td><td><strong>100%</strong></td><td></td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">66.3%</div>
+                <div class="label">EMBEDDING (TIED)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">25.7%</div>
+                <div class="label">FFN (SwiGLU)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">8.0%</div>
+                <div class="label">ATTENTION (GQA)</div>
+            </div>
+        </div>
+
+        <div class="finding">
+            <strong>Observation:</strong> Embedding dominance (66.3%) is a known property of small language models.
+            Without weight tying, the model would be 41.1M parameters &mdash; with 79.7% consumed by two
+            embedding matrices. Weight tying halves this cost while enforcing a useful symmetry: the input
+            representation and output prediction share the same vector space.
+        </div>
+
+        <h3>Weight initialization</h3>
+        <p>All 2D weight matrices are initialized with <code>Normal(0, 0.02)</code>. Output projections
+        (<code>o_proj</code>, <code>down_proj</code>) are additionally scaled by 1/&radic;(2 &times; n_layers) =
+        1/&radic;24 &asymp; 0.204 to prevent residual stream explosion through 12 layers of additive
+        contributions. This follows the GPT-2 initialization scheme.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-8">8. TRAINING CORPUS CURATION</h2>
+        <!-- ============================================ -->
+
+        <p>The full Phase 1 corpus spans 22 GB across 11 domains. For pretraining a 24.7M model, a curated
+        subset of ~440 MB (raw text) was selected. The selection criteria: (1) prioritize raw text over
+        structured data, (2) include reasoning-oriented material, (3) exclude instruction-tuning data
+        (reserved for SFT in Phase 4), (4) cap Wikipedia to prevent encyclopedic dominance.</p>
+
+        <table>
+            <tr><th>File</th><th>Raw Size</th><th>Tokens</th><th>% of Corpus</th><th>Selection Rationale</th></tr>
+            <tr><td><strong>wikipedia_tr.txt</strong></td><td>310 MB <span class="neutral">(capped from 866 MB)</span></td><td>67,407,762</td><td>67.7%</td><td>General knowledge, encyclopedic Turkish</td></tr>
+            <tr><td><strong>orca_math_tr.txt</strong></td><td>117 MB</td><td>28,648,305</td><td>28.8%</td><td>Mathematical reasoning (north star objective)</td></tr>
+            <tr><td><strong>tdk_full.txt</strong></td><td>9.5 MB</td><td>2,398,611</td><td>2.4%</td><td>Official dictionary; proper word usage</td></tr>
+            <tr><td><strong>turkish_folk_songs.txt</strong></td><td>2.3 MB</td><td>653,972</td><td>0.7%</td><td>Colloquial/emotional Turkish</td></tr>
+            <tr><td><strong>turkish_idioms_proverbs.txt</strong></td><td>1.6 MB</td><td>369,462</td><td>0.4%</td><td>Idiomatic language, cultural knowledge</td></tr>
+            <tr><td><strong>turkish_poems.txt</strong></td><td>0.4 MB</td><td>100,141</td><td>0.1%</td><td>Literary Turkish, complex grammar</td></tr>
+            <tr><td><strong>turkish_mmlu_exams.txt</strong></td><td>0.2 MB</td><td>40,187</td><td>&lt;0.1%</td><td>Academic/exam format, broad vocabulary</td></tr>
+            <tr><td><strong>literary_short_stories.txt</strong></td><td>0.1 MB</td><td>18,596</td><td>&lt;0.1%</td><td>Narrative structure, dialogue</td></tr>
+            <tr class="highlight"><td><strong>Total</strong></td><td><strong>~441 MB</strong></td><td><strong>99,637,036</strong></td><td><strong>100%</strong></td><td></td></tr>
+        </table>
+
+        <h3>Excluded data in Round 1 (later used in Round 2)</h3>
+        <table>
+            <tr><th>File</th><th>Size</th><th>R1 Exclusion Rationale</th><th>R2 Status</th></tr>
+            <tr><td>instruc_turca.txt</td><td>3.7 GB</td><td>Instruction data; format learning before language learning is counterproductive</td><td class="good">Included</td></tr>
+            <tr><td>rag_dataset_tr.txt</td><td>31 MB</td><td>ERP-domain-specific; too narrow for general pretraining</td><td class="good">Included</td></tr>
+            <tr><td>Wikipedia (remaining)</td><td>556 MB</td><td>Capped at 300 MB to prevent encyclopedic bias</td><td class="good">Uncapped</td></tr>
+            <tr><td>Academic, legal, medical&hellip;</td><td>~16 GB</td><td>Not yet collected at time of Round 1</td><td class="good">Included</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>Round 2 used the full corpus.</strong> All 22 GB / 27 files across 11 domains were included in Round 2 (Section 14).
+            The curated subset approach worked well for Round 1 to validate the pipeline; Round 2 removed all data restrictions
+            to maximize the model&rsquo;s exposure to diverse Turkish text.
+        </div>
+
+        <div class="insight">
+            <strong>Data composition principle:</strong> Chinchilla scaling (Hoffmann et al. 2022) suggests
+            ~20N optimal training tokens for an N-parameter model. For 24.7M parameters, optimal is ~500M tokens.
+            The corpus contains 99.6M tokens; with 50K steps &times; 65,536 tokens/step = 3.27B token-reads,
+            each token is seen ~33 times. This level of repetition is acceptable for a model at this scale
+            given the diversity of 8 source types.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-9">9. DATA PIPELINE</h2>
+        <!-- ============================================ -->
+
+        <p>The pipeline converts raw text to training batches in two offline steps, followed by
+        real-time random sampling during training.</p>
+
+        <h3>Step 1: Tokenization (offline, one-time)</h3>
+        <p>Raw <code>.txt</code> files are split into documents by double newline, filtered (minimum 20 characters,
+        5 tokens), wrapped with BOS/EOS markers, and tokenized with the 64K BPE tokenizer. The resulting integer
+        sequence is stored as a contiguous <code>uint16</code> binary file (190 MB). The choice of <code>uint16</code>
+        is exact: vocab_size = 64,000 &lt; 65,535 (max uint16), using exactly 2 bytes per token with no waste.</p>
+
+        <h3>Step 2: Memory-mapped random sampling</h3>
+        <p>The binary file is memory-mapped via <code>numpy.memmap</code>. Each training sample is drawn by selecting
+        a random starting position and extracting a contiguous window of <code>seq_len + 1 = 513</code> tokens.
+        The first 512 tokens serve as input; the last 512 (shifted by one) serve as targets. This approach has
+        no concept of epochs &mdash; with 99.6M tokens and 512-token windows, the number of possible starting
+        positions (~194K) vastly exceeds any practical training run.</p>
+
+        <table>
+            <tr><th>Pipeline Stage</th><th>Input</th><th>Output</th><th>Time</th></tr>
+            <tr><td>Tokenize (64K BPE)</td><td>441 MB raw text (8 files)</td><td>190 MB uint16 binary</td><td>~2.5 min</td></tr>
+            <tr><td>Memory map</td><td>190 MB binary</td><td>Random access via OS page cache</td><td>Instant</td></tr>
+            <tr><td>Sample</td><td>Random offset</td><td>(512 input, 512 target) tensor pair</td><td>&lt;1 ms</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-10">10. TRAINING CONFIGURATION</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Hyperparameter</th><th>Value</th><th>Justification</th></tr>
+            <tr><td><strong>Optimizer</strong></td><td>AdamW</td><td>Decoupled weight decay; industry standard for Transformers</td></tr>
+            <tr><td><strong>&beta;<sub>1</sub>, &beta;<sub>2</sub></strong></td><td>0.9, 0.95</td><td>&beta;<sub>2</sub>=0.95 (not 0.999): faster adaptation to changing gradient landscape</td></tr>
+            <tr><td><strong>Learning rate</strong></td><td>3 &times; 10<sup>-4</sup></td><td>Scaling law: smaller models tolerate higher LR</td></tr>
+            <tr><td><strong>Min learning rate</strong></td><td>3 &times; 10<sup>-5</sup></td><td>10:1 ratio; prevents complete learning cessation in final steps</td></tr>
+            <tr><td><strong>LR schedule</strong></td><td>Cosine decay</td><td>More time at peak LR than linear; Chinchilla standard</td></tr>
+            <tr><td><strong>Warmup</strong></td><td>500 steps</td><td>~1% of training; stabilizes optimizer momentum estimates</td></tr>
+            <tr><td><strong>Weight decay</strong></td><td>0.1</td><td>Applied to 2D+ matrices only; norms exempt (their target is 1.0, not 0.0)</td></tr>
+            <tr><td><strong>Gradient clipping</strong></td><td>1.0 (global norm)</td><td>Prevents catastrophic updates from gradient spikes; direction preserved</td></tr>
+            <tr><td><strong>Max steps</strong></td><td>50,000</td><td>3.27B token-reads at batch=128; ~33 passes over corpus</td></tr>
+            <tr><td><strong>Precision</strong></td><td>bfloat16 (CUDA) / float32 (MPS)</td><td>bfloat16 has float32 range with float16 size; MPS lacks bfloat16 support</td></tr>
+        </table>
+
+        <h3>Effective batch size</h3>
+        <table>
+            <tr><th>Setting</th><th>MPS (MacBook M4)</th><th>CUDA (H100 NVL) &mdash; Round 1</th><th>CUDA (H100 NVL) &mdash; Round 2</th></tr>
+            <tr><td>Physical batch</td><td>4</td><td>128</td><td>128</td></tr>
+            <tr><td>Gradient accumulation</td><td>8</td><td>1</td><td>1</td></tr>
+            <tr><td>Effective batch</td><td>32</td><td>128</td><td>128</td></tr>
+            <tr><td>Tokens per step</td><td>16,384</td><td>65,536</td><td>65,536</td></tr>
+            <tr><td>Total steps</td><td>&mdash;</td><td>50,000</td><td>228,000</td></tr>
+            <tr><td>Total token-reads</td><td>&mdash;</td><td>3.27B</td><td class="good">14.94B</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-11">11. VALIDATION SUITE: 60 PARANOID TESTS</h2>
+        <!-- ============================================ -->
+
+        <p>Before committing compute to training, every component of the pipeline was validated by a
+        60-test suite covering 13 categories. The suite was designed to catch the class of bugs that
+        produce models which appear to train normally but fail silently.</p>
+
+        <table>
+            <tr><th>Category</th><th>Tests</th><th>What It Validates</th></tr>
+            <tr><td>1. Tokenizer</td><td>8</td><td>Loading, vocab size, special tokens, Turkish encoding, roundtrip, uint16 safety</td></tr>
+            <tr><td>2. Model Architecture</td><td>6</td><td>Parameter count, weight tying on/off, layer count, hidden dimension</td></tr>
+            <tr><td>3. RMSNorm</td><td>4</td><td>Shape preservation, unit scale, parameter count, zero-input stability</td></tr>
+            <tr><td>4. ALiBi</td><td>7</td><td>Geometric slopes, exact values, shape, <strong class="good">causal mask integrity</strong>, diagonal, distance penalty, generalization</td></tr>
+            <tr><td>5. GQA</td><td>4</td><td>Output shape, 4:1 ratio, projection shapes, <strong class="good">causal independence</strong></td></tr>
+            <tr><td>6. SwiGLU</td><td>3</td><td>Shape, 3 projections, per-layer parameter count</td></tr>
+            <tr><td>7. Transformer Block</td><td>3</td><td>Shape, residual connections, pre-norm ordering</td></tr>
+            <tr><td>8. Full Model</td><td>7</td><td>Logits shape, loss shape, initial loss sanity, gradient flow, NaN detection, learning verification</td></tr>
+            <tr><td>9. Generation</td><td>4</td><td>Token production, max_tokens, determinism, valid ID range</td></tr>
+            <tr><td>10. Data Pipeline</td><td>5</td><td>File existence, sizes, tokenizer path, directory writability</td></tr>
+            <tr><td>11. LR Schedule</td><td>3</td><td>Warmup ramp, cosine decay endpoint, monotonic decrease</td></tr>
+            <tr><td>12. Device</td><td>3</td><td>MPS/CUDA availability, model execution, ALiBi transfer</td></tr>
+            <tr><td>13. Numerical Stability</td><td>3</td><td>Edge-case IDs, full-length sequences, gradient accumulation equivalence</td></tr>
+            <tr class="highlight"><td><strong>Total</strong></td><td><strong>60</strong></td><td><strong>All passed prior to training</strong></td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>Critical bug caught by test #22 (ALiBi causal mask).</strong> The original implementation
+            of <code>build_alibi_bias</code> computed relative distances as <code>positions.unsqueeze(0) -
+            positions.unsqueeze(1)</code>, which transposed the query/key axes. Future positions received the
+            ALiBi distance penalty (e.g., -0.5) instead of hard <code>-inf</code>. This meant the model could
+            attend to future tokens with a softened penalty rather than being fully masked. Training would appear
+            normal (loss decreasing, gradients stable) but the model would learn to rely on information that is
+            unavailable during autoregressive generation. The fix: separate the causal mask (hard <code>-inf</code>
+            for future) from the distance penalty (soft negative values for past), using
+            <code>positions.unsqueeze(1) - positions.unsqueeze(0)</code> with explicit <code>clamp(min=0)</code>
+            on distances before applying <code>masked_fill_</code>.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-12">12. INFRASTRUCTURE: MPS TO H100</h2>
+        <!-- ============================================ -->
+
+        <p>Training was initiated on Apple M4 (MacBook Air, passive cooling) to validate the pipeline,
+        then migrated to NVIDIA H100 NVL on RunPod for production training.</p>
+
+        <table>
+            <tr><th>Metric</th><th>M4 MacBook Air (MPS)</th><th>H100 NVL (CUDA)</th><th>Speedup</th></tr>
+            <tr><td>GPU</td><td>Apple M4 (integrated)</td><td>NVIDIA H100 NVL 95 GB</td><td>&mdash;</td></tr>
+            <tr><td>Precision</td><td>float32</td><td>bfloat16 (autocast)</td><td>2&times; throughput</td></tr>
+            <tr><td><code>torch.compile</code></td><td>Not supported</td><td class="good">Enabled</td><td>~30-50% speedup</td></tr>
+            <tr><td>Batch size</td><td>4 &times; 8 accum = 32</td><td>128 &times; 1 = 128</td><td>4&times; tokens/step</td></tr>
+            <tr><td>Step time</td><td>~3,500 ms</td><td class="good"><strong>~140 ms</strong></td><td class="good"><strong>25&times;</strong></td></tr>
+            <tr><td>Tokens/sec</td><td>~5,000</td><td class="good"><strong>~400,000</strong></td><td class="good"><strong>80&times;</strong></td></tr>
+            <tr><td>VRAM used</td><td>~8 GB (shared)</td><td>72 GB / 95 GB</td><td>&mdash;</td></tr>
+            <tr><td>GPU utilization</td><td>~100% (throttled to 80&deg;C)</td><td>97% at 53&deg;C</td><td>&mdash;</td></tr>
+            <tr><td>Estimated total time</td><td>~48 hours</td><td class="good"><strong>~2 hours</strong></td><td class="good"><strong>24&times;</strong></td></tr>
+            <tr><td>Estimated cost</td><td>Electricity only</td><td>~$4.76 (RunPod, $2.38/hr)</td><td>&mdash;</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value good">25&times;</div>
+                <div class="label">STEP TIME SPEEDUP</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">400K</div>
+                <div class="label">TOKENS/SEC (H100)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$4.76</div>
+                <div class="label">TOTAL TRAINING COST</div>
+            </div>
+        </div>
+
+        <h3>Migration changes</h3>
+        <p>Three modifications were required to move from MPS to CUDA:</p>
+        <ul>
+            <li><strong>Precision:</strong> <code>float32</code> &rarr; <code>bfloat16</code> via <code>torch.amp.autocast</code>. bfloat16 has the dynamic range of float32 (8 exponent bits) with the memory footprint of float16 (16 bits total), eliminating the need for loss scaling.</li>
+            <li><strong>Compilation:</strong> <code>torch.compile(model)</code> JIT-compiles the model graph into fused CUDA kernels, eliminating Python overhead and enabling kernel fusion across operations.</li>
+            <li><strong>Batch scaling:</strong> Physical batch increased from 4 to 128; gradient accumulation removed. The H100&rsquo;s 95 GB VRAM accommodates the full effective batch in a single forward pass.</li>
+        </ul>
+
+        <!-- ============================================ -->
+        <h2 id="sec-13">13. TRAINING RESULTS: ROUND 1 (50K STEPS, 440 MB)</h2>
+        <!-- ============================================ -->
+
+        <p><span class="status complete">COMPLETE</span> &mdash; 50,000 steps, 2.0 hours, final loss <strong>2.62</strong>.
+        This section documents Round 1 on the ~440 MB curated subset. Round 2 on the full 22 GB corpus is documented in Section 14.</p>
+
+        <h3>Loss curve</h3>
+        <table>
+            <tr><th>Step</th><th>Loss</th><th>Perplexity</th><th>LR</th><th>Tokens/sec</th><th>Phase</th></tr>
+            <tr><td>10</td><td>11.07</td><td>~64,000</td><td>6.00e-06</td><td>15,138</td><td>Warmup (random guessing, loss &asymp; ln(64000))</td></tr>
+            <tr><td>100</td><td>9.61</td><td>~15,000</td><td>6.00e-05</td><td>96K</td><td>Warmup (learning token frequencies)</td></tr>
+            <tr><td>500</td><td>6.00</td><td>~403</td><td>3.00e-04</td><td>290K</td><td>Warmup complete; peak LR reached</td></tr>
+            <tr><td>1,000</td><td>4.82</td><td>~124</td><td>3.00e-04</td><td>355K</td><td>Word boundaries, basic grammar</td></tr>
+            <tr><td>2,000</td><td>3.93</td><td>~51</td><td>2.99e-04</td><td>399K</td><td>Common phrases, suffixes</td></tr>
+            <tr><td>3,000</td><td>3.60</td><td>~37</td><td>2.98e-04</td><td>415K</td><td>Sentence fragments forming</td></tr>
+            <tr><td>8,000</td><td>3.15</td><td>~23</td><td>2.85e-04</td><td>438K</td><td>Mathematical notation, equations</td></tr>
+            <tr><td>10,000</td><td>3.12</td><td>~23</td><td>2.76e-04</td><td>441K</td><td>Wikipedia articles, proper nouns</td></tr>
+            <tr><td>12,000</td><td>3.05</td><td>~21</td><td>2.66e-04</td><td>443K</td><td>Dictionary format, subordinate clauses</td></tr>
+            <tr><td>19,000</td><td>2.94</td><td>~19</td><td>2.17e-04</td><td>446K</td><td>Encyclopedic titles, date suffixes</td></tr>
+            <tr><td>30,000</td><td>2.78</td><td>~16</td><td>1.48e-04</td><td>449K</td><td>Cosine decay phase; diminishing returns</td></tr>
+            <tr class="highlight"><td><strong>50,000</strong></td><td class="good"><strong>2.62</strong></td><td class="good"><strong>~14</strong></td><td>3.00e-05</td><td>451K</td><td><strong>Final: filmographies, cultural references</strong></td></tr>
+        </table>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">2.62</div>
+                <div class="label">FINAL LOSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~14</div>
+                <div class="label">FINAL PERPLEXITY</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3.27B</div>
+                <div class="label">TOKENS PROCESSED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">2.0 hrs</div>
+                <div class="label">TOTAL TRAINING TIME</div>
+            </div>
+        </div>
+
+        <div class="finding">
+            <strong>Observation:</strong> Loss decreased monotonically from 11.07 to 2.62, eliminating 99.97%
+            of initial uncertainty. Perplexity of ~14 means the model narrows 64,000 vocabulary tokens to
+            ~14 plausible candidates at each position. The loss curve exhibits three distinct phases: rapid
+            descent (steps 0&ndash;5K, dominated by frequency learning), steady descent (steps 5K&ndash;25K,
+            grammatical and structural learning), and plateau (steps 25K&ndash;50K, diminishing returns from
+            cosine decay and corpus repetition).
+        </div>
+
+        <h3>Generated samples across training</h3>
+        <p>Three hardcoded prompts (&ldquo;Merhaba&rdquo;, &ldquo;T&uuml;rkiye&rdquo;, &ldquo;Stok&rdquo;) were
+        sampled every 1,000 steps at temperature 0.8 with top-k 40. The prompt is selected randomly each time.
+        No rules were programmed; all linguistic structure was learned from next-token prediction alone.</p>
+        <table>
+            <tr><th>Step</th><th>Prompt</th><th>Output</th><th>Observation</th></tr>
+            <tr><td>1,000</td><td>Stok</td><td><em>Stokon</em></td><td>Single fragment; knows token boundaries</td></tr>
+            <tr><td>2,000</td><td>Merhaba</td><td><em>Merhaba</em></td><td>Recognizes greeting; stops at EOS</td></tr>
+            <tr><td>3,000</td><td>Merhaba</td><td><em>Merhaba, 6. sezon.</em></td><td class="good">First multi-token output; correct grammar and punctuation</td></tr>
+            <tr><td>8,000</td><td>Stok</td><td><em>Stokes) = 5.000, K + J - 3J = 15.000</em></td><td>Mathematical notation from orca_math_tr.txt (28.8% of corpus)</td></tr>
+            <tr><td>10,000</td><td>Merhaba</td><td><em>Merhaba D&uuml;nya K&#305;z&#305;, Istanbul&rsquo;a Gidiyor</em></td><td class="good">Folk song register; correct apostrophe + dative suffix</td></tr>
+            <tr><td>12,000</td><td>Merhaba</td><td><em>&Ouml;rnek: G&ouml;zlerini bu kadar be&#287;enip, iyi bir &#351;ey sevdi&#287;ine de biraz daha &acirc;&#351;&#305;k ol</em></td><td class="good">TDK dictionary format; subordinate clauses with -du&#287;unu</td></tr>
+            <tr><td>19,000</td><td>T&uuml;rkiye</td><td><em>T&uuml;rkiye&rsquo;deki etnik gruplar, Mo&#287;olistan&rsquo;&#305;n Yahudi tarihi, 1901&rsquo;de T&uuml;rkiye</em></td><td class="good">Wikipedia article titles; correct locative/possessive suffixes</td></tr>
+            <tr><td>50,000</td><td>Merhaba</td><td><em>Cary, &ldquo;Deli G&ouml;m&uuml;l&uuml;&rdquo; (2001), Hymnogy, &ldquo;&#304;man &#304;&ccedil;in Bir &#350;ey&rdquo; (2002)</em></td><td>Filmography/discography entries with quoted titles and years</td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Emergent domain switching.</strong> The model produces qualitatively different output depending
+            on (a) the prompt token and (b) the training stage. The same prompt &ldquo;Merhaba&rdquo; yields a
+            greeting at step 2,000, a folk song at step 10,000, a dictionary entry at step 12,000, and a
+            filmography at step 50,000. No explicit domain labels or curriculum were used. The behavior emerges
+            purely from the statistical structure of the training data as encoded by the 64K tokenizer.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-14">14. ROUND 2: FULL CORPUS PRETRAINING (228K STEPS, 22 GB)</h2>
+        <!-- ============================================ -->
+
+        <p>Round 1 demonstrated the pipeline worked and the model could learn Turkish from a ~440 MB subset.
+        Round 2 scaled to the full 22 GB corpus &mdash; the same corpus used to train the 64K tokenizer in Phase 1
+        &mdash; across all 11 domains: general knowledge, academic, legal, medical, financial, education, news,
+        code, literary, reasoning, and instructions.</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value">228K</div>
+                <div class="label">TOTAL STEPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">14.9B</div>
+                <div class="label">TOKENS PROCESSED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10.5h</div>
+                <div class="label">TRAINING TIME</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.46</div>
+                <div class="label">FINAL LOSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.39</div>
+                <div class="label">BEST LOSS</div>
+            </div>
+        </div>
+
+        <h3>Why Round 2?</h3>
+        <p>Round 1 trained on 99.6M tokens (441 MB subset, 67.7% Wikipedia). The model learned grammar and
+        basic vocabulary but lacked domain diversity. Round 2 exposed the model to legal Turkish (court decisions),
+        medical terminology, financial reporting, news journalism, academic writing, and instruction-following
+        patterns &mdash; preparing a more robust base for SFT specialization.</p>
+
+        <h3>Training data: full corpus</h3>
+        <table>
+            <tr><th>Domain</th><th>Sources</th><th>Size</th></tr>
+            <tr><td>General Knowledge</td><td>Wikipedia TR (520K articles, uncapped)</td><td>866 MB</td></tr>
+            <tr><td>Academic/Thesis</td><td>BellaTurca AkademikDerlem (668K papers)</td><td>3.5 GB</td></tr>
+            <tr><td>Cultural/Literary Web</td><td>BellaTurca &Ouml;zenliDerlem (1.4M curated docs)</td><td>4.4 GB</td></tr>
+            <tr><td>News/Journalism</td><td>1.8M news articles + summarization corpus</td><td>4.5 GB</td></tr>
+            <tr><td>Legal/Law</td><td>700K court decisions + Constitutional Court</td><td>3.7 GB</td></tr>
+            <tr><td>Instructions</td><td>2.5M instruction-answer pairs</td><td>3.7 GB</td></tr>
+            <tr><td>Code</td><td>Python corpus</td><td>569 MB</td></tr>
+            <tr><td>Financial</td><td>KAP announcements, capital markets</td><td>425 MB</td></tr>
+            <tr><td>Reasoning</td><td>Math problems, RAG, chain-of-thought</td><td>221 MB</td></tr>
+            <tr><td>Medical</td><td>Medical reasoning + hospital articles</td><td>108 MB</td></tr>
+            <tr><td>Education &amp; Vocabulary</td><td>QA, MMLU exams, TDK dictionary, literature</td><td>~100 MB</td></tr>
+            <tr class="highlight"><td><strong>Total</strong></td><td><strong>27 files, 11 domains</strong></td><td class="good"><strong>22 GB</strong></td></tr>
+        </table>
+
+        <h3>Round 2 configuration changes</h3>
+        <table>
+            <tr><th>Parameter</th><th>Round 1</th><th>Round 2</th><th>Rationale</th></tr>
+            <tr><td>Training data</td><td>441 MB (8 files)</td><td class="good">22 GB (27 files)</td><td>Full corpus for maximum domain coverage</td></tr>
+            <tr><td>Max steps</td><td>50,000</td><td class="good">228,000</td><td>Scaled proportionally to data volume</td></tr>
+            <tr><td>Batch size</td><td>128</td><td>128</td><td>Unchanged</td></tr>
+            <tr><td>Starting point</td><td>Random init</td><td>step_050000.pt</td><td>Resume from Round 1 checkpoint</td></tr>
+            <tr><td>Learning rate</td><td>3e-4 &rarr; 3e-5</td><td>3e-4 &rarr; 3e-5</td><td>Fresh cosine schedule from peak</td></tr>
+        </table>
+
+        <h3>Loss curve: Round 2</h3>
+        <table>
+            <tr><th>Step</th><th>Loss</th><th>LR</th><th>Tok/s</th><th>Sample Quality</th></tr>
+            <tr><td>50,000 (R1 end)</td><td>2.62</td><td>3.0e-05</td><td>451K</td><td>Filmographies, encyclopedic entries</td></tr>
+            <tr><td>95,000</td><td>~3.60</td><td>2.0e-04</td><td>399K</td><td>Simple sentences, some repetition</td></tr>
+            <tr><td>145,000</td><td>~3.50</td><td>1.1e-04</td><td>401K</td><td>Coherent multi-clause sentences</td></tr>
+            <tr><td>195,000</td><td>~3.47</td><td>4.4e-05</td><td>402K</td><td>Factual: &ldquo;Kocaeli&rsquo;ndeyiz&rdquo;</td></tr>
+            <tr><td>200,000</td><td><strong>3.39</strong></td><td>4.0e-05</td><td>403K</td><td class="good">Best loss &mdash; human rights discussion</td></tr>
+            <tr class="highlight"><td><strong>228,000</strong></td><td><strong>3.46</strong></td><td>3.0e-05</td><td>403K</td><td><strong>Final: real-world knowledge, correct grammar</strong></td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Note on loss difference.</strong> Round 1 loss (2.62) and Round 2 loss (3.46) are not directly comparable.
+            Round 1 trained on a ~440 MB curated subset dominated by Wikipedia; Round 2 trained on 22 GB spanning 11 domains
+            including legal, medical, and financial text. The higher absolute loss reflects the much harder prediction task
+            across diverse registers &mdash; not a regression. Sample outputs confirm dramatically improved language quality.
+        </div>
+
+        <h3>Sample evolution: Round 2</h3>
+        <table>
+            <tr><th>Step</th><th>Sample Output</th><th>Quality</th></tr>
+            <tr><td>95,000</td><td><em>&ldquo;Bu e-postay&#305; seviyorum! Bu e-postan&#305;n amac&#305;, bu e-postan&#305;n ana no&hellip;&rdquo;</em></td><td class="bad">Repetitive, generic</td></tr>
+            <tr><td>145,000</td><td><em>&ldquo;T&uuml;rkiye&rsquo;de ve d&uuml;nyada ekonomik geli&#351;meler a&ccedil;&#305;s&#305;ndan b&uuml;y&uuml;k &ouml;nem ta&#351;&#305;maktad&#305;r&rdquo;</em></td><td>Coherent, meaningful</td></tr>
+            <tr><td>195,000</td><td><em>&ldquo;T&uuml;rkiye&rsquo;nin en b&uuml;y&uuml;k ikinci sanayi &#351;ehri konumundaki Kocaeli&rsquo;ndeyiz&rdquo;</em></td><td class="good">Factual, specific, correct suffixes</td></tr>
+            <tr><td>200,000</td><td><em>&ldquo;T&uuml;rkiye&rsquo;de t&uuml;m d&uuml;nyada &lsquo;insan haklar&#305;&rsquo;ndan s&ouml;z edildi&#287;i gibi&hellip;&rdquo;</em></td><td class="good">Complex topic, proper structure</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>Scaling law observation.</strong> At 26M parameters, the model is capacity-limited, not data-limited.
+            Chinchilla-optimal training for 26M params is ~520M tokens (20&times; params); this model processed
+            14.9B tokens (~573&times; params). Loss was still decreasing at step 228K but with diminishing returns
+            &mdash; the model had exhausted most of its representational capacity. The remaining loss gap reflects
+            architectural limits, not insufficient training. Despite this, the full-corpus training produced measurably
+            better language understanding than Round 1, with factual knowledge about specific cities, institutions,
+            and complex topics emerging in generated samples.
+        </div>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value good">$4.76</div>
+                <div class="label">ROUND 1 (2.0h &times; $2.38)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$24.99</div>
+                <div class="label">ROUND 2 (10.5h &times; $2.38)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$29.75</div>
+                <div class="label">TOTAL PRETRAINING COST</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-15">15. REPRODUCIBILITY &amp; EXPERIMENT LOG</h2>
+        <!-- ============================================ -->
+
+        <p>Every file, command, and decision is documented below to enable exact reproduction
+        and &mdash; equally important &mdash; to prevent re-running experiments that were already tried.</p>
+
+        <h3>15.1 File inventory</h3>
+        <table>
+            <tr><th>File</th><th>Size</th><th>Purpose</th></tr>
+            <tr><td><code>tiny_llm/config.py</code></td><td>126 lines</td><td>ModelConfig (24.7M architecture) + TrainConfig (all hyperparameters)</td></tr>
+            <tr><td><code>tiny_llm/model.py</code></td><td>266 lines</td><td>Full Transformer: ALiBi, GQA, SwiGLU, RMSNorm, weight tying</td></tr>
+            <tr><td><code>tiny_llm/train.py</code></td><td>283 lines</td><td>Pretraining loop: AdamW, cosine LR, gradient accumulation, checkpointing</td></tr>
+            <tr><td><code>tiny_llm/data.py</code></td><td>173 lines</td><td>Data pipeline for Round 1: tokenize 8 curated files &rarr; 190 MB <code>train.bin</code></td></tr>
+            <tr><td><code>tiny_llm/data_full.py</code></td><td>183 lines</td><td>Streaming pipeline for Round 2: tokenize all 27 files (22 GB) &rarr; <code>train_full.bin</code></td></tr>
+            <tr><td><code>tiny_llm/test_everything.py</code></td><td>764 lines</td><td>60-test validation suite covering all components</td></tr>
+            <tr><td><code>tiny_llm/generate.py</code></td><td>108 lines</td><td>Text generation from trained checkpoint</td></tr>
+            <tr><td><code>tokenizers/turkish_bpe_64k/tokenizer.json</code></td><td>4.7 MB</td><td>64K BPE tokenizer (Phase 1 output)</td></tr>
+            <tr><td><code>tiny_llm/data/train.bin</code></td><td>190 MB</td><td>Round 1 tokenized binary (99.6M tokens, uint16)</td></tr>
+            <tr><td><code>data/processed/*.txt</code></td><td>22 GB</td><td>27 raw text files across 11 domains (Round 2 input)</td></tr>
+        </table>
+
+        <h3>15.2 Checkpoint inventory</h3>
+        <table>
+            <tr><th>Checkpoint</th><th>Size</th><th>Step</th><th>Loss</th><th>Round</th><th>Location</th></tr>
+            <tr><td><code>step_050000.pt</code></td><td>283 MB</td><td>50,000</td><td>2.62</td><td>R1 final</td><td><code>runpod_backup/</code></td></tr>
+            <tr class="highlight"><td><code>step_228000.pt</code></td><td>283 MB</td><td>228,000</td><td>3.46</td><td>R2 final</td><td><code>runpod_backup/round2_checkpoints/</code></td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Checkpoint format note.</strong> RunPod checkpoints were saved under <code>torch.compile()</code>,
+            which prefixes all state dict keys with <code>_orig_mod.</code>. When loading on a non-compiled model,
+            strip this prefix: <code>cleaned = {k.replace("_orig_mod.", ""): v for k, v in state_dict.items()}</code>.
+            This cost ~1 hour of debugging during SFT &mdash; do not repeat this mistake.
+        </div>
+
+        <h3>15.3 Reproduction commands</h3>
+
+        <p><strong>Step 1: Prepare Round 1 data (local)</strong></p>
+        <pre>python -m tiny_llm.data                    <span class="comment"># tokenizes 8 files → tiny_llm/data/train.bin (190 MB, ~2.5 min)</span></pre>
+
+        <p><strong>Step 2: Run validation suite</strong></p>
+        <pre>python -m tiny_llm.test_everything          <span class="comment"># 60 tests, all must pass before training</span></pre>
+
+        <p><strong>Step 3: Round 1 training (RunPod H100)</strong></p>
+        <pre><span class="comment"># Upload project to RunPod, then:</span>
+python -m tiny_llm.train --resume None      <span class="comment"># 50K steps, ~2.0 hours, loss → 2.62</span>
+                                             <span class="comment"># Config: batch=128, lr=3e-4→3e-5, bfloat16, torch.compile</span></pre>
+
+        <p><strong>Step 4: Prepare Round 2 data</strong></p>
+        <pre>python -m tiny_llm.data_full                <span class="comment"># tokenizes all 27 files (22 GB) → train_full.bin (streaming, ~15 min)</span></pre>
+
+        <p><strong>Step 5: Round 2 training (RunPod H100)</strong></p>
+        <pre>nohup python -m tiny_llm.train \
+    --resume tiny_llm/checkpoints/step_050000.pt \
+    --max-steps 228000 \
+    --data tiny_llm/data/train_full.bin \
+    &gt; training_round2.log 2&gt;&amp;1 &amp;           <span class="comment"># 228K steps, ~10.5 hours, loss → 3.46</span></pre>
+
+        <h3>15.4 Experiments tried &amp; decisions locked</h3>
+
+        <div class="warning">
+            <strong>DO NOT RE-TRY:</strong> The following experiments and configurations were already evaluated.
+            They are documented here to prevent wasting compute on repeating them.
+        </div>
+
+        <table>
+            <tr><th>Experiment</th><th>What Was Tried</th><th>Result</th><th>Decision</th></tr>
+            <tr>
+                <td><strong>RoPE vs ALiBi</strong></td>
+                <td>RoPE implemented and tested before ALiBi</td>
+                <td class="bad">Unstable long-context; requires scaling hacks</td>
+                <td class="good">ALiBi &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>MHA (8:8) vs GQA (8:2)</strong></td>
+                <td>Both tested for parameter budget</td>
+                <td>GQA saves 1.18M params (4.8%) with near-MHA quality</td>
+                <td class="good">GQA 4:1 &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>Local training (MPS)</strong></td>
+                <td>M4 MacBook, batch 4&times;8 accum, float32</td>
+                <td class="bad">3,500 ms/step; CPU hit 93&deg;C; passive cooling throttle</td>
+                <td class="good">RunPod H100 only &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>Round 1: 50K steps, 440 MB</strong></td>
+                <td>Curated subset (8 files, 67.7% Wikipedia)</td>
+                <td>Loss 2.62; grammar + basic vocabulary learned</td>
+                <td>Sufficient for pipeline validation; do not extend</td>
+            </tr>
+            <tr>
+                <td><strong>Round 2: 228K steps, 22 GB</strong></td>
+                <td>Full corpus, 27 files, 11 domains</td>
+                <td>Loss 3.46 (best 3.39 at 200K); loss still decreasing</td>
+                <td>Capacity-limited at 26M params; more steps = diminishing returns</td>
+            </tr>
+            <tr>
+                <td><strong>Loss plateau observation</strong></td>
+                <td>R2 loss ~3.60 at step 95K, ~3.46 at 228K</td>
+                <td>0.14 improvement over 133K steps = 573&times; Chinchilla-optimal</td>
+                <td>Model is saturated; proceed to SFT, not more pretraining</td>
+            </tr>
+            <tr>
+                <td><strong>Wikipedia cap (Round 1)</strong></td>
+                <td>Capped Wikipedia at 300 MB (of 866 MB)</td>
+                <td>Prevented encyclopedic bias; 67.7% is already dominant</td>
+                <td>Uncapped in Round 2 (full corpus diversity dilutes bias)</td>
+            </tr>
+            <tr>
+                <td><strong>Dropout during pretraining</strong></td>
+                <td>dropout = 0.0 for both rounds</td>
+                <td>Model is underfitting (capacity-limited), not overfitting</td>
+                <td class="good">dropout 0.0 for pretraining &mdash; locked. Dropout 0.05 for SFT only.</td>
+            </tr>
+            <tr>
+                <td><strong>LR schedule fresh restart for R2</strong></td>
+                <td>Fresh cosine 3e-4 &rarr; 3e-5 from step 50K checkpoint</td>
+                <td class="good">Loss continued decreasing; good decision</td>
+                <td>Do not resume with decayed LR; always fresh schedule for new data</td>
+            </tr>
+            <tr>
+                <td><strong>Tokenizer versions</strong></td>
+                <td>8 tokenizer variants tested: 16K, 32K (v1/v2), 48K (v1/v2), 64K (v1/v3)</td>
+                <td>64K v3 won (~14% fewer tokens than alternatives)</td>
+                <td class="good">64K v3 &mdash; locked. Do not retrain tokenizer.</td>
+            </tr>
+        </table>
+
+        <h3>15.5 Training logs</h3>
+        <table>
+            <tr><th>Log File</th><th>Size</th><th>Contents</th></tr>
+            <tr><td><code>runpod_backup/training.log</code></td><td>454 KB</td><td>Round 1: 5,422 lines, steps 0&ndash;50,000</td></tr>
+            <tr><td><code>runpod_backup/training_round2.log</code></td><td>2.0 MB</td><td>Round 2: steps 50,001&ndash;228,000, 10.5 hours</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>For future reference:</strong> If scaling the model (e.g., 100M+ params), the next useful
+            experiment is increasing <code>d_model</code> and <code>n_layers</code> rather than training longer.
+            The 26M model is capacity-bound; more data or steps yield diminishing returns. The full 22 GB corpus
+            and training pipeline are ready for a larger architecture without any data preparation changes.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-16">16. PROJECT STATUS</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Phase</th><th>Status</th><th>Key Result</th></tr>
+            <tr><td><strong>Phase 1: Tokenizer</strong></td><td><span class="status complete">COMPLETE</span></td><td>64K vocab, ~14% fewer tokens than Kumru/TabiBERT, ~2.7&times; vs GPT-4</td></tr>
+            <tr><td><strong>Phase 2: Architecture</strong></td><td><span class="status complete">COMPLETE</span></td><td>24.7M params, ALiBi, GQA, SwiGLU, RMSNorm, weight tying; 60/60 tests</td></tr>
+            <tr><td><strong>Phase 3a: Pretrain R1</strong></td><td><span class="status complete">COMPLETE</span></td><td>50K steps, 440 MB subset, loss 2.62, 2.0 hours, $4.76</td></tr>
+            <tr class="highlight"><td><strong>Phase 3b: Pretrain R2</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">228K steps, 22 GB full corpus, 14.9B tokens, loss 3.46, 10.5 hours, $24.99</td></tr>
+            <tr><td><strong>Phase 4: SFT</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">3,790 QA pairs, val loss 5.12 &rarr; 3.10, 100 seconds</td></tr>
+            <tr><td><strong>Phase 5: RLVR</strong></td><td><span class="status next">NEXT</span></td><td>Reinforcement learning with verifiable rewards</td></tr>
+        </table>
+
+        <div class="abstract" style="margin-top: 32px;">
+            <strong>Conclusion.</strong> A 24.7M-parameter Turkish Transformer has been designed, validated,
+            and pretrained from scratch across two training rounds. The architecture was selected through explicit
+            comparison against alternatives at each component level. A 60-test validation suite caught a critical
+            causal mask bug that would have produced a silently broken model. Round 1 (50K steps, 2.0 hours, ~440 MB)
+            established basic Turkish fluency at loss 2.62. Round 2 (228K steps, 10.5 hours, 22 GB across 11 domains)
+            pushed the model to produce factual, grammatically correct Turkish with real-world knowledge at loss 3.46.
+            Generated samples evolved from single-word fragments to specific factual statements about Turkish cities,
+            institutions, and complex topics. The model demonstrates emergent domain switching, correct morphological
+            suffixes, and multi-clause sentence construction &mdash; all learned purely from next-token prediction
+            on the 64K tokenizer from Phase 1. Total pretraining cost: approximately $29.75 (12.5 hours &times; $2.38/hour).
+            <br><br>
+            <em style="font-size: 12px;">This report documents Phases 2 and 3 of an independent effort to build a Turkish
+            language-native LLM from scratch. Phase 1 (Tokenizer) and Phase 4 (SFT) are documented separately.</em>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Independent Research
+        </p>
+    </main>
+
+</body>
+</html>

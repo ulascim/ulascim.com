@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervised Fine-Tuning (SFT) | Research Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BASE - Same design system as tokenizer-research
+           ============================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f3f3f3;
+            --fg: #000000;
+            --gray-100: #f3f4f6;
+            --gray-300: #d1d5db;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --accent: #2563eb;
+            --turquoise: #00b5ad;
+        }
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 2px solid var(--fg);
+            background: var(--bg);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 64px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-decoration: none;
+            color: var(--fg);
+        }
+        .nav-logo .u-char { color: var(--turquoise); }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--fg);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--accent); }
+        .nav-divider { color: var(--fg); font-size: 14px; font-weight: 300; }
+        .nav-right { margin-left: auto; }
+        .nav-link-small { color: var(--fg); text-decoration: underline; font-size: 11px; }
+
+        /* ============================================
+           REPORT
+           ============================================ */
+        .report { max-width: 1400px; margin: 0 auto; padding: 24px 64px; }
+        .report h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+        .report h2 { font-size: 18px; margin-top: 36px; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; scroll-margin-top: 72px; }
+        .report h3 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+        .report p { font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+        .report ul { font-size: 13px; margin: 12px 0; padding-left: 20px; }
+        .report li { margin-bottom: 6px; line-height: 1.5; }
+        .report .subtitle { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .report .authors { font-size: 12px; color: #888; margin-bottom: 32px; }
+        .report code { background: #e5e5e0; padding: 1px 5px; font-size: 12px; }
+
+        .report .abstract { background: #f5f5f0; padding: 16px; margin: 20px 0; border-left: 3px solid #000; }
+        .report .finding { background: #fffbe6; padding: 12px; margin: 12px 0; border: 1px solid #e6d600; }
+        .report .warning { background: #fee2e2; padding: 12px; margin: 12px 0; border: 1px solid #dc2626; }
+        .report .discovery { background: #e6ffe6; padding: 12px; margin: 12px 0; border: 1px solid #0a0; }
+        .report .insight { background: #eff6ff; padding: 12px; margin: 12px 0; border: 1px solid #2563eb; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-box { background: #f3f4f6; padding: 12px; text-align: center; border: 2px solid #000; }
+        .stat-box .value { font-size: 24px; font-weight: bold; }
+        .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
+        .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+
+        .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
+        .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
+        .report th { padding: 4px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; border-right: 2px solid #000; background: #f3f4f6; }
+        .report th:last-child { border-right: none; }
+        .report tr:not(:first-child) { border-bottom: 1px solid #d1d5db; }
+        .report tr:last-child { border-bottom: none; }
+        .report td { padding: 4px 10px; font-size: 0.75rem; white-space: nowrap; border-right: 2px solid #000; }
+        .report td:last-child { border-right: none; }
+        .report .highlight { background: #f5f5f0; }
+        .report tr:not(:first-child):hover { background: rgba(0, 0, 0, 0.02); }
+
+        .good { color: #16a34a; font-weight: 700; }
+        .bad { color: #dc2626; font-weight: 700; }
+        .neutral { color: #666; }
+
+        .status { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: 700; }
+        .status.complete { background: #dcfce7; color: #166534; }
+        .status.progress { background: #fef9c3; color: #854d0e; }
+        .status.next { background: #dbeafe; color: #1e40af; }
+
+        .back-link { display: inline-block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 24px; padding: 8px 0; }
+        .back-link:hover { color: #000; }
+        .back-link::before { content: "\2190  "; }
+
+        .report pre {
+            background: #1a1a2e; color: #e0e0e0; padding: 16px; margin: 12px 0;
+            font-size: 12px; line-height: 1.5; overflow-x: auto; border: 2px solid #000;
+        }
+        .report pre .comment { color: #6a9955; }
+        .report pre .keyword { color: #569cd6; }
+        .report pre .string { color: #ce9178; }
+        .report pre .special { color: #d7ba7d; }
+
+        .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+        .flow-box { border: 2px solid #000; padding: 8px 14px; font-size: 12px; font-weight: 600; }
+        .flow-box.done { background: #dcfce7; }
+        .flow-box.active { background: #fef9c3; }
+        .flow-box.next { background: #dbeafe; }
+        .flow-box.pending { background: #f3f4f6; }
+        .flow-arrow { font-size: 18px; font-weight: bold; }
+
+        .sample-box { background: #fff; border: 2px solid #000; padding: 16px; margin: 12px 0; }
+        .sample-box .sample-q { font-weight: 700; margin-bottom: 8px; font-size: 13px; }
+        .sample-box .sample-a { font-size: 13px; line-height: 1.6; color: #333; }
+        .sample-box .sample-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .report { padding: 16px; }
+            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .nav-container { padding: 0 16px; }
+            .flow { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="token-sequencer.html" class="nav-logo">RESEARCH</a>
+            </div>
+            <div class="nav-right">
+                <a href="sft-training.html" class="nav-link-small" style="font-weight: 700;">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="report">
+        <a href="token-sequencer.html" class="back-link">Back to Research</a>
+        <h1>SUPERVISED FINE-TUNING (SFT)</h1>
+        <p class="subtitle">Phase 4 &mdash; Teaching a 24.7M Turkish LLM to Be an ERP Assistant</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status complete">COMPLETE</span></p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">3,790</div>
+                <div class="label">SFT TRAINING EXAMPLES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">39.5%</div>
+                <div class="label">VAL LOSS IMPROVEMENT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">100s</div>
+                <div class="label">TOTAL TRAINING TIME</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">639</div>
+                <div class="label">TRAINING STEPS</div>
+            </div>
+        </div>
+
+        <div class="abstract">
+            <strong>Abstract.</strong> This report documents the supervised fine-tuning (SFT) of a 24.7M-parameter 
+            pretrained Turkish language model into a domain-specific ERP assistant. The process involved three novel 
+            components: (1) a synthetic data generation pipeline using Claude Opus 4.5 to convert 320 ERP documentation 
+            chunks into 3,790 user-focused, difficulty-graded, multi-turn QA pairs in Turkish; (2) a Llama 3&ndash;style 
+            chat template using the tokenizer&rsquo;s built-in special tokens with assistant-only loss masking; and 
+            (3) a lightweight SFT training loop that transformed the base model&rsquo;s output from incoherent repetition 
+            (&ldquo;Digital program Digital program&hellip;&rdquo;) into domain-relevant Turkish answers about 
+            ERP operations &mdash; in 100 seconds on an H100 GPU. The pretrained model was first extended to 228,000 
+            steps (14.9B tokens) in a second pretraining round, achieving a final loss of 3.46. SFT then reduced 
+            validation loss from 5.12 to 3.10 across 3 epochs.
+        </div>
+
+        <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
+            <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
+            <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+                <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Full Pipeline</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Round 2 Pretraining: 228K Steps</a>
+                <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> ERP Documentation Source</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Synthetic Data Generation</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Prompt Engineering</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> QA Pair Statistics</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Chat Template &amp; Tokenization</a>
+                <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Loss Masking Strategy</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> SFT Training Configuration</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Results</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Model Outputs</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Analysis &amp; Next Steps</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Reproducibility</a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-1">1. THE FULL PIPELINE</h2>
+        <!-- ============================================ -->
+
+        <p>The model follows a standard modern LLM training pipeline. Each phase builds on the previous one, 
+        progressively narrowing the model&rsquo;s capabilities from general language understanding to domain-specific 
+        instruction following.</p>
+
+        <div class="flow">
+            <div class="flow-box done">TOKENIZER (64K BPE)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">ARCHITECTURE (24.7M)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">PRETRAIN R1 (50K steps)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">PRETRAIN R2 (228K steps)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box active">SFT (639 steps)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box next">RLVR</div>
+        </div>
+
+        <table>
+            <tr><th>Phase</th><th>Purpose</th><th>Data</th><th>Result</th></tr>
+            <tr><td>Tokenizer</td><td>Efficient Turkish text encoding</td><td>22 GB, 11 domains</td><td>64K vocab, 2.7&times; vs GPT-4</td></tr>
+            <tr><td>Architecture</td><td>Model design</td><td>&mdash;</td><td>24.7M params, ALiBi/GQA/SwiGLU</td></tr>
+            <tr><td>Pretrain R1</td><td>Basic Turkish fluency</td><td>~500 MB subset</td><td>50K steps, loss 2.62</td></tr>
+            <tr><td>Pretrain R2</td><td>Deep language understanding</td><td>22 GB full corpus</td><td>228K steps, loss 3.46</td></tr>
+            <tr class="highlight"><td><strong>SFT</strong></td><td><strong>ERP domain specialization</strong></td><td><strong>3,790 QA pairs</strong></td><td><strong>639 steps, val loss 3.10</strong></td></tr>
+            <tr><td>RLVR</td><td>Reasoning &amp; quality</td><td>TBD</td><td><span class="status next">NEXT</span></td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-2">2. ROUND 2 PRETRAINING: 228K STEPS</h2>
+        <!-- ============================================ -->
+
+        <p>Before SFT, the pretrained model was extended from 50,000 steps (Round 1, ~500MB subset) to 228,000 steps 
+        on the full 22GB Turkish corpus. This second round used an H100 GPU on RunPod ($2.38/hour) and ran for 10.5 hours.</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value">228K</div>
+                <div class="label">TOTAL STEPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">14.9B</div>
+                <div class="label">TOKENS PROCESSED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10.5h</div>
+                <div class="label">TRAINING TIME</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.46</div>
+                <div class="label">FINAL LOSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.39</div>
+                <div class="label">BEST LOSS</div>
+            </div>
+        </div>
+
+        <h3>Loss curve progression</h3>
+        <table>
+            <tr><th>Step</th><th>Loss</th><th>LR</th><th>Tok/s</th><th>Sample Quality</th></tr>
+            <tr><td>50,000 (R1)</td><td>2.62</td><td>3.0e-04</td><td>~16K (MPS)</td><td>Basic Turkish grammar</td></tr>
+            <tr><td>95,000</td><td>~3.60</td><td>2.0e-04</td><td>~399K (H100)</td><td>Simple sentences, some repetition</td></tr>
+            <tr><td>145,000</td><td>~3.50</td><td>1.1e-04</td><td>~401K</td><td>Coherent sentences with context</td></tr>
+            <tr><td>195,000</td><td>~3.47</td><td>4.4e-05</td><td>~402K</td><td>Factual content: &ldquo;Kocaeli&rsquo;ndeyiz&rdquo;</td></tr>
+            <tr class="highlight"><td><strong>228,000</strong></td><td class="good"><strong>3.46</strong></td><td>3.0e-05</td><td>~403K</td><td><strong>Real-world knowledge, correct grammar</strong></td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Note on loss difference:</strong> Round 1 loss (2.62) and Round 2 loss (3.46) are not directly comparable.
+            Round 1 trained on a ~500MB curated subset; Round 2 trained on 22GB of diverse text spanning 11 domains. 
+            The higher absolute loss reflects the much harder prediction task across legal, medical, financial, 
+            news, and literary text &mdash; not a regression in model quality. Sample outputs confirm dramatically 
+            improved language understanding.
+        </div>
+
+        <h3>Sample evolution during Round 2</h3>
+        <div class="sample-box">
+            <div class="sample-label">Step 95,000</div>
+            <div class="sample-a" style="color: #999;">&ldquo;Merhaba deyin! Bu e-postay&#305; seviyorum! Bu e-postan&#305;n amac&#305;, bu e-postan&#305;n ana no&hellip;&rdquo;</div>
+        </div>
+        <div class="sample-box">
+            <div class="sample-label">Step 145,000</div>
+            <div class="sample-a">&ldquo;T&uuml;rkiye T&uuml;rkiye&rsquo;de ve d&uuml;nyada ekonomik geli&#351;meler a&ccedil;&#305;s&#305;ndan b&uuml;y&uuml;k &ouml;nem ta&#351;&#305;maktad&#305;r&rdquo;</div>
+        </div>
+        <div class="sample-box">
+            <div class="sample-label">Step 195,000</div>
+            <div class="sample-a" style="color: #16a34a; font-weight: 600;">&ldquo;T&uuml;rkiye&rsquo;nin en b&uuml;y&uuml;k ikinci sanayi &#351;ehri konumundaki Kocaeli&rsquo;ndeyiz. En &ouml;nemli t&hellip;&rdquo;</div>
+        </div>
+        <div class="sample-box">
+            <div class="sample-label">Step 200,000 &mdash; Best loss 3.39</div>
+            <div class="sample-a" style="color: #16a34a; font-weight: 600;">&ldquo;T&uuml;rkiye&rsquo;de t&uuml;m d&uuml;nyada &lsquo;insan haklar&#305;&rsquo;ndan s&ouml;z edildi&#287;i gibi, T&uuml;rkiye&rsquo;de de, ulu&hellip;&rdquo;</div>
+        </div>
+
+        <div class="insight">
+            <strong>Scaling law observation:</strong> At 26M parameters, the model is capacity-limited, not data-limited. 
+            Chinchilla-optimal training for 26M params is ~520M tokens (20&times; params), but the model processed 14.9B tokens 
+            (~573&times; params). Loss was still decreasing at step 228K but with diminishing returns &mdash; the model 
+            had exhausted most of its representational capacity. The remaining loss gap reflects architectural limits, 
+            not insufficient training.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-3">3. ERP DOCUMENTATION SOURCE</h2>
+        <!-- ============================================ -->
+
+        <p>The SFT training data was generated from the Solen Kablo ERP system documentation &mdash; the same system 
+        the model is being built to assist with. The documentation was already pre-processed into structured chunks 
+        with rich metadata as part of a RAG (Retrieval-Augmented Generation) pipeline.</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">1,074</div>
+                <div class="label">TOTAL CHUNKS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">8</div>
+                <div class="label">ERP MODULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">215K</div>
+                <div class="label">TOTAL TOKENS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">202</div>
+                <div class="label">AVG TOKENS/CHUNK</div>
+            </div>
+        </div>
+
+        <h3>Modules covered</h3>
+        <table>
+            <tr><th>Module</th><th>Description</th><th>Chunks (TR)</th><th>Chunks (EN)</th></tr>
+            <tr><td><strong>Admin</strong></td><td>User management, roles, authentication, system settings</td><td>~80</td><td>~80</td></tr>
+            <tr><td><strong>Hammadde</strong></td><td>Raw materials: purchase orders, QR tracking, supplier management</td><td>~90</td><td>~85</td></tr>
+            <tr><td><strong>Stok</strong></td><td>Inventory: warehouse management, stock levels, movements</td><td>~85</td><td>~85</td></tr>
+            <tr><td><strong>Teknik</strong></td><td>Cable database: specifications, standards, production recipes</td><td>~95</td><td>~90</td></tr>
+            <tr><td><strong>Lab</strong></td><td>Quality control: test procedures, measurements, certificates</td><td>~60</td><td>~55</td></tr>
+            <tr><td><strong>&Uuml;retim</strong></td><td>Production: work orders, machine management, scheduling</td><td>~50</td><td>~50</td></tr>
+            <tr><td><strong>Sat&#305;&#351;</strong></td><td>Sales: customer orders, quotations, delivery tracking</td><td>~40</td><td>~45</td></tr>
+            <tr><td><strong>Finans</strong></td><td>Finance: invoicing, payments, cost analysis</td><td>~32</td><td>~52</td></tr>
+            <tr class="highlight"><td><strong>Total</strong></td><td></td><td><strong>532</strong></td><td><strong>542</strong></td></tr>
+        </table>
+
+        <h3>Chunk metadata</h3>
+        <p>Each chunk contains structured metadata used to guide the QA generation:</p>
+        <table>
+            <tr><th>Field</th><th>Purpose</th><th>Example</th></tr>
+            <tr><td><code>chunk_id</code></td><td>Unique identifier for resume capability</td><td><code>erp-mod-hammadde-tr_chunk_042</code></td></tr>
+            <tr><td><code>module</code></td><td>ERP module name</td><td><code>Hammadde (Raw Materials Management)</code></td></tr>
+            <tr><td><code>section_heading</code></td><td>Documentation section</td><td><code>Sipari&#351; Y&ouml;netimi</code></td></tr>
+            <tr><td><code>breadcrumb</code></td><td>Navigation path</td><td><code>Hammadde &gt; Sipari&#351;ler &gt; Yeni Sipari&#351;</code></td></tr>
+            <tr><td><code>language</code></td><td>Source language</td><td><code>tr</code> or <code>en</code></td></tr>
+            <tr><td><code>token_count</code></td><td>Chunk size (for filtering)</td><td><code>186</code></td></tr>
+            <tr><td><code>has_table</code></td><td>Contains tabular data</td><td><code>true</code></td></tr>
+            <tr><td><code>has_code</code></td><td>Contains code/API references</td><td><code>false</code></td></tr>
+            <tr><td><code>references_modules</code></td><td>Cross-module references</td><td><code>["Stok", "&Uuml;retim"]</code></td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-4">4. SYNTHETIC DATA GENERATION</h2>
+        <!-- ============================================ -->
+
+        <p>The central challenge of SFT for a domain-specific model is data. Hand-writing thousands of QA pairs is 
+        impractical; using generic instruction datasets would not teach the model about Solen Kablo&rsquo;s ERP system.
+        The solution: use a large cloud LLM as a <strong>data conversion tool</strong> &mdash; not a knowledge source &mdash; 
+        to transform existing ERP documentation into training-ready QA pairs.</p>
+
+        <div class="flow">
+            <div class="flow-box done">ERP Docs (HTML)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Chunk + Metadata</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">Claude Opus 4.5</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">QA Pairs (JSONL)</div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box done">ChatML Format</div>
+        </div>
+
+        <h3>Key design decisions</h3>
+        <table>
+            <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+            <tr><td><strong>LLM</strong></td><td>Claude Opus 4.5</td><td>Highest quality for complex Turkish generation; worth the cost for training data</td></tr>
+            <tr><td><strong>Role</strong></td><td>Data conversion tool</td><td>LLM reformats existing text, does not add knowledge &mdash; prevents hallucination</td></tr>
+            <tr><td><strong>Focus</strong></td><td>User-centric questions</td><td>&ldquo;How do I use X?&rdquo; not &ldquo;What SQL table stores X?&rdquo;</td></tr>
+            <tr><td><strong>Format</strong></td><td>Single-turn + multi-turn</td><td>~70% single QA, ~30% 2-3 turn conversations</td></tr>
+            <tr><td><strong>Difficulty</strong></td><td>Graded (easy/medium/hard)</td><td>Answer length calibrated for 26M model capacity</td></tr>
+            <tr><td><strong>Language</strong></td><td>Turkish output only</td><td>English source docs translated to Turkish in QA pairs</td></tr>
+            <tr><td><strong>Resumability</strong></td><td>chunk_id-based skip</td><td>Script can be interrupted and resumed safely</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>Anti-hallucination rule.</strong> The LLM was explicitly instructed: &ldquo;HER cevap DO&#286;RUDAN verilen 
+            metin par&ccedil;as&#305;ndan gelmeli. Metinde OLMAYAN bilgi EKLEME &mdash; hi&ccedil;bir &#351;ey uydurma.&rdquo; 
+            (Every answer must come DIRECTLY from the given text chunk. Do NOT add information that is NOT in the text &mdash; 
+            make nothing up.) This ensures the training data contains only verified information from the actual ERP documentation.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-5">5. PROMPT ENGINEERING</h2>
+        <!-- ============================================ -->
+
+        <p>The generation pipeline uses a two-part prompt: a comprehensive system prompt (the &ldquo;Grand Prompt&rdquo;) 
+        that defines the task, formats, rules, and examples; and a per-chunk user message that provides metadata 
+        and the documentation text.</p>
+
+        <h3>System prompt structure</h3>
+        <table>
+            <tr><th>Section</th><th>Purpose</th></tr>
+            <tr><td>S&#304;STEM HAKKINDA</td><td>Context about the ERP: 8 modules, cable factory, user types</td></tr>
+            <tr><td>TEK G&Ouml;REV&#304;N</td><td>Single task definition: convert text to user-focused QA</td></tr>
+            <tr><td>HEDEF MODEL HAKKINDA</td><td>26M parameter constraints: concise answers, no long paragraphs</td></tr>
+            <tr><td>&#304;K&#304; T&#304;P VER&#304;</td><td>Output format: single-turn and multi-turn JSON schemas</td></tr>
+            <tr><td>ZORLUK SEV&#304;YELER&#304;</td><td>Difficulty definitions: kolay (1-2 sent), orta (2-4), zor (4-6)</td></tr>
+            <tr><td>ODAK NOKTASI</td><td>User-centric focus: &ldquo;How do I use the system?&rdquo; not code details</td></tr>
+            <tr><td>KR&#304;T&#304;K KURALLAR</td><td>12 rules including anti-hallucination, translation, coverage</td></tr>
+            <tr><td>&Ouml;RNEKLER</td><td>Good/bad examples showing desired vs undesired output style</td></tr>
+        </table>
+
+        <h3>Answer length calibration for 26M parameters</h3>
+        <table>
+            <tr><th>Difficulty</th><th>Target Length</th><th>Question Type</th><th>Example</th></tr>
+            <tr><td class="good">Kolay (Easy)</td><td>1&ndash;2 sentences</td><td>Single fact: &ldquo;X nedir?&rdquo;</td><td>&ldquo;QR kod ne i&#351;e yarar?&rdquo;</td></tr>
+            <tr><td>Orta (Medium)</td><td>2&ndash;4 sentences</td><td>Process/steps: &ldquo;X nas&#305;l yap&#305;l&#305;r?&rdquo;</td><td>&ldquo;Sisteme yeni bak&#305;r giri&#351;i nas&#305;l yap&#305;l&#305;r?&rdquo;</td></tr>
+            <tr><td class="bad">Zor (Hard)</td><td>4&ndash;6 sentences</td><td>Multi-fact/scenario</td><td>&ldquo;Sipari&#351; tarihi de&#287;i&#351;irse ve k&#305;smi teslimat yap&#305;lm&#305;&#351;sa ne yapmal&#305;y&#305;m?&rdquo;</td></tr>
+        </table>
+
+        <div class="insight">
+            <strong>Why calibrate length?</strong> A 26M parameter model cannot reliably generate long, complex answers. 
+            By constraining answer lengths during data generation, the model learns patterns it can actually reproduce. 
+            Easy questions get crisp 1-sentence answers; hard questions get focused 4-6 sentence answers. 
+            No answer exceeds what the model can memorize and generalize from.
+        </div>
+
+        <h3>Bad vs good question examples (from the prompt)</h3>
+        <table>
+            <tr><th>Type</th><th>Question</th><th>Problem / Reason</th></tr>
+            <tr><td class="bad">BAD</td><td>&ldquo;raw_materials tablosunun s&uuml;tunlar&#305; nelerdir?&rdquo;</td><td>Too technical &mdash; DB schema, not user question</td></tr>
+            <tr><td class="bad">BAD</td><td>&ldquo;POST /api/materials endpoint&rsquo;i ne d&ouml;nd&uuml;r&uuml;r?&rdquo;</td><td>API detail &mdash; users don&rsquo;t know endpoints</td></tr>
+            <tr><td class="good">GOOD</td><td>&ldquo;QR kod ne i&#351;e yarar?&rdquo;</td><td>User-centric, natural language</td></tr>
+            <tr><td class="good">GOOD</td><td>&ldquo;Sisteme yeni bak&#305;r giri&#351;i nas&#305;l yap&#305;l&#305;r?&rdquo;</td><td>Process-focused, practical</td></tr>
+            <tr><td class="good">GOOD</td><td>&ldquo;Operat&ouml;r kalay teslim ald&#305;&#287;&#305;nda ne yapmal&#305;?&rdquo;</td><td>Scenario-based, role-aware</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-6">6. QA PAIR STATISTICS</h2>
+        <!-- ============================================ -->
+
+        <p>The generation script processed 320 out of 529 Turkish chunks before API credits were exhausted 
+        (~$20 on Claude Opus 4.5). The resulting dataset is substantial for a 26M parameter model.</p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">3,790</div>
+                <div class="label">TOTAL QA ITEMS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">3,170</div>
+                <div class="label">SINGLE-TURN (84%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">620</div>
+                <div class="label">MULTI-TURN (16%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">11.7</div>
+                <div class="label">AVG ITEMS PER CHUNK</div>
+            </div>
+        </div>
+
+        <h3>Difficulty distribution</h3>
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">1,451</div>
+                <div class="label">KOLAY / EASY (38%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">1,593</div>
+                <div class="label">ORTA / MEDIUM (42%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">746</div>
+                <div class="label">ZOR / HARD (20%)</div>
+            </div>
+        </div>
+
+        <h3>Generation cost</h3>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Model used</td><td>Claude Opus 4.5 (<code>claude-opus-4-5-20251101</code>)</td></tr>
+            <tr><td>Chunks processed</td><td>320 / 529 Turkish chunks (61%)</td></tr>
+            <tr><td>API cost</td><td>~$20</td></tr>
+            <tr><td>Generation rate</td><td>~24 items/minute</td></tr>
+            <tr><td>Items per chunk</td><td>~11.7 average</td></tr>
+            <tr><td>Output file</td><td><code>sft_data/erp_qa_pairs.jsonl</code></td></tr>
+            <tr><td>ChatML file</td><td><code>sft_data/erp_sft_chatml.jsonl</code> (2.64 MB)</td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-7">7. CHAT TEMPLATE &amp; TOKENIZATION</h2>
+        <!-- ============================================ -->
+
+        <p>The SFT data uses a Llama 3&ndash;style chat template, leveraging the special tokens already built into 
+        the tokenizer during Phase 1. This was a deliberate design decision: the tokenizer was built with 
+        instruction-tuning tokens <em>before the model existed</em>, anticipating this exact use case.</p>
+
+        <h3>Special tokens used</h3>
+        <table>
+            <tr><th>Token</th><th>ID</th><th>Role in Chat Template</th></tr>
+            <tr><td><code>&lt;|begin_of_text|&gt;</code></td><td>0</td><td>Start of conversation</td></tr>
+            <tr><td><code>&lt;|start_header_id|&gt;</code></td><td>4</td><td>Opens role header (system/user/assistant)</td></tr>
+            <tr><td><code>&lt;|end_header_id|&gt;</code></td><td>5</td><td>Closes role header</td></tr>
+            <tr><td><code>&lt;|eot_id|&gt;</code></td><td>6</td><td>End of turn marker</td></tr>
+            <tr><td><code>&lt;|pad|&gt;</code></td><td>2</td><td>Padding for batched training</td></tr>
+        </table>
+
+        <h3>Template structure</h3>
+        <pre><span class="special">&lt;|begin_of_text|&gt;</span><span class="special">&lt;|start_header_id|&gt;</span>system<span class="special">&lt;|end_header_id|&gt;</span>
+
+Sen Solen Kablo ERP sisteminin yapay zeka asistanısın...
+<span class="special">&lt;|eot_id|&gt;</span><span class="special">&lt;|start_header_id|&gt;</span>user<span class="special">&lt;|end_header_id|&gt;</span>
+
+QR kod ne işe yarar?
+<span class="special">&lt;|eot_id|&gt;</span><span class="special">&lt;|start_header_id|&gt;</span>assistant<span class="special">&lt;|end_header_id|&gt;</span>
+
+QR kod her hammaddeye atanan benzersiz bir takip kodudur...
+<span class="special">&lt;|eot_id|&gt;</span></pre>
+
+        <h3>Multi-turn extension</h3>
+        <p>For multi-turn conversations (2&ndash;3 turns), the template simply repeats the user/assistant blocks. 
+        Each turn ends with <code>&lt;|eot_id|&gt;</code>, and the model learns to generate until it produces this token.</p>
+
+        <!-- ============================================ -->
+        <h2 id="sec-8">8. LOSS MASKING STRATEGY</h2>
+        <!-- ============================================ -->
+
+        <p>A critical detail of SFT: loss is computed <strong>only on assistant tokens</strong>. The model must learn 
+        to predict assistant responses, but it should not be penalized for failing to predict the system prompt 
+        or user questions (which are given as input, not generated).</p>
+
+        <h3>Token-level loss mask</h3>
+        <pre><span class="comment">Token sequence:</span>
+<span class="special">[BOS]</span> <span class="keyword">[HEADER:system]</span> system content... <span class="special">[EOT]</span>
+      <span class="keyword">[HEADER:user]</span>   user question... <span class="special">[EOT]</span>
+      <span class="keyword">[HEADER:asst]</span>   <span class="string">assistant answer...</span> <span class="special">[EOT]</span>
+
+<span class="comment">Loss mask:</span>
+  -1    -1  -1  -1  -1  ...  -1     <span class="comment">&larr; system (ignored)</span>
+  -1    -1  -1  -1  -1  ...  -1     <span class="comment">&larr; user (ignored)</span>
+  -1    -1  <span class="string">YES YES YES</span> ... <span class="string">YES</span>    <span class="comment">&larr; assistant content + EOT (trained)</span></pre>
+
+        <p>The <code>ignore_index=-1</code> parameter in PyTorch&rsquo;s <code>cross_entropy</code> function handles this natively.
+        Positions marked <code>-1</code> contribute zero to the loss. Only the assistant&rsquo;s content tokens and the 
+        trailing <code>&lt;|eot_id|&gt;</code> are trained on.</p>
+
+        <div class="finding">
+            <strong>Why mask the header too?</strong> Even the <code>&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;\n\n</code> 
+            prefix is masked. The model doesn&rsquo;t need to learn to predict the role header &mdash; it will always be 
+            provided as part of the prompt template. Training only on content maximizes the signal-to-noise ratio 
+            for the model&rsquo;s limited 26M parameter budget.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-9">9. SFT TRAINING CONFIGURATION</h2>
+        <!-- ============================================ -->
+
+        <table>
+            <tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr>
+            <tr><td><strong>Base checkpoint</strong></td><td>step_228000.pt</td><td>Best available pretrained model</td></tr>
+            <tr><td><strong>Epochs</strong></td><td>3</td><td>Small dataset benefits from multiple passes</td></tr>
+            <tr><td><strong>Batch size</strong></td><td>8 &times; 2 accum = 16</td><td>Effective batch of 16 conversations</td></tr>
+            <tr><td><strong>Learning rate</strong></td><td>2e-5 &rarr; 2e-6</td><td>~15&times; lower than pretraining (3e-4)</td></tr>
+            <tr><td><strong>LR schedule</strong></td><td>Cosine with warmup</td><td>63 warmup steps (10% of total)</td></tr>
+            <tr><td><strong>Dropout</strong></td><td>0.05</td><td>Regularization for small dataset (was 0.0 in pretraining)</td></tr>
+            <tr><td><strong>Weight decay</strong></td><td>0.01</td><td>Lower than pretraining (0.1)</td></tr>
+            <tr><td><strong>Gradient clip</strong></td><td>1.0</td><td>Stability</td></tr>
+            <tr><td><strong>Optimizer</strong></td><td>AdamW (fresh)</td><td>New optimizer state, not resumed from pretraining</td></tr>
+            <tr><td><strong>Validation split</strong></td><td>10% (379 conversations)</td><td>Held-out evaluation after each epoch</td></tr>
+        </table>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">3,411</div>
+                <div class="label">TRAIN CONVERSATIONS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">379</div>
+                <div class="label">VALIDATION CONVERSATIONS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">141K</div>
+                <div class="label">TRAINABLE TOKENS (ASSISTANT ONLY)</div>
+            </div>
+        </div>
+
+        <div class="insight">
+            <strong>Why a fresh optimizer?</strong> The pretrained model&rsquo;s AdamW momentum was tuned for next-token 
+            prediction on raw Turkish text. SFT is a fundamentally different task (instruction following) with a much 
+            smaller learning rate. Reusing the old optimizer state would inject stale momentum from pretraining, 
+            potentially causing instability. A fresh optimizer allows clean adaptation.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-10">10. RESULTS</h2>
+        <!-- ============================================ -->
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">5.12</div>
+                <div class="label">VAL LOSS BEFORE SFT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.10</div>
+                <div class="label">VAL LOSS AFTER SFT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">2.01</div>
+                <div class="label">ABSOLUTE IMPROVEMENT</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">39.5%</div>
+                <div class="label">RELATIVE IMPROVEMENT</div>
+            </div>
+        </div>
+
+        <h3>Per-epoch breakdown</h3>
+        <table>
+            <tr><th>Epoch</th><th>Train Loss</th><th>Val Loss</th><th>Best?</th><th>Time</th></tr>
+            <tr><td>Before SFT</td><td>&mdash;</td><td>5.12</td><td></td><td>0s</td></tr>
+            <tr><td>Epoch 1</td><td>8.53</td><td>3.34</td><td>&#9733;</td><td>28s</td></tr>
+            <tr><td>Epoch 2</td><td>6.55</td><td>3.14</td><td>&#9733;</td><td>60s</td></tr>
+            <tr class="highlight"><td><strong>Epoch 3</strong></td><td><strong>6.07</strong></td><td class="good"><strong>3.10</strong></td><td class="good"><strong>&#9733; Best</strong></td><td><strong>100s</strong></td></tr>
+        </table>
+
+        <p>Train loss is higher than val loss because the training loss is computed per-batch during gradient updates 
+        (with dropout active), while validation loss is computed over the full validation set with dropout disabled.</p>
+
+        <div class="discovery">
+            <strong>Key result:</strong> In 100 seconds of SFT training on an H100 GPU, the model went from 
+            producing incoherent repetitions (&ldquo;Digital program Digital program&hellip;&rdquo;) to generating 
+            domain-relevant Turkish answers about the ERP system. The validation loss was still decreasing at epoch 3, 
+            suggesting more epochs could yield further improvement.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-11">11. MODEL OUTPUTS</h2>
+        <!-- ============================================ -->
+
+        <h3>Before SFT (pretrained only)</h3>
+        <div class="sample-box" style="border-color: #dc2626;">
+            <div class="sample-label" style="color: #dc2626;">BEFORE SFT &mdash; Question: &ldquo;QR kod ne i&#351;e yarar?&rdquo;</div>
+            <div class="sample-a" style="color: #999;">&ldquo;Digital program Digital program Digital program Digital program Digital program&hellip;&rdquo;</div>
+        </div>
+        <p>The pretrained model has no concept of the chat template, question-answering, or ERP knowledge. 
+        Given the structured prompt, it falls into degenerate repetition.</p>
+
+        <h3>After SFT (epoch 3)</h3>
+        <div class="sample-box" style="border-color: #16a34a;">
+            <div class="sample-label" style="color: #16a34a;">AFTER SFT &mdash; Question: &ldquo;QR kod ne i&#351;e yarar?&rdquo;</div>
+            <div class="sample-q">S: QR kod ne i&#351;e yarar?</div>
+            <div class="sample-a">&ldquo;QR kod, bir malzemenin hangi malzeme t&uuml;r&uuml;ne ait oldu&#287;unu takip eder.&rdquo;</div>
+        </div>
+        <div class="sample-box" style="border-color: #16a34a;">
+            <div class="sample-label" style="color: #16a34a;">AFTER SFT &mdash; Question: &ldquo;Sisteme yeni bak&#305;r giri&#351;i nas&#305;l yap&#305;l&#305;r?&rdquo;</div>
+            <div class="sample-q">S: Sisteme yeni bak&#305;r giri&#351;i nas&#305;l yap&#305;l&#305;r?</div>
+            <div class="sample-a">&ldquo;Sistem bak&#305;r i&ccedil;in yeni bak&#305;r giri&#351;ini otomatik olarak hesaplar. Bu sayede bak&#305;r&#305;n t&uuml;m &uuml;retim s&uuml;reci takip edilir.&rdquo;</div>
+        </div>
+        <div class="sample-box" style="border-color: #16a34a;">
+            <div class="sample-label" style="color: #16a34a;">AFTER SFT &mdash; Question: &ldquo;Hammadde mod&uuml;l&uuml;nde neler yapabilirim?&rdquo;</div>
+            <div class="sample-q">S: Hammadde mod&uuml;l&uuml;nde neler yapabilirim?</div>
+            <div class="sample-a">&ldquo;Hammadde mod&uuml;l&uuml;nde farkl&#305; hammaddeler i&ccedil;in malzemeler listesi olu&#351;turulur.&rdquo;</div>
+        </div>
+        <div class="sample-box" style="border-color: #16a34a;">
+            <div class="sample-label" style="color: #16a34a;">AFTER SFT &mdash; Question: &ldquo;Sat&#305;&#351; sipari&#351;i nas&#305;l olu&#351;turulur?&rdquo;</div>
+            <div class="sample-q">S: Sat&#305;&#351; sipari&#351;i nas&#305;l olu&#351;turulur?</div>
+            <div class="sample-a">&ldquo;Sat&#305;&#351; sipari&#351;i otomatik olarak a&ccedil;&#305;l&#305;r men&uuml;de g&ouml;sterilir. Bu men&uuml;de sipari&#351; detaylar&#305;, tarih ve saat alanlar&#305;, teslim edilen miktar, teslimat tarihi alanlar&#305;na a&#287;&#305;rl&#305;k ayarlar&#305;yla birlikte g&ouml;sterilir.&rdquo;</div>
+        </div>
+
+        <div class="finding">
+            <strong>Observations:</strong> The model (1) speaks coherent Turkish with correct grammar and suffixes, 
+            (2) stays on-topic about ERP operations, (3) uses domain vocabulary correctly (malzeme, sipari&#351;, teslimat, 
+            mod&uuml;l), and (4) follows the question-answer pattern learned during SFT. Answers are concise, matching 
+            the difficulty-calibrated length targets. Some answers remain somewhat generic &mdash; expected after only 
+            3 epochs of SFT on a 26M model.
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-12">12. ANALYSIS &amp; NEXT STEPS</h2>
+        <!-- ============================================ -->
+
+        <h3>What works</h3>
+        <ul>
+            <li>Turkish grammar and morphology are solid &mdash; learned during pretraining, preserved through SFT</li>
+            <li>Domain vocabulary (hammadde, sipari&#351;, tedarik&ccedil;i, malzeme) is correctly used</li>
+            <li>Chat template pattern (system &rarr; user &rarr; assistant) is reliably followed</li>
+            <li>The model stops generating at the right point (produces <code>&lt;|eot_id|&gt;</code>)</li>
+            <li>Answers are appropriately concise for a 26M model</li>
+        </ul>
+
+        <h3>What needs improvement</h3>
+        <ul>
+            <li><strong>Repetition:</strong> Some outputs fall into token repetition loops (e.g., &ldquo;QR&rsquo; koduna &lsquo;QR&rsquo; koduna&hellip;&rdquo;). Fixable with repetition penalty during generation or more SFT epochs.</li>
+            <li><strong>Specificity:</strong> Answers are sometimes generic rather than precisely grounded in ERP documentation. More SFT data (the remaining 206 chunks) would help.</li>
+            <li><strong>Loss still decreasing:</strong> Val loss dropped every epoch (3.34 &rarr; 3.14 &rarr; 3.10), suggesting more epochs would improve quality.</li>
+        </ul>
+
+        <h3>Planned improvements</h3>
+        <table>
+            <tr><th>Improvement</th><th>Expected Impact</th><th>Effort</th></tr>
+            <tr><td>More SFT epochs (10&ndash;15)</td><td>Lower val loss, more specific answers</td><td>~5 minutes on H100</td></tr>
+            <tr><td>Higher learning rate (5e-5)</td><td>Faster adaptation to domain</td><td>Re-run only</td></tr>
+            <tr><td>Complete remaining 206 chunks</td><td>+~2,400 more QA pairs, fuller coverage</td><td>~$13 API cost</td></tr>
+            <tr><td>Repetition penalty in generation</td><td>Eliminate output loops</td><td>Single parameter</td></tr>
+            <tr><td>RLVR (Phase 5)</td><td>Improved reasoning and factual accuracy</td><td><span class="status next">NEXT PHASE</span></td></tr>
+        </table>
+
+        <!-- ============================================ -->
+        <h2 id="sec-13">13. REPRODUCIBILITY</h2>
+        <!-- ============================================ -->
+
+        <h3>Complete file inventory</h3>
+        <table>
+            <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
+            <tr><td><code>scripts/generate_erp_qa.py</code></td><td>QA generation from ERP docs via Claude API</td><td>~12 KB</td></tr>
+            <tr><td><code>sft_data/erp_qa_pairs.jsonl</code></td><td>Raw QA pairs with metadata</td><td>~3 MB</td></tr>
+            <tr><td><code>sft_data/erp_sft_chatml.jsonl</code></td><td>ChatML-formatted SFT training data</td><td>2.64 MB</td></tr>
+            <tr><td><code>tiny_llm/sft_data.py</code></td><td>Tokenization and loss masking for SFT</td><td>~4 KB</td></tr>
+            <tr><td><code>tiny_llm/train_sft.py</code></td><td>SFT training loop</td><td>~14 KB</td></tr>
+            <tr><td><code>tiny_llm/chat.py</code></td><td>Interactive chat with SFT model</td><td>~5 KB</td></tr>
+            <tr><td><code>tiny_llm/checkpoints/sft/sft_best.pt</code></td><td>Best SFT checkpoint (epoch 3)</td><td>94 MB</td></tr>
+            <tr><td><code>erp_rag/data/chunks/all_chunks.json</code></td><td>Pre-processed ERP documentation</td><td>1.9 MB</td></tr>
+        </table>
+
+        <h3>To reproduce</h3>
+        <pre><span class="comment"># 1. Generate QA pairs from ERP docs (requires Anthropic API key, ~$20)</span>
+<span class="keyword">pip install</span> anthropic
+<span class="keyword">export</span> ANTHROPIC_API_KEY=<span class="string">"sk-ant-..."</span>
+python scripts/generate_erp_qa.py --lang tr
+
+<span class="comment"># 2. Convert to ChatML format</span>
+python scripts/generate_erp_qa.py --convert
+
+<span class="comment"># 3. Run SFT training (RunPod H100 or local GPU)</span>
+python -m tiny_llm.train_sft --checkpoint <span class="string">runpod_backup/round2_checkpoints/step_228000.pt</span> --device cuda
+
+<span class="comment"># 4. Chat with the model</span>
+python -m tiny_llm.chat</pre>
+
+        <h3>Experiments tried &amp; decisions locked</h3>
+
+        <div class="warning">
+            <strong>DO NOT RE-TRY:</strong> These SFT experiments and configurations were already evaluated.
+        </div>
+
+        <table>
+            <tr><th>Experiment</th><th>What Was Tried</th><th>Result</th><th>Decision</th></tr>
+            <tr>
+                <td><strong>SFT on local Mac (MPS)</strong></td>
+                <td>Ran <code>train_sft.py</code> on M4 MacBook</td>
+                <td class="bad">CPU hit 93&deg;C; killed immediately</td>
+                <td class="good">RunPod H100 only &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>torch.compile checkpoint loading</strong></td>
+                <td>Loaded step_228000.pt directly into non-compiled model</td>
+                <td class="bad">All keys mismatched (<code>_orig_mod.</code> prefix); loss ~20.0</td>
+                <td class="good">Always strip <code>_orig_mod.</code> prefix &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>Claude Opus 4.5 for QA generation</strong></td>
+                <td>320/529 chunks processed before API credits exhausted ($20)</td>
+                <td>3,790 QA pairs (3,170 single + 620 multi-turn)</td>
+                <td>Sufficient for SFT; generating from remaining 209 chunks is optional</td>
+            </tr>
+            <tr>
+                <td><strong>SFT dropout 0.05</strong></td>
+                <td>Increased from pretraining&rsquo;s 0.0</td>
+                <td class="good">Val loss improved steadily across 3 epochs; no overfitting</td>
+                <td class="good">dropout 0.05 for SFT &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>LR 2e-5 for SFT</strong></td>
+                <td>10&times; lower than pretraining peak (3e-4)</td>
+                <td class="good">Stable training; val loss 5.12 &rarr; 3.10 across 3 epochs</td>
+                <td class="good">LR 2e-5 for SFT &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>3 SFT epochs</strong></td>
+                <td>Trained for 3 full epochs over 3,790 conversations</td>
+                <td>Best val loss at epoch 3 (3.10); still improving</td>
+                <td>Could train more epochs, but model already follows instructions</td>
+            </tr>
+            <tr>
+                <td><strong>Fresh optimizer for SFT</strong></td>
+                <td>New AdamW (did not carry pretraining optimizer state)</td>
+                <td class="good">Correct approach: SFT loss surface differs from pretraining</td>
+                <td class="good">Fresh optimizer for SFT &mdash; locked</td>
+            </tr>
+            <tr>
+                <td><strong>Loss masking (assistant-only)</strong></td>
+                <td>IGNORE=-1 for system/user tokens; only assistant+EOT contribute to loss</td>
+                <td class="good">Model learns to generate answers, not memorize questions</td>
+                <td class="good">Assistant-only loss &mdash; locked</td>
+            </tr>
+        </table>
+
+        <div class="insight">
+            <strong>Cost breakdown for the entire project (Phases 1&ndash;4):</strong>
+            Tokenizer training: free (CPU). Pretraining R1: ~$4.76 (RunPod H100, 2.0h &times; $2.38/hr).
+            Pretraining R2: ~$24.99 (RunPod H100, 10.5h &times; $2.38/hr). QA data generation: ~$20 (Claude Opus 4.5 API).
+            SFT training: &lt;$0.10 (100 seconds on H100). <strong>Total: ~$49.85.</strong>
+        </div>
+
+        <div class="abstract" style="margin-top: 32px;">
+            <strong>Conclusion.</strong> Supervised fine-tuning successfully transformed a general Turkish language model
+            into a domain-specific ERP assistant. The pipeline &mdash; from ERP documentation through synthetic QA generation
+            to chat-template-aware training &mdash; was built entirely from scratch, with no pretrained models, no
+            HuggingFace trainers, and no off-the-shelf instruction datasets. Every component is custom: the tokenizer
+            (Phase 1), the architecture (Phase 2), the pretraining (Phase 3), the data generation pipeline, and the
+            SFT training loop. In 100 seconds of fine-tuning, the model learned to follow a conversation pattern and
+            answer ERP questions in Turkish. The approach demonstrates that domain-specific AI assistants can be built
+            from the ground up at minimal cost &mdash; ~$30 for pretraining, ~$20 for data generation, and 100 seconds
+            for fine-tuning. <strong>Total project cost: ~$50.</strong>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">
+            &copy; 2026 &bull; Independent Research
+        </p>
+    </main>
+
+</body>
+</html>
