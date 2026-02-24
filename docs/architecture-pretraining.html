@@ -1306,8 +1306,8 @@ nohup python -m tiny_llm.train \
             <tr><td><strong>Phase 2b: Architecture (v2)</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">67.6M params, d_model=512, 2:1 GQA, 4.2&times; transformer capacity</td></tr>
             <tr><td><strong>Phase 3d: Pretrain V2</strong></td><td><span class="status progress">IN PROGRESS</span></td><td>228K steps on same 22 GB corpus, ~14.9B tokens</td></tr>
             <tr><td><strong>Phase 4a: SFT v1 (initial)</strong></td><td><span class="status complete">COMPLETE</span></td><td>3,790 QA pairs, val loss 5.12 &rarr; 3.10, 100 seconds</td></tr>
-            <tr><td><strong>Phase 4b: SFT data gen (v2)</strong></td><td><span class="status progress">IN PROGRESS</span></td><td class="good">707 groups, 11 rules, Claude Sonnet 4.6 &mdash; ~8K-10K QA pairs</td></tr>
-            <tr><td><strong>Phase 4c: SFT training (v2)</strong></td><td><span class="status next">NEXT</span></td><td>RAG-grounded SFT with new pipeline data on v2 model</td></tr>
+            <tr><td><strong>Phase 4b: SFT data gen (v2)</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">707 groups, 11 rules, Claude Sonnet 4.6 &mdash; 7,595 QA pairs</td></tr>
+            <tr><td><strong>Phase 4c: SFT training (v2)</strong></td><td><span class="status progress">IN PROGRESS</span></td><td>RAG-grounded SFT with 7,595 pairs on v2 model</td></tr>
             <tr><td><strong>Phase 5: RL (optional)</strong></td><td><span class="status next">FUTURE</span></td><td>DPO or RLVR if SFT alone is insufficient</td></tr>
         </table>
 
@@ -1340,7 +1340,7 @@ nohup python -m tiny_llm.train \
             The v2 architecture (67.6M params) was designed as a purpose-built RAG context converter:
             <code>d_model=512</code>, 2:1 GQA, 4.2&times; more transformer parameters, with width prioritized
             over depth for context comprehension. A parallel SFT data generation pipeline using Claude Sonnet 4.6
-            produces ~8K-10K high-quality Turkish Q&amp;A pairs from 532 ERP documentation chunks via 11 grouping
+            produced 7,595 high-quality Turkish Q&amp;A pairs from 532 ERP documentation chunks via 11 grouping
             strategies. Total v1 pretraining cost: $92.83 (39 hours on H100 at $2.38/hour).
             <br><br>
             <em style="font-size: 12px;">This report documents Phases 2 and 3 of an independent effort to build a Turkish

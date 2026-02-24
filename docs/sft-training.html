@@ -265,7 +265,7 @@
             <tr><td>Pretrain R2.5</td><td>2048-token context for RAG</td><td>22 GB corpus</td><td>228K steps, loss 3.22 (best)</td></tr>
             <tr><td>V2 Architecture</td><td>RAG-optimized model</td><td>&mdash;</td><td>67.6M params, d_model=512, 2:1 GQA</td></tr>
             <tr><td>V2 Pretrain</td><td>Full 67.6M pretraining</td><td>22 GB corpus</td><td><span class="status progress">IN PROGRESS</span></td></tr>
-            <tr class="highlight"><td><strong>V2 SFT</strong></td><td><strong>RAG-grounded ERP assistant</strong></td><td><strong>~8&ndash;10K pairs (Sonnet 4.6)</strong></td><td><strong><span class="status progress">IN PROGRESS</span></strong></td></tr>
+            <tr class="highlight"><td><strong>V2 SFT data</strong></td><td><strong>RAG-grounded ERP assistant</strong></td><td><strong>7,595 pairs (Sonnet 4.6)</strong></td><td><strong><span class="status complete">COMPLETE</span></strong></td></tr>
             <tr><td>RL (optional)</td><td>DPO / RLVR if SFT insufficient</td><td>TBD</td><td><span class="status next">FUTURE</span></td></tr>
         </table>
 
@@ -837,8 +837,8 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
                 <div class="label">INPUT TOKENS</div>
             </div>
             <div class="stat-box">
-                <div class="value good">~8&ndash;10K</div>
-                <div class="label">TARGET QA PAIRS</div>
+                <div class="value good">7,595</div>
+                <div class="label">QA PAIRS GENERATED</div>
             </div>
         </div>
 
@@ -923,60 +923,152 @@ soruyu yanıtla. Bağlamda cevap yoksa "Bu konuda bilgim yok" de.</pre>
             <li><strong>Dynamic pair count:</strong> 5&ndash;28 pairs per group based on input token count</li>
         </ul>
 
-        <h3>V2 generation: current progress</h3>
+        <h3>V2 generation: final results</h3>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value good">7,595</div>
+                <div class="label">TOTAL QA PAIRS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">707/707</div>
+                <div class="label">GROUPS COMPLETE</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">10.7</div>
+                <div class="label">AVG PAIRS/GROUP</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">0</div>
+                <div class="label">INVALID PAIRS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">44.9 MB</div>
+                <div class="label">RAW DATA SIZE</div>
+            </div>
+        </div>
+
         <table>
             <tr><th>Metric</th><th>Value</th></tr>
-            <tr><td>Groups processed</td><td>618 / 707</td></tr>
-            <tr><td>QA pairs generated</td><td class="good">5,794</td></tr>
-            <tr><td>By type: olgusal</td><td>3,024 (52.2%)</td></tr>
-            <tr><td>By type: çıkarımsal</td><td>884 (15.3%)</td></tr>
-            <tr><td>By type: liste</td><td>722 (12.5%)</td></tr>
-            <tr><td>By type: pros&uuml;d&uuml;rel</td><td>695 (12.0%)</td></tr>
-            <tr><td>By type: karşılaştırmalı</td><td>469 (8.1%)</td></tr>
-            <tr><td>By difficulty: kolay</td><td>3,008 (51.9%)</td></tr>
-            <tr><td>By difficulty: orta</td><td>1,927 (33.3%)</td></tr>
-            <tr><td>By difficulty: zor</td><td>859 (14.8%)</td></tr>
-            <tr><td>API model</td><td>Claude Sonnet 4.6</td></tr>
-            <tr><td>Output file</td><td><code>erp_rag/data/sft_raw_pairs.json</code> (21.8 MB)</td></tr>
+            <tr><td>Groups processed</td><td class="good">707 / 707 (100%)</td></tr>
+            <tr><td>QA pairs generated</td><td class="good">7,595</td></tr>
+            <tr><td>Invalid pairs</td><td class="good">0</td></tr>
+            <tr><td>Parse errors (retried)</td><td>2 (both resolved on retry)</td></tr>
+            <tr><td>Avg / Min / Max pairs per group</td><td>10.7 / 5 / 29</td></tr>
         </table>
 
-        <div class="finding">
-            <strong>V1 &rarr; V2 scale comparison.</strong> V1 produced 3,790 pairs from 320 individual chunks
-            using Claude Opus 4.5. V2 will produce ~8,000&ndash;10,000 pairs from 707 multi-configuration groups
-            using Claude Sonnet 4.6 &mdash; a 2.1&ndash;2.6&times; increase in data volume with substantially
-            higher question diversity (11 grouping rules vs 1).
+        <h3>Question type distribution</h3>
+        <table>
+            <tr><th>Type</th><th>Count</th><th>Percentage</th></tr>
+            <tr><td>Olgusal (factual)</td><td>3,850</td><td>50.7%</td></tr>
+            <tr><td>&Ccedil;&#305;kar&#305;msal (inferential)</td><td>1,164</td><td>15.3%</td></tr>
+            <tr><td>Liste (list)</td><td>999</td><td>13.2%</td></tr>
+            <tr><td>Pros&uuml;d&uuml;rel (procedural)</td><td>896</td><td>11.8%</td></tr>
+            <tr><td>Kar&#351;&#305;la&#351;t&#305;rmal&#305; (comparative)</td><td>686</td><td>9.0%</td></tr>
+        </table>
+
+        <h3>Difficulty distribution</h3>
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value">3,791</div>
+                <div class="label">KOLAY / EASY (49.9%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2,629</div>
+                <div class="label">ORTA / MEDIUM (34.6%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">1,175</div>
+                <div class="label">ZOR / HARD (15.5%)</div>
+            </div>
         </div>
+
+        <h3>Pairs by grouping rule</h3>
+        <table>
+            <tr><th>#</th><th>Rule</th><th>Groups</th><th>Pairs</th><th>Avg/Group</th></tr>
+            <tr><td>1</td><td>Individual</td><td>532</td><td>4,349</td><td>8.2</td></tr>
+            <tr><td>2</td><td>Submodule</td><td>86</td><td>1,445</td><td>16.8</td></tr>
+            <tr><td>3</td><td>Module</td><td>8</td><td>228</td><td>28.5</td></tr>
+            <tr><td>4</td><td>Vertical stack</td><td>10</td><td>203</td><td>20.3</td></tr>
+            <tr><td>5</td><td>Horizontal siblings</td><td>16</td><td>309</td><td>19.3</td></tr>
+            <tr><td>6</td><td>Cross-module</td><td>6</td><td>120</td><td>20.0</td></tr>
+            <tr><td>7</td><td>Overview + detail</td><td>18</td><td>351</td><td>19.5</td></tr>
+            <tr><td>8</td><td>Data flow chain</td><td>4</td><td>99</td><td>24.8</td></tr>
+            <tr><td>9</td><td>Foundation + consumer</td><td>10</td><td>150</td><td>15.0</td></tr>
+            <tr><td>10</td><td>Shared DB tables</td><td>13</td><td>271</td><td>20.8</td></tr>
+            <tr><td>11</td><td>Module map</td><td>4</td><td>70</td><td>17.5</td></tr>
+            <tr class="highlight"><td></td><td><strong>Total</strong></td><td><strong>707</strong></td><td class="good"><strong>7,595</strong></td><td><strong>10.7</strong></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>V1 &rarr; V2 final comparison.</strong> V1 produced 3,790 pairs from 320 individual chunks
+            using Claude Opus 4.5. V2 produced <strong>7,595 pairs</strong> from 707 multi-configuration groups
+            using Claude Sonnet 4.6 &mdash; a <strong>2.0&times;</strong> increase in data volume with substantially
+            higher question diversity (11 grouping rules vs 1, 5 question types, 3 difficulty levels).
+        </div>
+
+        <table>
+            <tr><th>Metric</th><th>V1</th><th>V2</th></tr>
+            <tr><td>API model</td><td>Claude Opus 4.5</td><td class="good">Claude Sonnet 4.6</td></tr>
+            <tr><td>Chunks processed</td><td>320 / 529 (60%)</td><td class="good">532 / 532 (100%)</td></tr>
+            <tr><td>Grouping rules</td><td>1 (individual only)</td><td class="good">11 rules</td></tr>
+            <tr><td>Total groups</td><td>320</td><td class="good">707</td></tr>
+            <tr><td>QA pairs</td><td>3,790</td><td class="good">7,595</td></tr>
+            <tr><td>Question types</td><td>Mixed, unstructured</td><td class="good">5 types, difficulty-graded</td></tr>
+            <tr><td>RAG context in training</td><td class="bad">No</td><td class="good">Yes &mdash; every example</td></tr>
+            <tr><td>Output file</td><td><code>sft_data/erp_qa_pairs.jsonl</code></td><td><code>erp_rag/data/sft_raw_pairs.json</code> (44.9 MB)</td></tr>
+            <tr><td>ChatML file</td><td><code>sft_data/erp_sft_chatml.jsonl</code> (2.64 MB)</td><td><code>erp_rag/data/sft_train.jsonl</code> (45.8 MB)</td></tr>
+        </table>
 
         <!-- ============================================ -->
         <h2 id="sec-14">14. REPRODUCIBILITY</h2>
         <!-- ============================================ -->
 
         <h3>Complete file inventory</h3>
+
+        <p><strong>V1 SFT files:</strong></p>
         <table>
             <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
-            <tr><td><code>scripts/generate_erp_qa.py</code></td><td>QA generation from ERP docs via Claude API</td><td>~12 KB</td></tr>
-            <tr><td><code>sft_data/erp_qa_pairs.jsonl</code></td><td>Raw QA pairs with metadata</td><td>~3 MB</td></tr>
-            <tr><td><code>sft_data/erp_sft_chatml.jsonl</code></td><td>ChatML-formatted SFT training data</td><td>2.64 MB</td></tr>
-            <tr><td><code>tiny_llm/sft_data.py</code></td><td>Tokenization and loss masking for SFT</td><td>~4 KB</td></tr>
-            <tr><td><code>tiny_llm/train_sft.py</code></td><td>SFT training loop</td><td>~14 KB</td></tr>
+            <tr><td><code>scripts/generate_erp_qa.py</code></td><td>V1 QA generation (Claude Opus 4.5)</td><td>~12 KB</td></tr>
+            <tr><td><code>sft_data/erp_qa_pairs.jsonl</code></td><td>V1 raw QA pairs</td><td>~3 MB</td></tr>
+            <tr><td><code>sft_data/erp_sft_chatml.jsonl</code></td><td>V1 ChatML training data</td><td>2.64 MB</td></tr>
+            <tr><td><code>tiny_llm/train_sft.py</code></td><td>V1 SFT training loop</td><td>~14 KB</td></tr>
+            <tr><td><code>tiny_llm/checkpoints/sft/sft_best.pt</code></td><td>V1 best SFT checkpoint (epoch 3)</td><td>94 MB</td></tr>
+        </table>
+
+        <p><strong>V2 SFT files:</strong></p>
+        <table>
+            <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
+            <tr><td><code>erp_rag/generate/sft_generate.py</code></td><td>V2 data generation pipeline (Claude Sonnet 4.6)</td><td>~18 KB</td></tr>
+            <tr><td><code>erp_rag/data/sft_chunk_groups.json</code></td><td>Master grouping blueprint (707 groups, 11 rules)</td><td>~400 KB</td></tr>
+            <tr><td><code>erp_rag/data/sft_raw_pairs.json</code></td><td>V2 raw QA pairs with context</td><td>44.9 MB</td></tr>
+            <tr><td><code>erp_rag/data/sft_train.jsonl</code></td><td>V2 ChatML training data (7,595 examples)</td><td>45.8 MB</td></tr>
+            <tr><td><code>tiny_llm/train_sft_rag.py</code></td><td>V2 RAG-grounded SFT training loop</td><td>~20 KB</td></tr>
+        </table>
+
+        <p><strong>Shared files:</strong></p>
+        <table>
+            <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
+            <tr><td><code>tiny_llm/sft_data.py</code></td><td>Tokenization and assistant-only loss masking</td><td>~4 KB</td></tr>
             <tr><td><code>tiny_llm/chat.py</code></td><td>Interactive chat with SFT model</td><td>~5 KB</td></tr>
-            <tr><td><code>tiny_llm/checkpoints/sft/sft_best.pt</code></td><td>Best SFT checkpoint (epoch 3)</td><td>94 MB</td></tr>
-            <tr><td><code>erp_rag/data/chunks/all_chunks.json</code></td><td>Pre-processed ERP documentation</td><td>1.9 MB</td></tr>
+            <tr><td><code>erp_rag/data/chunks/all_chunks.json</code></td><td>Pre-processed ERP documentation (1,074 chunks)</td><td>1.9 MB</td></tr>
         </table>
 
         <h3>To reproduce</h3>
-        <pre><span class="comment"># 1. Generate QA pairs from ERP docs (requires Anthropic API key, ~$20)</span>
+        <pre><span class="comment"># V2 pipeline (recommended)</span>
+
+<span class="comment"># 1. Generate QA pairs (requires Anthropic API key, ~$20-25)</span>
 <span class="keyword">pip install</span> anthropic
 <span class="keyword">export</span> ANTHROPIC_API_KEY=<span class="string">"sk-ant-..."</span>
-python scripts/generate_erp_qa.py --lang tr
+python -m erp_rag.generate.sft_generate \
+    --provider anthropic --model claude-sonnet-4-6   <span class="comment"># 707 groups → 7,595 pairs, auto-resume on interruption</span>
 
-<span class="comment"># 2. Convert to ChatML format</span>
-python scripts/generate_erp_qa.py --convert
+<span class="comment"># 2. Upload data to RunPod and run SFT training</span>
+python -m tiny_llm.train_sft_rag \
+    --model v2 \
+    --data erp_rag/data/sft_raw_pairs.json           <span class="comment"># reads raw pairs, builds ChatML, trains with loss masking</span>
 
-<span class="comment"># 3. Run SFT training (RunPod H100 or local GPU)</span>
-python -m tiny_llm.train_sft --checkpoint <span class="string">runpod_backup/round2_checkpoints/step_228000.pt</span> --device cuda
-
-<span class="comment"># 4. Chat with the model</span>
+<span class="comment"># 3. Chat with the model</span>
 python -m tiny_llm.chat</pre>
 
         <h3>Experiments tried &amp; decisions locked</h3>
@@ -1000,10 +1092,16 @@ python -m tiny_llm.chat</pre>
                 <td class="good">Always strip <code>_orig_mod.</code> prefix &mdash; locked</td>
             </tr>
             <tr>
-                <td><strong>Claude Opus 4.5 for QA generation</strong></td>
+                <td><strong>V1: Claude Opus 4.5</strong></td>
                 <td>320/529 chunks processed before API credits exhausted ($20)</td>
                 <td>3,790 QA pairs (3,170 single + 620 multi-turn)</td>
-                <td>Sufficient for SFT; generating from remaining 209 chunks is optional</td>
+                <td>Superseded by V2 pipeline</td>
+            </tr>
+            <tr>
+                <td><strong>V2: Claude Sonnet 4.6</strong></td>
+                <td>707/707 groups, 11 rules, 532 chunks, ~$20&ndash;25</td>
+                <td class="good">7,595 QA pairs, 0 invalid, 5 types, 3 difficulty levels</td>
+                <td class="good">V2 pipeline &mdash; locked. Production-ready SFT data.</td>
             </tr>
             <tr>
                 <td><strong>SFT dropout 0.05</strong></td>
@@ -1043,8 +1141,8 @@ python -m tiny_llm.chat</pre>
             Pretraining v1 (R1+R2+R2.5): ~$92.83 (39h &times; $2.38/hr).
             V1 SFT data generation: ~$20 (Claude Opus 4.5 API).
             V1 SFT training: &lt;$0.10 (100 seconds on H100).
-            V2 SFT data generation: ~$20&ndash;25 (Claude Sonnet 4.6 API, estimated).
-            <strong>Total so far: ~$133&ndash;138 (excluding v2 pretraining).</strong>
+            V2 SFT data generation: ~$22 (Claude Sonnet 4.6 API, 707 calls).
+            <strong>Total so far: ~$135 (excluding v2 pretraining).</strong>
         </div>
 
         <div class="abstract" style="margin-top: 32px;">
@@ -1056,6 +1154,7 @@ python -m tiny_llm.chat</pre>
             difficulty levels. The target model (67.6M v2 with 2048-token context) was purpose-built as a RAG context
             converter. The entire pipeline &mdash; tokenizer, architecture, pretraining, data generation, SFT training &mdash;
             remains built from scratch with no pretrained weights, no HuggingFace trainers, and no off-the-shelf datasets.
+            V2 SFT data generation is complete: 7,595 pairs, ready for training.
             <strong>Total project cost to date: ~$135.</strong>
         </div>
 
