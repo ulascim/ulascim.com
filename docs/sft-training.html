@@ -200,33 +200,33 @@
         </div>
 
         <div class="abstract">
-            <strong>Abstract.</strong> This report documents the supervised fine-tuning (SFT) of a 24.7M-parameter 
-            pretrained Turkish language model into a domain-specific ERP assistant. The process involved three novel 
-            components: (1) a synthetic data generation pipeline using Claude Opus 4.5 to convert 320 ERP documentation 
-            chunks into 3,790 user-focused, difficulty-graded, multi-turn QA pairs in Turkish; (2) a Llama 3&ndash;style 
-            chat template using the tokenizer&rsquo;s built-in special tokens with assistant-only loss masking; and 
-            (3) a lightweight SFT training loop that transformed the base model&rsquo;s output from incoherent repetition 
-            (&ldquo;Digital program Digital program&hellip;&rdquo;) into domain-relevant Turkish answers about 
-            ERP operations &mdash; in 100 seconds on an H100 GPU. The pretrained model was first extended to 228,000 
-            steps (14.9B tokens) in a second pretraining round, achieving a final loss of 3.46. SFT then reduced 
-            validation loss from 5.12 to 3.10 across 3 epochs.
+            <strong>Abstract.</strong> This report documents two generations of supervised fine-tuning (SFT) for
+            Turkish ERP assistants built from scratch. <strong>V1</strong> (24.7M params, 512-token context) used
+            Claude Opus 4.5 to generate 3,790 QA pairs from 320 ERP documentation chunks, proving that SFT works:
+            validation loss dropped from 5.12 to 3.10 in 100 seconds on an H100 GPU. <strong>V2</strong> (67.6M params,
+            2048-token context) redesigns the entire pipeline: 11 grouping strategies produce 707 chunk configurations
+            from 532 source chunks; Claude Sonnet 4.6 (selected via 4-way API comparison) generates ~8,000&ndash;10,000
+            diverse QA pairs with factual, procedural, comparative, inferential, and list-type questions at three
+            difficulty levels. Every training example includes the source context chunk, training the model as a
+            RAG context converter rather than a knowledge memorizer. Sections 1&ndash;12 document the completed v1
+            experiment; Section 13 documents the v2 redesign currently in progress.
         </div>
 
         <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
             <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
             <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
                 <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> The Full Pipeline</a>
-                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Round 2 Pretraining: 228K Steps</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Pretraining History</a>
                 <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> ERP Documentation Source</a>
-                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Synthetic Data Generation</a>
-                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Prompt Engineering</a>
-                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> QA Pair Statistics</a>
+                <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Synthetic Data Generation (V1)</a>
+                <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> Prompt Engineering (V1)</a>
+                <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> V1 QA Pair Statistics</a>
                 <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Chat Template &amp; Tokenization</a>
                 <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Loss Masking Strategy</a>
-                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> SFT Training Configuration</a>
-                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Results</a>
-                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Model Outputs</a>
-                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Analysis &amp; Next Steps</a>
+                <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> V1 SFT Training Configuration</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> V1 Results</a>
+                <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> V1 Model Outputs</a>
+                <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Analysis &amp; Lessons Learned</a>
                 <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> V2 SFT Pipeline Redesign</a>
                 <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Reproducibility</a>
             </div>
@@ -240,36 +240,43 @@
         progressively narrowing the model&rsquo;s capabilities from general language understanding to domain-specific 
         instruction following.</p>
 
+        <p>Two generations of SFT are documented here: v1 (24.7M, proof of concept) and v2 (67.6M, production pipeline).</p>
+
         <div class="flow">
             <div class="flow-box done">TOKENIZER (64K BPE)</div>
             <span class="flow-arrow">&rarr;</span>
-            <div class="flow-box done">ARCHITECTURE (24.7M)</div>
+            <div class="flow-box done">V1: 24.7M (R1+R2)</div>
             <span class="flow-arrow">&rarr;</span>
-            <div class="flow-box done">PRETRAIN R1 (50K steps)</div>
+            <div class="flow-box done">V1 SFT (3,790 pairs)</div>
             <span class="flow-arrow">&rarr;</span>
-            <div class="flow-box done">PRETRAIN R2 (228K steps)</div>
+            <div class="flow-box done">V2: 67.6M (2048 ctx)</div>
             <span class="flow-arrow">&rarr;</span>
-            <div class="flow-box active">SFT (639 steps)</div>
+            <div class="flow-box active">V2 SFT (~10K pairs)</div>
             <span class="flow-arrow">&rarr;</span>
-            <div class="flow-box next">RLVR</div>
+            <div class="flow-box next">DEPLOY</div>
         </div>
 
         <table>
             <tr><th>Phase</th><th>Purpose</th><th>Data</th><th>Result</th></tr>
             <tr><td>Tokenizer</td><td>Efficient Turkish text encoding</td><td>22 GB, 11 domains</td><td>64K vocab, 2.7&times; vs GPT-4</td></tr>
-            <tr><td>Architecture</td><td>Model design</td><td>&mdash;</td><td>24.7M params, ALiBi/GQA/SwiGLU</td></tr>
-            <tr><td>Pretrain R1</td><td>Basic Turkish fluency</td><td>~500 MB subset</td><td>50K steps, loss 2.62</td></tr>
-            <tr><td>Pretrain R2</td><td>Deep language understanding</td><td>22 GB full corpus</td><td>228K steps, loss 3.46</td></tr>
-            <tr class="highlight"><td><strong>SFT</strong></td><td><strong>ERP domain specialization</strong></td><td><strong>3,790 QA pairs</strong></td><td><strong>639 steps, val loss 3.10</strong></td></tr>
-            <tr><td>RLVR</td><td>Reasoning &amp; quality</td><td>TBD</td><td><span class="status next">NEXT</span></td></tr>
+            <tr><td>V1 Architecture</td><td>Initial model design</td><td>&mdash;</td><td>24.7M params, ALiBi/GQA/SwiGLU</td></tr>
+            <tr><td>Pretrain R1+R2</td><td>Basic &rarr; deep Turkish</td><td>22 GB corpus</td><td>278K steps, loss 3.46</td></tr>
+            <tr><td>V1 SFT</td><td>ERP domain proof-of-concept</td><td>3,790 QA pairs (Opus 4.5)</td><td>639 steps, val loss 5.12 &rarr; 3.10</td></tr>
+            <tr><td>Pretrain R2.5</td><td>2048-token context for RAG</td><td>22 GB corpus</td><td>228K steps, loss 3.22 (best)</td></tr>
+            <tr><td>V2 Architecture</td><td>RAG-optimized model</td><td>&mdash;</td><td>67.6M params, d_model=512, 2:1 GQA</td></tr>
+            <tr><td>V2 Pretrain</td><td>Full 67.6M pretraining</td><td>22 GB corpus</td><td><span class="status progress">IN PROGRESS</span></td></tr>
+            <tr class="highlight"><td><strong>V2 SFT</strong></td><td><strong>RAG-grounded ERP assistant</strong></td><td><strong>~8&ndash;10K pairs (Sonnet 4.6)</strong></td><td><strong><span class="status progress">IN PROGRESS</span></strong></td></tr>
+            <tr><td>RL (optional)</td><td>DPO / RLVR if SFT insufficient</td><td>TBD</td><td><span class="status next">FUTURE</span></td></tr>
         </table>
 
         <!-- ============================================ -->
-        <h2 id="sec-2">2. ROUND 2 PRETRAINING: 228K STEPS</h2>
+        <h2 id="sec-2">2. PRETRAINING HISTORY</h2>
         <!-- ============================================ -->
 
-        <p>Before SFT, the pretrained model was extended from 50,000 steps (Round 1, ~500MB subset) to 228,000 steps 
-        on the full 22GB Turkish corpus. This second round used an H100 GPU on RunPod ($2.38/hour) and ran for 10.5 hours.</p>
+        <p>The v1 model went through three pretraining rounds before SFT. Round 2 (shown below) established
+        deep language understanding. Round 2.5 later extended context to 2048 tokens for RAG.
+        The v2 model (67.6M) is a separate architecture pretrained from scratch.
+        Full pretraining details are in the <a href="architecture-pretraining.html">Architecture &amp; Pretraining</a> report.</p>
 
         <div class="stat-grid-5">
             <div class="stat-box">
@@ -334,8 +341,16 @@
             <strong>Scaling law observation:</strong> At 26M parameters, the model is capacity-limited, not data-limited. 
             Chinchilla-optimal training for 26M params is ~520M tokens (20&times; params), but the model processed 14.9B tokens 
             (~573&times; params). Loss was still decreasing at step 228K but with diminishing returns &mdash; the model 
-            had exhausted most of its representational capacity. The remaining loss gap reflects architectural limits, 
-            not insufficient training.
+            had exhausted most of its representational capacity.
+        </div>
+
+        <div class="finding">
+            <strong>What happened next:</strong> Round 2.5 retrained with <code>max_seq_len=2048</code> and
+            <code>dropout=0.02</code> for RAG compatibility, achieving best loss 3.22 in 26.5 hours.
+            The v2 architecture (67.6M, <code>d_model=512</code>, 2:1 GQA) was then designed to break the
+            capacity ceiling &mdash; 4.2&times; more transformer parameters. See
+            <a href="architecture-pretraining.html#sec-15">Section 15</a> and
+            <a href="architecture-pretraining.html#sec-16">Section 16</a> of the Architecture report.
         </div>
 
         <!-- ============================================ -->
@@ -395,13 +410,19 @@
         </table>
 
         <!-- ============================================ -->
-        <h2 id="sec-4">4. SYNTHETIC DATA GENERATION</h2>
+        <h2 id="sec-4">4. SYNTHETIC DATA GENERATION (V1)</h2>
         <!-- ============================================ -->
 
         <p>The central challenge of SFT for a domain-specific model is data. Hand-writing thousands of QA pairs is 
         impractical; using generic instruction datasets would not teach the model about Solen Kablo&rsquo;s ERP system.
         The solution: use a large cloud LLM as a <strong>data conversion tool</strong> &mdash; not a knowledge source &mdash; 
         to transform existing ERP documentation into training-ready QA pairs.</p>
+
+        <div class="finding">
+            <strong>V1 vs V2 pipeline.</strong> This section describes the v1 approach (Claude Opus 4.5, individual chunks,
+            3,790 pairs). The v2 pipeline (Claude Sonnet 4.6, 11 grouping rules, ~10K pairs) is documented in
+            <a href="#sec-13">Section 13</a>.
+        </div>
 
         <div class="flow">
             <div class="flow-box done">ERP Docs (HTML)</div>
@@ -415,16 +436,16 @@
             <div class="flow-box done">ChatML Format</div>
         </div>
 
-        <h3>Key design decisions</h3>
+        <h3>V1 design decisions</h3>
         <table>
-            <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
-            <tr><td><strong>LLM</strong></td><td>Claude Opus 4.5</td><td>Highest quality for complex Turkish generation; worth the cost for training data</td></tr>
-            <tr><td><strong>Role</strong></td><td>Data conversion tool</td><td>LLM reformats existing text, does not add knowledge &mdash; prevents hallucination</td></tr>
-            <tr><td><strong>Focus</strong></td><td>User-centric questions</td><td>&ldquo;How do I use X?&rdquo; not &ldquo;What SQL table stores X?&rdquo;</td></tr>
-            <tr><td><strong>Format</strong></td><td>Single-turn + multi-turn</td><td>~70% single QA, ~30% 2-3 turn conversations</td></tr>
-            <tr><td><strong>Difficulty</strong></td><td>Graded (easy/medium/hard)</td><td>Answer length calibrated for 26M model capacity</td></tr>
-            <tr><td><strong>Language</strong></td><td>Turkish output only</td><td>English source docs translated to Turkish in QA pairs</td></tr>
-            <tr><td><strong>Resumability</strong></td><td>chunk_id-based skip</td><td>Script can be interrupted and resumed safely</td></tr>
+            <tr><th>Decision</th><th>V1 Choice</th><th>V2 Change</th></tr>
+            <tr><td><strong>LLM</strong></td><td>Claude Opus 4.5</td><td class="good">Claude Sonnet 4.6 (better question diversity)</td></tr>
+            <tr><td><strong>Grouping</strong></td><td>Individual chunks only</td><td class="good">11 rules: individual, submodule, module, cross-module, etc.</td></tr>
+            <tr><td><strong>Target model</strong></td><td>24.7M, 512 context</td><td class="good">67.6M, 2048 context</td></tr>
+            <tr><td><strong>Focus</strong></td><td>User-centric questions</td><td>Same + technical questions (no audience restriction)</td></tr>
+            <tr><td><strong>Format</strong></td><td>Single + multi-turn (70/30)</td><td>Single-turn only (RAG: one question, one answer)</td></tr>
+            <tr><td><strong>Difficulty</strong></td><td>Graded, length-calibrated for 26M</td><td>Graded, max 200 words (uncapped format)</td></tr>
+            <tr><td><strong>Volume</strong></td><td>3,790 pairs from 320 chunks</td><td class="good">~8&ndash;10K pairs from 707 groups</td></tr>
         </table>
 
         <div class="warning">
@@ -435,12 +456,12 @@
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-5">5. PROMPT ENGINEERING</h2>
+        <h2 id="sec-5">5. PROMPT ENGINEERING (V1)</h2>
         <!-- ============================================ -->
 
-        <p>The generation pipeline uses a two-part prompt: a comprehensive system prompt (the &ldquo;Grand Prompt&rdquo;) 
+        <p>The v1 generation pipeline uses a two-part prompt: a comprehensive system prompt (the &ldquo;Grand Prompt&rdquo;) 
         that defines the task, formats, rules, and examples; and a per-chunk user message that provides metadata 
-        and the documentation text.</p>
+        and the documentation text. The v2 prompt is significantly redesigned &mdash; see <a href="#sec-13">Section 13</a>.</p>
 
         <h3>System prompt structure</h3>
         <table>
@@ -455,7 +476,7 @@
             <tr><td>&Ouml;RNEKLER</td><td>Good/bad examples showing desired vs undesired output style</td></tr>
         </table>
 
-        <h3>Answer length calibration for 26M parameters</h3>
+        <h3>Answer length calibration for v1 (26M parameters)</h3>
         <table>
             <tr><th>Difficulty</th><th>Target Length</th><th>Question Type</th><th>Example</th></tr>
             <tr><td class="good">Kolay (Easy)</td><td>1&ndash;2 sentences</td><td>Single fact: &ldquo;X nedir?&rdquo;</td><td>&ldquo;QR kod ne i&#351;e yarar?&rdquo;</td></tr>
@@ -464,10 +485,10 @@
         </table>
 
         <div class="insight">
-            <strong>Why calibrate length?</strong> A 26M parameter model cannot reliably generate long, complex answers. 
+            <strong>Why calibrate length? (V1)</strong> A 26M parameter model cannot reliably generate long, complex answers. 
             By constraining answer lengths during data generation, the model learns patterns it can actually reproduce. 
-            Easy questions get crisp 1-sentence answers; hard questions get focused 4-6 sentence answers. 
-            No answer exceeds what the model can memorize and generalize from.
+            The v2 pipeline relaxes this for the 67.6M model: answers can be up to 200 words with flexible formatting
+            (numbered steps, paragraphs, or lists), learned from examples rather than rigid templates.
         </div>
 
         <h3>Bad vs good question examples (from the prompt)</h3>
@@ -481,11 +502,12 @@
         </table>
 
         <!-- ============================================ -->
-        <h2 id="sec-6">6. QA PAIR STATISTICS</h2>
+        <h2 id="sec-6">6. V1 QA PAIR STATISTICS</h2>
         <!-- ============================================ -->
 
-        <p>The generation script processed 320 out of 529 Turkish chunks before API credits were exhausted 
-        (~$20 on Claude Opus 4.5). The resulting dataset is substantial for a 26M parameter model.</p>
+        <p>The v1 generation script processed 320 out of 529 Turkish chunks before API credits were exhausted 
+        (~$20 on Claude Opus 4.5). The resulting dataset was sufficient for the 26M parameter model.
+        For v2 statistics (~8&ndash;10K pairs from 707 groups), see <a href="#sec-13">Section 13</a>.</p>
 
         <div class="stat-grid">
             <div class="stat-box">
@@ -595,11 +617,11 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
             <strong>Why mask the header too?</strong> Even the <code>&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;\n\n</code> 
             prefix is masked. The model doesn&rsquo;t need to learn to predict the role header &mdash; it will always be 
             provided as part of the prompt template. Training only on content maximizes the signal-to-noise ratio 
-            for the model&rsquo;s limited 26M parameter budget.
+            for any model&rsquo;s parameter budget. This strategy is used for both v1 (26M) and v2 (67.6M).
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-9">9. SFT TRAINING CONFIGURATION</h2>
+        <h2 id="sec-9">9. V1 SFT TRAINING CONFIGURATION</h2>
         <!-- ============================================ -->
 
         <table>
@@ -639,7 +661,7 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-10">10. RESULTS</h2>
+        <h2 id="sec-10">10. V1 RESULTS</h2>
         <!-- ============================================ -->
 
         <div class="stat-grid">
@@ -681,7 +703,7 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-11">11. MODEL OUTPUTS</h2>
+        <h2 id="sec-11">11. V1 MODEL OUTPUTS</h2>
         <!-- ============================================ -->
 
         <h3>Before SFT (pretrained only)</h3>
@@ -723,34 +745,70 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-12">12. ANALYSIS &amp; NEXT STEPS</h2>
+        <h2 id="sec-12">12. ANALYSIS &amp; LESSONS LEARNED</h2>
         <!-- ============================================ -->
 
-        <h3>What works</h3>
+        <h3>What v1 SFT proved</h3>
         <ul>
             <li>Turkish grammar and morphology are solid &mdash; learned during pretraining, preserved through SFT</li>
             <li>Domain vocabulary (hammadde, sipari&#351;, tedarik&ccedil;i, malzeme) is correctly used</li>
             <li>Chat template pattern (system &rarr; user &rarr; assistant) is reliably followed</li>
             <li>The model stops generating at the right point (produces <code>&lt;|eot_id|&gt;</code>)</li>
-            <li>Answers are appropriately concise for a 26M model</li>
+            <li>SFT on a tiny model is fast (&lt;2 minutes) and cheap (&lt;$0.10), enabling rapid iteration</li>
         </ul>
 
-        <h3>What needs improvement</h3>
-        <ul>
-            <li><strong>Repetition:</strong> Some outputs fall into token repetition loops (e.g., &ldquo;QR&rsquo; koduna &lsquo;QR&rsquo; koduna&hellip;&rdquo;). Fixable with repetition penalty during generation or more SFT epochs.</li>
-            <li><strong>Specificity:</strong> Answers are sometimes generic rather than precisely grounded in ERP documentation. More SFT data (the remaining 206 chunks) would help.</li>
-            <li><strong>Loss still decreasing:</strong> Val loss dropped every epoch (3.34 &rarr; 3.14 &rarr; 3.10), suggesting more epochs would improve quality.</li>
-        </ul>
-
-        <h3>Planned improvements</h3>
+        <h3>V1 limitations that drove the v2 redesign</h3>
         <table>
-            <tr><th>Improvement</th><th>Expected Impact</th><th>Effort</th></tr>
-            <tr><td>More SFT epochs (10&ndash;15)</td><td>Lower val loss, more specific answers</td><td>~5 minutes on H100</td></tr>
-            <tr><td>Higher learning rate (5e-5)</td><td>Faster adaptation to domain</td><td>Re-run only</td></tr>
-            <tr><td>Complete remaining 206 chunks</td><td>+~2,400 more QA pairs, fuller coverage</td><td>~$13 API cost</td></tr>
-            <tr><td>Repetition penalty in generation</td><td>Eliminate output loops</td><td>Single parameter</td></tr>
-            <tr><td>RLVR (Phase 5)</td><td>Improved reasoning and factual accuracy</td><td><span class="status next">NEXT PHASE</span></td></tr>
+            <tr><th>V1 Limitation</th><th>Root Cause</th><th>V2 Solution</th></tr>
+            <tr>
+                <td class="bad">Repetitive outputs</td>
+                <td>26M model capacity + no dropout + 512-token context</td>
+                <td class="good">67.6M model + dropout 0.02 + 2048 context</td>
+            </tr>
+            <tr>
+                <td class="bad">Generic, ungrounded answers</td>
+                <td>No RAG context in training &mdash; model guesses from memorized patterns</td>
+                <td class="good">Every training example includes the source chunk as context</td>
+            </tr>
+            <tr>
+                <td class="bad">Only 60% chunk coverage</td>
+                <td>API credits exhausted at 320/529 chunks</td>
+                <td class="good">All 532 chunks processed via 707 groups across 11 rules</td>
+            </tr>
+            <tr>
+                <td class="bad">Single-chunk questions only</td>
+                <td>No grouping strategy &mdash; each chunk processed individually</td>
+                <td class="good">11 grouping rules (submodule, cross-module, data flow, etc.)</td>
+            </tr>
+            <tr>
+                <td class="bad">No audience diversity</td>
+                <td>V1 prompt targeted &ldquo;office worker&rdquo; questions only</td>
+                <td class="good">V2 generates both user-level and technical questions</td>
+            </tr>
+            <tr>
+                <td>Sonnet 4 / Opus 4.5 API</td>
+                <td>Good but not optimal for Turkish Q&amp;A diversity</td>
+                <td class="good">Sonnet 4.6 selected via 4-way comparative pilot</td>
+            </tr>
         </table>
+
+        <h3>Key insight: SFT is the critical phase at this scale</h3>
+        <div class="insight">
+            <strong>For models under ~1B parameters, SFT training data quality is the single most important factor.</strong>
+            RL techniques (DPO, RLHF, RLVR) provide diminishing returns at this scale because the model lacks the
+            capacity to benefit from fine-grained preference signals. Instead of chasing RL, the strategy is:
+            (1) maximize SFT data quality via better prompts, diverse grouping, and superior API models;
+            (2) improve the retrieval pipeline so the model sees better context at inference time;
+            (3) iterate on the RAG prompt engineering for the deployed system.
+            RL remains an optional future phase if SFT alone proves insufficient.
+        </div>
+
+        <div class="warning">
+            <strong>Experiment: intentional wrong answers in SFT.</strong> An earlier experiment injected incorrect
+            answers that self-corrected mid-response (e.g., &ldquo;wait, this is wrong&hellip;&rdquo;). Result:
+            overall model quality degraded significantly. <strong>Never inject bad answers into SFT data.</strong>
+            If preference learning is needed, use DPO with separate (chosen, rejected) pairs instead.
+        </div>
 
         <!-- ============================================ -->
         <h2 id="sec-13">13. V2 SFT PIPELINE REDESIGN</h2>

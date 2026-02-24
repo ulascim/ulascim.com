@@ -220,23 +220,31 @@
             mixed precision and <code>torch.compile</code>. Total v1 pretraining cost: approximately $92.83.
         </div>
 
+        <div class="finding" style="margin-top: 20px;">
+            <strong>Document structure.</strong> Sections 1&ndash;14 cover the <strong>v1 architecture</strong> (24.7M params)
+            and its two initial training rounds. Section 15 documents the 2048-context extension (Round 2.5).
+            Section 16 introduces the <strong>v2 architecture</strong> (67.6M params), a purpose-built RAG model.
+            All architectural decisions in Sections 3&ndash;6 (ALiBi, GQA, SwiGLU, RMSNorm) carry forward to v2
+            &mdash; v2 scales the dimensions, not the design.
+        </div>
+
         <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
             <h3 style="margin: 0 0 12px 0; font-size: 14px; letter-spacing: 1px;">TABLE OF CONTENTS</h3>
             <div style="columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
                 <a href="#sec-1" style="text-decoration: none; color: var(--fg); display: block;"><strong>1.</strong> Motivation: From Tokenizer to Model</a>
-                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> Architecture Overview</a>
+                <a href="#sec-2" style="text-decoration: none; color: var(--fg); display: block;"><strong>2.</strong> V1 Architecture Overview</a>
                 <a href="#sec-3" style="text-decoration: none; color: var(--fg); display: block;"><strong>3.</strong> Positional Encoding: ALiBi (Not RoPE)</a>
                 <a href="#sec-4" style="text-decoration: none; color: var(--fg); display: block;"><strong>4.</strong> Grouped Query Attention</a>
                 <a href="#sec-5" style="text-decoration: none; color: var(--fg); display: block;"><strong>5.</strong> SwiGLU Feed-Forward Network</a>
                 <a href="#sec-6" style="text-decoration: none; color: var(--fg); display: block;"><strong>6.</strong> Normalization &amp; Residual Design</a>
-                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> Parameter Budget Analysis</a>
+                <a href="#sec-7" style="text-decoration: none; color: var(--fg); display: block;"><strong>7.</strong> V1 Parameter Budget Analysis</a>
                 <a href="#sec-8" style="text-decoration: none; color: var(--fg); display: block;"><strong>8.</strong> Training Corpus Curation</a>
                 <a href="#sec-9" style="text-decoration: none; color: var(--fg); display: block;"><strong>9.</strong> Data Pipeline</a>
-                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Training Configuration</a>
+                <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> V1 Training Configuration</a>
                 <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Validation Suite: 60 Paranoid Tests</a>
                 <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Infrastructure: MPS to H100</a>
-                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Training Results: Round 1</a>
-                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Round 2: Full Corpus (22 GB)</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> V1 Round 1 Results</a>
+                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> V1 Round 2: Full Corpus (22 GB)</a>
                 <a href="#sec-15" style="text-decoration: none; color: var(--fg); display: block;"><strong>15.</strong> Round 2.5: 2048-Context for RAG</a>
                 <a href="#sec-16" style="text-decoration: none; color: var(--fg); display: block;"><strong>16.</strong> V2 Architecture: 67.6M RAG-Optimized</a>
                 <a href="#sec-17" style="text-decoration: none; color: var(--fg); display: block;"><strong>17.</strong> Reproducibility &amp; Experiment Log</a>
@@ -252,36 +260,38 @@
         and ~2.7&times; more efficient than GPT-4 on Turkish text. The natural question follows: can this tokenizer
         serve as the foundation for a purpose-built Turkish language model?</p>
 
-        <p>The objective of this phase is not to compete with production LLMs. A 24.7M-parameter model cannot rival
-        Qwen3-0.6B (600M parameters, 24&times; larger) or GPT-4 (estimated &gt;1T parameters). The objective is
+        <p>The objective is not to compete with production LLMs. The objective is
         threefold: (1) validate the tokenizer in an end-to-end training pipeline, (2) establish every component of
-        the training infrastructure from scratch, and (3) produce a model that demonstrably learns Turkish language
-        patterns from raw text.</p>
+        the training infrastructure from scratch, and (3) produce models that demonstrably learn Turkish language
+        patterns and can serve as domain-specific RAG assistants. This led to two generations: <strong>v1</strong>
+        (24.7M params) to prove the pipeline works, and <strong>v2</strong> (67.6M params) purpose-built for
+        RAG context comprehension.</p>
 
         <div class="flow">
             <span class="flow-box done">64K TOKENIZER</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">ARCHITECTURE</span>
+            <span class="flow-box done">V1: 24.7M</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">DATA PIPELINE</span>
+            <span class="flow-box done">R1 + R2 + R2.5</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">VALIDATION (60/60)</span>
+            <span class="flow-box done">V1 SFT</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">PRETRAIN R1 (50K)</span>
+            <span class="flow-box done">V2: 67.6M</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">PRETRAIN R2 (228K)</span>
+            <span class="flow-box active">V2 PRETRAIN</span>
             <span class="flow-arrow">&rarr;</span>
-            <span class="flow-box done">SFT</span>
+            <span class="flow-box next">V2 SFT</span>
             <span class="flow-arrow">&rarr;</span>
             <span class="flow-box next">RLVR</span>
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-2">2. ARCHITECTURE OVERVIEW</h2>
+        <h2 id="sec-2">2. V1 ARCHITECTURE OVERVIEW</h2>
         <!-- ============================================ -->
 
-        <p>The model is a decoder-only Transformer with 24,697,088 parameters. Every component was selected against
-        specific alternatives; no default was accepted without justification.</p>
+        <p>The v1 model is a decoder-only Transformer with 24,697,088 parameters. Every component was selected against
+        specific alternatives; no default was accepted without justification. All architectural decisions below
+        (ALiBi, GQA, SwiGLU, RMSNorm, weight tying) carry forward to v2 &mdash; only the dimensions change.</p>
 
         <table>
             <tr><th>Component</th><th>Choice</th><th>Rejected Alternative</th><th>Rationale</th></tr>
@@ -431,7 +441,7 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         requiring careful learning rate tuning.</p>
 
         <!-- ============================================ -->
-        <h2 id="sec-7">7. PARAMETER BUDGET ANALYSIS</h2>
+        <h2 id="sec-7">7. V1 PARAMETER BUDGET ANALYSIS</h2>
         <!-- ============================================ -->
 
         <p>At 24.7M parameters, every allocation decision is visible. The embedding layer dominates &mdash;
@@ -548,7 +558,7 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         </table>
 
         <!-- ============================================ -->
-        <h2 id="sec-10">10. TRAINING CONFIGURATION</h2>
+        <h2 id="sec-10">10. V1 TRAINING CONFIGURATION</h2>
         <!-- ============================================ -->
 
         <table>
@@ -660,7 +670,7 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         </ul>
 
         <!-- ============================================ -->
-        <h2 id="sec-13">13. TRAINING RESULTS: ROUND 1 (50K STEPS, 440 MB)</h2>
+        <h2 id="sec-13">13. V1 ROUND 1 RESULTS (50K STEPS, 440 MB)</h2>
         <!-- ============================================ -->
 
         <p><span class="status complete">COMPLETE</span> &mdash; 50,000 steps, 2.0 hours, final loss <strong>2.62</strong>.
@@ -736,7 +746,7 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-14">14. ROUND 2: FULL CORPUS PRETRAINING (228K STEPS, 22 GB)</h2>
+        <h2 id="sec-14">14. V1 ROUND 2: FULL CORPUS (228K STEPS, 22 GB)</h2>
         <!-- ============================================ -->
 
         <p>Round 1 demonstrated the pipeline worked and the model could learn Turkish from a ~440 MB subset.
@@ -828,13 +838,12 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         </table>
 
         <div class="insight">
-            <strong>Scaling law observation.</strong> At 26M parameters, the model is capacity-limited, not data-limited.
+            <strong>Scaling law observation.</strong> At 26M parameters, the v1 model is capacity-limited, not data-limited.
             Chinchilla-optimal training for 26M params is ~520M tokens (20&times; params); this model processed
             14.9B tokens (~573&times; params). Loss was still decreasing at step 228K but with diminishing returns
-            &mdash; the model had exhausted most of its representational capacity. The remaining loss gap reflects
-            architectural limits, not insufficient training. Despite this, the full-corpus training produced measurably
-            better language understanding than Round 1, with factual knowledge about specific cities, institutions,
-            and complex topics emerging in generated samples.
+            &mdash; the model had exhausted most of its representational capacity. This capacity ceiling directly
+            motivated the v2 architecture (67.6M, <a href="#sec-16">Section 16</a>): 4.2&times; more transformer
+            parameters to break through the v1&rsquo;s representational limit.
         </div>
 
         <div class="stat-grid-3">
@@ -847,9 +856,14 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
                 <div class="label">ROUND 2 (10.5h &times; $2.38)</div>
             </div>
             <div class="stat-box">
-                <div class="value good">$29.75</div>
-                <div class="label">TOTAL PRETRAINING COST</div>
+                <div class="value">$29.75</div>
+                <div class="label">R1+R2 SUBTOTAL</div>
             </div>
+        </div>
+
+        <div class="finding">
+            <strong>Not the end.</strong> Round 2.5 (2048-context extension, $63.08) and the v2 architecture
+            (67.6M) follow. See <a href="#sec-15">Sections 15&ndash;16</a> for the continuation.
         </div>
 
         <!-- ============================================ -->
