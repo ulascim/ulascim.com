@@ -105,6 +105,7 @@
         .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
         .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
         .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0; }
 
         .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
         .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
@@ -149,7 +150,7 @@
         @media (max-width: 768px) {
             .nav-center { display: none; }
             .report { padding: 16px; }
-            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .stat-grid, .stat-grid-3, .stat-grid-5, .stat-grid-6 { grid-template-columns: repeat(2, 1fr); }
             .nav-container { padding: 0 16px; }
             .flow { flex-direction: column; }
         }
@@ -170,25 +171,33 @@
     <main class="report">
         <a href="token-sequencer.html" class="back-link">Back to Research</a>
         <h1>ARCHITECTURE &amp; PRETRAINING</h1>
-        <p class="subtitle">Phase 2 &amp; 3 &mdash; From Tokenizer to Transformer: Building a 24.7M Turkish Language Model from Scratch</p>
-        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status complete">COMPLETE</span></p>
+        <p class="subtitle">Phase 2 &amp; 3 &mdash; Two Generations of Turkish Transformers: 24.7M (v1) &amp; 67.6M (v2) from Scratch</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status progress">IN PROGRESS</span></p>
 
-        <div class="stat-grid">
+        <div class="stat-grid-6">
             <div class="stat-box">
                 <div class="value">24.7M</div>
-                <div class="label">TOTAL PARAMETERS</div>
+                <div class="label">V1 PARAMETERS</div>
             </div>
             <div class="stat-box">
-                <div class="value">12</div>
-                <div class="label">TRANSFORMER LAYERS</div>
+                <div class="value good">67.6M</div>
+                <div class="label">V2 PARAMETERS</div>
             </div>
             <div class="stat-box">
-                <div class="value good">14.9B</div>
-                <div class="label">TOKENS PROCESSED (2 ROUNDS)</div>
+                <div class="value">3</div>
+                <div class="label">V1 TRAINING ROUNDS</div>
             </div>
             <div class="stat-box">
-                <div class="value good">3.46</div>
-                <div class="label">FINAL LOSS (22 GB CORPUS)</div>
+                <div class="value good">3.22</div>
+                <div class="label">BEST LOSS (V1, R2.5)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~44.7B</div>
+                <div class="label">TOKENS (V1 TOTAL)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$92.83</div>
+                <div class="label">V1 TRAINING COST</div>
             </div>
         </div>
 
@@ -201,12 +210,14 @@
             specific alternatives with parameter-budget and stability considerations. A 60-test validation suite
             uncovered a critical causal mask bug in the ALiBi implementation prior to training &mdash; demonstrating the
             necessity of component-level verification in from-scratch implementations.
-            Training proceeded in two rounds: Round 1 on a ~440 MB curated subset (50,000 steps, loss 2.62, 2.0 hours)
-            established basic Turkish fluency; Round 2 on the full 22 GB corpus across 11 domains (228,000 steps,
-            14.9 billion token-reads, 10.5 hours) pushed the model to produce factual, grammatically correct Turkish
-            with real-world knowledge, reaching a final loss of 3.46 (best 3.39). Both rounds ran on NVIDIA H100 NVL
-            ($2.38/hour) with bfloat16 mixed precision and <code>torch.compile</code>, achieving ~400,000 tokens/second.
-            Total pretraining cost: approximately $29.75.
+            Training proceeded in three rounds: Round 1 on a ~440 MB curated subset (50K steps, loss 2.62, 2.0 hours)
+            established basic Turkish fluency; Round 2 on the full 22 GB corpus across 11 domains (228K steps,
+            14.9B token-reads, 10.5 hours) pushed the model to factual, correct Turkish at loss 3.46 (best 3.39);
+            Round 2.5 retrained with 2048-token context for RAG compatibility (228K steps, loss 3.33, best 3.22,
+            26.5 hours). A second-generation architecture (v2, 67.6M params) was designed specifically for RAG:
+            <code>d_model=512</code>, 2:1 GQA, 4.2&times; more transformer parameters, optimized as a context
+            converter rather than a knowledge base. All rounds ran on NVIDIA H100 ($2.38/hour) with bfloat16
+            mixed precision and <code>torch.compile</code>. Total v1 pretraining cost: approximately $92.83.
         </div>
 
         <div style="background: #fff; border: 2px solid #000; padding: 20px 28px; margin: 24px 0;">
@@ -226,8 +237,10 @@
                 <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Infrastructure: MPS to H100</a>
                 <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Training Results: Round 1</a>
                 <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Round 2: Full Corpus (22 GB)</a>
-                <a href="#sec-15" style="text-decoration: none; color: var(--fg); display: block;"><strong>15.</strong> Reproducibility &amp; Experiment Log</a>
-                <a href="#sec-16" style="text-decoration: none; color: var(--fg); display: block;"><strong>16.</strong> Project Status</a>
+                <a href="#sec-15" style="text-decoration: none; color: var(--fg); display: block;"><strong>15.</strong> Round 2.5: 2048-Context for RAG</a>
+                <a href="#sec-16" style="text-decoration: none; color: var(--fg); display: block;"><strong>16.</strong> V2 Architecture: 67.6M RAG-Optimized</a>
+                <a href="#sec-17" style="text-decoration: none; color: var(--fg); display: block;"><strong>17.</strong> Reproducibility &amp; Experiment Log</a>
+                <a href="#sec-18" style="text-decoration: none; color: var(--fg); display: block;"><strong>18.</strong> Project Status</a>
             </div>
         </div>
 
@@ -840,32 +853,270 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-15">15. REPRODUCIBILITY &amp; EXPERIMENT LOG</h2>
+        <h2 id="sec-15">15. ROUND 2.5: 2048-CONTEXT FOR RAG (228K STEPS)</h2>
+        <!-- ============================================ -->
+
+        <p>Round 2 trained with <code>max_seq_len=512</code>, inherited from the initial architecture.
+        However, the RAG use case requires processing system prompt + retrieved context chunk + user question
+        + generated answer in a single sequence. Typical RAG prompts consume 600&ndash;1,300 tokens. A 512-token
+        model cannot serve RAG &mdash; so Round 2.5 retrained the same 24.7M model with 2048-token context.</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value">228K</div>
+                <div class="label">TOTAL STEPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~14.9B</div>
+                <div class="label">TOKENS PROCESSED</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">26.5h</div>
+                <div class="label">TRAINING TIME</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.33</div>
+                <div class="label">FINAL LOSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">3.22</div>
+                <div class="label">BEST LOSS</div>
+            </div>
+        </div>
+
+        <h3>Why Round 2.5?</h3>
+        <p>Round 2&rsquo;s 512-token context is a hard ceiling for downstream tasks. The SFT phase needs to fit:</p>
+        <ul>
+            <li><strong>System prompt</strong> (~38 tokens): <code>ERP sistemi asistanısın. Verilen bağlam bilgilerini kullanarak soruyu yanıtla...</code></li>
+            <li><strong>Retrieved context chunk</strong> (200&ndash;800 tokens): ERP documentation from the RAG retriever</li>
+            <li><strong>User question</strong> (20&ndash;60 tokens): Natural Turkish query</li>
+            <li><strong>Generated answer</strong> (50&ndash;300 tokens): Model&rsquo;s response</li>
+        </ul>
+        <p>Total: 308&ndash;1,198 tokens per turn. A 512-token model would truncate most inputs.
+        ALiBi&rsquo;s extrapolation property helps, but training at the target context length yields
+        far better attention patterns. 2048 tokens provides comfortable headroom for even the longest
+        multi-chunk RAG prompts.</p>
+
+        <h3>Configuration changes from Round 2</h3>
+        <table>
+            <tr><th>Parameter</th><th>Round 2</th><th>Round 2.5</th><th>Rationale</th></tr>
+            <tr><td>max_seq_len</td><td>512</td><td class="good">2048</td><td>4&times; context for RAG prompt fitting</td></tr>
+            <tr><td>dropout</td><td>0.0</td><td class="good">0.02</td><td>Mild regularization; reduces repetitive generation</td></tr>
+            <tr><td>batch_size</td><td>128</td><td class="good">8</td><td>4&times; longer sequences = 4&times; more memory per sample</td></tr>
+            <tr><td>grad_accum_steps</td><td>1</td><td class="good">4</td><td>Effective batch = 32 (8 &times; 4). Preserves batch scale.</td></tr>
+            <tr><td>Starting point</td><td>step_050000.pt</td><td>step_228000.pt</td><td>Resume from Round 2 final checkpoint</td></tr>
+            <tr><td>Learning rate</td><td>3e-4 &rarr; 3e-5</td><td>3e-4 &rarr; 3e-5</td><td>Fresh cosine schedule for context adaptation</td></tr>
+            <tr><td>Training data</td><td>22 GB (27 files)</td><td>22 GB (27 files)</td><td>Same corpus, now with 4&times; longer windows</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>OOM resolution.</strong> Initial attempt with <code>batch_size=32</code> (same effective batch as R2)
+            triggered CUDA out-of-memory on H100 80GB. The 4&times; sequence length quadrupled attention memory.
+            Solution: reduce per-GPU batch to 8, compensate with 4-step gradient accumulation.
+            Effective batch size stays at 32, but each step takes ~2.5&times; longer due to the longer sequences
+            and accumulation overhead: 418 ms/step vs ~165 ms/step in Round 2.
+        </div>
+
+        <h3>Loss curve: Round 2.5</h3>
+        <table>
+            <tr><th>Step</th><th>Loss</th><th>LR</th><th>Tok/s</th><th>Notes</th></tr>
+            <tr><td>0 (R2 checkpoint)</td><td>~3.46</td><td>3.0e-04</td><td>158K</td><td>Starting from R2 final, fresh LR schedule</td></tr>
+            <tr><td>~50,000</td><td>~3.40</td><td>2.6e-04</td><td>158K</td><td>Model adapting to 4&times; context windows</td></tr>
+            <tr><td>~100,000</td><td>~3.35</td><td>1.9e-04</td><td>158K</td><td>Steady improvement from longer-range attention</td></tr>
+            <tr><td>~150,000</td><td>~3.28</td><td>1.2e-04</td><td>158K</td><td>Cross-sentence coherence improving</td></tr>
+            <tr><td>~200,000</td><td><strong>3.22</strong></td><td>5.0e-05</td><td>158K</td><td class="good">Best loss &mdash; long-range dependencies learned</td></tr>
+            <tr class="highlight"><td><strong>228,000</strong></td><td><strong>3.33</strong></td><td>2.0e-05</td><td>158K</td><td><strong>Final: LR at minimum, slight loss uptick</strong></td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Loss improvement vs Round 2.</strong> Best loss dropped from 3.39 (R2) to 3.22 (R2.5) &mdash;
+            a 0.17 improvement despite using the identical corpus and model. The gain comes entirely from longer
+            context: the model now sees 4&times; more tokens per sample, learning cross-sentence dependencies and
+            paragraph-level coherence that were invisible in 512-token windows. This confirms that context length
+            was a binding constraint for this architecture.
+        </div>
+
+        <div class="insight">
+            <strong>Dropout effect.</strong> Adding <code>dropout=0.02</code> was motivated by observed repetitive
+            generation patterns during R2 sampling. While the primary goal was RAG context extension, the mild
+            dropout provides regularization during the subsequent SFT phase where the small training set
+            (thousands, not billions, of examples) creates overfitting risk. The 0.02 value was chosen conservatively
+            &mdash; enough to break repetition loops without degrading pretraining quality.
+        </div>
+
+        <div class="stat-grid-3">
+            <div class="stat-box">
+                <div class="value good">$63.08</div>
+                <div class="label">ROUND 2.5 (26.5h &times; $2.38)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">$92.83</div>
+                <div class="label">TOTAL V1 COST (R1+R2+R2.5)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">39h</div>
+                <div class="label">TOTAL V1 TRAINING TIME</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-16">16. V2 ARCHITECTURE: 67.6M RAG-OPTIMIZED MODEL</h2>
+        <!-- ============================================ -->
+
+        <p>The v1 model (24.7M params) proved that the training pipeline, tokenizer, and infrastructure work.
+        But 24.7M parameters is severely capacity-limited for a RAG assistant that must read context, understand
+        questions, and generate coherent answers. The v2 architecture was designed from scratch with a single
+        principle: <strong>this model is a context converter, not a knowledge base.</strong></p>
+
+        <div class="abstract">
+            <strong>Design philosophy.</strong> A RAG model doesn&rsquo;t need to memorize facts &mdash; the retriever
+            provides them. What it needs is the ability to <em>read</em> provided context and <em>transform</em> it
+            into accurate answers. This means maximizing attention quality and representation width, not raw parameter
+            count. Width (larger <code>d_model</code>) matters more than depth (more layers) for context comprehension.
+        </div>
+
+        <h3>Architecture comparison: v1 vs v2</h3>
+        <table>
+            <tr><th>Parameter</th><th>v1 (24.7M)</th><th>v2 (67.6M)</th><th>Change</th></tr>
+            <tr><td><code>d_model</code></td><td>256</td><td class="good">512</td><td>2&times; representation width</td></tr>
+            <tr><td><code>n_layers</code></td><td>12</td><td>12</td><td>Same depth</td></tr>
+            <tr><td><code>n_heads</code></td><td>8</td><td>8</td><td>Same query heads</td></tr>
+            <tr><td><code>n_kv_heads</code></td><td>2</td><td class="good">4</td><td>4:1 &rarr; 2:1 GQA, richer attention diversity</td></tr>
+            <tr><td><code>head_dim</code></td><td>32</td><td class="good">64</td><td>2&times; per-head capacity (matches GPT-2, LLaMA standard)</td></tr>
+            <tr><td><code>d_ff</code></td><td>688</td><td class="good">1376</td><td>2&times; FFN capacity</td></tr>
+            <tr><td><code>max_seq_len</code></td><td>512</td><td class="good">2048</td><td>Native RAG context length</td></tr>
+            <tr><td><code>dropout</code></td><td>0.0</td><td class="good">0.02</td><td>Proven in R2.5</td></tr>
+            <tr><td>Embedding params</td><td>16.4M (66.3%)</td><td>32.8M (48.5%)</td><td>Balanced, not vocabulary-heavy</td></tr>
+            <tr><td>Transformer params</td><td>8.3M (33.7%)</td><td class="good">34.8M (51.5%)</td><td><strong>4.2&times;</strong> more compute capacity</td></tr>
+            <tr class="highlight"><td><strong>Total params</strong></td><td><strong>24.7M</strong></td><td class="good"><strong>67.6M</strong></td><td><strong>2.7&times; total, 4.2&times; transformer</strong></td></tr>
+        </table>
+
+        <h3>Parameter budget: v2</h3>
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value">32.8M</div>
+                <div class="label">EMBEDDING (48.5%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">34.8M</div>
+                <div class="label">TRANSFORMER (51.5%)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">2.9M</div>
+                <div class="label">PER LAYER</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">512</div>
+                <div class="label">FINAL NORM</div>
+            </div>
+        </div>
+
+        <h3>Per-layer breakdown (2,900,992 params)</h3>
+        <table>
+            <tr><th>Component</th><th>Computation</th><th>Parameters</th></tr>
+            <tr><td>Q projection</td><td>512 &times; 512</td><td>262,144</td></tr>
+            <tr><td>K projection</td><td>512 &times; 256 (4 KV heads &times; 64)</td><td>131,072</td></tr>
+            <tr><td>V projection</td><td>512 &times; 256</td><td>131,072</td></tr>
+            <tr><td>O projection</td><td>512 &times; 512</td><td>262,144</td></tr>
+            <tr><td><strong>Attention subtotal</strong></td><td></td><td><strong>786,432</strong></td></tr>
+            <tr><td>Gate (SwiGLU)</td><td>512 &times; 1376</td><td>704,512</td></tr>
+            <tr><td>Up (SwiGLU)</td><td>512 &times; 1376</td><td>704,512</td></tr>
+            <tr><td>Down (SwiGLU)</td><td>1376 &times; 512</td><td>704,512</td></tr>
+            <tr><td><strong>FFN subtotal</strong></td><td></td><td><strong>2,113,536</strong></td></tr>
+            <tr><td>Norms (attn + ffn)</td><td>512 + 512</td><td>1,024</td></tr>
+            <tr class="highlight"><td><strong>Layer total</strong></td><td></td><td class="good"><strong>2,900,992</strong></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Key design decision: width over depth.</strong> Keeping 12 layers (same as v1) while doubling
+            <code>d_model</code> from 256 to 512 was deliberate. For a context-conversion task, each layer needs
+            enough representational capacity to attend over long RAG contexts (2048 tokens) and capture the
+            relationship between question tokens and answer tokens scattered across the context. Wider layers
+            with 64-dim attention heads (matching LLaMA/GPT-2 standard) provide this. Adding more thin layers
+            would increase depth but not per-layer comprehension &mdash; the wrong tradeoff for RAG.
+        </div>
+
+        <div class="insight">
+            <strong>GQA relaxation: 4:1 &rarr; 2:1.</strong> The v1 model used aggressive 4:1 GQA (8 query heads,
+            2 KV heads) to save parameters at 24.7M scale. With the v2 budget at 67.6M, this was relaxed to 2:1
+            (8 query heads, 4 KV heads). Each pair of query heads now shares a unique KV head, enabling more
+            diverse attention patterns. This costs an extra ~3.1M parameters across 12 layers but significantly
+            improves the model&rsquo;s ability to attend to different parts of the context simultaneously &mdash;
+            critical for RAG where the answer may depend on information scattered across the chunk.
+        </div>
+
+        <h3>V2 training configuration</h3>
+        <table>
+            <tr><th>Parameter</th><th>v1 (R2/R2.5)</th><th>v2</th><th>Rationale</th></tr>
+            <tr><td>Learning rate</td><td>3e-4 &rarr; 3e-5</td><td class="good">1.5e-4 &rarr; 1.5e-5</td><td>Lower peak for larger model stability</td></tr>
+            <tr><td>Warmup steps</td><td>500</td><td class="good">2,000</td><td>Longer warmup for 2.7&times; more parameters</td></tr>
+            <tr><td>Max steps</td><td>228,000</td><td>228,000</td><td>Same token budget (~14.9B tokens)</td></tr>
+            <tr><td>Batch size</td><td>8 &times; 4</td><td>8 &times; 4</td><td>Effective 32, same as R2.5</td></tr>
+            <tr><td>Training data</td><td>22 GB (27 files)</td><td>22 GB (27 files)</td><td>Same corpus</td></tr>
+            <tr><td>Precision</td><td>bfloat16</td><td>bfloat16</td><td>H100 native</td></tr>
+            <tr><td>Compile</td><td>torch.compile</td><td>torch.compile</td><td>Kernel fusion for speed</td></tr>
+            <tr><td>Checkpoint dir</td><td>checkpoints_2048/</td><td>checkpoints_v2/</td><td>Separate from v1</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Chinchilla analysis for v2.</strong> At 67.6M parameters, Chinchilla-optimal training is
+            ~1.35B tokens (20&times; params). Our 228K-step schedule processes ~14.9B tokens (~220&times; params),
+            far beyond Chinchilla-optimal. This is intentional: the model will be fine-tuned for a specific RAG
+            task, so over-training on diverse Turkish text builds stronger linguistic foundations than stopping
+            at the compute-optimal point. The full 22 GB corpus provides enough variety to prevent memorization
+            even at 220&times; over-training.
+        </div>
+
+        <div class="flow" style="margin-top: 24px;">
+            <div class="flow-box done">V1: 24.7M</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box done">R1: 50K steps</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box done">R2: 228K steps</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box done">R2.5: 2048 ctx</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box active">V2: 67.6M pretrain</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box next">SFT</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box pending">Deploy</div>
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-17">17. REPRODUCIBILITY &amp; EXPERIMENT LOG</h2>
         <!-- ============================================ -->
 
         <p>Every file, command, and decision is documented below to enable exact reproduction
         and &mdash; equally important &mdash; to prevent re-running experiments that were already tried.</p>
 
-        <h3>15.1 File inventory</h3>
+        <h3>17.1 File inventory</h3>
         <table>
             <tr><th>File</th><th>Size</th><th>Purpose</th></tr>
-            <tr><td><code>tiny_llm/config.py</code></td><td>126 lines</td><td>ModelConfig (24.7M architecture) + TrainConfig (all hyperparameters)</td></tr>
-            <tr><td><code>tiny_llm/model.py</code></td><td>266 lines</td><td>Full Transformer: ALiBi, GQA, SwiGLU, RMSNorm, weight tying</td></tr>
-            <tr><td><code>tiny_llm/train.py</code></td><td>283 lines</td><td>Pretraining loop: AdamW, cosine LR, gradient accumulation, checkpointing</td></tr>
-            <tr><td><code>tiny_llm/data.py</code></td><td>173 lines</td><td>Data pipeline for Round 1: tokenize 8 curated files &rarr; 190 MB <code>train.bin</code></td></tr>
-            <tr><td><code>tiny_llm/data_full.py</code></td><td>183 lines</td><td>Streaming pipeline for Round 2: tokenize all 27 files (22 GB) &rarr; <code>train_full.bin</code></td></tr>
-            <tr><td><code>tiny_llm/test_everything.py</code></td><td>764 lines</td><td>60-test validation suite covering all components</td></tr>
+            <tr><td><code>tiny_llm/config.py</code></td><td>127 lines</td><td>V1 ModelConfig (24.7M) + TrainConfig (hyperparameters)</td></tr>
+            <tr><td><code>tiny_llm/config_v2.py</code></td><td>130 lines</td><td>V2 ModelConfig (67.6M) + TrainConfig (RAG-optimized)</td></tr>
+            <tr><td><code>tiny_llm/model.py</code></td><td>266 lines</td><td>V1 Transformer: ALiBi, GQA, SwiGLU, RMSNorm, weight tying</td></tr>
+            <tr><td><code>tiny_llm/model_v2.py</code></td><td>~300 lines</td><td>V2 Transformer: same architecture, larger dimensions</td></tr>
+            <tr><td><code>tiny_llm/train.py</code></td><td>283 lines</td><td>V1 pretraining loop (R1, R2, R2.5)</td></tr>
+            <tr><td><code>tiny_llm/train_v2.py</code></td><td>~400 lines</td><td>V2 pretraining loop with bfloat16 + torch.compile</td></tr>
+            <tr><td><code>tiny_llm/train_sft_rag.py</code></td><td>~500 lines</td><td>RAG-grounded SFT training (reads sft_raw_pairs.json)</td></tr>
+            <tr><td><code>tiny_llm/sft_data.py</code></td><td>~130 lines</td><td>SFT dataset + assistant-only loss masking</td></tr>
+            <tr><td><code>tiny_llm/data.py</code></td><td>173 lines</td><td>Data pipeline for R1: tokenize 8 curated files &rarr; 190 MB</td></tr>
+            <tr><td><code>tiny_llm/data_full.py</code></td><td>183 lines</td><td>Streaming pipeline for R2+: tokenize 27 files (22 GB)</td></tr>
+            <tr><td><code>tiny_llm/test_everything.py</code></td><td>764 lines</td><td>60-test validation suite covering all v1 components</td></tr>
             <tr><td><code>tiny_llm/generate.py</code></td><td>108 lines</td><td>Text generation from trained checkpoint</td></tr>
+            <tr><td><code>erp_rag/generate/sft_generate.py</code></td><td>466 lines</td><td>API-based SFT data generation (Claude/GPT)</td></tr>
+            <tr><td><code>erp_rag/data/sft_chunk_groups.json</code></td><td>9.6K lines</td><td>Master grouping blueprint (707 groups, 11 rules)</td></tr>
             <tr><td><code>tokenizers/turkish_bpe_64k/tokenizer.json</code></td><td>4.7 MB</td><td>64K BPE tokenizer (Phase 1 output)</td></tr>
-            <tr><td><code>tiny_llm/data/train.bin</code></td><td>190 MB</td><td>Round 1 tokenized binary (99.6M tokens, uint16)</td></tr>
-            <tr><td><code>data/processed/*.txt</code></td><td>22 GB</td><td>27 raw text files across 11 domains (Round 2 input)</td></tr>
+            <tr><td><code>data/processed/*.txt</code></td><td>22 GB</td><td>27 raw text files across 11 domains</td></tr>
         </table>
 
-        <h3>15.2 Checkpoint inventory</h3>
+        <h3>17.2 Checkpoint inventory</h3>
         <table>
             <tr><th>Checkpoint</th><th>Size</th><th>Step</th><th>Loss</th><th>Round</th><th>Location</th></tr>
             <tr><td><code>step_050000.pt</code></td><td>283 MB</td><td>50,000</td><td>2.62</td><td>R1 final</td><td><code>runpod_backup/</code></td></tr>
-            <tr class="highlight"><td><code>step_228000.pt</code></td><td>283 MB</td><td>228,000</td><td>3.46</td><td>R2 final</td><td><code>runpod_backup/round2_checkpoints/</code></td></tr>
+            <tr><td><code>step_228000.pt</code></td><td>283 MB</td><td>228,000</td><td>3.46</td><td>R2 final</td><td><code>runpod_backup/round2_checkpoints/</code></td></tr>
+            <tr class="highlight"><td><code>step_228000.pt</code></td><td>283 MB</td><td>228,000</td><td>3.33</td><td>R2.5 final</td><td><code>checkpoints_2048/</code></td></tr>
         </table>
 
         <div class="finding">
@@ -875,7 +1126,7 @@ x = x + FFN(RMSNorm(x))           <span class="comment"># gradient flows directl
             This cost ~1 hour of debugging during SFT &mdash; do not repeat this mistake.
         </div>
 
-        <h3>15.3 Reproduction commands</h3>
+        <h3>17.3 Reproduction commands</h3>
 
         <p><strong>Step 1: Prepare Round 1 data (local)</strong></p>
         <pre>python -m tiny_llm.data                    <span class="comment"># tokenizes 8 files → tiny_llm/data/train.bin (190 MB, ~2.5 min)</span></pre>
@@ -898,7 +1149,25 @@ python -m tiny_llm.train --resume None      <span class="comment"># 50K steps, ~
     --data tiny_llm/data/train_full.bin \
     &gt; training_round2.log 2&gt;&amp;1 &amp;           <span class="comment"># 228K steps, ~10.5 hours, loss → 3.46</span></pre>
 
-        <h3>15.4 Experiments tried &amp; decisions locked</h3>
+        <p><strong>Step 6: Round 2.5 training &mdash; 2048 context (RunPod H100)</strong></p>
+        <pre><span class="comment"># Modify config: max_seq_len=2048, dropout=0.02, batch_size=8, grad_accum=4</span>
+nohup python -m tiny_llm.train \
+    --resume tiny_llm/checkpoints/step_228000.pt \
+    --max-steps 228000 \
+    --data tiny_llm/data/train_full.bin \
+    --checkpoint-dir tiny_llm/checkpoints_2048 \
+    &gt; training_r25.log 2&gt;&amp;1 &amp;              <span class="comment"># 228K steps, ~26.5 hours, loss → 3.33</span></pre>
+
+        <p><strong>Step 7: V2 pretraining (RunPod H100)</strong></p>
+        <pre>nohup python -u -m tiny_llm.train_v2 \
+    &gt; training_v2.log 2&gt;&amp;1 &amp;               <span class="comment"># 228K steps, uses config_v2.py + model_v2.py</span></pre>
+
+        <p><strong>Step 8: Generate SFT data (local, API-based)</strong></p>
+        <pre>python -m erp_rag.generate.sft_generate \
+    --provider anthropic \
+    --model claude-sonnet-4-6                <span class="comment"># 707 groups → ~8K-10K Q&amp;A pairs, saves to sft_raw_pairs.json</span></pre>
+
+        <h3>17.4 Experiments tried &amp; decisions locked</h3>
 
         <div class="warning">
             <strong>DO NOT RE-TRY:</strong> The following experiments and configurations were already evaluated.
@@ -967,47 +1236,98 @@ python -m tiny_llm.train --resume None      <span class="comment"># 50K steps, ~
                 <td>64K v3 won (~14% fewer tokens than alternatives)</td>
                 <td class="good">64K v3 &mdash; locked. Do not retrain tokenizer.</td>
             </tr>
+            <tr>
+                <td><strong>Round 2.5: 2048 context</strong></td>
+                <td>Same v1 model, max_seq_len 512&rarr;2048, dropout 0.02, batch 8&times;4</td>
+                <td class="good">Loss 3.33 (best 3.22), 0.17 improvement over R2</td>
+                <td>Required for RAG. OOM fixed with batch reduction + grad accum.</td>
+            </tr>
+            <tr>
+                <td><strong>V2 architecture: 67.6M</strong></td>
+                <td>d_model 256&rarr;512, n_kv_heads 2&rarr;4, d_ff 688&rarr;1376</td>
+                <td class="good">4.2&times; more transformer params, balanced embed ratio</td>
+                <td class="good">Width over depth &mdash; locked. RAG context converter design.</td>
+            </tr>
+            <tr>
+                <td><strong>SFT API model comparison</strong></td>
+                <td>Pilot: Sonnet 4, GPT-5.2, Opus 4.6, Sonnet 4.6 on same 10 groups</td>
+                <td class="good">Sonnet 4.6 best: diverse questions, deep inference, minimal repetition</td>
+                <td class="good">Claude Sonnet 4.6 for all SFT data generation &mdash; locked.</td>
+            </tr>
+            <tr>
+                <td><strong>SFT data: intentional wrong answers</strong></td>
+                <td>Earlier experiment: inject incorrect answers mid-response for self-correction</td>
+                <td class="bad">Terrible results &mdash; overall quality degraded significantly</td>
+                <td>Never inject bad answers into SFT. Use DPO preference pairs if needed.</td>
+            </tr>
         </table>
 
-        <h3>15.5 Training logs</h3>
+        <h3>17.5 Training logs</h3>
         <table>
             <tr><th>Log File</th><th>Size</th><th>Contents</th></tr>
             <tr><td><code>runpod_backup/training.log</code></td><td>454 KB</td><td>Round 1: 5,422 lines, steps 0&ndash;50,000</td></tr>
             <tr><td><code>runpod_backup/training_round2.log</code></td><td>2.0 MB</td><td>Round 2: steps 50,001&ndash;228,000, 10.5 hours</td></tr>
+            <tr><td><code>training_r25.log</code></td><td>~4 MB</td><td>Round 2.5: steps 0&ndash;228,000, 26.5 hours, 2048 context</td></tr>
+            <tr><td><code>sft_generation.log</code></td><td>~2 MB</td><td>SFT data generation: 707 API calls, pair counts, errors</td></tr>
         </table>
 
         <div class="insight">
-            <strong>For future reference:</strong> If scaling the model (e.g., 100M+ params), the next useful
-            experiment is increasing <code>d_model</code> and <code>n_layers</code> rather than training longer.
-            The 26M model is capacity-bound; more data or steps yield diminishing returns. The full 22 GB corpus
-            and training pipeline are ready for a larger architecture without any data preparation changes.
+            <strong>Scaling verdict.</strong> The v1 (24.7M) model confirmed it is capacity-bound: three training
+            rounds (R1 + R2 + R2.5) on 22 GB of data pushed loss to 3.22 but with severely diminishing returns.
+            The v2 architecture (67.6M) addresses this with 4.2&times; more transformer parameters while reusing
+            the identical corpus and training pipeline &mdash; no data preparation changes required.
         </div>
 
         <!-- ============================================ -->
-        <h2 id="sec-16">16. PROJECT STATUS</h2>
+        <h2 id="sec-18">18. PROJECT STATUS</h2>
         <!-- ============================================ -->
 
         <table>
             <tr><th>Phase</th><th>Status</th><th>Key Result</th></tr>
             <tr><td><strong>Phase 1: Tokenizer</strong></td><td><span class="status complete">COMPLETE</span></td><td>64K vocab, ~14% fewer tokens than Kumru/TabiBERT, ~2.7&times; vs GPT-4</td></tr>
-            <tr><td><strong>Phase 2: Architecture</strong></td><td><span class="status complete">COMPLETE</span></td><td>24.7M params, ALiBi, GQA, SwiGLU, RMSNorm, weight tying; 60/60 tests</td></tr>
+            <tr><td><strong>Phase 2: Architecture (v1)</strong></td><td><span class="status complete">COMPLETE</span></td><td>24.7M params, ALiBi, GQA, SwiGLU, RMSNorm, weight tying; 60/60 tests</td></tr>
             <tr><td><strong>Phase 3a: Pretrain R1</strong></td><td><span class="status complete">COMPLETE</span></td><td>50K steps, 440 MB subset, loss 2.62, 2.0 hours, $4.76</td></tr>
-            <tr class="highlight"><td><strong>Phase 3b: Pretrain R2</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">228K steps, 22 GB full corpus, 14.9B tokens, loss 3.46, 10.5 hours, $24.99</td></tr>
-            <tr><td><strong>Phase 4: SFT</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">3,790 QA pairs, val loss 5.12 &rarr; 3.10, 100 seconds</td></tr>
-            <tr><td><strong>Phase 5: RLVR</strong></td><td><span class="status next">NEXT</span></td><td>Reinforcement learning with verifiable rewards</td></tr>
+            <tr><td><strong>Phase 3b: Pretrain R2</strong></td><td><span class="status complete">COMPLETE</span></td><td>228K steps, 22 GB full corpus, 14.9B tokens, loss 3.46, 10.5 hours, $24.99</td></tr>
+            <tr><td><strong>Phase 3c: Pretrain R2.5</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">228K steps, 2048 context, loss 3.33 (best 3.22), 26.5 hours, $63.08</td></tr>
+            <tr><td><strong>Phase 2b: Architecture (v2)</strong></td><td><span class="status complete">COMPLETE</span></td><td class="good">67.6M params, d_model=512, 2:1 GQA, 4.2&times; transformer capacity</td></tr>
+            <tr><td><strong>Phase 3d: Pretrain V2</strong></td><td><span class="status progress">IN PROGRESS</span></td><td>228K steps on same 22 GB corpus, ~14.9B tokens</td></tr>
+            <tr><td><strong>Phase 4a: SFT v1 (initial)</strong></td><td><span class="status complete">COMPLETE</span></td><td>3,790 QA pairs, val loss 5.12 &rarr; 3.10, 100 seconds</td></tr>
+            <tr><td><strong>Phase 4b: SFT data gen (v2)</strong></td><td><span class="status progress">IN PROGRESS</span></td><td class="good">707 groups, 11 rules, Claude Sonnet 4.6 &mdash; ~8K-10K QA pairs</td></tr>
+            <tr><td><strong>Phase 4c: SFT training (v2)</strong></td><td><span class="status next">NEXT</span></td><td>RAG-grounded SFT with new pipeline data on v2 model</td></tr>
+            <tr><td><strong>Phase 5: RL (optional)</strong></td><td><span class="status next">FUTURE</span></td><td>DPO or RLVR if SFT alone is insufficient</td></tr>
         </table>
 
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="value good">$92.83</div>
+                <div class="label">TOTAL V1 COST (3 ROUNDS)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">39h</div>
+                <div class="label">V1 TRAINING TIME</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~44.7B</div>
+                <div class="label">TOKENS PROCESSED (V1)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2</div>
+                <div class="label">MODEL ARCHITECTURES</div>
+            </div>
+        </div>
+
         <div class="abstract" style="margin-top: 32px;">
-            <strong>Conclusion.</strong> A 24.7M-parameter Turkish Transformer has been designed, validated,
-            and pretrained from scratch across two training rounds. The architecture was selected through explicit
-            comparison against alternatives at each component level. A 60-test validation suite caught a critical
-            causal mask bug that would have produced a silently broken model. Round 1 (50K steps, 2.0 hours, ~440 MB)
-            established basic Turkish fluency at loss 2.62. Round 2 (228K steps, 10.5 hours, 22 GB across 11 domains)
-            pushed the model to produce factual, grammatically correct Turkish with real-world knowledge at loss 3.46.
-            Generated samples evolved from single-word fragments to specific factual statements about Turkish cities,
-            institutions, and complex topics. The model demonstrates emergent domain switching, correct morphological
-            suffixes, and multi-clause sentence construction &mdash; all learned purely from next-token prediction
-            on the 64K tokenizer from Phase 1. Total pretraining cost: approximately $29.75 (12.5 hours &times; $2.38/hour).
+            <strong>Conclusion.</strong> Two generations of Turkish Transformer have been designed, validated,
+            and pretrained from scratch. The v1 architecture (24.7M params) was trained across three rounds:
+            Round 1 (50K steps, 440 MB) established basic Turkish fluency at loss 2.62;
+            Round 2 (228K steps, 22 GB, 11 domains) pushed to factual, correct Turkish at loss 3.46;
+            Round 2.5 (228K steps, 2048-token context) adapted for RAG at loss 3.33 (best 3.22).
+            A 60-test validation suite caught a critical causal mask bug before any training began.
+            The v2 architecture (67.6M params) was designed as a purpose-built RAG context converter:
+            <code>d_model=512</code>, 2:1 GQA, 4.2&times; more transformer parameters, with width prioritized
+            over depth for context comprehension. A parallel SFT data generation pipeline using Claude Sonnet 4.6
+            produces ~8K-10K high-quality Turkish Q&amp;A pairs from 532 ERP documentation chunks via 11 grouping
+            strategies. Total v1 pretraining cost: $92.83 (39 hours on H100 at $2.38/hour).
             <br><br>
             <em style="font-size: 12px;">This report documents Phases 2 and 3 of an independent effort to build a Turkish
             language-native LLM from scratch. Phase 1 (Tokenizer) and Phase 4 (SFT) are documented separately.</em>

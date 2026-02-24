@@ -105,6 +105,7 @@
         .stat-box .label { font-size: 10px; color: #666; margin-top: 2px; }
         .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
         .stat-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+        .stat-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0; }
 
         .report table { width: auto; border-collapse: collapse; border: 2px solid #000; margin: 16px 0; }
         .report tr:first-child { background: #f3f4f6; border-bottom: 2px solid #000; }
@@ -155,7 +156,7 @@
         @media (max-width: 768px) {
             .nav-center { display: none; }
             .report { padding: 16px; }
-            .stat-grid, .stat-grid-3, .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .stat-grid, .stat-grid-3, .stat-grid-5, .stat-grid-6 { grid-template-columns: repeat(2, 1fr); }
             .nav-container { padding: 0 16px; }
             .flow { flex-direction: column; }
         }
@@ -176,8 +177,8 @@
     <main class="report">
         <a href="token-sequencer.html" class="back-link">Back to Research</a>
         <h1>SUPERVISED FINE-TUNING (SFT)</h1>
-        <p class="subtitle">Phase 4 &mdash; Teaching a 24.7M Turkish LLM to Be an ERP Assistant</p>
-        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status complete">COMPLETE</span></p>
+        <p class="subtitle">Phase 4 &mdash; From 3,790 to 10,000 QA Pairs: Two Generations of ERP Assistant Training</p>
+        <p class="authors">February 2026 &bull; Independent Research &bull; <span class="status progress">IN PROGRESS</span></p>
 
         <div class="stat-grid">
             <div class="stat-box">
@@ -226,7 +227,8 @@
                 <a href="#sec-10" style="text-decoration: none; color: var(--fg); display: block;"><strong>10.</strong> Results</a>
                 <a href="#sec-11" style="text-decoration: none; color: var(--fg); display: block;"><strong>11.</strong> Model Outputs</a>
                 <a href="#sec-12" style="text-decoration: none; color: var(--fg); display: block;"><strong>12.</strong> Analysis &amp; Next Steps</a>
-                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> Reproducibility</a>
+                <a href="#sec-13" style="text-decoration: none; color: var(--fg); display: block;"><strong>13.</strong> V2 SFT Pipeline Redesign</a>
+                <a href="#sec-14" style="text-decoration: none; color: var(--fg); display: block;"><strong>14.</strong> Reproducibility</a>
             </div>
         </div>
 
@@ -751,7 +753,144 @@ QR kod her hammaddeye atanan benzersiz bir takip kodudur...
         </table>
 
         <!-- ============================================ -->
-        <h2 id="sec-13">13. REPRODUCIBILITY</h2>
+        <h2 id="sec-13">13. V2 SFT PIPELINE REDESIGN</h2>
+        <!-- ============================================ -->
+
+        <p>The v1 SFT (3,790 pairs from Claude Opus 4.5) proved the concept but exposed limitations:
+        only 320 of 529 chunks were processed before API credits ran out, the grouping strategy was
+        basic (individual chunks only), and the 512-token context couldn&rsquo;t fit real RAG prompts.
+        The v2 pipeline was redesigned from scratch for the 67.6M RAG-optimized model.</p>
+
+        <div class="stat-grid-5">
+            <div class="stat-box">
+                <div class="value good">707</div>
+                <div class="label">CHUNK GROUPS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">11</div>
+                <div class="label">GROUPING RULES</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">532</div>
+                <div class="label">SOURCE CHUNKS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">408K</div>
+                <div class="label">INPUT TOKENS</div>
+            </div>
+            <div class="stat-box">
+                <div class="value good">~8&ndash;10K</div>
+                <div class="label">TARGET QA PAIRS</div>
+            </div>
+        </div>
+
+        <h3>Why redesign?</h3>
+        <ul>
+            <li><strong>Coverage gap:</strong> v1 only processed 60% of chunks. v2 processes all 532 chunks in multiple configurations.</li>
+            <li><strong>Single-chunk limitation:</strong> v1 generated Q&amp;A from individual chunks only. v2 uses 11 grouping rules that combine chunks by submodule, module, cross-module, data flow, and more &mdash; producing questions that require synthesizing information across chunks.</li>
+            <li><strong>Model upgrade:</strong> v2 targets a 67.6M model with 2048-token context, enabling much richer RAG prompts with longer context chunks.</li>
+            <li><strong>API model quality:</strong> v1 used Claude Opus 4.5. A 4-way comparison showed Claude Sonnet 4.6 produces superior question diversity and inference depth.</li>
+        </ul>
+
+        <h3>Master grouping strategy: 11 rules</h3>
+        <p>Each rule produces a different perspective on the same documentation, forcing diverse question types:</p>
+        <table>
+            <tr><th>#</th><th>Rule</th><th>Groups</th><th>Tokens</th><th>Description</th></tr>
+            <tr><td>1</td><td><strong>Individual</strong></td><td>532</td><td>107K</td><td>Each chunk alone &mdash; factual, definition, basic procedure questions</td></tr>
+            <tr><td>2</td><td><strong>Submodule</strong></td><td>86</td><td>107K</td><td>Chunks grouped by submodule &mdash; cross-chunk synthesis within a feature</td></tr>
+            <tr><td>3</td><td><strong>Module</strong></td><td>8</td><td>107K</td><td>All chunks per module &mdash; high-level architectural questions</td></tr>
+            <tr><td>4</td><td><strong>Vertical stack</strong></td><td>10</td><td>13K</td><td>Same feature at different depths (overview &rarr; detail &rarr; API)</td></tr>
+            <tr><td>5</td><td><strong>Horizontal siblings</strong></td><td>16</td><td>18K</td><td>Parallel features at same depth &mdash; comparison questions</td></tr>
+            <tr><td>6</td><td><strong>Cross-module</strong></td><td>6</td><td>7K</td><td>Related features across different modules</td></tr>
+            <tr><td>7</td><td><strong>Overview + detail</strong></td><td>18</td><td>18K</td><td>Module overview paired with specific submodule details</td></tr>
+            <tr><td>8</td><td><strong>Data flow chain</strong></td><td>4</td><td>7K</td><td>Sequential process chains (e.g., order &rarr; production &rarr; delivery)</td></tr>
+            <tr><td>9</td><td><strong>Foundation + consumer</strong></td><td>10</td><td>6K</td><td>Base definitions paired with features that use them</td></tr>
+            <tr><td>10</td><td><strong>Shared DB tables</strong></td><td>13</td><td>16K</td><td>Features sharing database tables &mdash; data integration questions</td></tr>
+            <tr><td>11</td><td><strong>Module map</strong></td><td>4</td><td>3K</td><td>Full module structure maps for navigation questions</td></tr>
+            <tr class="highlight"><td></td><td><strong>Total</strong></td><td><strong>707</strong></td><td class="good"><strong>408K</strong></td><td></td></tr>
+        </table>
+
+        <div class="discovery">
+            <strong>Distribution note.</strong> Rule 1 (individual chunks) produces 75% of all groups (532/707)
+            and ~80% of expected QA pairs. This is intentional: the majority of real user queries will be
+            answerable from a single retrieved chunk. The remaining 10 rules (175 groups, ~20% of pairs)
+            train the model on harder multi-chunk reasoning that occurs when the retriever returns related
+            but separate passages.
+        </div>
+
+        <h3>API model comparison: 4-way pilot</h3>
+        <p>Before committing to a single API model for all 707 groups, a controlled pilot was run on the
+        same 10 chunk groups with 4 different models:</p>
+        <table>
+            <tr><th>Model</th><th>Pairs</th><th>Question Diversity</th><th>Answer Depth</th><th>Inference Quality</th><th>Repetition</th></tr>
+            <tr><td><strong>Claude Sonnet 4</strong></td><td>99</td><td class="bad">Low &mdash; mostly factual</td><td>Adequate</td><td class="bad">Shallow</td><td>Some</td></tr>
+            <tr><td><strong>GPT-5.2</strong></td><td>101</td><td>Moderate</td><td>Good</td><td>Good</td><td>Minimal</td></tr>
+            <tr><td><strong>Claude Opus 4.6</strong></td><td>100</td><td>Good</td><td class="good">Excellent</td><td class="good">Very good</td><td>Minimal</td></tr>
+            <tr class="highlight"><td class="good"><strong>Claude Sonnet 4.6</strong></td><td>100</td><td class="good">Excellent</td><td class="good">Excellent</td><td class="good">Best &mdash; deep inference</td><td class="good">Minimal</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>Winner: Claude Sonnet 4.6.</strong> Sonnet 4.6 produced the most diverse question types
+            (factual, procedural, comparative, inferential, list) with the deepest inference-based questions.
+            It consistently generated questions that require combining information from multiple parts of the
+            context, rather than simple lookups. Sonnet 4 was notably weaker &mdash; its questions were almost
+            entirely factual with shallow answers. Opus 4.6 was close but slightly less diverse.
+        </div>
+
+        <h3>V2 prompt engineering</h3>
+        <p>The data generation uses a two-level prompt architecture:</p>
+
+        <p><strong>1. SFT system prompt</strong> (embedded in every training example, 38 tokens):</p>
+        <pre>ERP sistemi asistanısın. Verilen bağlam bilgilerini kullanarak
+soruyu yanıtla. Bağlamda cevap yoksa "Bu konuda bilgim yok" de.</pre>
+
+        <div class="insight">
+            <strong>System prompt design decisions:</strong>
+            <ul style="margin-top: 8px;">
+                <li>Proper Turkish characters (ı, ş, ü, ö, ç, ğ) &mdash; v1&rsquo;s <code>SYSTEM_TR</code> used ASCII approximations, fixed here</li>
+                <li>No audience restriction &mdash; model answers both office workers and technical users</li>
+                <li>No format instructions &mdash; the model learns formatting from examples, not from the system prompt</li>
+                <li>Built-in grounding: &ldquo;if not in context, say I don&rsquo;t know&rdquo;</li>
+                <li>38 tokens is ultra-short &mdash; critical for a 2048-token context budget</li>
+            </ul>
+        </div>
+
+        <p><strong>2. API system prompt</strong> (sent to Claude Sonnet 4.6, not seen by the model):</p>
+        <p>A detailed Turkish-language instruction set covering:</p>
+        <ul>
+            <li><strong>6 core rules:</strong> context-only answers, natural questions, complete/correct, use technical terms as-is, independent pairs, no repetition</li>
+            <li><strong>5 question types:</strong> olgusal (factual), pros&uuml;d&uuml;rel (procedural), karşılaştırmalı (comparative), çıkarımsal (inferential), liste (list)</li>
+            <li><strong>4 answer formats:</strong> numbered steps for procedures, short paragraphs for definitions, bullet lists for enumerations, concise explanations for comparisons</li>
+            <li><strong>3 difficulty levels:</strong> kolay ~40% (single-fact lookup), orta ~40% (multi-fact synthesis), zor ~20% (inference/comparison)</li>
+            <li><strong>Dynamic pair count:</strong> 5&ndash;28 pairs per group based on input token count</li>
+        </ul>
+
+        <h3>V2 generation: current progress</h3>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Groups processed</td><td>618 / 707</td></tr>
+            <tr><td>QA pairs generated</td><td class="good">5,794</td></tr>
+            <tr><td>By type: olgusal</td><td>3,024 (52.2%)</td></tr>
+            <tr><td>By type: çıkarımsal</td><td>884 (15.3%)</td></tr>
+            <tr><td>By type: liste</td><td>722 (12.5%)</td></tr>
+            <tr><td>By type: pros&uuml;d&uuml;rel</td><td>695 (12.0%)</td></tr>
+            <tr><td>By type: karşılaştırmalı</td><td>469 (8.1%)</td></tr>
+            <tr><td>By difficulty: kolay</td><td>3,008 (51.9%)</td></tr>
+            <tr><td>By difficulty: orta</td><td>1,927 (33.3%)</td></tr>
+            <tr><td>By difficulty: zor</td><td>859 (14.8%)</td></tr>
+            <tr><td>API model</td><td>Claude Sonnet 4.6</td></tr>
+            <tr><td>Output file</td><td><code>erp_rag/data/sft_raw_pairs.json</code> (21.8 MB)</td></tr>
+        </table>
+
+        <div class="finding">
+            <strong>V1 &rarr; V2 scale comparison.</strong> V1 produced 3,790 pairs from 320 individual chunks
+            using Claude Opus 4.5. V2 will produce ~8,000&ndash;10,000 pairs from 707 multi-configuration groups
+            using Claude Sonnet 4.6 &mdash; a 2.1&ndash;2.6&times; increase in data volume with substantially
+            higher question diversity (11 grouping rules vs 1).
+        </div>
+
+        <!-- ============================================ -->
+        <h2 id="sec-14">14. REPRODUCIBILITY</h2>
         <!-- ============================================ -->
 
         <h3>Complete file inventory</h3>
@@ -842,21 +981,24 @@ python -m tiny_llm.chat</pre>
 
         <div class="insight">
             <strong>Cost breakdown for the entire project (Phases 1&ndash;4):</strong>
-            Tokenizer training: free (CPU). Pretraining R1: ~$4.76 (RunPod H100, 2.0h &times; $2.38/hr).
-            Pretraining R2: ~$24.99 (RunPod H100, 10.5h &times; $2.38/hr). QA data generation: ~$20 (Claude Opus 4.5 API).
-            SFT training: &lt;$0.10 (100 seconds on H100). <strong>Total: ~$49.85.</strong>
+            Tokenizer training: free (CPU).
+            Pretraining v1 (R1+R2+R2.5): ~$92.83 (39h &times; $2.38/hr).
+            V1 SFT data generation: ~$20 (Claude Opus 4.5 API).
+            V1 SFT training: &lt;$0.10 (100 seconds on H100).
+            V2 SFT data generation: ~$20&ndash;25 (Claude Sonnet 4.6 API, estimated).
+            <strong>Total so far: ~$133&ndash;138 (excluding v2 pretraining).</strong>
         </div>
 
         <div class="abstract" style="margin-top: 32px;">
-            <strong>Conclusion.</strong> Supervised fine-tuning successfully transformed a general Turkish language model
-            into a domain-specific ERP assistant. The pipeline &mdash; from ERP documentation through synthetic QA generation
-            to chat-template-aware training &mdash; was built entirely from scratch, with no pretrained models, no
-            HuggingFace trainers, and no off-the-shelf instruction datasets. Every component is custom: the tokenizer
-            (Phase 1), the architecture (Phase 2), the pretraining (Phase 3), the data generation pipeline, and the
-            SFT training loop. In 100 seconds of fine-tuning, the model learned to follow a conversation pattern and
-            answer ERP questions in Turkish. The approach demonstrates that domain-specific AI assistants can be built
-            from the ground up at minimal cost &mdash; ~$30 for pretraining, ~$20 for data generation, and 100 seconds
-            for fine-tuning. <strong>Total project cost: ~$50.</strong>
+            <strong>Conclusion.</strong> Two generations of SFT have been built for this project. V1 proved the concept:
+            3,790 QA pairs from Claude Opus 4.5 transformed a 24.7M pretrained model into a functional ERP assistant
+            in 100 seconds. V2 redesigns everything at scale: 11 grouping strategies produce 707 chunk groups from 532
+            ERP documentation chunks; Claude Sonnet 4.6 (selected via 4-way comparative pilot) generates ~8,000&ndash;10,000
+            diverse QA pairs spanning factual, procedural, comparative, inferential, and list-type questions at three
+            difficulty levels. The target model (67.6M v2 with 2048-token context) was purpose-built as a RAG context
+            converter. The entire pipeline &mdash; tokenizer, architecture, pretraining, data generation, SFT training &mdash;
+            remains built from scratch with no pretrained weights, no HuggingFace trainers, and no off-the-shelf datasets.
+            <strong>Total project cost to date: ~$135.</strong>
         </div>
 
         <p style="text-align: center; margin-top: 40px; font-size: 11px; color: #888;">

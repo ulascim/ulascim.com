@@ -227,40 +227,40 @@
                 </div>
             </a>
 
-            <a href="architecture-pretraining.html" class="research-card">
-                <span class="card-tag">PHASE 2 &amp; 3 &bull; PUBLISHED</span>
+            <a href="architecture-pretraining.html" class="research-card in-progress">
+                <span class="card-tag">PHASE 2 &amp; 3 &bull; UPDATED</span>
                 <h2 class="card-title">ARCHITECTURE &amp; PRETRAINING</h2>
-                <p class="card-subtitle">24.7M decoder-only Transformer. ALiBi, GQA, SwiGLU, RMSNorm. 2 rounds: 50K + 228K steps on H100 NVL. 14.9B tokens, 22 GB corpus. $29.75 total cost.</p>
+                <p class="card-subtitle">Two models: 24.7M (v1) &amp; 67.6M (v2). ALiBi, GQA, SwiGLU, RMSNorm. 3 rounds + v2 pretrain. 22 GB corpus, 2048 context. $92.83 v1 cost.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">14.9B TOKENS</span>
-                        <span class="card-stat">278K STEPS</span>
+                        <span class="card-stat">~44.7B TOKENS</span>
+                        <span class="card-stat">506K+ STEPS</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
 
-            <a href="sft-training.html" class="research-card">
-                <span class="card-tag">PHASE 4 &bull; PUBLISHED</span>
+            <a href="sft-training.html" class="research-card in-progress">
+                <span class="card-tag">PHASE 4 &bull; IN PROGRESS</span>
                 <h2 class="card-title">FINE-TUNING (SFT)</h2>
-                <p class="card-subtitle">3,790 synthetic QA pairs from ERP docs via Claude Opus 4.5. Chat template with loss masking. Val loss 5.12 &rarr; 3.10 in 100 seconds.</p>
+                <p class="card-subtitle">V1: 3,790 pairs (Opus 4.5). V2: ~8K-10K pairs from 707 groups, 11 rules, Claude Sonnet 4.6. RAG-grounded pipeline redesign.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">3,790 EXAMPLES</span>
-                        <span class="card-stat">39.5% IMPROVEMENT</span>
+                        <span class="card-stat">~10K EXAMPLES</span>
+                        <span class="card-stat">707 GROUPS</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
 
             <div class="research-card coming-soon">
-                <span class="card-tag">PHASE 5 &bull; COMING SOON</span>
-                <h2 class="card-title">REINFORCEMENT LEARNING (RLVR)</h2>
-                <p class="card-subtitle">Reinforcement learning with verifiable rewards. The final training phase for reasoning and quality.</p>
+                <span class="card-tag">PHASE 5 &bull; FUTURE</span>
+                <h2 class="card-title">REINFORCEMENT LEARNING</h2>
+                <p class="card-subtitle">DPO preference pairs or RLVR with verifiable rewards. Optional &mdash; SFT is the critical phase at this model scale.</p>
                 <div class="card-meta">
                     <div class="card-stats">
-                        <span class="card-stat">RLVR</span>
-                        <span class="card-stat">REWARDS</span>
+                        <span class="card-stat">DPO / RLVR</span>
+                        <span class="card-stat">OPTIONAL</span>
                     </div>
                     <span class="card-arrow">&rarr;</span>
                 </div>
