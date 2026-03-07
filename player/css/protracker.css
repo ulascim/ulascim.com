@@ -481,3 +481,162 @@ html, body {
 #loading .title { font-size: 24px; color: var(--text-yellow); text-transform: uppercase; }
 #loading .status { font-size: 14px; color: var(--text-cyan); }
 #loading.hidden { display: none; }
+
+/* Mobile-only elements hidden on desktop */
+#mobile-samples-btn { display: none; }
+#mobile-overlay-close { display: none; }
+
+/* ===== MOBILE: Single screen, no scroll ===== */
+@media (max-width: 480px) {
+    html, body { font-size: 11px; }
+
+    #app {
+        height: 100dvh;
+        padding: 1px;
+        gap: 1px;
+        grid-template-rows: auto 1fr auto;
+    }
+
+    /* Top bar: compact */
+    #top-bar {
+        grid-template-columns: 1fr;
+        gap: 1px;
+        padding: 2px 4px;
+    }
+    #display-bar { gap: 4px; }
+    #display-songname { font-size: 10px; }
+    .display-field.dim { font-size: 9px; }
+    .display-field.time { font-size: 10px; min-width: 70px; }
+    #transport { gap: 1px; justify-content: center; }
+    .btn { font-size: 9px; padding: 1px 4px; min-height: 18px; }
+    .btn-sm { font-size: 8px; padding: 1px 3px; min-height: 16px; }
+
+    /* Main area: single column */
+    #main-area {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 1px;
+        overflow: hidden;
+    }
+
+    /* Reorder: center col first, then left col (browser) */
+    #center-col { order: 1; }
+    #left-col { order: 2; }
+    #right-col { order: 3; }
+
+    /* Center column: compact viz stack */
+    #center-col {
+        grid-template-rows: auto auto auto;
+        gap: 1px;
+    }
+
+    /* Hide position map */
+    #position-map { display: none; }
+
+    /* Channel strips: 2x2 grid */
+    #channel-strips-panel {
+        flex-direction: row;
+        flex-wrap: wrap;
+        height: 140px;
+        min-height: 140px;
+        max-height: 140px;
+        padding: 0;
+        gap: 1px;
+    }
+    .ch-strip {
+        flex: none;
+        width: calc(50% - 1px);
+        height: calc(50% - 1px);
+    }
+    .ch-strip-label { font-size: 7px; }
+
+    /* Meter strip: spectrogram + VU only */
+    #meter-strip {
+        grid-template-columns: 1fr 50px;
+        height: 40px;
+        min-height: 40px;
+        max-height: 40px;
+        padding: 1px;
+        gap: 1px;
+    }
+    #stereo-field { display: none; }
+    #scope-wave { display: none; }
+    .vu-label { font-size: 7px; }
+
+    /* Pattern: 4 rows, tiny */
+    #pattern-panel {
+        height: 80px;
+        min-height: 80px;
+        max-height: 80px;
+    }
+    #pattern-status-bar { font-size: 8px; gap: 4px; padding: 0 2px; }
+    .prow { height: 14px; }
+    .prow .p-rn { font-size: 7px; }
+    .prow .p-ch { font-size: 8px; }
+
+    /* Left column: browser fills remaining space */
+    #left-col {
+        grid-template-rows: 1fr;
+        gap: 1px;
+        min-height: 0;
+    }
+    #song-info-panel { display: none; }
+    #file-browser { padding: 2px; }
+    #search-box { font-size: 10px; padding: 2px 3px; }
+    #browser-nav { padding: 1px 0; }
+    .file-item { font-size: 10px; }
+    #lists-dropdown { max-height: 50vh; }
+
+    /* Right column: hidden, shown as overlay */
+    #right-col {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: var(--bg-dark);
+        padding: 4px;
+        overflow-y: auto;
+    }
+    #right-col.mobile-visible {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+    }
+
+    /* Mobile samples button */
+    #mobile-samples-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-panel);
+        border: 1px solid;
+        border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+        color: var(--text-yellow);
+        font-family: 'ProTracker', monospace;
+        font-size: 9px;
+        padding: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Close button inside overlay */
+    #mobile-overlay-close {
+        display: block;
+        background: var(--btn-face);
+        border: 2px solid;
+        border-color: var(--btn-light) var(--btn-dark) var(--btn-dark) var(--btn-light);
+        color: var(--text-bright);
+        font-family: 'ProTracker', monospace;
+        font-size: 10px;
+        padding: 6px;
+        cursor: pointer;
+        text-align: center;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    #metadata-panel { min-height: 80px; max-height: 150px; }
+
+    #loading .title { font-size: 16px; }
+    #loading .status { font-size: 11px; }
+}
