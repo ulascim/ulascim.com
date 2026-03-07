@@ -493,28 +493,29 @@ html, body {
     #app {
         height: 100dvh;
         padding: 1px;
-        gap: 1px;
+        gap: 0;
         grid-template-rows: auto 1fr auto;
     }
 
-    /* Top bar: compact */
+    /* Top bar: thin single line */
     #top-bar {
         grid-template-columns: 1fr;
-        gap: 1px;
-        padding: 2px 4px;
+        gap: 0;
+        padding: 1px 4px;
     }
     #display-bar { gap: 4px; }
-    #display-songname { font-size: 10px; }
-    .display-field.dim { font-size: 9px; }
-    .display-field.time { font-size: 10px; min-width: 70px; }
-    #transport { gap: 1px; justify-content: center; }
-    .btn { font-size: 9px; padding: 1px 4px; min-height: 18px; }
+    #display-songname { font-size: 8px; flex: 1; }
+    .display-field.dim { display: none; }
+    .display-field.time { font-size: 8px; min-width: 60px; }
+    #transport { display: none; }
+
+    .btn { font-size: 9px; padding: 1px 4px; min-height: 20px; }
     .btn-sm { font-size: 8px; padding: 1px 3px; min-height: 16px; }
 
     /* Main area: single column */
     #main-area {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto 1fr;
+        grid-template-rows: auto auto 1fr;
         gap: 1px;
         overflow: hidden;
     }
@@ -533,13 +534,13 @@ html, body {
     /* Hide position map */
     #position-map { display: none; }
 
-    /* Channel strips: 2x2 grid */
+    /* Channel strips: 2x2 grid - bigger */
     #channel-strips-panel {
         flex-direction: row;
         flex-wrap: wrap;
-        height: 140px;
-        min-height: 140px;
-        max-height: 140px;
+        height: 180px;
+        min-height: 180px;
+        max-height: 180px;
         padding: 0;
         gap: 1px;
     }
@@ -553,9 +554,9 @@ html, body {
     /* Meter strip: spectrogram + VU only */
     #meter-strip {
         grid-template-columns: 1fr 50px;
-        height: 40px;
-        min-height: 40px;
-        max-height: 40px;
+        height: 44px;
+        min-height: 44px;
+        max-height: 44px;
         padding: 1px;
         gap: 1px;
     }
@@ -563,14 +564,14 @@ html, body {
     #scope-wave { display: none; }
     .vu-label { font-size: 7px; }
 
-    /* Pattern: 4 rows, tiny */
+    /* Pattern: compact 3 rows */
     #pattern-panel {
-        height: 80px;
-        min-height: 80px;
-        max-height: 80px;
+        height: 54px;
+        min-height: 54px;
+        max-height: 54px;
     }
     #pattern-status-bar { font-size: 8px; gap: 4px; padding: 0 2px; }
-    .prow { height: 14px; }
+    .prow { height: 13px; }
     .prow .p-rn { font-size: 7px; }
     .prow .p-ch { font-size: 8px; }
 
@@ -602,21 +603,31 @@ html, body {
         grid-template-rows: auto 1fr auto;
     }
 
-    /* Mobile samples button */
+    /* Bottom bar: transport + samples button */
     #mobile-samples-btn {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        gap: 2px;
         background: var(--bg-panel);
         border: 1px solid;
         border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+        padding: 2px 3px;
+        align-items: center;
+    }
+    #mobile-transport {
+        display: flex;
+        gap: 2px;
+    }
+    #mobile-samples-toggle {
+        margin-left: auto;
         color: var(--text-yellow);
         font-family: 'ProTracker', monospace;
         font-size: 9px;
-        padding: 3px;
+        padding: 2px 8px;
         cursor: pointer;
-        text-transform: uppercase;
         letter-spacing: 1px;
+        background: var(--btn-face);
+        border: 1px solid;
+        border-color: var(--btn-light) var(--btn-dark) var(--btn-dark) var(--btn-light);
     }
 
     /* Close button inside overlay */
