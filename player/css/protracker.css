@@ -497,16 +497,17 @@ html, body {
         grid-template-rows: auto 1fr auto;
     }
 
-    /* Top bar: thin single line */
+    /* Top bar: thin single line, display only */
     #top-bar {
         grid-template-columns: 1fr;
         gap: 0;
-        padding: 1px 4px;
+        padding: 2px 6px;
+        min-height: 0;
     }
-    #display-bar { gap: 4px; }
-    #display-songname { font-size: 8px; flex: 1; }
+    #display-bar { gap: 6px; }
+    #display-songname { font-size: 9px; flex: 1; }
     .display-field.dim { display: none; }
-    .display-field.time { font-size: 8px; min-width: 60px; }
+    .display-field.time { font-size: 9px; min-width: 60px; }
     #transport { display: none; }
 
     .btn { font-size: 9px; padding: 1px 4px; min-height: 20px; }
@@ -534,13 +535,13 @@ html, body {
     /* Hide position map */
     #position-map { display: none; }
 
-    /* Channel strips: 2x2 grid - bigger */
+    /* Channel strips: 2x2 grid - dominant visual */
     #channel-strips-panel {
         flex-direction: row;
         flex-wrap: wrap;
-        height: 180px;
-        min-height: 180px;
-        max-height: 180px;
+        height: 240px;
+        min-height: 240px;
+        max-height: 240px;
         padding: 0;
         gap: 1px;
     }
@@ -551,12 +552,12 @@ html, body {
     }
     .ch-strip-label { font-size: 7px; }
 
-    /* Meter strip: spectrogram + VU only */
+    /* Meter strip: spectrogram + VU */
     #meter-strip {
         grid-template-columns: 1fr 50px;
-        height: 44px;
-        min-height: 44px;
-        max-height: 44px;
+        height: 50px;
+        min-height: 50px;
+        max-height: 50px;
         padding: 1px;
         gap: 1px;
     }
@@ -564,16 +565,8 @@ html, body {
     #scope-wave { display: none; }
     .vu-label { font-size: 7px; }
 
-    /* Pattern: compact 3 rows */
-    #pattern-panel {
-        height: 54px;
-        min-height: 54px;
-        max-height: 54px;
-    }
-    #pattern-status-bar { font-size: 8px; gap: 4px; padding: 0 2px; }
-    .prow { height: 13px; }
-    .prow .p-rn { font-size: 7px; }
-    .prow .p-ch { font-size: 8px; }
+    /* Pattern: hidden on mobile */
+    #pattern-panel { display: none; }
 
     /* Left column: browser fills remaining space */
     #left-col {
@@ -606,28 +599,39 @@ html, body {
     /* Bottom bar: transport + samples button */
     #mobile-samples-btn {
         display: flex;
-        gap: 2px;
+        gap: 3px;
         background: var(--bg-panel);
         border: 1px solid;
         border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
-        padding: 2px 3px;
+        padding: 4px 6px;
         align-items: center;
     }
     #mobile-transport {
         display: flex;
-        gap: 2px;
+        gap: 3px;
+        flex: 1;
     }
+    #mobile-transport .btn {
+        flex: 1;
+        min-height: 36px;
+        font-size: 14px;
+        justify-content: center;
+    }
+    #mobile-transport .btn-play { background: #224422; border-color: #448844 #112211 #112211 #448844; }
+    #mobile-transport .btn-stop { background: #442222; border-color: #884444 #221111 #221111 #884444; }
     #mobile-samples-toggle {
-        margin-left: auto;
         color: var(--text-yellow);
         font-family: 'ProTracker', monospace;
-        font-size: 9px;
-        padding: 2px 8px;
+        font-size: 10px;
+        padding: 8px 10px;
         cursor: pointer;
         letter-spacing: 1px;
-        background: var(--btn-face);
-        border: 1px solid;
-        border-color: var(--btn-light) var(--btn-dark) var(--btn-dark) var(--btn-light);
+        background: #442244;
+        border: 2px solid;
+        border-color: #884488 #221122 #221122 #884488;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
     }
 
     /* Close button inside overlay */
