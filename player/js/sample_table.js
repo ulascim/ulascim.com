@@ -4,9 +4,15 @@
  */
 const SampleTable = (() => {
     const container = () => document.getElementById("sample-rows");
+    let _mod = null;
+    let _previewCtx = null;
+    let _previewSource = null;
+    let _playingIdx = -1;
 
     function render(mod) {
         if (!mod) return;
+        _mod = mod;
+        _playingIdx = -1;
         const el = container();
         let html = "";
 
@@ -18,7 +24,7 @@ const SampleTable = (() => {
             const loop = s.hasLoop ? "LP" : "--";
             const name = s.name || (s.hasData ? "(unnamed)" : "");
 
-            html += `<div class="${cls}">`;
+            html += `<div class="${cls}" data-sidx="${s.index - 1}">`;
             html += `<span class="s-num">${num}</span>`;
             html += `<span class="s-name" title="${_esc(s.name)}">${_esc(name)}</span>`;
             html += `<span class="s-len">${len}</span>`;
@@ -29,7 +35,68 @@ const SampleTable = (() => {
         }
 
         el.innerHTML = html;
+
+        el.querySelectorAll(".sample-row.has-data").forEach(row => {
+            row.style.cursor = "pointer";
+            row.addEventListener("click", () => _preview(parseInt(row.dataset.sidx)));
+        });
+
         requestAnimationFrame(() => _drawAllWaveforms(mod));
+    }
+
+    function _preview(idx) {
+        if (!_mod || idx < 0 || idx >= _mod.samples.length) return;
+        const sample = _mod.samples[idx];
+        if (!sample || !sample.pcmData || sample.pcmData.length < 4) return;
+
+        if (_previewSource) {
+            try { _previewSource.stop(); } catch (e) {}
+            _previewSource = null;
+        }
+
+        if (_playingIdx === idx) {
+            _highlightRow(-1);
+            _playingIdx = -1;
+            return;
+        }
+
+        if (!_previewCtx) _previewCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (_previewCtx.state === "suspended") _previewCtx.resume();
+
+        const pcm = sample.pcmData;
+        const srcRate = 8287;
+        const outRate = _previewCtx.sampleRate;
+        const ratio = srcRate / outRate;
+        const outLen = Math.ceil(pcm.length / ratio);
+
+        const buf = _previewCtx.createBuffer(1, outLen, outRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < outLen; i++) {
+            let v = pcm[Math.min(Math.floor(i * ratio), pcm.length - 1)];
+            if (v > 127) v -= 256;
+            ch[i] = v / 128;
+        }
+
+        const src = _previewCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(_previewCtx.destination);
+        src.start();
+        _previewSource = src;
+        _playingIdx = idx;
+        _highlightRow(idx);
+
+        src.onended = () => {
+            if (_playingIdx === idx) {
+                _playingIdx = -1;
+                _highlightRow(-1);
+            }
+        };
+    }
+
+    function _highlightRow(idx) {
+        container().querySelectorAll(".sample-row").forEach(row => {
+            row.style.background = parseInt(row.dataset.sidx) === idx ? "#000055" : "";
+        });
     }
 
     function _drawAllWaveforms(mod) {
