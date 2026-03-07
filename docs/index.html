@@ -272,6 +272,29 @@
         .research-card.testing:hover .card-meta {
             border-top-color: rgba(255,255,255,0.3);
         }
+        /* Retro (deep blue) */
+        .research-card.retro {
+            border: 3px solid #4488ff;
+            background: #eef4ff;
+        }
+        .research-card.retro .card-tag {
+            background: #4488ff;
+        }
+        .research-card.retro:hover {
+            background: #000033;
+            color: #ccccff;
+        }
+        .research-card.retro:hover .card-subtitle {
+            color: #8899cc;
+        }
+        .research-card.retro:hover .card-tag {
+            background: #4488ff;
+            color: #fff;
+        }
+        .research-card.retro:hover .card-meta {
+            border-top-color: #334466;
+            color: #6677aa;
+        }
 
         @media (max-width: 768px) {
             .report { padding: 16px; }
@@ -339,7 +362,7 @@
                 </div>
             </a>
 
-            <a href="../player/index.html" class="research-card in-progress">
+            <a href="../player/index.html" class="research-card retro">
                 <span class="card-tag">RETRO COMPUTING</span>
                 <h2 class="card-title">COMPOSING MUSIC WITH AI ON AN AMIGA 500</h2>
                 <p class="card-subtitle">80,443 ProTracker MOD files from the Amiga demoscene. A web player with real-time visualization, culture mining of hidden messages, and a symbolic music model targeting the 68000 CPU.</p>
