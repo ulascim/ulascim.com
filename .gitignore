@@ -4,6 +4,7 @@
 # Allow only web-publishable folders
 !/docs/
 !/web/
+!/player/
 
 # Allow root files needed for GitHub Pages
 !/.gitignore

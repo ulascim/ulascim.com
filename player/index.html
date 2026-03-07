@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroPlayer - ProTracker MOD Player</title>
+    <link rel="stylesheet" href="css/protracker.css">
+</head>
+<body>
+
+<div id="loading">
+    <div class="title">RetroPlayer</div>
+    <div class="status" id="loading-status">Indexing 80,443 MOD files...</div>
+</div>
+
+<div id="app">
+
+    <!-- TOP BAR: Title + Transport + Time -->
+    <div id="top-bar" class="panel">
+        <div id="display-bar">
+            <div id="display-songname" class="display-field">No song loaded</div>
+            <div id="display-samplename" class="display-field dim">RetroPlayer v1.0</div>
+            <div id="display-time" class="display-field time">00:00 / 00:00</div>
+        </div>
+        <div id="transport">
+            <button class="btn btn-play" id="btn-play" title="Play/Pause [Space]">&#9654; PLAY</button>
+            <button class="btn btn-stop" id="btn-stop" title="Stop [Esc]">&#9632; STOP</button>
+            <button class="btn" id="btn-prev" title="Previous [P]">&#9664;</button>
+            <button class="btn" id="btn-next" title="Next [N]">&#9654;</button>
+            <button class="btn" id="btn-random" title="Random [R]">&#9733; RND</button>
+            <button class="btn" id="btn-shuffle" title="Toggle Shuffle [S]">&#8634; SHUF</button>
+        </div>
+    </div>
+
+    <!-- MAIN AREA: 3-column layout -->
+    <div id="main-area">
+
+        <!-- LEFT COLUMN: File Browser + Song Info -->
+        <div id="left-col">
+            <div id="file-browser" class="panel">
+                <div class="panel-title">File Browser</div>
+                <input type="text" id="search-box" placeholder="Instant search... [/]" autocomplete="off" spellcheck="false">
+                <div id="browser-nav">
+                    <div id="lists-dropdown-wrap">
+                        <button class="btn btn-sm" id="btn-lists" style="background:#442244;border-color:#884488 #221122 #221122 #884488">&#9733; Lists &#9662;</button>
+                        <div id="lists-dropdown" class="dropdown-menu hidden">
+                            <div id="lists-dropdown-curated"></div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-label">Genres</div>
+                            <div id="lists-dropdown-genres"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm" id="btn-artists">Artists</button>
+                    <button class="btn btn-sm" id="btn-back">Back</button>
+                </div>
+                <div id="file-list" class="panel-inset"></div>
+            </div>
+            <div id="song-info-panel" class="panel">
+                <div class="panel-title">Song Info</div>
+                <div id="song-info-grid">
+                    <span class="si-label">Format</span><span class="si-value" id="si-format">---</span>
+                    <span class="si-label">Title</span><span class="si-value" id="si-title">---</span>
+                    <span class="si-label">File Size</span><span class="si-value" id="si-filesize">---</span>
+                    <span class="si-label">Channels</span><span class="si-value" id="si-channels">4</span>
+                    <span class="si-label">Positions</span><span class="si-value" id="si-positions">---</span>
+                    <span class="si-label">Patterns</span><span class="si-value" id="si-patterns">---</span>
+                    <span class="si-label">Tempo/Speed</span><span class="si-value" id="si-tempo">125 / 6</span>
+                    <span class="si-label">Samples Used</span><span class="si-value" id="si-samples-used">---</span>
+                    <span class="si-label">Total Sample</span><span class="si-value" id="si-sample-bytes">---</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN -->
+        <div id="center-col">
+
+            <!-- Row 1: Song Map (compact) -->
+            <div id="position-map" class="panel">
+                <div class="panel-title">Song Map <span id="pos-info" class="dim"></span></div>
+                <div id="position-cells"></div>
+            </div>
+
+            <!-- Row 2: Channel Strips (the main visual area) -->
+            <div id="channel-strips-panel" class="panel">
+                <div class="ch-strip" id="ch-strip-0">
+                    <div class="ch-strip-label" style="color:var(--channel-1)">CH 1</div>
+                    <canvas id="strip-0" class="strip-canvas"></canvas>
+                </div>
+                <div class="ch-strip" id="ch-strip-1">
+                    <div class="ch-strip-label" style="color:var(--channel-2)">CH 2</div>
+                    <canvas id="strip-1" class="strip-canvas"></canvas>
+                </div>
+                <div class="ch-strip" id="ch-strip-2">
+                    <div class="ch-strip-label" style="color:var(--channel-3)">CH 3</div>
+                    <canvas id="strip-2" class="strip-canvas"></canvas>
+                </div>
+                <div class="ch-strip" id="ch-strip-3">
+                    <div class="ch-strip-label" style="color:var(--channel-4)">CH 4</div>
+                    <canvas id="strip-3" class="strip-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Row 3: Meter row = Spectrogram + Stereo Field + Master Waveform + VU -->
+            <div id="meter-strip" class="panel">
+                <canvas id="spectrogram-canvas" class="meter-canvas"></canvas>
+                <canvas id="stereo-field" class="meter-canvas-sm"></canvas>
+                <canvas id="scope-wave" class="meter-canvas"></canvas>
+                <div id="vu-section">
+                    <div class="vu-col"><div class="vu-label" style="color:var(--channel-1)">1</div><div class="vu-track"><div class="vu-fill" id="vu-0"></div></div></div>
+                    <div class="vu-col"><div class="vu-label" style="color:var(--channel-2)">2</div><div class="vu-track"><div class="vu-fill" id="vu-1"></div></div></div>
+                    <div class="vu-col"><div class="vu-label" style="color:var(--channel-3)">3</div><div class="vu-track"><div class="vu-fill" id="vu-2"></div></div></div>
+                    <div class="vu-col"><div class="vu-label" style="color:var(--channel-4)">4</div><div class="vu-track"><div class="vu-fill" id="vu-3"></div></div></div>
+                </div>
+            </div>
+
+            <!-- Row 4: Compact Pattern (8 rows) -->
+            <div id="pattern-panel" class="panel">
+                <div id="pattern-status-bar">
+                    <span>Pos:<b id="val-pos">00</b></span>
+                    <span>Pat:<b id="val-pattern">00</b></span>
+                    <span>Row:<b id="val-row">00</b></span>
+                    <span>Spd:<b id="val-speed">6</b></span>
+                    <span>BPM:<b id="val-tempo">125</b></span>
+                </div>
+                <div id="pattern-view" class="panel-inset">
+                    <div id="pattern-rows"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Sample Table + Metadata -->
+        <div id="right-col">
+            <div id="sample-panel" class="panel">
+                <div class="panel-title">Samples (31 slots)</div>
+                <div id="sample-table" class="panel-inset">
+                    <div id="sample-header" class="sample-row header">
+                        <span class="s-num">#</span>
+                        <span class="s-name">Name</span>
+                        <span class="s-len">Len</span>
+                        <span class="s-vol">V</span>
+                        <span class="s-loop">Lp</span>
+                        <span class="s-wave">Waveform</span>
+                    </div>
+                    <div id="sample-rows"></div>
+                </div>
+            </div>
+            <div id="metadata-panel" class="panel">
+                <div class="panel-title">Hidden Messages & Metadata</div>
+                <div id="metadata-content" class="panel-inset">
+                    <div class="meta-placeholder">Load a song to see its hidden messages...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var libopenmpt = {
+        locateFile: function(filename) { return 'lib/' + filename; }
+    };
+</script>
+<script src="lib/libopenmpt.js"></script>
+<script src="lib/chiptune2.js"></script>
+<script src="js/config.js"></script>
+<script src="js/mod_parser.js"></script>
+<script src="js/player.js"></script>
+<script src="js/pattern_view.js"></script>
+<script src="js/spectrum.js"></script>
+<script src="js/channel_strips.js"></script>
+<script src="js/sample_table.js"></script>
+<script src="js/position_map.js"></script>
+<script src="js/file_browser.js"></script>
+<script src="js/metadata_panel.js"></script>
+<script src="js/transport.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
