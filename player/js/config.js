@@ -26,7 +26,17 @@ function loadBulkMetadata() {
     if (_bulkMetadataLoading) return _bulkMetadataLoading;
     _bulkMetadataLoading = fetch("data/metadata.json")
         .then(r => r.json())
-        .then(data => { _bulkMetadata = data; return data; })
+        .then(index => {
+            if (index.chunks) {
+                return Promise.all(index.chunks.map(url => fetch(url).then(r => r.json())))
+                    .then(parts => {
+                        _bulkMetadata = Object.assign({}, ...parts);
+                        return _bulkMetadata;
+                    });
+            }
+            _bulkMetadata = index;
+            return _bulkMetadata;
+        })
         .catch(() => { _bulkMetadata = {}; return {}; });
     return _bulkMetadataLoading;
 }
