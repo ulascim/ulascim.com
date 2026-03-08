@@ -285,6 +285,15 @@ const App = (() => {
         if (el) el.classList.add("hidden");
     }
 
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && Player.currentPath) {
+            try {
+                const ctx = Player.analyserNode && Player.analyserNode.context;
+                if (ctx && ctx.state === "suspended") ctx.resume();
+            } catch (e) {}
+        }
+    });
+
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);
     } else {
