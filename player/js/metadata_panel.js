@@ -11,6 +11,10 @@ const MetadataPanel = (() => {
 
     async function loadForFile(relativePath) {
         try {
+            if (typeof CONFIG !== 'undefined' && CONFIG.isStatic) {
+                panel().innerHTML = `<div class="meta-placeholder">Metadata not available in static mode.</div>`;
+                return;
+            }
             const encodedPath = relativePath.split("/").map(encodeURIComponent).join("/");
             const res = await fetch(`/api/metadata/${encodedPath}`);
             const data = await res.json();
