@@ -1,6 +1,6 @@
 const CONFIG = {
     isStatic: true,
-    modBaseUrl: "https://pub-e96cf5ea8d1b4c78971ec56ebf019c2e.r2.dev/modland",
+    modBaseUrl: "https://retro-mods.ulascim-8f1.workers.dev/modland",
 };
 
 let _bulkMetadata = null;
