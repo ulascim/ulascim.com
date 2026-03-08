@@ -597,13 +597,13 @@ html, body {
     /* Hide position map */
     #position-map { display: none; }
 
-    /* Channel strips: 2x2 grid - dominant visual */
+    /* Channel strips: 2x2 grid */
     #channel-strips-panel {
         flex-direction: row;
         flex-wrap: wrap;
-        height: 240px;
-        min-height: 240px;
-        max-height: 240px;
+        height: 180px;
+        min-height: 180px;
+        max-height: 180px;
         padding: 0;
         gap: 1px;
     }
@@ -627,8 +627,16 @@ html, body {
     #scope-wave { display: none; }
     .vu-label { font-size: 7px; }
 
-    /* Pattern: hidden on mobile */
-    #pattern-panel { display: none; }
+    /* Pattern: compact 4 rows */
+    #pattern-panel {
+        height: 76px;
+        min-height: 76px;
+        max-height: 76px;
+    }
+    #pattern-status-bar { font-size: 7px; gap: 3px; padding: 0 2px; }
+    .prow { height: 13px; }
+    .prow .p-rn { font-size: 7px; }
+    .prow .p-ch { font-size: 7px; letter-spacing: 0; }
 
     /* Left column: browser fills remaining space */
     #left-col {
