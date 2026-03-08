@@ -11,13 +11,16 @@ const MetadataPanel = (() => {
 
     async function loadForFile(relativePath) {
         try {
+            let data;
             if (typeof CONFIG !== 'undefined' && CONFIG.isStatic) {
-                panel().innerHTML = `<div class="meta-placeholder">Metadata not available in static mode.</div>`;
-                return;
+                await loadBulkMetadata();
+                const rec = getMetadataForFile(relativePath);
+                data = rec ? rec : { found: false };
+            } else {
+                const encodedPath = relativePath.split("/").map(encodeURIComponent).join("/");
+                const res = await fetch(`/api/metadata/${encodedPath}`);
+                data = await res.json();
             }
-            const encodedPath = relativePath.split("/").map(encodeURIComponent).join("/");
-            const res = await fetch(`/api/metadata/${encodedPath}`);
-            const data = await res.json();
 
             if (!data.found) {
                 panel().innerHTML = `<div class="meta-placeholder">No culture mining data for this file.</div>`;
