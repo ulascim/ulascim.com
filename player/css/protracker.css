@@ -470,6 +470,68 @@ html, body {
     color: var(--text-bright); padding: 1px 3px; margin: 1px; font-size: 9px;
 }
 
+/* ===== HEADPHONE MODAL ===== */
+#headphone-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,18,0.92);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+}
+#headphone-modal.hidden { display: none; }
+.hp-box {
+    background: var(--bg-panel);
+    border: 3px solid;
+    border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+    padding: 24px 32px;
+    text-align: center;
+    max-width: 340px;
+}
+.hp-icon {
+    color: var(--channel-1);
+    line-height: 1;
+    margin-bottom: 12px;
+}
+.hp-icon pre {
+    font-family: 'ProTracker', monospace;
+    font-size: 6px;
+    line-height: 0.7;
+    letter-spacing: 1px;
+}
+.hp-title {
+    color: var(--text-yellow);
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.hp-text {
+    color: var(--text-primary);
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+.hp-btn {
+    font-family: 'ProTracker', monospace;
+    font-size: 13px;
+    color: var(--text-bright);
+    background: #224422;
+    border: 3px solid;
+    border-color: #448844 #112211 #112211 #448844;
+    padding: 8px 24px;
+    cursor: pointer;
+    letter-spacing: 1px;
+}
+.hp-btn:hover { background: #336633; }
+.hp-btn:active { border-color: #112211 #448844 #448844 #112211; }
+
+@media (max-width: 480px) {
+    .hp-box { padding: 20px 16px; max-width: 300px; }
+    .hp-icon pre { font-size: 5px; }
+    .hp-title { font-size: 12px; }
+    .hp-text { font-size: 10px; }
+    .hp-btn { font-size: 11px; padding: 8px 16px; }
+}
+
 /* ===== LOADING SCREEN ===== */
 #loading {
     position: fixed; inset: 0;

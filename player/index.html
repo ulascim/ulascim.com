@@ -8,6 +8,29 @@
 </head>
 <body>
 
+<div id="headphone-modal">
+    <div class="hp-box">
+        <div class="hp-icon">
+            <pre>
+    ██████████
+  ██          ██
+ ██            ██
+██              ██
+██              ██
+██              ██
+ ██            ██
+ ████        ████
+ █  █        █  █
+ █  █        █  █
+ █  █        █  █
+ ████        ████</pre>
+        </div>
+        <div class="hp-title">HEADPHONES RECOMMENDED</div>
+        <div class="hp-text">This player outputs native Amiga stereo.<br>Use headphones for the authentic experience.</div>
+        <button class="hp-btn" id="hp-ok">&#9654; OK, LET'S GO</button>
+    </div>
+</div>
+
 <div id="loading">
     <div class="title">RetroPlayer</div>
     <div class="status" id="loading-status">Indexing 80,443 MOD files...</div>
@@ -189,6 +212,9 @@
 <script src="js/transport.js"></script>
 <script src="js/app.js"></script>
 <script>
+document.getElementById("hp-ok").addEventListener("click", function() {
+    document.getElementById("headphone-modal").classList.add("hidden");
+});
 document.getElementById("mobile-samples-toggle").addEventListener("click", function() {
     document.getElementById("right-col").classList.add("mobile-visible");
 });
