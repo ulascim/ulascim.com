@@ -101,6 +101,9 @@ ChiptuneJsPlayer.prototype.module_ctl_set = function(ctl, value) {
 ChiptuneJsPlayer.prototype.unlock = function() {
 
   var context = this.context;
+  if (context.state === 'suspended') {
+    context.resume();
+  }
   var buffer = context.createBuffer(1, 1, 22050);
   var unlockSource = context.createBufferSource();
 
@@ -147,6 +150,7 @@ ChiptuneJsPlayer.prototype.load = function(input, callback) {
 }
 
 ChiptuneJsPlayer.prototype.play = function(buffer) {
+  if (this.context.state === 'suspended') this.context.resume();
   this.stop();
   var processNode = this.createLibopenmptNode(buffer, this.config);
   if (processNode == null) {
