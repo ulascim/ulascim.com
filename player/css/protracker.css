@@ -481,7 +481,7 @@ html, body {
 .hp-box {
     background: var(--bg-panel);
     border: 3px solid;
-    border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+    border-color: #112244 #8899bb #8899bb #112244;
     padding: 24px 32px;
     text-align: center;
     max-width: 340px;
@@ -516,13 +516,13 @@ html, body {
     color: var(--text-bright);
     background: #224422;
     border: 3px solid;
-    border-color: #112211 #448844 #448844 #112211;
+    border-color: #1a331a #55aa55 #55aa55 #1a331a;
     padding: 8px 24px;
     cursor: pointer;
     letter-spacing: 1px;
 }
 .hp-btn:hover { background: #336633; }
-.hp-btn:active { border-color: #448844 #112211 #112211 #448844; }
+.hp-btn:active { border-color: #55aa55 #1a331a #1a331a #55aa55; }
 
 @media (max-width: 480px) {
     .hp-box { padding: 20px 16px; max-width: 300px; }
