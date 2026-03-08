@@ -481,7 +481,7 @@ html, body {
 .hp-box {
     background: var(--bg-panel);
     border: 3px solid;
-    border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+    border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
     padding: 24px 32px;
     text-align: center;
     max-width: 340px;
@@ -516,13 +516,13 @@ html, body {
     color: var(--text-bright);
     background: #224422;
     border: 3px solid;
-    border-color: #448844 #112211 #112211 #448844;
+    border-color: #112211 #448844 #448844 #112211;
     padding: 8px 24px;
     cursor: pointer;
     letter-spacing: 1px;
 }
 .hp-btn:hover { background: #336633; }
-.hp-btn:active { border-color: #112211 #448844 #448844 #112211; }
+.hp-btn:active { border-color: #448844 #112211 #112211 #448844; }
 
 @media (max-width: 480px) {
     .hp-box { padding: 20px 16px; max-width: 300px; }
@@ -614,17 +614,20 @@ html, body {
     }
     .ch-strip-label { font-size: 7px; }
 
-    /* Meter strip: spectrogram + VU */
+    /* Meter strip: spectrogram + VU only, hide stereo + wave */
     #meter-strip {
         grid-template-columns: 1fr 50px;
+        grid-template-rows: 1fr;
         height: 50px;
         min-height: 50px;
         max-height: 50px;
         padding: 1px;
         gap: 1px;
     }
+    #spectrogram-canvas { grid-column: 1; grid-row: 1; }
     #stereo-field { display: none; }
     #scope-wave { display: none; }
+    #vu-section { grid-column: 2; grid-row: 1; }
     .vu-label { font-size: 7px; }
 
     /* Pattern: compact 4 rows */
