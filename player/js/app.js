@@ -31,6 +31,8 @@ const App = (() => {
 
         await _waitForStats();
         _hideLoading();
+
+        if (typeof loadBulkMetadata === 'function') loadBulkMetadata();
     }
 
     async function _waitForStats() {
@@ -48,11 +50,11 @@ const App = (() => {
 
     async function onFileSelected(relativePath) {
         try {
-            // Stop any current playback FIRST to prevent overlapping audio
             Player.stop();
             Spectrum.stop();
             ChannelStrips.stop();
             _stopUpdateLoop();
+            if (sampleCycleInterval) { clearInterval(sampleCycleInterval); sampleCycleInterval = null; }
 
             document.getElementById("display-samplename").textContent = "Loading...";
 
@@ -60,7 +62,6 @@ const App = (() => {
             if (!modRes.ok) throw new Error(`HTTP ${modRes.status} for ${relativePath}`);
             const modBuffer = await modRes.arrayBuffer();
 
-            // Deep parse: extract every piece of information
             currentMod = ModParser.parse(modBuffer);
 
             if (!currentMod) {
@@ -68,10 +69,9 @@ const App = (() => {
                 return;
             }
 
-            // Load into chiptune2.js for audio playback
-            await Player.load(relativePath);
+            await Player.load(relativePath, modBuffer);
 
-            // Populate all visual components from the parsed data
+            _prevPos = -1; _prevRow = -1; _prevSpd = -1; _prevTmp = -1; _prevSec = -1;
             _populateSongInfo(relativePath, currentMod);
             SampleTable.render(currentMod);
             PositionMap.render(currentMod);
@@ -82,7 +82,7 @@ const App = (() => {
             Player.play();
 
             FileBrowser.setPlaying(relativePath);
-            MetadataPanel.loadForFile(relativePath);
+            MetadataPanel.loadForFile(relativePath).catch(() => {});
 
             Spectrum.start();
             ChannelStrips.start();
@@ -188,15 +188,8 @@ const App = (() => {
             }
 
             case "random": {
-                try {
-                    const res = await fetch("/api/random");
-                    const data = await res.json();
-                    if (data.files?.length) {
-                        onFileSelected(data.files[0].path);
-                    }
-                } catch (err) {
-                    console.error("Random failed:", err);
-                }
+                const rnd = FileBrowser.getRandomFile();
+                if (rnd) onFileSelected(rnd);
                 break;
             }
 
@@ -217,40 +210,61 @@ const App = (() => {
         }
     }
 
+    // Cached DOM refs for the hot update loop
+    const _dom = {};
+    let _prevPos = -1, _prevRow = -1, _prevSpd = -1, _prevTmp = -1, _prevSec = -1;
+
+    function _ensureDom() {
+        if (_dom.pos) return;
+        _dom.pos = document.getElementById("val-pos");
+        _dom.pat = document.getElementById("val-pattern");
+        _dom.row = document.getElementById("val-row");
+        _dom.spd = document.getElementById("val-speed");
+        _dom.tmp = document.getElementById("val-tempo");
+        _dom.sit = document.getElementById("si-tempo");
+        _dom.time = document.getElementById("display-time");
+    }
+
     function _updateDisplay() {
+        _ensureDom();
         const pos = Player.getPosition();
         if (pos) {
-            document.getElementById("val-pos").textContent =
-                pos.position.toString().padStart(2, "0");
-            document.getElementById("val-pattern").textContent =
-                pos.pattern.toString().padStart(2, "0");
-            document.getElementById("val-row").textContent =
-                pos.row.toString().padStart(2, "0");
-
-            PatternView.render(pos.position, pos.row);
-            PositionMap.update(pos.position);
+            if (pos.position !== _prevPos) {
+                _prevPos = pos.position;
+                _dom.pos.textContent = pos.position.toString().padStart(2, "0");
+                PositionMap.update(pos.position);
+            }
+            if (pos.row !== _prevRow || pos.position !== _prevPos) {
+                _prevRow = pos.row;
+                _dom.pat.textContent = pos.pattern.toString().padStart(2, "0");
+                _dom.row.textContent = pos.row.toString().padStart(2, "0");
+                PatternView.render(pos.position, pos.row);
+            }
         }
 
-        // Real speed/tempo/BPM from libopenmpt
         const tempo = Player.getTempo();
-        if (tempo.speed > 0) {
-            document.getElementById("val-speed").textContent = tempo.speed;
-            document.getElementById("val-tempo").textContent = tempo.tempo;
-            const siTempo = document.getElementById("si-tempo");
-            if (siTempo) {
-                siTempo.textContent = `${tempo.tempo} / ${tempo.speed}` +
+        if (tempo.speed > 0 && (tempo.speed !== _prevSpd || tempo.tempo !== _prevTmp)) {
+            _prevSpd = tempo.speed;
+            _prevTmp = tempo.tempo;
+            _dom.spd.textContent = tempo.speed;
+            _dom.tmp.textContent = tempo.tempo;
+            if (_dom.sit) {
+                _dom.sit.textContent = `${tempo.tempo} / ${tempo.speed}` +
                     (tempo.bpm > 0 ? ` (${tempo.bpm.toFixed(1)} BPM)` : "");
             }
         }
 
         const elapsed = Player.getCurrentTime();
-        const duration = Player.getDuration();
-        const eMins = Math.floor(elapsed / 60).toString().padStart(2, "0");
-        const eSecs = Math.floor(elapsed % 60).toString().padStart(2, "0");
-        const dMins = Math.floor(duration / 60).toString().padStart(2, "0");
-        const dSecs = Math.floor(duration % 60).toString().padStart(2, "0");
-        document.getElementById("display-time").textContent =
-            `${eMins}:${eSecs} / ${dMins}:${dSecs}`;
+        const sec = Math.floor(elapsed);
+        if (sec !== _prevSec) {
+            _prevSec = sec;
+            const duration = Player.getDuration();
+            const eMins = Math.floor(elapsed / 60).toString().padStart(2, "0");
+            const eSecs = (sec % 60).toString().padStart(2, "0");
+            const dMins = Math.floor(duration / 60).toString().padStart(2, "0");
+            const dSecs = Math.floor(duration % 60).toString().padStart(2, "0");
+            _dom.time.textContent = `${eMins}:${eSecs} / ${dMins}:${dSecs}`;
+        }
     }
 
     function _clearSongInfo() {

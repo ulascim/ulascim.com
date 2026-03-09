@@ -15,35 +15,28 @@ const Spectrum = (() => {
     const VU_ATTACK = 0.5;
     const VU_DECAY = 0.92;
 
-    // Spectrogram color LUT (pre-computed for speed)
-    const SPEC_LUT = _buildSpectrogramLUT();
-
-    function _buildSpectrogramLUT() {
-        const lut = new Array(256);
+    const SPEC_LUT_R = new Uint8Array(256);
+    const SPEC_LUT_G = new Uint8Array(256);
+    const SPEC_LUT_B = new Uint8Array(256);
+    (function _buildSpectrogramLUT() {
         for (let i = 0; i < 256; i++) {
             const t = i / 255;
-            let r, g, b;
             if (t < 0.25) {
-                // black -> deep blue
                 const s = t / 0.25;
-                r = 0; g = 0; b = Math.floor(40 * s);
+                SPEC_LUT_R[i] = 0; SPEC_LUT_G[i] = 0; SPEC_LUT_B[i] = Math.floor(40 * s);
             } else if (t < 0.5) {
-                // deep blue -> cyan
                 const s = (t - 0.25) / 0.25;
-                r = 0; g = Math.floor(180 * s); b = 40 + Math.floor(60 * s);
+                SPEC_LUT_R[i] = 0; SPEC_LUT_G[i] = Math.floor(180 * s); SPEC_LUT_B[i] = 40 + Math.floor(60 * s);
             } else if (t < 0.75) {
-                // cyan -> yellow
                 const s = (t - 0.5) / 0.25;
-                r = Math.floor(255 * s); g = 180 + Math.floor(75 * s); b = Math.floor(100 * (1 - s));
+                SPEC_LUT_R[i] = Math.floor(255 * s); SPEC_LUT_G[i] = 180 + Math.floor(75 * s); SPEC_LUT_B[i] = Math.floor(100 * (1 - s));
             } else {
-                // yellow -> white
                 const s = (t - 0.75) / 0.25;
-                r = 255; g = 255; b = Math.floor(255 * s);
+                SPEC_LUT_R[i] = 255; SPEC_LUT_G[i] = 255; SPEC_LUT_B[i] = Math.floor(255 * s);
             }
-            lut[i] = `rgb(${r},${g},${b})`;
         }
-        return lut;
-    }
+    })();
+    let specColumnData = null;
 
     function init() {
         spectrogramCanvas = document.getElementById("spectrogram-canvas");
@@ -101,24 +94,27 @@ const Spectrum = (() => {
         const h = spectrogramCanvas.height;
         if (w < 4 || h < 4) return;
 
-        // Scroll left by 1 pixel
         const imgData = spectrogramCtx.getImageData(1, 0, w - 1, h);
         spectrogramCtx.putImageData(imgData, 0, 0);
 
-        // Draw new column on the right edge
-        // Map frequency bins to vertical pixels (log scale for musical relevance)
+        if (!specColumnData || specColumnData.height !== h) {
+            specColumnData = spectrogramCtx.createImageData(1, h);
+        }
+        const pixels = specColumnData.data;
         const binCount = freqData.length;
         for (let y = 0; y < h; y++) {
-            // Map y (bottom=0Hz, top=high freq) to frequency bin with log scale
-            const normalizedY = 1 - (y / h); // 0 at top, 1 at bottom
-            const binIdx = Math.floor(Math.pow(normalizedY, 2.0) * binCount);
+            const normalizedY = 1 - (y / h);
+            const binIdx = Math.floor(normalizedY * normalizedY * binCount);
             const val = binIdx < binCount ? freqData[binIdx] : 0;
-
-            // Apply slight gain and gamma for visibility
-            const boosted = Math.min(255, Math.floor(val * 1.4));
-            spectrogramCtx.fillStyle = SPEC_LUT[boosted];
-            spectrogramCtx.fillRect(w - 1, y, 1, 1);
+            const boosted = val * 1.4;
+            const idx = boosted < 255 ? (boosted | 0) : 255;
+            const off = y << 2;
+            pixels[off] = SPEC_LUT_R[idx];
+            pixels[off + 1] = SPEC_LUT_G[idx];
+            pixels[off + 2] = SPEC_LUT_B[idx];
+            pixels[off + 3] = 255;
         }
+        spectrogramCtx.putImageData(specColumnData, w - 1, 0);
     }
 
     function _updateStereoField() {

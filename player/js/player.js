@@ -13,6 +13,8 @@ const Player = (() => {
     let onEndCallback = null;
     let startTime = 0;
     let pauseTime = 0;
+    let freqDataBuf = null;
+    let timeDomainBuf = null;
 
     function _modulePtr() {
         if (!chiptunePlayer || !chiptunePlayer.currentPlayingNode) return 0;
@@ -31,26 +33,37 @@ const Player = (() => {
         });
     }
 
-    function load(relativePath) {
+    function load(relativePath, arrayBuffer) {
         return new Promise((resolve, reject) => {
             if (!chiptunePlayer) init();
-            // Stop any existing playback before loading new file
             if (isPlaying || chiptunePlayer.currentPlayingNode) {
                 try { chiptunePlayer.stop(); } catch (e) { /* ignore */ }
                 isPlaying = false;
             }
-            const url = modUrl(relativePath);
-            chiptunePlayer.load(url, (buffer) => {
-                currentBuffer = buffer;
+            _setupAnalyser();
+
+            if (arrayBuffer) {
+                currentBuffer = arrayBuffer;
                 currentPath = relativePath;
                 isPlaying = false;
                 pauseTime = 0;
-                _setupAnalyser();
                 currentInfo = {
                     title: relativePath.split("/").pop().replace(".mod", ""),
                 };
                 resolve(currentInfo);
-            });
+            } else {
+                const url = modUrl(relativePath);
+                chiptunePlayer.load(url, (buffer) => {
+                    currentBuffer = buffer;
+                    currentPath = relativePath;
+                    isPlaying = false;
+                    pauseTime = 0;
+                    currentInfo = {
+                        title: relativePath.split("/").pop().replace(".mod", ""),
+                    };
+                    resolve(currentInfo);
+                });
+            }
         });
     }
 
@@ -206,16 +219,20 @@ const Player = (() => {
 
     function getFrequencyData() {
         if (!analyser) return null;
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(data);
-        return data;
+        if (!freqDataBuf || freqDataBuf.length !== analyser.frequencyBinCount) {
+            freqDataBuf = new Uint8Array(analyser.frequencyBinCount);
+        }
+        analyser.getByteFrequencyData(freqDataBuf);
+        return freqDataBuf;
     }
 
     function getTimeDomainData() {
         if (!analyser) return null;
-        const data = new Uint8Array(analyser.fftSize);
-        analyser.getByteTimeDomainData(data);
-        return data;
+        if (!timeDomainBuf || timeDomainBuf.length !== analyser.fftSize) {
+            timeDomainBuf = new Uint8Array(analyser.fftSize);
+        }
+        analyser.getByteTimeDomainData(timeDomainBuf);
+        return timeDomainBuf;
     }
 
     function getCurrentTime() {
