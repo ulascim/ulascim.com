@@ -64,13 +64,13 @@ const FileBrowser = (() => {
 
     async function _loadCuratedLists() {
         try {
-            const res = await fetch("/data/curated_lists.json");
+            const res = await fetch("data/curated_lists.json");
             curatedLists = await res.json();
             _buildDropdown();
         } catch (e) {
             console.warn("Curated lists not available, trying top100.json fallback");
             try {
-                const res2 = await fetch("/data/top100.json");
+                const res2 = await fetch("data/top100.json");
                 top100Data = await res2.json();
                 _buildDropdownFallback();
             } catch (e2) {
