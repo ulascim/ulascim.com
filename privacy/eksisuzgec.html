@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ekşisüzgeç – Gizlilik Politikası</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+      background: #111; color: #ccc;
+      line-height: 1.7; padding: 40px 20px;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
+    h1 { color: #81c14b; font-size: 24px; margin-bottom: 8px; }
+    .subtitle { color: #666; font-size: 13px; margin-bottom: 32px; }
+    h2 { color: #eee; font-size: 16px; margin: 24px 0 8px; }
+    p, li { font-size: 14px; margin-bottom: 12px; }
+    ul { padding-left: 20px; }
+    a { color: #81c14b; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #222; color: #555; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ekşisüzgeç – Gizlilik Politikası</h1>
+    <p class="subtitle">Son güncelleme: 24 Mart 2026</p>
+
+    <h2>Genel Bakış</h2>
+    <p>ekşisüzgeç, Ekşi Sözlük'te toplu yazar engelleme ve başlık engelleme işlemlerini otomatikleştiren bir tarayıcı eklentisidir. Kullanıcı gizliliğine saygı gösterir ve minimum düzeyde veri işler.</p>
+
+    <h2>Toplanan Veriler</h2>
+    <p>ekşisüzgeç hiçbir kişisel veriyi toplamaz, saklamaz veya üçüncü taraflarla paylaşmaz.</p>
+    <ul>
+      <li><strong>Sunucu yok:</strong> Eklentinin kendisine ait bir sunucusu yoktur. Hiçbir veri harici bir sunucuya gönderilmez.</li>
+      <li><strong>Yerel depolama:</strong> Engel listeleri ve eklenti ayarları yalnızca tarayıcının yerel depolama alanında (<code>chrome.storage.local</code>) saklanır ve cihazınızdan çıkmaz.</li>
+      <li><strong>Analitik yok:</strong> Kullanım istatistikleri, analitik veya izleme araçları kullanılmaz.</li>
+    </ul>
+
+    <h2>Ağ İstekleri</h2>
+    <p>Eklenti yalnızca aşağıdaki iki alan adına istek gönderir:</p>
+    <ul>
+      <li><strong>eksisozluk.com:</strong> Engelleme ve engel kaldırma işlemleri için Ekşi Sözlük'ün mevcut kullanıcı ilişki API'si kullanılır. Bu istekler yalnızca kullanıcının kendi oturumu ve mevcut çerezleriyle yapılır.</li>
+      <li><strong>raw.githubusercontent.com:</strong> Topluluk tarafından oluşturulan süzgeç listelerini indirmek için GitHub'a salt okunur istekler yapılır. Kaynak: <a href="https://github.com/ulascim/eksi-suzgec-lists">ulascim/eksi-suzgec-lists</a></li>
+    </ul>
+
+    <h2>İzinler</h2>
+    <ul>
+      <li><strong>storage:</strong> Engel listelerini ve eklenti durumunu yerel olarak saklamak için kullanılır.</li>
+      <li><strong>eksisozluk.com erişimi:</strong> Engelleme işlemlerini gerçekleştirmek için gereklidir.</li>
+      <li><strong>GitHub erişimi:</strong> Sistem listelerini indirmek için gereklidir.</li>
+    </ul>
+
+    <h2>Üçüncü Taraf Hizmetler</h2>
+    <p>Eklenti yalnızca GitHub üzerinde barındırılan açık kaynak listeleri kullanır. Başka hiçbir üçüncü taraf hizmeti, SDK veya izleme aracı entegre edilmemiştir.</p>
+
+    <h2>Veri Paylaşımı</h2>
+    <p>Kullanıcı verileri hiçbir şekilde üçüncü taraflarla paylaşılmaz, satılmaz veya aktarılmaz.</p>
+
+    <h2>Değişiklikler</h2>
+    <p>Bu gizlilik politikası güncellenebilir. Değişiklikler bu sayfada yayınlanır.</p>
+
+    <h2>İletişim</h2>
+    <p>Sorularınız için: <a href="https://github.com/ulascim/eksi-suzgec-lists/issues">GitHub Issues</a></p>
+
+    <div class="footer">
+      <p>&copy; 2026 ekşisüzgeç · <a href="https://github.com/ulascim/eksi-suzgec-lists">GitHub</a></p>
+    </div>
+  </div>
+</body>
+</html>
